@@ -67,10 +67,9 @@ static int Flag_val(value v)
   return FLAGS[Int_val(v)];
 }
 
-
 #define Context_val(v) (*(struct SwsContext**)Data_custom_val(v))
 
-static void finalize_context(v)
+static void finalize_context(value v)
 {
   struct SwsContext *c = Context_val(v);
   sws_freeContext(c);

@@ -7,4 +7,11 @@ module Pixel_format = struct
   | YUV422p
   | YUV444p
   | RGBA
+
+  external bits : t -> int = "caml_avutil_bits_per_pixel"
+
+  let bits ?(padding=true) p =
+    let n = bits p in
+    (* TODO: when padding is true we should add the padding *)
+    n
 end
