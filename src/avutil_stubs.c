@@ -10,7 +10,20 @@
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
 
-static const enum PixelFormat PIXEL_FORMATS[] = { PIX_FMT_YUV420P, PIX_FMT_YUYV422, PIX_FMT_RGB24, PIX_FMT_BGR24, PIX_FMT_YUV422P, PIX_FMT_YUV444P, PIX_FMT_RGBA };
+static const enum PixelFormat PIXEL_FORMATS[] = {
+  PIX_FMT_YUV420P,
+  PIX_FMT_YUYV422,
+  PIX_FMT_RGB24,
+  PIX_FMT_BGR24,
+  PIX_FMT_YUV422P,
+  PIX_FMT_YUV444P,
+  PIX_FMT_YUV410P,
+  PIX_FMT_YUV411P,
+  PIX_FMT_YUVJ422P,
+  PIX_FMT_YUVJ444P,
+  PIX_FMT_RGBA,
+  PIX_FMT_BGRA
+};
 
 int PixelFormat_val(value v)
 {

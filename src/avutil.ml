@@ -6,7 +6,12 @@ module Pixel_format = struct
   | BGR24
   | YUV422p
   | YUV444p
+  | YUV410p
+  | YUV411p
+  | YUVJ422p
+  | YUVJ444p
   | RGBA
+  | BGRA
 
   external bits : t -> int = "caml_avutil_bits_per_pixel"
 
