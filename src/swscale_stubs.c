@@ -10,10 +10,31 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
+#include <malloc.h>
 
 #include <libswscale/swscale.h>
 
 #include "avutil_stubs.h"
+
+#define ALIGNMENT_BYTES 16
+
+CAMLprim value ocaml_swscale_version(value unit)
+{
+  CAMLparam0();
+  CAMLreturn(Val_int(swscale_version()));
+}
+
+CAMLprim value ocaml_swscale_configuration(value unit)
+{
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(swscale_configuration()));
+}
+
+CAMLprim value ocaml_swscale_license(value unit)
+{
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(swscale_license()));
+}
 
 /***** Filters *****/
 
@@ -39,7 +60,7 @@ static struct custom_operations filter_ops =
 
 /***** Contexts *****/
 
-static const int FLAGS[] = { SWS_FAST_BILINEAR, SWS_BILINEAR, SWS_BICUBIC };
+static const int FLAGS[] = { SWS_FAST_BILINEAR, SWS_BILINEAR, SWS_BICUBIC, SWS_PRINT_INFO };
 
 static int Flag_val(value v)
 {
@@ -98,9 +119,10 @@ CAMLprim value ocaml_swscale_get_context_byte(value *argv, int argn)
   assert(0);
 }
 
-CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value h_, value dst_)
+CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value h_, value dst_, value dst_off)
 {
-  CAMLparam3(context_, src_, dst_);
+  CAMLparam4(context_, src_, dst_, dst_off);
+  CAMLlocal1(v);
   struct SwsContext *context = Context_val(context_);
   int src_planes = Wosize_val(src_);
   int dst_planes = Wosize_val(dst_);
@@ -108,20 +130,25 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value
   int h = Int_val(h_);
   int i;
 
-  const uint8_t *src_slice[src_planes];
-  int src_stride[src_planes];
-  uint8_t *dst_slice[dst_planes];
-  int dst_stride[dst_planes];
+  const uint8_t *src_slice[4];
+  int src_stride[4];
+  uint8_t *dst_slice[4];
+  int dst_stride[4];
+
+  memset(src_slice, 0, 4*sizeof(uint8_t));
+  memset(dst_slice, 0, 4*sizeof(uint8_t));
 
   for (i = 0; i < src_planes; i++)
     {
-      src_slice[i] = Caml_ba_data_val(Field(src_, 0));
-      src_stride[i] = Int_val(Field(src_, 1));
+      v = Field(src_, i);
+      src_slice[i] = Caml_ba_data_val(Field(v, 0));
+      src_stride[i] = Int_val(Field(v, 1));
     }
   for (i = 0; i < dst_planes; i++)
     {
-      dst_slice[i] = Caml_ba_data_val(Field(dst_, 0));
-      dst_stride[i] = Int_val(Field(dst_, 1));
+      v = Field(dst_, i);
+      dst_slice[i] = Caml_ba_data_val(Field(v, 0)) + Int_val(dst_off);
+      dst_stride[i] = Int_val(Field(v, 1));
     }
 
   caml_release_runtime_system();
@@ -129,4 +156,10 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value
   caml_acquire_runtime_system();
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_swscale_scale_byte(value *argv, int argn)
+{
+  /* TODO */
+  assert(0);
 }
