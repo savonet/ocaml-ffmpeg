@@ -27,6 +27,7 @@ OCAMLLIBPATH = @CAMLLIBPATH@
 
 SOURCES = avutil_stubs.h avutil_stubs.c avutil.ml swscale_stubs.c swscale.ml
 RESULT = ffmpeg
+LIB_PACK_NAME = FFmpeg
 OCAMLDOCFLAGS = -stars
 LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
 ACLIBS = @LIBS@
