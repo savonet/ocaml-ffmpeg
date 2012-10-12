@@ -1,0 +1,57 @@
+# Copyright (C) 2005-2006 Savonet team
+# pulseaudio bindings for OCaml.
+#
+# by Samuel Mimram and Romain Beauxis
+
+# $Id: Makefile.in 2383 2006-04-09 16:21:04Z smimram $
+
+OCAMLMAKEFILE = OCamlMakefile
+
+OCAMLFIND = @OCAMLFIND@
+OCAMLFIND_LDCONF = @OCAMLFIND_LDCONF@
+OCAMLC = @OCAMLC@
+OCAMLOPT = @OCAMLOPT@
+OCAMLBEST = @OCAMLBEST@
+OCAMLMKTOP = @OCAMLMKTOP@
+OCAMLMKLIB = @OCAMLMKLIB@
+OCAMLCP = @OCAMLCP@
+OCAMLDEP = @OCAMLDEP@
+OCAMLLEX = @OCAMLLEX@
+OCAMLYACC = @OCAMLYACC@
+OCAMLDOC = @OCAMLDOC@
+AR = @AR@
+LATEX = @LATEX@
+DVIPS = @DVIPS@
+PS2PDF = @PS2PDF@
+OCAMLLIBPATH = @CAMLLIBPATH@
+
+SOURCES = avutil_stubs.h avutil_stubs.c avutil.ml swscale_stubs.c swscale.ml
+RESULT = ffmpeg
+OCAMLDOCFLAGS = -stars
+LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
+ACLIBS = @LIBS@
+LDFLAGS = @LDFLAGS@
+CLIBS = $(ACLIBS:-l%=%)
+LIBDIRS = $(LDFLAGS:-L%=%)
+CC = @CC@
+CFLAGS = @CFLAGS@ -Wall -DCAML_NAME_SPACE
+CPPFLAGS = @CPPFLAGS@
+INCDIRS = @INC@
+NO_CUSTOM = yes
+OCAMLFLAGS = @OCAMLFLAGS@
+
+all: $(OCAMLBEST)
+
+byte: byte-code-library
+
+opt: native-code-library
+
+native-code-library: byte-code-library
+
+install: libinstall
+
+uninstall: libuninstall
+
+update: uninstall install
+
+-include $(OCAMLMAKEFILE)
