@@ -10,7 +10,6 @@
 #include <string.h>
 #include <assert.h>
 #include <stdio.h>
-#include <malloc.h>
 
 #include <libswscale/swscale.h>
 
