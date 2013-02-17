@@ -1,12 +1,8 @@
-# $Id: Makefile.in 2660 2006-07-18 17:23:31Z dbaelde $
-
-PROGNAME := ocaml-pulseaudio
+PROGNAME := ocaml-ffmpeg
 DISTFILES := @AUTOCONF_INSTALL_FILES@ CHANGES COPYING Makefile.in README \
 	bootstrap configure configure.ac  \
-	src/*.ml src/*.mli src/*.c src/Makefile.in src/META.in \
-	src/OCamlMakefile \
-	examples/rec/*.ml examples/rec/Makefile examples/rec/OCamlMakefile \
-	examples/noise/*.ml examples/noise/Makefile examples/noise/OCamlMakefile
+	src/*.ml src/*.mli src/*.c src/*.h src/Makefile.in src/META.in \
+	src/OCamlMakefile
 VERSION = @VERSION@
 
 all clean install uninstall:
