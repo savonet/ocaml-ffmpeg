@@ -1,0 +1,11 @@
+language: c
+sudo: false
+addons:
+  apt:
+    packages:
+    - ocaml-nox
+    - ocaml-findlib
+    - libavutil-dev
+    - libswscale-dev
+
+script: ./bootstrap && ./configure && make
