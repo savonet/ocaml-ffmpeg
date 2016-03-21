@@ -10,22 +10,22 @@
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
 
-static const enum PixelFormat PIXEL_FORMATS[] = {
-  PIX_FMT_YUV420P,
-  PIX_FMT_YUYV422,
-  PIX_FMT_RGB24,
-  PIX_FMT_BGR24,
-  PIX_FMT_YUV422P,
-  PIX_FMT_YUV444P,
-  PIX_FMT_YUV410P,
-  PIX_FMT_YUV411P,
-  PIX_FMT_YUVJ422P,
-  PIX_FMT_YUVJ444P,
-  PIX_FMT_RGBA,
-  PIX_FMT_BGRA
+static const enum AVPixelFormat PIXEL_FORMATS[] = {
+  AV_PIX_FMT_YUV420P,
+  AV_PIX_FMT_YUYV422,
+  AV_PIX_FMT_RGB24,
+  AV_PIX_FMT_BGR24,
+  AV_PIX_FMT_YUV422P,
+  AV_PIX_FMT_YUV444P,
+  AV_PIX_FMT_YUV410P,
+  AV_PIX_FMT_YUV411P,
+  AV_PIX_FMT_YUVJ422P,
+  AV_PIX_FMT_YUVJ444P,
+  AV_PIX_FMT_RGBA,
+  AV_PIX_FMT_BGRA
 };
 
-int PixelFormat_val(value v)
+enum AVPixelFormat PixelFormat_val(value v)
 {
   return PIXEL_FORMATS[Int_val(v)];
 }
@@ -33,10 +33,10 @@ int PixelFormat_val(value v)
 CAMLprim value caml_avutil_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
-  int p = Int_val(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
   int ans;
 
-  ans = av_get_bits_per_pixel(&av_pix_fmt_descriptors[p]);
+  ans = av_get_bits_per_pixel(av_pix_fmt_desc_get(p));
 
   CAMLreturn(Val_int(ans));
 }

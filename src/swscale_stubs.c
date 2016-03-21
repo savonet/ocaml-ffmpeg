@@ -90,10 +90,10 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_, value src_h
   CAMLlocal1(ans);
   int src_w = Int_val(src_w_);
   int src_h = Int_val(src_h_);
-  enum PixelFormat src_format = PixelFormat_val(src_format_);
+  enum AVPixelFormat src_format = PixelFormat_val(src_format_);
   int dst_w = Int_val(dst_w_);
   int dst_h = Int_val(dst_h_);
-  enum PixelFormat dst_format = PixelFormat_val(dst_format_);
+  enum AVPixelFormat dst_format = PixelFormat_val(dst_format_);
   int flags = 0;
   int i;
   struct SwsContext *c;
