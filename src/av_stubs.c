@@ -190,7 +190,7 @@ static value val_of_sample_format(enum AVSampleFormat sf)
     if (sf == sample_formats[i])
       return Val_int(i);
   }
-  printf("error in sample format : %lu\n", sf);
+  printf("error in sample format : %d\n", sf);
   return Val_int(0);
 }
 
@@ -311,7 +311,6 @@ static void open_stream_codec(stream_context_t *stream_ctx, AVFormatContext *fmt
   /* dump input information to stderr */
   av_dump_format(fmt_ctx, stream_ctx->index, "un fichier", 0);
 }
-
 
 static void open_audio_stream_codec(context_t * ctx)
 {
@@ -436,16 +435,26 @@ static void set_audio_resampler_context(context_t * ctx, int64_t channel_layout,
   }
 }
 
-CAMLprim value ocaml_ffmpeg_set_audio_format(value _channel_layout, value _sample_rate, value _sample_fmt, value _ctx)
+CAMLprim value ocaml_ffmpeg_set_audio_out_format(value _channel_layout, value _sample_rate, value _ctx)
 {
-  CAMLparam4(_channel_layout, _sample_rate, _sample_fmt, _ctx);
+  CAMLparam3(_channel_layout, _sample_rate, _ctx);
+  context_t * ctx = Context_val(_ctx);
 
-  set_audio_resampler_context(Context_val(_ctx),
-			      channel_layout_of_val(_channel_layout),
-			      Int_val(_sample_rate),
-			      sample_format_of_val(_sample_fmt));
+  if( ! ctx->audio.stream.codec) open_audio_stream_codec(ctx);
+
+  if (Is_block(_channel_layout)) {
+    ctx->audio.out_channel_layout = channel_layout_of_val(Field(_channel_layout, 0));
+  }
+
+  if (Is_block(_sample_rate)) {
+    ctx->audio.out_sample_rate = Int_val(Field(_sample_rate, 0));
+  }
+
+  /* if the resampler is already created, it is freed.
+     The next call to convertion will create it with the new format by calling get_out_samples. */
+  if(ctx->audio.resampler) swr_free(&ctx->audio.resampler);
   
-  CAMLreturn(_ctx);
+  CAMLreturn(Val_unit);
 }
 
 
@@ -567,13 +576,13 @@ CAMLprim value ocaml_ffmpeg_read_audio_frame(value _ctx)
 */
 int get_out_samples(context_t * ctx, enum AVSampleFormat sample_fmt)
 {
+  /* initialize the resampler if necessary */
   if( ! ctx->audio.resampler || ctx->audio.out_sample_fmt != sample_fmt) {
     set_audio_resampler_context(ctx, 0, 0, sample_fmt);
   }
   
   /* compute destination number of samples */
-  return swr_get_out_samples(ctx->audio.resampler,
-			     ctx->frame->nb_samples);
+  return swr_get_out_samples(ctx->audio.resampler, ctx->frame->nb_samples);
 }
 
 CAMLprim value ocaml_ffmpeg_get_out_samples(value _sample_fmt, value _ctx)

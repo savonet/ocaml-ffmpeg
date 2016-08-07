@@ -47,7 +47,7 @@ type sample_format_t = None
   | Unsigned_8 | Signed_16 | Signed_32 | Float_32 | Float_64
   | Unsigned_8_planar | Signed_16_planar | Signed_32_planar | Float_32_planar | Float_64_planar
 
-external set_audio_format : channel_layout_t -> int -> sample_format_t -> t -> t = "ocaml_ffmpeg_set_audio_format"
+external set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_rate:int -> t -> unit = "ocaml_ffmpeg_set_audio_out_format"
 
 external get_audio_in_channel_layout : t -> channel_layout_t = "ocaml_ffmpeg_get_audio_in_channel_layout"
 external get_audio_in_nb_channels : t -> int = "ocaml_ffmpeg_get_audio_in_nb_channels"
@@ -81,7 +81,6 @@ type f64pba_t = f64ba_t array
 
 external get_out_samples : ?sample_format:sample_format_t -> audio_frame_t -> int = "ocaml_ffmpeg_get_out_samples"
 
-external get_out_samples : ?sample_format:sample_format_t -> audio_frame_t -> int = "ocaml_ffmpeg_get_out_samples"
 
 external to_float64_bigarray : audio_frame_t -> f64ba_t = "ocaml_ffmpeg_to_float64_bigarray"
 external to_string : audio_frame_t -> string = "ocaml_ffmpeg_to_string"

@@ -46,7 +46,7 @@ type sample_format_t =
   | Float_32_planar
   | Float_64_planar
 
-val set_audio_format : channel_layout_t -> int -> sample_format_t -> t -> t
+val set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_rate:int -> t -> unit
 
 val get_audio_in_channel_layout : t -> channel_layout_t
 val get_audio_in_nb_channels : t -> int
