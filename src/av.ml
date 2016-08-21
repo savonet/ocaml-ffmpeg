@@ -68,9 +68,9 @@ type frame_t =
   | SubtitleFrame of subtitle_frame_t
 
 external read_audio_frame : t -> audio_frame_t = "ocaml_ffmpeg_read_audio_frame"
+external read_video_frame : t -> video_frame_t = "ocaml_ffmpeg_read_video_frame"
 (*
 external read_frame : t -> frame_t = "ocaml_ffmpeg_read_frame"
-external read_video_frame : t -> video_frame_t = "ocaml_ffmpeg_read_video_frame"
 external read_subtitle_frame : t -> subtitle_frame_t = "ocaml_ffmpeg_read_subtitle_frame"
 *)
 

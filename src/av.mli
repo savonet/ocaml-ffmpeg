@@ -65,7 +65,10 @@ type frame_t =
     AudioFrame of audio_frame_t
   | VideoFrame of video_frame_t
   | SubtitleFrame of subtitle_frame_t
+
 val read_audio_frame : t -> audio_frame_t
+val read_video_frame : t -> video_frame_t
+
 type f32ba_t =
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f64ba_t =

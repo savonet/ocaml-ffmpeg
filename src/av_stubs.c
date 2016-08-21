@@ -157,7 +157,7 @@ static value val_of_channel_layout(uint64_t cl)
     if (cl == channel_layouts[i])
       return Val_int(i);
   }
-  printf("error in channel layout : %lu\n", cl);
+  printf("error in channel layout : %llu\n", cl);
   return Val_int(0);
 }
 
@@ -322,6 +322,11 @@ static void open_audio_stream_codec(context_t * ctx)
   ctx->audio.out_sample_fmt = ctx->audio.stream.codec->sample_fmt;
 }
 
+static void open_video_stream_codec(context_t * ctx)
+{
+  open_stream_codec(&ctx->video.stream, ctx->format, AVMEDIA_TYPE_VIDEO);
+}
+
 CAMLprim value ocaml_ffmpeg_get_audio_in_channel_layout(value _ctx) {
   CAMLparam1(_ctx);
   context_t * ctx = Context_val(_ctx);
@@ -458,7 +463,7 @@ CAMLprim value ocaml_ffmpeg_set_audio_out_format(value _channel_layout, value _s
 }
 
 
-CAMLprim value ocaml_ffmpeg_read_audio_frame(value _ctx)
+CAMLprim value ocaml_ffmpeg_read_audio_frame_deprec(value _ctx)
 {
   CAMLparam1(_ctx);
   context_t * ctx = Context_val(_ctx);
@@ -519,6 +524,88 @@ CAMLprim value ocaml_ffmpeg_read_audio_frame(value _ctx)
 
   CAMLreturn(_ctx);
 }
+
+/**
+ */
+static void read_stream_frame(context_t * ctx, AVCodecContext *dec, int stream_index)
+{
+  AVPacket * packet = &ctx->packet;
+  int ret = 0;
+  do {
+    if( ! ctx->end_of_file) {
+      if(packet->size <= 0) {
+
+	while (1) {
+	  // read frames from the file
+	  if(av_read_frame(ctx->format, packet) < 0) {
+	    packet->data = NULL;
+	    packet->size = 0;
+	    ctx->end_of_file = 1;
+	    break;
+	  }
+
+	  if (packet->stream_index == stream_index) {
+	    ctx->original_packet = *packet;
+	    break;
+	  }
+
+	  av_packet_unref(packet);
+	}
+      }
+
+      ret = avcodec_send_packet(dec, packet);
+
+      if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
+	snprintf(error_msg, ERROR_MSG_SIZE, "Error decoding %s frame (%s)", av_get_media_type_string(dec->codec_type), av_err2str(ret));
+	Raise(EXN_FAILURE, error_msg);
+      }
+
+      if (ret >= 0) packet->size = 0;
+    }
+    // decode frame
+    ret = avcodec_receive_frame(dec, ctx->frame);
+
+    if (ret == AVERROR_EOF) {
+      caml_raise_constant(*caml_named_value(EXN_EOF));
+    }
+
+    if (ret < 0 && ret != AVERROR(EAGAIN)) {
+      snprintf(error_msg, ERROR_MSG_SIZE, "Error decoding %s frame (%s)", av_get_media_type_string(dec->codec_type), av_err2str(ret));
+      Raise(EXN_FAILURE, error_msg);
+    }
+    else if(ret >= 0) {
+      if(packet->size <= 0) {
+	av_packet_unref(&ctx->original_packet);
+      }
+      break;
+    }
+  } while(1);
+}
+
+CAMLprim value ocaml_ffmpeg_read_audio_frame(value _ctx)
+{
+  CAMLparam1(_ctx);
+  context_t * ctx = Context_val(_ctx);
+
+  if( ! ctx->audio.stream.codec) open_audio_stream_codec(ctx);
+
+  read_stream_frame(ctx, ctx->audio.stream.codec, ctx->audio.stream.index);
+
+  CAMLreturn(_ctx);
+}
+
+CAMLprim value ocaml_ffmpeg_read_video_frame(value _ctx)
+{
+  CAMLparam1(_ctx);
+  context_t * ctx = Context_val(_ctx);
+
+  if( ! ctx->video.stream.codec) open_video_stream_codec(ctx);
+
+  read_stream_frame(ctx, ctx->video.stream.codec, ctx->video.stream.index);
+
+  CAMLreturn(_ctx);
+}
+
 /*
   CAMLprim value ocaml_ffmpeg_read_frame(value _ctx)
   {
