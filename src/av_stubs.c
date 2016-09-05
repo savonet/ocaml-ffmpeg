@@ -107,7 +107,10 @@ static void free_stream(stream_t * stream)
       free(stream->video);
     }
 
-    if(stream->subtitle) free(stream->subtitle);
+    if(stream->subtitle) {
+      avsubtitle_free(stream->subtitle);
+      free(stream->subtitle);
+    }
 
     free(stream);
   }
@@ -811,11 +814,31 @@ CAMLprim value ocaml_ffmpeg_to_string(value _ctx)
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_ffmpeg_subtitle_to_string(value _ctx)
+{
+  CAMLparam1(_ctx);
+  CAMLlocal1(ans);
+
+  context_t * ctx = Context_val(_ctx);
+  unsigned num_rects = ctx->subtitle_stream->subtitle->num_rects;
+  AVSubtitleRect **rects = ctx->subtitle_stream->subtitle->rects;
+  size_t len = 0;
+  
+  for(unsigned i = 0; i < num_rects; i++) len += strlen(rects[i]->text);
+    
+  ans = caml_alloc_string(len + 1);
+  char * dest = String_val(ans);
+
+  for(unsigned i = 0; i < num_rects; i++) strcat(dest, rects[i]->text);
+
+  CAMLreturn(ans);
+}
+
 /**
  * Convert the input audio samples into the output sample format.
  * The conversion happens on a per-frame basis.
  */
-static value convert_to_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt, enum caml_ba_kind ba_kind)
+static value audio_to_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt, enum caml_ba_kind ba_kind)
 {
   audio_t * audio = ctx->audio_stream->audio;
   int out_nb_samples = get_out_samples(ctx->audio_stream, sample_fmt);
@@ -851,7 +874,7 @@ static value convert_to_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt
   return audio->out_ba;
 }
 
-CAMLprim value ocaml_ffmpeg_to_float64_bigarray(value _ctx) {
+CAMLprim value ocaml_ffmpeg_audio_to_float64_bigarray(value _ctx) {
   CAMLparam1(_ctx);
-  CAMLreturn(convert_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_DBL, CAML_BA_FLOAT64));
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_DBL, CAML_BA_FLOAT64));
 }

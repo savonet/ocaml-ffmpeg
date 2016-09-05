@@ -30,13 +30,23 @@ let () =
   let video_dst_file = open_out_bin video_dst_filename in
   let audio_dst_file = open_out_bin audio_dst_filename in
 
+  let rec run() = Av.(
+      match read_frame src_file with
+      | AudioFrame f -> audio_to_string f |> output_string audio_dst_file; run()
+      | VideoFrame f -> video_to_string f |> output_string video_dst_file; run()
+      | SubtitleFrame f -> subtitle_to_string f |> print_endline; run()
+      | exception Av.End_of_file -> ()
+    )
+  in
+  run();
+  (*
   let rec run() =
     match Av.(read_audio_frame src_file |> to_string) with
     | b -> output_string audio_dst_file b; run()
     | exception Av.End_of_file -> Printf.printf "End of %s\n" src_filename
   in
   run();
-
+*)
   Printf.printf "Demuxing succeeded.\n";
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac %d -ar %d %s\n"
     (Av.get_audio_out_sample_format src_file |> get_format_from_sample_fmt)
@@ -44,15 +54,6 @@ let () =
     (Av.get_audio_out_sample_rate src_file)
     audio_dst_filename;
 (*
-let rec run() = Av.(
-    match read_frame src_file with
-    | AudioFrame f -> let b = to_float_planar_array f in run()
-    | VideoFrame f -> let b = toBuffer f in run() 
-    | SubtitleFrame f -> let b = to_string f in run()
-    | exception Av.End_of_file -> ()
-  )
-in
-run()
 *)
   close_out video_dst_file;
   close_out audio_dst_file

@@ -68,6 +68,7 @@ type frame_t =
 
 val read_audio_frame : t -> audio_frame_t
 val read_video_frame : t -> video_frame_t
+val read_subtitle_frame : t -> subtitle_frame_t
 val read_frame : t -> frame_t
 
 type f32ba_t =
@@ -78,5 +79,8 @@ type f32pba_t = f32ba_t array
 type f64pba_t = f64ba_t array
 val get_out_samples :
   ?sample_format:sample_format_t -> audio_frame_t -> int
-val to_string : audio_frame_t -> string
-val to_float64_bigarray : audio_frame_t -> f64ba_t
+
+val audio_to_string : audio_frame_t -> string
+val audio_to_float64_bigarray : audio_frame_t -> f64ba_t
+val video_to_string : video_frame_t -> string
+val subtitle_to_string : subtitle_frame_t -> string
