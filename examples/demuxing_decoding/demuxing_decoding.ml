@@ -1,14 +1,5 @@
 open FFmpeg
 
-let get_format_from_sample_fmt = function
-  | Av.None -> ""
-  | Av.Unsigned_8 | Av.Unsigned_8_planar -> "u8"
-  | Av.Signed_16 | Av.Signed_16_planar -> "s16le"
-  | Av.Signed_32 | Av.Signed_32_planar -> "s32le"
-  | Av.Float_32 | Av.Float_32_planar -> "f32le"
-  | Av.Float_64 | Av.Float_64_planar -> "f64le"
-
-
 let () =
   if Array.length Sys.argv < 4 then (
     Printf.eprintf {|
@@ -31,29 +22,21 @@ let () =
   let audio_dst_file = open_out_bin audio_dst_filename in
 
   let rec run() = Av.(
-      match read_frame src_file with
-      | AudioFrame f -> audio_to_string f |> output_string audio_dst_file; run()
-      | VideoFrame f -> video_to_string f |> output_string video_dst_file; run()
-      | SubtitleFrame f -> subtitle_to_string f |> print_endline; run()
+      match read src_file with
+      | Audio f -> audio_to_string f |> output_string audio_dst_file; run()
+      | Video f -> video_to_string f |> output_string video_dst_file; run()
+      | Subtitle f -> subtitle_to_string f |> print_endline; run()
       | exception Av.End_of_file -> ()
     )
   in
   run();
-  (*
-  let rec run() =
-    match Av.(read_audio_frame src_file |> to_string) with
-    | b -> output_string audio_dst_file b; run()
-    | exception Av.End_of_file -> Printf.printf "End of %s\n" src_filename
-  in
-  run();
-*)
+
+  close_out video_dst_file;
+  close_out audio_dst_file;
+
   Printf.printf "Demuxing succeeded.\n";
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac %d -ar %d %s\n"
-    (Av.get_audio_out_sample_format src_file |> get_format_from_sample_fmt)
-    (Av.get_audio_out_nb_channels src_file)
-    (Av.get_audio_out_sample_rate src_file)
-    audio_dst_filename;
-(*
-*)
-  close_out video_dst_file;
-  close_out audio_dst_file
+    Av.(get_audio_out_sample_format src_file |> get_sample_fmt_name)
+    Av.(get_audio_out_nb_channels src_file)
+    Av.(get_audio_out_sample_rate src_file)
+    audio_dst_filename

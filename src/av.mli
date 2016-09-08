@@ -34,17 +34,19 @@ type channel_layout_t =
   | CL_hexadecagonal
   | CL_stereo_downmix
 type sample_format_t =
-    None
-  | Unsigned_8
-  | Signed_16
-  | Signed_32
-  | Float_32
-  | Float_64
-  | Unsigned_8_planar
-  | Signed_16_planar
-  | Signed_32_planar
-  | Float_32_planar
-  | Float_64_planar
+    SF_None
+  | SF_Unsigned_8
+  | SF_Signed_16
+  | SF_Signed_32
+  | SF_Float_32
+  | SF_Float_64
+  | SF_Unsigned_8_planar
+  | SF_Signed_16_planar
+  | SF_Signed_32_planar
+  | SF_Float_32_planar
+  | SF_Float_64_planar
+
+val get_sample_fmt_name : sample_format_t -> string
 
 val set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_rate:int -> t -> unit
 
@@ -58,18 +60,18 @@ val get_audio_out_nb_channels : t -> int
 val get_audio_out_sample_rate : t -> int
 val get_audio_out_sample_format : t -> sample_format_t
 
-type audio_frame_t
-type video_frame_t
-type subtitle_frame_t
-type frame_t =
-    AudioFrame of audio_frame_t
-  | VideoFrame of video_frame_t
-  | SubtitleFrame of subtitle_frame_t
+type audio_t
+type video_t
+type subtitle_t
+type media_t =
+    Audio of audio_t
+  | Video of video_t
+  | Subtitle of subtitle_t
 
-val read_audio_frame : t -> audio_frame_t
-val read_video_frame : t -> video_frame_t
-val read_subtitle_frame : t -> subtitle_frame_t
-val read_frame : t -> frame_t
+val read_audio : t -> audio_t
+val read_video : t -> video_t
+val read_subtitle : t -> subtitle_t
+val read : t -> media_t
 
 type f32ba_t =
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
@@ -78,9 +80,9 @@ type f64ba_t =
 type f32pba_t = f32ba_t array
 type f64pba_t = f64ba_t array
 val get_out_samples :
-  ?sample_format:sample_format_t -> audio_frame_t -> int
+  ?sample_format:sample_format_t -> audio_t -> int
 
-val audio_to_string : audio_frame_t -> string
-val audio_to_float64_bigarray : audio_frame_t -> f64ba_t
-val video_to_string : video_frame_t -> string
-val subtitle_to_string : subtitle_frame_t -> string
+val audio_to_string : audio_t -> string
+val audio_to_float64_bigarray : audio_t -> f64ba_t
+val video_to_string : video_t -> string
+val subtitle_to_string : subtitle_t -> string
