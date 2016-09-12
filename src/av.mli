@@ -48,7 +48,7 @@ type sample_format_t =
 
 val get_sample_fmt_name : sample_format_t -> string
 
-val set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_rate:int -> t -> unit
+val set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_format:sample_format_t -> ?sample_rate:int -> t -> unit
 
 val get_audio_in_channel_layout : t -> channel_layout_t
 val get_audio_in_nb_channels : t -> int
@@ -73,6 +73,8 @@ val read_video : t -> video_t
 val read_subtitle : t -> subtitle_t
 val read : t -> media_t
 
+type s16ba_t = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
+type s32ba_t = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f32ba_t =
     (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f64ba_t =
@@ -83,6 +85,9 @@ val get_out_samples :
   ?sample_format:sample_format_t -> audio_t -> int
 
 val audio_to_string : audio_t -> string
+val audio_to_planar_string : audio_t -> string array
+val audio_to_signed16_bigarray : audio_t -> s16ba_t
+val audio_to_signed32_bigarray : audio_t -> s32ba_t
 val audio_to_float64_bigarray : audio_t -> f64ba_t
 val video_to_string : video_t -> string
 val subtitle_to_string : subtitle_t -> string

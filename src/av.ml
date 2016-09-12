@@ -57,7 +57,7 @@ let get_sample_fmt_name = function
   | SF_Float_64 | SF_Float_64_planar -> "f64le"
 
 
-external set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_rate:int -> t -> unit = "ocaml_ffmpeg_set_audio_out_format"
+external set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_format:sample_format_t -> ?sample_rate:int -> t -> unit = "ocaml_ffmpeg_set_audio_out_format"
 
 external get_audio_in_channel_layout : t -> channel_layout_t = "ocaml_ffmpeg_get_audio_in_channel_layout"
 external get_audio_in_nb_channels : t -> int = "ocaml_ffmpeg_get_audio_in_nb_channels"
@@ -83,6 +83,8 @@ external read_subtitle : t -> subtitle_t = "ocaml_ffmpeg_read_subtitle"
 external read : t -> media_t = "ocaml_ffmpeg_read"
 
 
+type s16ba_t = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
+type s32ba_t = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f32ba_t = (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f64ba_t = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f32pba_t = f32ba_t array
@@ -91,12 +93,14 @@ type f64pba_t = f64ba_t array
 external get_out_samples : ?sample_format:sample_format_t -> audio_t -> int = "ocaml_ffmpeg_get_out_samples"
 
 
-external audio_to_float64_bigarray : audio_t -> f64ba_t = "ocaml_ffmpeg_audio_to_float64_bigarray"
 external audio_to_string : audio_t -> string = "ocaml_ffmpeg_audio_to_string"
+external audio_to_planar_string : audio_t -> string array = "ocaml_ffmpeg_audio_to_planar_string"
+external audio_to_signed16_bigarray : audio_t -> s16ba_t = "ocaml_ffmpeg_audio_to_signed16_bigarray"
+external audio_to_signed32_bigarray : audio_t -> s32ba_t = "ocaml_ffmpeg_audio_to_signed32_bigarray"
+external audio_to_float64_bigarray : audio_t -> f64ba_t = "ocaml_ffmpeg_audio_to_float64_bigarray"
 external video_to_string : video_t -> string = "ocaml_ffmpeg_video_to_string"
 external subtitle_to_string : subtitle_t -> string = "ocaml_ffmpeg_subtitle_to_string"
 (*
-external to_planar_string : audio_t -> string array = "ocaml_ffmpeg_to_planar_string"
 external to_float_array : audio_t -> float array = "ocaml_ffmpeg_to_float_array"
 external to_float_planar_array : audio_t -> float array array = "ocaml_ffmpeg_to_float_planar_array"
 external to_float32_bigarray : audio_t -> f32ba_t = "ocaml_ffmpeg_to_float32_bigarray"
