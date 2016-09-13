@@ -73,21 +73,34 @@ val read_video : t -> video_t
 val read_subtitle : t -> subtitle_t
 val read : t -> media_t
 
+type u8ba_t = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s16ba_t = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s32ba_t = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f32ba_t =
-    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f64ba_t =
-    (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
+type f32ba_t = (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
+type f64ba_t = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
+type u8pba_t = u8ba_t array
+type s16pba_t = s16ba_t array
+type s32pba_t = s32ba_t array
 type f32pba_t = f32ba_t array
 type f64pba_t = f64ba_t array
+
 val get_out_samples :
   ?sample_format:sample_format_t -> audio_t -> int
 
 val audio_to_string : audio_t -> string
 val audio_to_planar_string : audio_t -> string array
+
+val audio_to_unsigned8_bigarray : audio_t -> u8ba_t
 val audio_to_signed16_bigarray : audio_t -> s16ba_t
 val audio_to_signed32_bigarray : audio_t -> s32ba_t
+val audio_to_float32_bigarray : audio_t -> f32ba_t
 val audio_to_float64_bigarray : audio_t -> f64ba_t
+
+val audio_to_unsigned8_planar_bigarray : audio_t -> u8pba_t
+val audio_to_signed16_planar_bigarray : audio_t -> s16pba_t
+val audio_to_signed32_planar_bigarray : audio_t -> s32pba_t
+val audio_to_float32_planar_bigarray : audio_t -> f32pba_t
+val audio_to_float64_planar_bigarray : audio_t -> f64pba_t
+
 val video_to_string : video_t -> string
 val subtitle_to_string : subtitle_t -> string

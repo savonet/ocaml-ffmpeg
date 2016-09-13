@@ -70,11 +70,12 @@ typedef struct {
   int out_str_size;
   value out_ba;
   enum caml_ba_kind out_ba_kind;
-  int out_ba_max_size;
+  int out_ba_size;
   value out_planar_data_array;
   int out_planar_str_size;
   int out_planar_ar_size;
   int out_planar_ba_size;
+  enum caml_ba_kind out_planar_ba_kind;
 } stream_t;
 
 typedef struct {
@@ -904,8 +905,8 @@ CAMLprim value ocaml_ffmpeg_audio_to_planar_string(value _ctx)
   CAMLparam1(_ctx);
   CAMLlocal1(ans);
 
-  context_t * ctx = Context_val(_ctx);
-  stream_t * stream = ctx->audio_stream;
+  context_t *ctx = Context_val(_ctx);
+  stream_t *stream = ctx->audio_stream;
   AVFrame *frame = stream->frame;
   audio_t * audio = stream->audio;
 
@@ -916,17 +917,17 @@ CAMLprim value ocaml_ffmpeg_audio_to_planar_string(value _ctx)
     size_t len = out_nb_samples * av_get_bytes_per_sample(audio->out_sample_fmt);
 
     for(int i = 0; i < audio->out_nb_channels; i++) {
-      ans = caml_alloc_string(len);
-      Store_field(stream->out_planar_data_array, i, ans);
+      Store_field(stream->out_planar_data_array, i, caml_alloc_string(len));
     }
     stream->out_planar_str_size = out_nb_samples;
     stream->out_planar_ar_size = 0;
     stream->out_planar_ba_size = 0;
   }
 
-  uint8_t *out_data_pointers[32];
+  uint8_t *out_data_pointers[16];
+  int max_channels = audio->out_nb_channels > 16 ? 16 : audio->out_nb_channels;
 
-  for(int i = 0; i < audio->out_nb_channels; i++) {
+  for(int i = 0; i < max_channels; i++) {
     out_data_pointers[i] = (uint8_t *)String_val(Field(stream->out_planar_data_array, i));
   }
 
@@ -956,6 +957,144 @@ CAMLprim value ocaml_ffmpeg_audio_to_planar_string(value _ctx)
   CAMLreturn(stream->out_planar_data_array);
 }
 
+/**
+ * Convert the input audio samples into the output sample format.
+ * The conversion happens on a per-frame basis.
+ */
+static value audio_to_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt, enum caml_ba_kind ba_kind)
+{
+  stream_t * stream = ctx->audio_stream;
+  AVFrame * frame = stream->frame;
+  audio_t * audio = stream->audio;
+  int out_nb_samples = get_out_samples(ctx->audio_stream, sample_fmt);
+
+  if (ba_kind != stream->out_ba_kind
+      || out_nb_samples > stream->out_ba_size) {
+
+    intnat out_size = out_nb_samples * audio->out_nb_channels;
+    
+    stream->out_ba = caml_ba_alloc(CAML_BA_C_LAYOUT | ba_kind, 1, NULL, &out_size);
+    stream->out_ba_kind = ba_kind;
+    stream->out_ba_size = out_nb_samples;
+  }
+
+  char * out_buf = Caml_ba_data_val(stream->out_ba);
+  
+  // Convert the samples using the resampler.
+  int ret = swr_convert(audio->resampler,
+			(uint8_t **) &out_buf,
+			stream->out_ba_size,
+			(const uint8_t **)frame->extended_data,
+			frame->nb_samples);
+
+  if (ret < 0) {
+    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
+    Raise(EXN_FAILURE, error_msg);
+  }
+
+  Caml_ba_array_val(stream->out_ba)->dim[0] = ret * audio->out_nb_channels;
+
+  return stream->out_ba;
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_unsigned8_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_U8, CAML_BA_UINT8));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_signed16_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S16, CAML_BA_SINT16));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_signed32_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S32, CAML_BA_INT32));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float32_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_FLT, CAML_BA_FLOAT32));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float64_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_DBL, CAML_BA_FLOAT64));
+}
+
+
+static value audio_to_planar_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt, enum caml_ba_kind ba_kind)
+{
+  stream_t *stream = ctx->audio_stream;
+  AVFrame *frame = stream->frame;
+  audio_t * audio = stream->audio;
+  intnat out_nb_samples = get_out_samples(ctx->audio_stream, sample_fmt);
+
+  if (ba_kind != stream->out_planar_ba_kind
+      || out_nb_samples > stream->out_planar_ba_size) {
+
+    for(int i = 0; i < audio->out_nb_channels; i++) {
+      Store_field(stream->out_planar_data_array, i,
+		  caml_ba_alloc(CAML_BA_C_LAYOUT | ba_kind, 1, NULL, &out_nb_samples));
+    }
+    stream->out_planar_ba_kind = ba_kind;
+    stream->out_planar_ba_size = out_nb_samples;
+    stream->out_planar_str_size = 0;
+    stream->out_planar_ar_size = 0;
+  }
+
+  uint8_t *out_data_pointers[16];
+  int max_channels = audio->out_nb_channels > 16 ? 16 : audio->out_nb_channels;
+
+  for(int i = 0; i < max_channels; i++) {
+    out_data_pointers[i] = Caml_ba_data_val(Field(stream->out_planar_data_array, i));
+  }
+
+  // Convert the samples using the resampler.
+  int ret = swr_convert(audio->resampler,
+			out_data_pointers,
+			stream->out_planar_ba_size,
+			(const uint8_t **) frame->extended_data,
+			frame->nb_samples);
+
+  if (ret < 0) {
+    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
+    Raise(EXN_FAILURE, error_msg);
+  }
+
+  for(int i = 0; i < max_channels; i++) {
+    Caml_ba_array_val(Field(stream->out_planar_data_array, i))->dim[0] = ret;
+  }
+
+  return stream->out_planar_data_array;
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_unsigned8_planar_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_planar_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_U8P, CAML_BA_UINT8));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_signed16_planar_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_planar_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S16P, CAML_BA_SINT16));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_signed32_planar_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_planar_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S32P, CAML_BA_INT32));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float32_planar_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_planar_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_FLTP, CAML_BA_FLOAT32));
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float64_planar_bigarray(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLreturn(audio_to_planar_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_DBLP, CAML_BA_FLOAT64));
+}
+
+
 CAMLprim value ocaml_ffmpeg_video_to_string(value _ctx)
 {
   CAMLparam1(_ctx);
@@ -971,6 +1110,7 @@ CAMLprim value ocaml_ffmpeg_video_to_string(value _ctx)
 
   CAMLreturn(ans);
 }
+
 
 CAMLprim value ocaml_ffmpeg_subtitle_to_string(value _ctx)
 {
@@ -992,57 +1132,3 @@ CAMLprim value ocaml_ffmpeg_subtitle_to_string(value _ctx)
   CAMLreturn(ans);
 }
 
-/**
- * Convert the input audio samples into the output sample format.
- * The conversion happens on a per-frame basis.
- */
-static value audio_to_bigarray(context_t * ctx, enum AVSampleFormat sample_fmt, enum caml_ba_kind ba_kind)
-{
-  stream_t * stream = ctx->audio_stream;
-  AVFrame * frame = stream->frame;
-  audio_t * audio = stream->audio;
-  int out_nb_samples = get_out_samples(ctx->audio_stream, sample_fmt);
-
-  if (ba_kind != stream->out_ba_kind
-      || out_nb_samples > stream->out_ba_max_size) {
-
-    intnat out_size = out_nb_samples * audio->out_nb_channels;
-    
-    stream->out_ba = caml_ba_alloc(CAML_BA_C_LAYOUT | ba_kind, 1, NULL, &out_size);
-    stream->out_ba_kind = ba_kind;
-    stream->out_ba_max_size = out_nb_samples;
-  }
-
-  char * out_buf = Caml_ba_data_val(stream->out_ba);
-  
-  // Convert the samples using the resampler.
-  int ret = swr_convert(audio->resampler,
-			(uint8_t **) &out_buf,
-			stream->out_ba_max_size,
-			(const uint8_t **)frame->extended_data,
-			frame->nb_samples);
-
-  if (ret < 0) {
-    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
-    Raise(EXN_FAILURE, error_msg);
-  }
-
-  Caml_ba_array_val(stream->out_ba)->dim[0] = ret * audio->out_nb_channels;
-
-  return stream->out_ba;
-}
-
-CAMLprim value ocaml_ffmpeg_audio_to_signed16_bigarray(value _ctx) {
-  CAMLparam1(_ctx);
-  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S16, CAML_BA_SINT16));
-}
-
-CAMLprim value ocaml_ffmpeg_audio_to_signed32_bigarray(value _ctx) {
-  CAMLparam1(_ctx);
-  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_S32, CAML_BA_INT32));
-}
-
-CAMLprim value ocaml_ffmpeg_audio_to_float64_bigarray(value _ctx) {
-  CAMLparam1(_ctx);
-  CAMLreturn(audio_to_bigarray(Context_val(_ctx), AV_SAMPLE_FMT_DBL, CAML_BA_FLOAT64));
-}

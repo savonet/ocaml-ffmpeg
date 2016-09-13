@@ -83,10 +83,14 @@ external read_subtitle : t -> subtitle_t = "ocaml_ffmpeg_read_subtitle"
 external read : t -> media_t = "ocaml_ffmpeg_read"
 
 
+type u8ba_t = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s16ba_t = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s32ba_t = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f32ba_t = (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f64ba_t = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
+type u8pba_t = u8ba_t array
+type s16pba_t = s16ba_t array
+type s32pba_t = s32ba_t array
 type f32pba_t = f32ba_t array
 type f64pba_t = f64ba_t array
 
@@ -95,18 +99,23 @@ external get_out_samples : ?sample_format:sample_format_t -> audio_t -> int = "o
 
 external audio_to_string : audio_t -> string = "ocaml_ffmpeg_audio_to_string"
 external audio_to_planar_string : audio_t -> string array = "ocaml_ffmpeg_audio_to_planar_string"
+
+external audio_to_unsigned8_bigarray : audio_t -> u8ba_t = "ocaml_ffmpeg_audio_to_unsigned8_bigarray"
 external audio_to_signed16_bigarray : audio_t -> s16ba_t = "ocaml_ffmpeg_audio_to_signed16_bigarray"
 external audio_to_signed32_bigarray : audio_t -> s32ba_t = "ocaml_ffmpeg_audio_to_signed32_bigarray"
+external audio_to_float32_bigarray : audio_t -> f32ba_t = "ocaml_ffmpeg_audio_to_float32_bigarray"
 external audio_to_float64_bigarray : audio_t -> f64ba_t = "ocaml_ffmpeg_audio_to_float64_bigarray"
+
+external audio_to_unsigned8_planar_bigarray : audio_t -> u8pba_t = "ocaml_ffmpeg_audio_to_unsigned8_planar_bigarray"
+external audio_to_signed16_planar_bigarray : audio_t -> s16pba_t = "ocaml_ffmpeg_audio_to_signed16_planar_bigarray"
+external audio_to_signed32_planar_bigarray : audio_t -> s32pba_t = "ocaml_ffmpeg_audio_to_signed32_planar_bigarray"
+external audio_to_float32_planar_bigarray : audio_t -> f32pba_t = "ocaml_ffmpeg_audio_to_float32_planar_bigarray"
+external audio_to_float64_planar_bigarray : audio_t -> f64pba_t = "ocaml_ffmpeg_audio_to_float64_planar_bigarray"
+
+
 external video_to_string : video_t -> string = "ocaml_ffmpeg_video_to_string"
 external subtitle_to_string : subtitle_t -> string = "ocaml_ffmpeg_subtitle_to_string"
 (*
 external to_float_array : audio_t -> float array = "ocaml_ffmpeg_to_float_array"
 external to_float_planar_array : audio_t -> float array array = "ocaml_ffmpeg_to_float_planar_array"
-external to_float32_bigarray : audio_t -> f32ba_t = "ocaml_ffmpeg_to_float32_bigarray"
-external to_float32_planar_bigarray : audio_t -> f32pba_t = "ocaml_ffmpeg_to_float32_planar_bigarray"
-external to_float64_planar_bigarray : audio_t -> f64pba_t = "ocaml_ffmpeg_to_float64_planar_bigarray"
-
-
-external close_input : t -> unit = "ocaml_ffmpeg_close_input"
 *)
