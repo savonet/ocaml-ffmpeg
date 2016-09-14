@@ -100,6 +100,11 @@ external get_out_samples : ?sample_format:sample_format_t -> audio_t -> int = "o
 external audio_to_string : audio_t -> string = "ocaml_ffmpeg_audio_to_string"
 external audio_to_planar_string : audio_t -> string array = "ocaml_ffmpeg_audio_to_planar_string"
 
+external audio_to_float_array : audio_t -> float array = "ocaml_ffmpeg_audio_to_float_array"
+(*
+external audio_to_float_planar_array : audio_t -> float array array = "ocaml_ffmpeg_audio_to_float_planar_array"
+*)
+
 external audio_to_unsigned8_bigarray : audio_t -> u8ba_t = "ocaml_ffmpeg_audio_to_unsigned8_bigarray"
 external audio_to_signed16_bigarray : audio_t -> s16ba_t = "ocaml_ffmpeg_audio_to_signed16_bigarray"
 external audio_to_signed32_bigarray : audio_t -> s32ba_t = "ocaml_ffmpeg_audio_to_signed32_bigarray"
@@ -115,7 +120,3 @@ external audio_to_float64_planar_bigarray : audio_t -> f64pba_t = "ocaml_ffmpeg_
 
 external video_to_string : video_t -> string = "ocaml_ffmpeg_video_to_string"
 external subtitle_to_string : subtitle_t -> string = "ocaml_ffmpeg_subtitle_to_string"
-(*
-external to_float_array : audio_t -> float array = "ocaml_ffmpeg_to_float_array"
-external to_float_planar_array : audio_t -> float array array = "ocaml_ffmpeg_to_float_planar_array"
-*)

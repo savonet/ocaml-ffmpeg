@@ -68,6 +68,8 @@ typedef struct {
   AVSubtitle *subtitle;
   value out_str;
   int out_str_size;
+  value out_ar;
+  int out_ar_size;
   value out_ba;
   enum caml_ba_kind out_ba_kind;
   int out_ba_size;
@@ -119,6 +121,7 @@ static void free_stream(stream_t * stream)
   }
 
   caml_remove_global_root(&stream->out_str);
+  caml_remove_global_root(&stream->out_ar);
   caml_remove_global_root(&stream->out_ba);
   caml_remove_global_root(&stream->out_planar_data_array);
 
@@ -373,6 +376,7 @@ static stream_t * open_stream_index(context_t *ctx, int index)
   //  av_dump_format(ctx->format, index, "un fichier", 0);
 
   caml_register_global_root(&stream->out_str);
+  caml_register_global_root(&stream->out_ar);
   caml_register_global_root(&stream->out_ba);
   caml_register_global_root(&stream->out_planar_data_array);
     
@@ -821,44 +825,10 @@ CAMLprim value ocaml_ffmpeg_get_out_samples(value _sample_fmt, value _ctx)
 
   CAMLreturn(Val_int(get_out_samples(stream, sample_fmt)));
 }
-/*
- */
-CAMLprim value ocaml_ffmpeg_audio_to_new_string(value _ctx)
-{
-  CAMLparam1(_ctx);
-  CAMLlocal1(ans);
-
-  context_t * ctx = Context_val(_ctx);
-  stream_t * stream = ctx->audio_stream;
-  AVFrame *frame = stream->frame;
-  audio_t * audio = stream->audio;
-
-  int out_nb_samples = get_out_samples(ctx->audio_stream, av_get_packed_sample_fmt(audio->out_sample_fmt));
-  size_t len = out_nb_samples * audio->out_nb_channels * av_get_bytes_per_sample(audio->out_sample_fmt);
-
-  ans = caml_alloc_string(len);
-
-  char * out_buf = String_val(ans);
-
-  // Convert the samples using the resampler.
-  int ret = swr_convert(audio->resampler,
-			(uint8_t **) &out_buf,
-			out_nb_samples,
-			(const uint8_t **) frame->extended_data,
-			frame->nb_samples);
-
-  if (ret < 0) {
-    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
-    Raise(EXN_FAILURE, error_msg);
-  }
-
-  CAMLreturn(ans);
-}
 
 CAMLprim value ocaml_ffmpeg_audio_to_string(value _ctx)
 {
   CAMLparam1(_ctx);
-
   context_t * ctx = Context_val(_ctx);
   stream_t * stream = ctx->audio_stream;
   AVFrame *frame = stream->frame;
@@ -955,6 +925,49 @@ CAMLprim value ocaml_ffmpeg_audio_to_planar_string(value _ctx)
   }
 
   CAMLreturn(stream->out_planar_data_array);
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float_array(value _ctx)
+{
+  CAMLparam1(_ctx);
+  context_t * ctx = Context_val(_ctx);
+  stream_t * stream = ctx->audio_stream;
+  AVFrame *frame = stream->frame;
+  audio_t * audio = stream->audio;
+  
+  int out_nb_samples = get_out_samples(ctx->audio_stream, AV_SAMPLE_FMT_DBL);
+  
+  if (out_nb_samples != stream->out_ar_size) {
+    size_t size = out_nb_samples * audio->out_nb_channels;
+
+    stream->out_ar = caml_alloc(size * Double_wosize, Double_array_tag);
+    stream->out_ar_size = out_nb_samples;
+  }
+
+  double * out_buf = (double*)stream->out_ar;
+
+  // Convert the samples using the resampler.
+  int ret = swr_convert(audio->resampler,
+			(uint8_t **) &out_buf,
+			out_nb_samples,
+			(const uint8_t **) frame->extended_data,
+			frame->nb_samples);
+
+  if (ret < 0) {
+    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
+    Raise(EXN_FAILURE, error_msg);
+  }
+
+  if(ret != out_nb_samples) {
+    size_t size = ret * audio->out_nb_channels;
+    size_t len = size * av_get_bytes_per_sample(audio->out_sample_fmt);
+
+    stream->out_ar = caml_alloc(size * Double_wosize, Double_array_tag);
+    memcpy((void*)stream->out_ar, out_buf, len);
+    stream->out_ar_size = ret;
+  }
+
+  CAMLreturn(stream->out_ar);
 }
 
 /**
