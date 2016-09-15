@@ -13,6 +13,8 @@ type t
 
 external open_input : string -> t = "ocaml_ffmpeg_open_input"
 
+external get_metadata : t -> (string * string) list = "ocaml_ffmpeg_get_metadata"
+
 type channel_layout_t =
   | CL_mono
   | CL_stereo

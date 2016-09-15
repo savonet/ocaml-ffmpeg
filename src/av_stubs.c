@@ -310,6 +310,33 @@ CAMLprim value ocaml_ffmpeg_open_input(value _filename)
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_ffmpeg_get_metadata(value _ctx) {
+  CAMLparam1(_ctx);
+  CAMLlocal3(pair, cons, list);
+
+  context_t * ctx = Context_val(_ctx);
+  AVDictionary * metadata = ctx->format->metadata;
+  AVDictionaryEntry *tag = NULL;
+
+  list = Val_emptylist;
+
+  while ((tag = av_dict_get(metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
+    {
+      pair = caml_alloc_tuple(2);
+      Store_field(pair, 0, caml_copy_string(tag->key));
+      Store_field(pair, 1, caml_copy_string(tag->value));
+
+      cons = caml_alloc(2, 0);
+
+      Store_field(cons, 0, pair);  // head
+      Store_field(cons, 1, list);  // tail
+
+      list = cons;
+    }
+
+  CAMLreturn(list);
+}
+
 static stream_t * open_stream_index(context_t *ctx, int index)
 {
   int new_nb = index + 1;

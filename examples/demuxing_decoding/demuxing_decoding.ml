@@ -18,6 +18,9 @@ let () =
   let audio_dst_filename = Sys.argv.(3) in
 
   let src_file = Av.open_input src_filename in
+
+  Av.get_metadata src_file |> List.iter(fun (k, v) -> print_endline(k^" : "^v));
+  
   let video_dst_file = open_out_bin video_dst_filename in
   let audio_dst_file = open_out_bin audio_dst_filename in
 

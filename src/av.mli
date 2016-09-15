@@ -4,6 +4,8 @@ exception Failure_msg of string
 exception Open_failure of string
 type t
 val open_input : string -> t
+val get_metadata : t -> (string * string) list
+
 type channel_layout_t =
     CL_mono
   | CL_stereo
