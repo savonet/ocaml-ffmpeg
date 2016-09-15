@@ -46,6 +46,8 @@ let () =
   let be3_dst_file = open_out_bin (Sys.argv.(2) ^ ".be3.raw") in
   let right_dst_file = open_out_bin (Sys.argv.(2) ^ ".right.raw") in
   let left_dst_file = open_out_bin (Sys.argv.(2) ^ ".left.raw") in
+  let be_right_dst_file = open_out_bin (Sys.argv.(2) ^ ".be.right.raw") in
+  let be_left_dst_file = open_out_bin (Sys.argv.(2) ^ ".be.left.raw") in
 
   let src_file = Av.open_input Sys.argv.(1) in
   Av.(set_audio_out_format ~channel_layout:CL_stereo
@@ -54,13 +56,16 @@ let () =
   let rec decode() = 
     match Av.read_audio src_file with
     | af ->
-      Av.audio_to_string af |> output_string audio_dst_file;
       Av.audio_to_float32_planar_bigarray af |> output_float32_planar_bigarray be1_dst_file;
       Av.audio_to_signed32_bigarray af |> output_int32_bigarray be2_dst_file;
       Av.audio_to_float_array af |> output_float_array be3_dst_file;
-      let ar = Av.audio_to_planar_string af in
-      output_string right_dst_file ar.(0);
-      output_string left_dst_file ar.(1);
+      let str_ar = Av.audio_to_planar_string af in
+      output_string right_dst_file str_ar.(0);
+      output_string left_dst_file str_ar.(1);
+      let ar_ar = Av.audio_to_float_planar_array af in
+      output_float_array be_right_dst_file ar_ar.(0);
+      output_float_array be_left_dst_file ar_ar.(1);
+      Av.audio_to_string af |> output_string audio_dst_file;
       decode()
     | exception Av.End_of_file -> ()
   in
@@ -73,6 +78,8 @@ let () =
   close_out be3_dst_file;
   close_out right_dst_file;
   close_out left_dst_file;
+  close_out be_right_dst_file;
+  close_out be_left_dst_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac %d -ar %d %s\n"
     Av.(get_audio_out_sample_format src_file |> get_sample_fmt_name)

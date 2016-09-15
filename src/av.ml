@@ -101,9 +101,7 @@ external audio_to_string : audio_t -> string = "ocaml_ffmpeg_audio_to_string"
 external audio_to_planar_string : audio_t -> string array = "ocaml_ffmpeg_audio_to_planar_string"
 
 external audio_to_float_array : audio_t -> float array = "ocaml_ffmpeg_audio_to_float_array"
-(*
 external audio_to_float_planar_array : audio_t -> float array array = "ocaml_ffmpeg_audio_to_float_planar_array"
-*)
 
 external audio_to_unsigned8_bigarray : audio_t -> u8ba_t = "ocaml_ffmpeg_audio_to_unsigned8_bigarray"
 external audio_to_signed16_bigarray : audio_t -> s16ba_t = "ocaml_ffmpeg_audio_to_signed16_bigarray"

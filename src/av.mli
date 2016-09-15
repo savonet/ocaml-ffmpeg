@@ -91,6 +91,7 @@ val audio_to_string : audio_t -> string
 val audio_to_planar_string : audio_t -> string array
 
 val audio_to_float_array : audio_t -> float array
+val audio_to_float_planar_array : audio_t -> float array array
 
 val audio_to_unsigned8_bigarray : audio_t -> u8ba_t
 val audio_to_signed16_bigarray : audio_t -> s16ba_t

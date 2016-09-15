@@ -42,6 +42,7 @@ CAMLprim value ocaml_ffmpeg_init(value unit)
 
 // audio context
 typedef struct {
+  enum AVSampleFormat str_sample_fmt;
   SwrContext *resampler;
   int64_t out_channel_layout;
   int out_nb_channels;
@@ -405,7 +406,7 @@ static stream_t * open_stream_index(context_t *ctx, int index)
     stream->audio->out_channel_layout = codec->channel_layout;
     stream->audio->out_nb_channels = av_get_channel_layout_nb_channels(codec->channel_layout);
     stream->audio->out_sample_rate = codec->sample_rate;
-    stream->audio->out_sample_fmt = codec->sample_fmt;
+    stream->audio->out_sample_fmt = stream->audio->str_sample_fmt = codec->sample_fmt;
     break;
   case AVMEDIA_TYPE_VIDEO :
     stream->video = (video_t*)calloc(1, sizeof(video_t));
@@ -599,6 +600,7 @@ CAMLprim value ocaml_ffmpeg_set_audio_out_format(value _channel_layout, value _s
 
   if (Is_block(_sample_fmt)) {
     audio->out_sample_fmt = sample_format_of_val(Field(_sample_fmt, 0));
+    audio->str_sample_fmt = audio->out_sample_fmt;
   }
 
   if (Is_block(_sample_rate)) {
@@ -835,7 +837,7 @@ CAMLprim value ocaml_ffmpeg_audio_to_string(value _ctx)
   audio_t * audio = stream->audio;
   
   int out_nb_samples = get_out_samples(ctx->audio_stream,
-				       av_get_packed_sample_fmt(audio->out_sample_fmt));
+				       av_get_packed_sample_fmt(audio->str_sample_fmt));
   
   if (out_nb_samples != stream->out_str_size) {
     size_t len = out_nb_samples * audio->out_nb_channels *
@@ -881,7 +883,7 @@ CAMLprim value ocaml_ffmpeg_audio_to_planar_string(value _ctx)
   audio_t * audio = stream->audio;
 
   int out_nb_samples = get_out_samples(ctx->audio_stream,
-				       av_get_planar_sample_fmt(audio->out_sample_fmt));
+				       av_get_planar_sample_fmt(audio->str_sample_fmt));
 
   if (out_nb_samples != stream->out_planar_str_size) {
     size_t len = out_nb_samples * av_get_bytes_per_sample(audio->out_sample_fmt);
@@ -938,9 +940,9 @@ CAMLprim value ocaml_ffmpeg_audio_to_float_array(value _ctx)
   int out_nb_samples = get_out_samples(ctx->audio_stream, AV_SAMPLE_FMT_DBL);
   
   if (out_nb_samples != stream->out_ar_size) {
-    size_t size = out_nb_samples * audio->out_nb_channels;
+    size_t size = out_nb_samples * audio->out_nb_channels * Double_wosize;
 
-    stream->out_ar = caml_alloc(size * Double_wosize, Double_array_tag);
+    stream->out_ar = caml_alloc(size, Double_array_tag);
     stream->out_ar_size = out_nb_samples;
   }
 
@@ -968,6 +970,62 @@ CAMLprim value ocaml_ffmpeg_audio_to_float_array(value _ctx)
   }
 
   CAMLreturn(stream->out_ar);
+}
+
+CAMLprim value ocaml_ffmpeg_audio_to_float_planar_array(value _ctx)
+{
+  CAMLparam1(_ctx);
+  CAMLlocal1(ans);
+  context_t *ctx = Context_val(_ctx);
+  stream_t *stream = ctx->audio_stream;
+  AVFrame *frame = stream->frame;
+  audio_t * audio = stream->audio;
+
+  int out_nb_samples = get_out_samples(ctx->audio_stream, AV_SAMPLE_FMT_DBLP);
+
+  if (out_nb_samples != stream->out_planar_ar_size) {
+    size_t size = out_nb_samples * Double_wosize;
+
+    for(int i = 0; i < audio->out_nb_channels; i++) {
+      Store_field(stream->out_planar_data_array, i, caml_alloc(size, Double_array_tag));
+    }
+    stream->out_planar_ar_size = out_nb_samples;
+    stream->out_planar_str_size = 0;
+    stream->out_planar_ba_size = 0;
+  }
+
+  double * out_data_pointers[16];
+  int max_channels = audio->out_nb_channels > 16 ? 16 : audio->out_nb_channels;
+
+  for(int i = 0; i < max_channels; i++) {
+    out_data_pointers[i] = (double*)Field(stream->out_planar_data_array, i);
+  }
+
+  // Convert the samples using the resampler.
+  int ret = swr_convert(audio->resampler,
+			(uint8_t **)out_data_pointers,
+			out_nb_samples,
+			(const uint8_t **) frame->extended_data,
+			frame->nb_samples);
+
+  if (ret < 0) {
+    snprintf(error_msg, ERROR_MSG_SIZE, "Failed to convert input samples (error '%d')", ret);
+    Raise(EXN_FAILURE, error_msg);
+  }
+
+  if(ret != out_nb_samples) {
+    size_t size = ret * Double_wosize;
+    size_t len = ret * av_get_bytes_per_sample(audio->out_sample_fmt);
+
+    for(int i = 0; i < audio->out_nb_channels; i++) {
+      ans = caml_alloc(size, Double_array_tag);
+      memcpy((void*)ans, out_data_pointers[i], len);
+      Store_field(stream->out_planar_data_array, i, ans);
+    }
+    stream->out_planar_ar_size = ret;
+  }
+
+  CAMLreturn(stream->out_planar_data_array);
 }
 
 /**
