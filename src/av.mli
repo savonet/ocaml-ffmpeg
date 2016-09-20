@@ -6,61 +6,24 @@ type t
 val open_input : string -> t
 val get_metadata : t -> (string * string) list
 
-type channel_layout_t =
-    CL_mono
-  | CL_stereo
-  | CL_2point1
-  | CL_2_1
-  | CL_surround
-  | CL_3point1
-  | CL_4point0
-  | CL_4point1
-  | CL_2_2
-  | CL_quad
-  | CL_5point0
-  | CL_5point1
-  | CL_5point0_back
-  | CL_5point1_back
-  | CL_6point0
-  | CL_6point0_front
-  | CL_hexagonal
-  | CL_6point1
-  | CL_6point1_back
-  | CL_6point1_front
-  | CL_7point0
-  | CL_7point0_front
-  | CL_7point1
-  | CL_7point1_wide
-  | CL_7point1_wide_back
-  | CL_octagonal
-  | CL_hexadecagonal
-  | CL_stereo_downmix
-type sample_format_t =
-    SF_None
-  | SF_Unsigned_8
-  | SF_Signed_16
-  | SF_Signed_32
-  | SF_Float_32
-  | SF_Float_64
-  | SF_Unsigned_8_planar
-  | SF_Signed_16_planar
-  | SF_Signed_32_planar
-  | SF_Float_32_planar
-  | SF_Float_64_planar
+type pixel_format = Avutil.Pixel_format.t
 
-val get_sample_fmt_name : sample_format_t -> string
+type channel_layout = Avutil.Channel_layout.t
 
-val set_audio_out_format : ?channel_layout:channel_layout_t -> ?sample_format:sample_format_t -> ?sample_rate:int -> t -> unit
+type sample_format = Avutil.Sample_format.t
 
-val get_audio_in_channel_layout : t -> channel_layout_t
+
+val set_audio_out_format : ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?sample_rate:int -> t -> unit
+
+val get_audio_in_channel_layout : t -> channel_layout
 val get_audio_in_nb_channels : t -> int
 val get_audio_in_sample_rate : t -> int
-val get_audio_in_sample_format : t -> sample_format_t
+val get_audio_in_sample_format : t -> sample_format
 
-val get_audio_out_channel_layout : t -> channel_layout_t
+val get_audio_out_channel_layout : t -> channel_layout
 val get_audio_out_nb_channels : t -> int
 val get_audio_out_sample_rate : t -> int
-val get_audio_out_sample_format : t -> sample_format_t
+val get_audio_out_sample_format : t -> sample_format
 
 type audio_t
 type video_t
@@ -87,7 +50,7 @@ type f32pba_t = f32ba_t array
 type f64pba_t = f64ba_t array
 
 val get_out_samples :
-  ?sample_format:sample_format_t -> audio_t -> int
+  ?sample_format:sample_format -> audio_t -> int
 
 val audio_to_string : audio_t -> string
 val audio_to_planar_string : audio_t -> string array

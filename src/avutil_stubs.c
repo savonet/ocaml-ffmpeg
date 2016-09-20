@@ -10,6 +10,8 @@
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
 
+#include <avutil_stubs.h>
+
 static const enum AVPixelFormat PIXEL_FORMATS[] = {
   AV_PIX_FMT_YUV420P,
   AV_PIX_FMT_YUYV422,
@@ -39,4 +41,86 @@ CAMLprim value caml_avutil_bits_per_pixel(value pixel)
   ans = av_get_bits_per_pixel(av_pix_fmt_desc_get(p));
 
   CAMLreturn(Val_int(ans));
+}
+
+/**** Channel layout ****/
+
+#define CHANNEL_LAYOUTS_LEN 28
+static const uint64_t CHANNEL_LAYOUTS[CHANNEL_LAYOUTS_LEN] = {
+  AV_CH_LAYOUT_MONO,
+  AV_CH_LAYOUT_STEREO,
+  AV_CH_LAYOUT_2POINT1,
+  AV_CH_LAYOUT_2_1,
+  AV_CH_LAYOUT_SURROUND,
+  AV_CH_LAYOUT_3POINT1,
+  AV_CH_LAYOUT_4POINT0,
+  AV_CH_LAYOUT_4POINT1,
+  AV_CH_LAYOUT_2_2,
+  AV_CH_LAYOUT_QUAD,
+  AV_CH_LAYOUT_5POINT0,
+  AV_CH_LAYOUT_5POINT1,
+  AV_CH_LAYOUT_5POINT0_BACK,
+  AV_CH_LAYOUT_5POINT1_BACK,
+  AV_CH_LAYOUT_6POINT0,
+  AV_CH_LAYOUT_6POINT0_FRONT,
+  AV_CH_LAYOUT_HEXAGONAL,
+  AV_CH_LAYOUT_6POINT1,
+  AV_CH_LAYOUT_6POINT1_BACK,
+  AV_CH_LAYOUT_6POINT1_FRONT,
+  AV_CH_LAYOUT_7POINT0,
+  AV_CH_LAYOUT_7POINT0_FRONT,
+  AV_CH_LAYOUT_7POINT1,
+  AV_CH_LAYOUT_7POINT1_WIDE,
+  AV_CH_LAYOUT_7POINT1_WIDE_BACK,
+  AV_CH_LAYOUT_OCTAGONAL,
+  AV_CH_LAYOUT_HEXADECAGONAL,
+  AV_CH_LAYOUT_STEREO_DOWNMIX
+};
+
+uint64_t ChannelLayout_val(value v)
+{
+  return CHANNEL_LAYOUTS[Int_val(v)];
+}
+
+value Val_channelLayout(uint64_t cl)
+{
+  for (int i = 0; i < CHANNEL_LAYOUTS_LEN; i++) {
+    if (cl == CHANNEL_LAYOUTS[i])
+      return Val_int(i);
+  }
+  printf("error in channel layout : %llu\n", cl);
+  return Val_int(0);
+}
+
+
+/**** Sample format ****/
+
+#define SAMPLE_FORMATS_LEN 11
+static const enum AVSampleFormat SAMPLE_FORMATS[SAMPLE_FORMATS_LEN] = {
+  AV_SAMPLE_FMT_NONE,
+  AV_SAMPLE_FMT_U8,
+  AV_SAMPLE_FMT_S16,
+  AV_SAMPLE_FMT_S32,
+  AV_SAMPLE_FMT_FLT,
+  AV_SAMPLE_FMT_DBL,
+  AV_SAMPLE_FMT_U8P,
+  AV_SAMPLE_FMT_S16P,
+  AV_SAMPLE_FMT_S32P,
+  AV_SAMPLE_FMT_FLTP,
+  AV_SAMPLE_FMT_DBLP
+};
+
+enum AVSampleFormat SampleFormat_val(value v)
+{
+  return SAMPLE_FORMATS[Int_val(v)];
+}
+
+value Val_sampleFormat(enum AVSampleFormat sf)
+{
+  for (int i = 0; i < SAMPLE_FORMATS_LEN; i++) {
+    if (sf == SAMPLE_FORMATS[i])
+      return Val_int(i);
+  }
+  printf("error in sample format : %d\n", sf);
+  return Val_int(0);
 }
