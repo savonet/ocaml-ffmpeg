@@ -124,3 +124,31 @@ value Val_sampleFormat(enum AVSampleFormat sf)
   printf("error in sample format : %d\n", sf);
   return Val_int(0);
 }
+
+/***** AVFrame *****/
+
+static void finalize_frame(value v)
+{
+  struct AVFrame *frame = Frame_val(v);
+  av_frame_free(&frame);
+}
+
+static struct custom_operations frame_ops =
+  {
+    "ocaml_avframe",
+    finalize_frame,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default
+  };
+
+value value_of_frame(AVFrame *frame)
+{
+  if (!frame)
+    Raise(EXN_FAILURE, "Empty frame");
+
+  value ans = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
+  Frame_val(ans) = frame;
+  return ans;
+}

@@ -75,3 +75,15 @@ let get_name = function
   | SF_Float_32 | SF_Float_32_planar -> "f32le"
   | SF_Float_64 | SF_Float_64_planar -> "f64le"
 end
+
+module Audio_frame = struct
+  type t
+end
+
+module Video_frame = struct
+  type t
+end
+
+module Subtitle_frame = struct
+  type t
+end

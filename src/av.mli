@@ -13,17 +13,12 @@ type channel_layout = Avutil.Channel_layout.t
 type sample_format = Avutil.Sample_format.t
 
 
-val set_audio_out_format : ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?sample_rate:int -> t -> unit
+val get_audio_channel_layout : t -> channel_layout
+val get_audio_nb_channels : t -> int
+val get_audio_sample_rate : t -> int
+val get_audio_sample_format : t -> sample_format
 
-val get_audio_in_channel_layout : t -> channel_layout
-val get_audio_in_nb_channels : t -> int
-val get_audio_in_sample_rate : t -> int
-val get_audio_in_sample_format : t -> sample_format
-
-val get_audio_out_channel_layout : t -> channel_layout
-val get_audio_out_nb_channels : t -> int
-val get_audio_out_sample_rate : t -> int
-val get_audio_out_sample_format : t -> sample_format
+val create_resample : ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?sample_rate:int -> t -> unit
 
 type audio_t
 type video_t

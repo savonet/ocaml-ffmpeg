@@ -64,3 +64,15 @@ module Sample_format : sig
 
   val get_name : t -> string
 end
+
+module Audio_frame : sig
+  type t
+end
+
+module Video_frame : sig
+  type t
+end
+
+module Subtitle_frame : sig
+  type t
+end

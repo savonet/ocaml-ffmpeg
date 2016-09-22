@@ -21,63 +21,27 @@ type channel_layout = Avutil.Channel_layout.t
 
 type sample_format = Avutil.Sample_format.t
 
-external set_audio_out_format : ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?sample_rate:int -> t -> unit = "ocaml_av_set_audio_out_format"
+external get_audio_channel_layout : t -> channel_layout = "ocaml_av_get_audio_channel_layout"
+external get_audio_nb_channels : t -> int = "ocaml_av_get_audio_nb_channels"
+external get_audio_sample_rate : t -> int = "ocaml_av_get_audio_sample_rate"
+external get_audio_sample_format : t -> sample_format = "ocaml_av_get_audio_sample_format"
 
-external get_audio_in_channel_layout : t -> channel_layout = "ocaml_av_get_audio_in_channel_layout"
-external get_audio_in_nb_channels : t -> int = "ocaml_av_get_audio_in_nb_channels"
-external get_audio_in_sample_rate : t -> int = "ocaml_av_get_audio_in_sample_rate"
-external get_audio_in_sample_format : t -> sample_format = "ocaml_av_get_audio_in_sample_format"
+external create_resample : ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?sample_rate:int -> t -> unit = "ocaml_av_create_resample"
 
-external get_audio_out_channel_layout : t -> channel_layout = "ocaml_av_get_audio_out_channel_layout"
-external get_audio_out_nb_channels : t -> int = "ocaml_av_get_audio_out_nb_channels"
-external get_audio_out_sample_rate : t -> int = "ocaml_av_get_audio_out_sample_rate"
-external get_audio_out_sample_format : t -> sample_format = "ocaml_av_get_audio_out_sample_format"
+type audio_frame = Avutil.Audio_frame.t
+type video_frame = Avutil.Video_frame.t
+type subtitle_frame = Avutil.Subtitle_frame.t
 
-type audio_t
-type video_t
-type subtitle_t
-type media_t =
-    Audio of audio_t
-  | Video of video_t
-  | Subtitle of subtitle_t
+type media =
+    Audio of int * audio_frame
+  | Video of int * video_frame
+  | Subtitle of int * subtitle_frame
 
-external read_audio : t -> audio_t = "ocaml_av_read_audio"
-external read_video : t -> video_t = "ocaml_av_read_video"
-external read_subtitle : t -> subtitle_t = "ocaml_av_read_subtitle"
-external read : t -> media_t = "ocaml_av_read"
+external read_audio : t -> audio_frame = "ocaml_av_read_audio"
+external read_video : t -> video_frame = "ocaml_av_read_video"
+external read_subtitle : t -> subtitle_frame = "ocaml_av_read_subtitle"
+external read : t -> media = "ocaml_av_read"
 
-
-type u8ba_t = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-type s16ba_t = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
-type s32ba_t = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f32ba_t = (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f64ba_t = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
-type u8pba_t = u8ba_t array
-type s16pba_t = s16ba_t array
-type s32pba_t = s32ba_t array
-type f32pba_t = f32ba_t array
-type f64pba_t = f64ba_t array
-
-external get_out_samples : ?sample_format:sample_format -> audio_t -> int = "ocaml_av_get_out_samples"
-
-
-external audio_to_string : audio_t -> string = "ocaml_av_audio_to_string"
-external audio_to_planar_string : audio_t -> string array = "ocaml_av_audio_to_planar_string"
-
-external audio_to_float_array : audio_t -> float array = "ocaml_av_audio_to_float_array"
-external audio_to_float_planar_array : audio_t -> float array array = "ocaml_av_audio_to_float_planar_array"
-
-external audio_to_unsigned8_bigarray : audio_t -> u8ba_t = "ocaml_av_audio_to_unsigned8_bigarray"
-external audio_to_signed16_bigarray : audio_t -> s16ba_t = "ocaml_av_audio_to_signed16_bigarray"
-external audio_to_signed32_bigarray : audio_t -> s32ba_t = "ocaml_av_audio_to_signed32_bigarray"
-external audio_to_float32_bigarray : audio_t -> f32ba_t = "ocaml_av_audio_to_float32_bigarray"
-external audio_to_float64_bigarray : audio_t -> f64ba_t = "ocaml_av_audio_to_float64_bigarray"
-
-external audio_to_unsigned8_planar_bigarray : audio_t -> u8pba_t = "ocaml_av_audio_to_unsigned8_planar_bigarray"
-external audio_to_signed16_planar_bigarray : audio_t -> s16pba_t = "ocaml_av_audio_to_signed16_planar_bigarray"
-external audio_to_signed32_planar_bigarray : audio_t -> s32pba_t = "ocaml_av_audio_to_signed32_planar_bigarray"
-external audio_to_float32_planar_bigarray : audio_t -> f32pba_t = "ocaml_av_audio_to_float32_planar_bigarray"
-external audio_to_float64_planar_bigarray : audio_t -> f64pba_t = "ocaml_av_audio_to_float64_planar_bigarray"
 
 
 external video_to_string : video_t -> string = "ocaml_av_video_to_string"
