@@ -32,7 +32,7 @@ enum AVPixelFormat PixelFormat_val(value v)
   return PIXEL_FORMATS[Int_val(v)];
 }
 
-CAMLprim value caml_avutil_bits_per_pixel(value pixel)
+CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
   enum AVPixelFormat p = PixelFormat_val(pixel);
@@ -95,9 +95,8 @@ value Val_channelLayout(uint64_t cl)
 
 /**** Sample format ****/
 
-#define SAMPLE_FORMATS_LEN 11
+#define SAMPLE_FORMATS_LEN 10
 static const enum AVSampleFormat SAMPLE_FORMATS[SAMPLE_FORMATS_LEN] = {
-  AV_SAMPLE_FMT_NONE,
   AV_SAMPLE_FMT_U8,
   AV_SAMPLE_FMT_S16,
   AV_SAMPLE_FMT_S32,
@@ -115,6 +114,11 @@ enum AVSampleFormat SampleFormat_val(value v)
   return SAMPLE_FORMATS[Int_val(v)];
 }
 
+enum AVSampleFormat AVSampleFormat_of_Sample_format(int i)
+{
+  return SAMPLE_FORMATS[i];
+}
+
 value Val_sampleFormat(enum AVSampleFormat sf)
 {
   for (int i = 0; i < SAMPLE_FORMATS_LEN; i++) {
@@ -124,6 +128,50 @@ value Val_sampleFormat(enum AVSampleFormat sf)
   printf("error in sample format : %d\n", sf);
   return Val_int(0);
 }
+
+static const enum caml_ba_kind BIGARRAY_KINDS[SAMPLE_FORMATS_LEN] = {
+  CAML_BA_UINT8,
+  CAML_BA_SINT16,	
+  CAML_BA_INT32,	
+  CAML_BA_FLOAT32,
+  CAML_BA_FLOAT64,
+  CAML_BA_UINT8,
+  CAML_BA_SINT16,
+  CAML_BA_INT32,	
+  CAML_BA_FLOAT32,
+  CAML_BA_FLOAT64
+};
+
+enum caml_ba_kind bigarray_kind_of_Sample_format(int sf)
+{
+  return BIGARRAY_KINDS[sf];
+}
+
+enum caml_ba_kind bigarray_kind_of_Sample_format_val(value val)
+{
+  return BIGARRAY_KINDS[Int_val(val)];
+}
+
+enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf)
+{
+  for (int i = 0; i < SAMPLE_FORMATS_LEN; i++)
+    {
+      if (sf == SAMPLE_FORMATS[i])
+	return BIGARRAY_KINDS[i];
+    }
+  return CAML_BA_KIND_MASK;
+}
+
+CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt) {
+  CAMLparam1(_sample_fmt);
+  CAMLlocal1(ans);
+
+  const char *name = av_get_sample_fmt_name(SampleFormat_val(_sample_fmt));
+  ans = caml_copy_string(name);
+
+  CAMLreturn(ans);
+}
+
 
 /***** AVFrame *****/
 

@@ -14,15 +14,14 @@
 #include <libswresample/swresample.h>
 
 #include <avutil_stubs.h>
+#include <swresample_stubs.h>
+
+#define EXN_OPEN "ffmpeg_exn_open_failure"
+#define EXN_EOF "ffmpeg_exn_end_of_file"
 
 #define ERROR_MSG_SIZE 256
 static char error_msg[ERROR_MSG_SIZE + 1];
 
-#define EXN_FAILURE "ffmpeg_exn_failure_msg"
-#define EXN_OPEN "ffmpeg_exn_open_failure"
-#define EXN_EOF "ffmpeg_exn_end_of_file"
-
-#define Raise(exn, msg) caml_raise_with_string(*caml_named_value(exn), (msg))
 static int init_done = 0;
 
 
@@ -95,7 +94,7 @@ static struct custom_operations av_ops =
     custom_deserialize_default
   };
 
-static value Val_av(av_t *av)
+static value value_of_av(av_t *av)
 {
   if (!av)
     Raise(EXN_FAILURE, "Empty context");
@@ -104,37 +103,6 @@ static value Val_av(av_t *av)
   Av_val(ans) = av;
   return ans;
 }
-
-/*
-  static const enum caml_ba_kind bigarray_kinds[sample_formats_len] = {
-  CAML_BA_KIND_MASK,
-  CAML_BA_UINT8,
-  CAML_BA_SINT16,	
-  CAML_BA_INT32,	
-  CAML_BA_FLOAT32,
-  CAML_BA_FLOAT64,
-  CAML_BA_UINT8,
-  CAML_BA_SINT16,
-  CAML_BA_INT32,	
-  CAML_BA_FLOAT32,
-  CAML_BA_FLOAT64
-  };
-
-  static enum caml_ba_kind bigarray_kind_of_sample_format_val(value val)
-  {
-  return bigarray_kinds[Int_val(val)];
-  }
-
-  static enum caml_ba_kind bigarray_kind_of_sample_format(enum AVSampleFormat sf)
-  {
-  for (int i = 0; i < sample_formats_len; i++)
-  {
-  if (sf == sample_formats[i])
-  return bigarray_kinds[i];
-  }
-  return CAML_BA_KIND_MASK;
-  }
-*/
 
 CAMLprim value ocaml_av_open_input(value _filename)
 {
@@ -151,7 +119,7 @@ CAMLprim value ocaml_av_open_input(value _filename)
 
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
 
-  ans = Val_av(av);
+  ans = value_of_av(av);
 
   // open input file, and allocate format context
   size_t filename_length = caml_string_length(_filename) + 1;
@@ -278,7 +246,7 @@ static stream_t * open_stream_index(av_t *av, int index)
 
   if(type == AVMEDIA_TYPE_AUDIO || type == AVMEDIA_TYPE_VIDEO) {
 
-    AVFrame frame = av_frame_alloc();
+    AVFrame * frame = av_frame_alloc();
 
     if ( ! frame) {
       free_stream(stream);
@@ -341,7 +309,7 @@ static void open_subtitle_stream(av_t * av)
   av->subtitle_stream = open_best_stream(av, AVMEDIA_TYPE_SUBTITLE);
 }
 
-CAMLprim value ocaml_av_get_audio_channel_layout(value _av) {
+CAMLprim value ocaml_av_get_channel_layout(value _av) {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
 
@@ -350,7 +318,7 @@ CAMLprim value ocaml_av_get_audio_channel_layout(value _av) {
   CAMLreturn(Val_channelLayout(av->audio_stream->codec->channel_layout));
 }
 
-CAMLprim value ocaml_av_get_audio_nb_channels(value _av) {
+CAMLprim value ocaml_av_get_nb_channels(value _av) {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
 
@@ -359,7 +327,7 @@ CAMLprim value ocaml_av_get_audio_nb_channels(value _av) {
   CAMLreturn(Val_int(av_get_channel_layout_nb_channels(av->audio_stream->codec->channel_layout)));
 }
 
-CAMLprim value ocaml_av_get_audio_sample_rate(value _av) {
+CAMLprim value ocaml_av_get_sample_rate(value _av) {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
 
@@ -368,7 +336,7 @@ CAMLprim value ocaml_av_get_audio_sample_rate(value _av) {
   CAMLreturn(Val_int(av->audio_stream->codec->sample_rate));
 }
 
-CAMLprim value ocaml_av_get_audio_sample_format(value _av) {
+CAMLprim value ocaml_av_get_sample_format(value _av) {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
 
@@ -376,7 +344,7 @@ CAMLprim value ocaml_av_get_audio_sample_format(value _av) {
 
   CAMLreturn(Val_sampleFormat(av->audio_stream->codec->sample_fmt));
 }
-
+/*
 CAMLprim value ocaml_av_create_resample(value _out_channel_layout, value _out_sample_fmt, value _out_sample_rate, value _av)
 {
   CAMLparam4(_out_channel_layout, _out_sample_fmt, _out_sample_rate, _av);
@@ -395,25 +363,24 @@ CAMLprim value ocaml_av_create_resample(value _out_channel_layout, value _out_sa
   enum AVSampleFormat out_sample_fmt = in_sample_fmt;
   int out_sample_rate = in_sample_rate;
 
-  if (Is_block(_channel_layout)) {
-    out_channel_layout = ChannelLayout_val(Field(_channel_layout, 0));
+  if (Is_block(_out_channel_layout)) {
+    out_channel_layout = ChannelLayout_val(Field(_out_channel_layout, 0));
   }
 
-  if (Is_block(_sample_fmt)) {
-    out_sample_fmt = SampleFormat_val(Field(_sample_fmt, 0));
+  if (Is_block(_out_sample_fmt)) {
+    out_sample_fmt = SampleFormat_val(Field(_out_sample_fmt, 0));
   }
 
-  if (Is_block(_sample_rate)) {
-    out_sample_rate = Int_val(Field(_sample_rate, 0));
+  if (Is_block(_out_sample_rate)) {
+    out_sample_rate = Int_val(Field(_out_sample_rate, 0));
   }
 
-  swr_t * swr = swresample_create(in_channel_layout, in_sample_fmt, in_sample_rate,
+  ans = swresample_create(in_channel_layout, in_sample_fmt, in_sample_rate,
 				  out_channel_layout, out_sample_fmt, out_sample_rate);
-  ans = value_of_swr(swr);
   
   CAMLreturn(ans);
 }
-
+*/
 
 static int decode_packet(av_t * av, stream_t * stream)
 {
@@ -511,7 +478,7 @@ static void read_stream_frame(av_t * av, stream_t * stream)
 CAMLprim value ocaml_av_read_audio(value _av)
 {
   CAMLparam1(_av);
-  av_t * av = Av_val(_av);
+  av_t *av = Av_val(_av);
   
   if( ! av->audio_stream) open_audio_stream(av);
   

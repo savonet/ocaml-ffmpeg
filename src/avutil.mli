@@ -1,3 +1,6 @@
+exception Failure
+exception Failure_msg of string
+
 module Pixel_format : sig
   type t =
   | YUV420p
@@ -50,21 +53,26 @@ end
 
 module Sample_format : sig
   type t =
-  | SF_None
-  | SF_Unsigned_8
-  | SF_Signed_16
-  | SF_Signed_32
-  | SF_Float_32
-  | SF_Float_64
-  | SF_Unsigned_8_planar
-  | SF_Signed_16_planar
-  | SF_Signed_32_planar
-  | SF_Float_32_planar
-  | SF_Float_64_planar
+  | SF_U8
+  | SF_S16
+  | SF_S32
+  | SF_FLT
+  | SF_DBL
+  | SF_U8P
+  | SF_S16P
+  | SF_S32P
+  | SF_FLTP
+  | SF_DBLP
 
   val get_name : t -> string
 end
 
+type audio_format = {
+  channel_layout : Channel_layout.t;
+  sample_format : Sample_format.t;
+  sample_rate : int
+}
+                    
 module Audio_frame : sig
   type t
 end

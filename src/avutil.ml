@@ -1,3 +1,11 @@
+exception Failure
+exception Failure_msg of string
+
+let () =
+  Callback.register_exception "ffmpeg_exn_failure" Failure;
+  Callback.register_exception "ffmpeg_exn_failure_msg" (Failure_msg "");
+
+  
 module Pixel_format = struct
   type t =
   | YUV420p
@@ -13,7 +21,7 @@ module Pixel_format = struct
   | RGBA
   | BGRA
 
-  external bits : t -> int = "caml_avutil_bits_per_pixel"
+  external bits : t -> int = "ocaml_avutil_bits_per_pixel"
 
   let bits (*?(padding=true)*) p =
     let n = bits p in
@@ -55,27 +63,26 @@ end
 
 module Sample_format = struct
   type t =
-  | SF_None
-  | SF_Unsigned_8
-  | SF_Signed_16
-  | SF_Signed_32
-  | SF_Float_32
-  | SF_Float_64
-  | SF_Unsigned_8_planar
-  | SF_Signed_16_planar
-  | SF_Signed_32_planar
-  | SF_Float_32_planar
-  | SF_Float_64_planar
+  | SF_U8
+  | SF_S16
+  | SF_S32
+  | SF_FLT
+  | SF_DBL
+  | SF_U8P
+  | SF_S16P
+  | SF_S32P
+  | SF_FLTP
+  | SF_DBLP
 
-let get_name = function
-  | SF_None -> ""
-  | SF_Unsigned_8 | SF_Unsigned_8_planar -> "u8"
-  | SF_Signed_16 | SF_Signed_16_planar -> "s16le"
-  | SF_Signed_32 | SF_Signed_32_planar -> "s32le"
-  | SF_Float_32 | SF_Float_32_planar -> "f32le"
-  | SF_Float_64 | SF_Float_64_planar -> "f64le"
+external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end
 
+type audio_format = {
+  channel_layout : Channel_layout.t;
+  sample_format : Sample_format.t;
+  sample_rate : int
+}
+                    
 module Audio_frame = struct
   type t
 end
