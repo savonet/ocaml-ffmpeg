@@ -255,7 +255,7 @@ static stream_t * open_stream_index(av_t *av, int index)
     }
 
     caml_register_global_root(&stream->frame);
-    stream->frame = value_of_frame(frame); 
+    stream->frame = value_of_frame(frame);
   }
   
   switch(type) {
