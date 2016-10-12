@@ -1,6 +1,7 @@
 open FFmpeg
+open Avutil
 
-let output_int32_bigarray dst ba =
+let output_int32_ba dst ba =
   for i = 0 to Bigarray.Array1.dim ba - 1 do
     let v = Int32.(div ba.{i} (of_int 2) |> to_int) in
     output_binary_int dst v;
@@ -11,13 +12,13 @@ let output_float_array dst ar =
     output_binary_int dst (int_of_float(ar.(i) *. 1_000_000_000.));
   done
 
-let output_float32_planar_bigarray dst bas =
+let output_float32_planar_ba dst bas =
   for i = 0 to Bigarray.Array1.dim bas.(0) - 1 do
     output_binary_int dst (int_of_float(bas.(0).{i} *. 1_000_000_000.));
     output_binary_int dst (int_of_float(bas.(1).{i} *. 1_000_000_000.));
   done
 
-let print_float32_planar_bigarray bas =
+let print_float32_planar_ba bas =
   for i = 0 to Bigarray.Array1.dim bas.(0) - 1 do
     let s = Bytes.of_string "                                        |                                        "
     in
@@ -25,6 +26,12 @@ let print_float32_planar_bigarray bas =
     Bytes.set s (int_of_float(bas.(1).{i} *. 40.) + 40) 'L';
     print_endline s
   done
+
+let format_parameter fmt =
+  Sample_format.get_name fmt ^ if Sys.big_endian then "be" else "le"
+
+
+module R = Swresample.(Converter(FRM) (S32_BA))
 
 
 let () =
@@ -40,50 +47,60 @@ let () =
   );
 
   let audio_dst_filename = Sys.argv.(2) ^ ".raw" in
-  let audio_dst_file = open_out_bin audio_dst_filename in
-  let be1_dst_file = open_out_bin (Sys.argv.(2) ^ ".be1.raw") in
-  let be2_dst_file = open_out_bin (Sys.argv.(2) ^ ".be2.raw") in
-  let be3_dst_file = open_out_bin (Sys.argv.(2) ^ ".be3.raw") in
-  let right_dst_file = open_out_bin (Sys.argv.(2) ^ ".right.raw") in
-  let left_dst_file = open_out_bin (Sys.argv.(2) ^ ".left.raw") in
-  let be_right_dst_file = open_out_bin (Sys.argv.(2) ^ ".be.right.raw") in
-  let be_left_dst_file = open_out_bin (Sys.argv.(2) ^ ".be.left.raw") in
+  let audio_ofd = open_out_bin audio_dst_filename in
+  let be1_ofd = open_out_bin (Sys.argv.(2) ^ ".be1.raw") in
+  let be2_ofd = open_out_bin (Sys.argv.(2) ^ ".be2.raw") in
+  let be3_ofd = open_out_bin (Sys.argv.(2) ^ ".be3.raw") in
+  let right_ofd = open_out_bin (Sys.argv.(2) ^ ".right.raw") in
+  let left_ofd = open_out_bin (Sys.argv.(2) ^ ".left.raw") in
+  let be_right_ofd = open_out_bin (Sys.argv.(2) ^ ".be.right.raw") in
+  let be_left_ofd = open_out_bin (Sys.argv.(2) ^ ".be.left.raw") in
 
-  let src_file = Av.open_input Sys.argv.(1) in
-  Av.(set_audio_out_format ~channel_layout:CL_stereo
-        ~sample_format:SF_Signed_32 ~sample_rate:44100 src_file);
+  let src = Av.open_input Sys.argv.(1) in
 
+  let r = R.create (Av.get_channel_layout src) ~in_sample_format:(Av.get_sample_format src) (Av.get_sample_rate src)
+      Channel_layout.CL_stereo 44100
+  in
+  (*
+  let rs = Av.create_resample ~channel_layout:Channel_layout.CL_stereo
+      ~sample_format:Sample_format.SF_S32 ~sample_rate:44100 src
+  in
+  *)
   let rec decode() = 
-    match Av.read_audio src_file with
-    | af ->
-      Av.audio_to_float32_planar_bigarray af |> output_float32_planar_bigarray be1_dst_file;
-      Av.audio_to_signed32_bigarray af |> output_int32_bigarray be2_dst_file;
-      Av.audio_to_float_array af |> output_float_array be3_dst_file;
-      let str_ar = Av.audio_to_planar_string af in
-      output_string right_dst_file str_ar.(0);
-      output_string left_dst_file str_ar.(1);
-      let ar_ar = Av.audio_to_float_planar_array af in
-      output_float_array be_right_dst_file ar_ar.(0);
-      output_float_array be_left_dst_file ar_ar.(1);
-      Av.audio_to_string af |> output_string audio_dst_file;
+    match Av.read_audio src with
+    | af ->(*
+      Swresample.frame_to_float32_planar_ba rs af |> output_float32_planar_ba be1_ofd;
+      Swresample.frame_to_int32_ba rs af |> output_int32_ba be2_ofd;
+*)
+      R.convert r af |> output_int32_ba be2_ofd;
+      (*
+      Swresample.frame_to_float_array rs af |> output_float_array be3_ofd;
+      let str_ar = Swresample.frame_to_planar_string rs af in
+      output_string right_ofd str_ar.(0);
+      output_string left_ofd str_ar.(1);
+      let ar_ar = Swresample.frame_to_float_planar_array rs af in
+      output_float_array be_right_ofd ar_ar.(0);
+      output_float_array be_left_ofd ar_ar.(1);
+      Swresample.frame_to_string rs af |> output_string audio_ofd;
+*)
       decode()
-    | exception Av.End_of_file -> ()
+    | exception Av.End_of_file -> () (*R.flush r |> output_int32_ba be2_ofd*)
   in
   decode();
   Gc.full_major ();
 
-  close_out audio_dst_file;
-  close_out be1_dst_file;
-  close_out be2_dst_file;
-  close_out be3_dst_file;
-  close_out right_dst_file;
-  close_out left_dst_file;
-  close_out be_right_dst_file;
-  close_out be_left_dst_file;
+  close_out audio_ofd;
+  close_out be1_ofd;
+  close_out be2_ofd;
+  close_out be3_ofd;
+  close_out right_ofd;
+  close_out left_ofd;
+  close_out be_right_ofd;
+  close_out be_left_ofd;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac %d -ar %d %s\n"
-    Av.(get_audio_out_sample_format src_file |> get_sample_fmt_name)
-    Av.(get_audio_out_nb_channels src_file)
-    Av.(get_audio_out_sample_rate src_file)
+    Av.(get_sample_format src |> format_parameter)
+    Av.(get_nb_channels src)
+    Av.(get_sample_rate src)
     audio_dst_filename
 
