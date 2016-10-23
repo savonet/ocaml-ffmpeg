@@ -7,7 +7,7 @@
 #include <libavutil/channel_layout.h>
 #include <libavutil/frame.h>
 
-#define EXN_FAILURE "ffmpeg_exn_failure_msg"
+#define EXN_FAILURE "ffmpeg_exn_failure"
 
 #define Raise(exn, msg) caml_raise_with_string(*caml_named_value(exn), (msg))
 

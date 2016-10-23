@@ -1,5 +1,4 @@
-exception Failure
-exception Failure_msg of string
+exception Failure of string
 
 module Pixel_format : sig
   type t =

@@ -1,9 +1,7 @@
-exception Failure
-exception Failure_msg of string
+exception Failure of string
 
 let () =
-  Callback.register_exception "ffmpeg_exn_failure" Failure;
-  Callback.register_exception "ffmpeg_exn_failure_msg" (Failure_msg "");
+  Callback.register_exception "ffmpeg_exn_failure" (Failure "");
 
   
 module Pixel_format = struct
@@ -82,7 +80,7 @@ type audio_format = {
   sample_format : Sample_format.t;
   sample_rate : int
 }
-                    
+
 module Audio_frame = struct
   type t
 end
