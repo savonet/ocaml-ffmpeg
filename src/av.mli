@@ -35,5 +35,12 @@ val read_audio : t -> audio
 val read_video : t -> video
 val read_subtitle : t -> subtitle
 val read : t -> media
+
+
+type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
+
+val seek_frame : t -> int -> Int64.t -> seek_flag array -> unit
+
+
 val subtitle_to_string : subtitle_frame -> string
 

@@ -53,4 +53,9 @@ external read_subtitle : t -> subtitle = "ocaml_av_read_subtitle"
 external read : t -> media = "ocaml_av_read"
 
 
+type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
+
+external seek_frame : t -> int -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
+
+
 external subtitle_to_string : subtitle_frame -> string = "ocaml_av_subtitle_to_string"

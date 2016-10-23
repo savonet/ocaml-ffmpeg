@@ -580,6 +580,36 @@ CAMLprim value ocaml_av_read(value _av)
   CAMLreturn(ans);
 }
 
+
+static const int seek_flags[] = {AVSEEK_FLAG_BACKWARD, AVSEEK_FLAG_BYTE, AVSEEK_FLAG_ANY, AVSEEK_FLAG_FRAME};
+
+static int seek_flags_val(value v)
+{
+  return seek_flags[Int_val(v)];
+}
+
+CAMLprim value ocaml_av_seek_frame(value _av, value _stream_index, value _timestamp, value _flags)
+{
+  CAMLparam3(_av, _timestamp, _flags);
+
+  av_t * av = Av_val(_av);
+  int stream_index = Int_val(_stream_index);
+  int64_t timestamp = Int64_val(_timestamp);
+  int flags = 0;
+
+  for (int i = 0; i < Wosize_val(_flags); i++)
+    flags |= seek_flags_val(Field(_flags, i));
+
+  caml_release_runtime_system();
+  int ret = av_seek_frame(av->format, stream_index, timestamp, flags);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) Raise(EXN_FAILURE, "Av seek frame failed");
+
+  CAMLreturn(Val_unit);
+}
+
+
 CAMLprim value ocaml_av_subtitle_to_string(value _av)
 {
   CAMLparam1(_av);
