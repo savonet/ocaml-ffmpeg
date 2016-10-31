@@ -43,6 +43,19 @@ CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
   CAMLreturn(Val_int(ans));
 }
 
+
+/**** Time format ****/
+#define SECOND_FRACTIONS_LEN 4
+static const int64_t SECOND_FRACTIONS[SECOND_FRACTIONS_LEN] = {
+  1, 1000, 1000000, 1000000000
+};
+
+int64_t second_fractions_of_time_format(int time_format)
+{
+  return SECOND_FRACTIONS[time_format];
+}
+
+
 /**** Channel layout ****/
 
 #define CHANNEL_LAYOUTS_LEN 28

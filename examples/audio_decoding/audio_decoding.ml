@@ -25,6 +25,7 @@ let () =
     | Av.Audio af -> FrameToS32Bytes.convert rsp af |> output_bytes out_file;
       decode()
     | Av.End_of_file -> ()
+    | exception Avutil.Failure msg -> prerr_endline msg
   in
   decode();
 

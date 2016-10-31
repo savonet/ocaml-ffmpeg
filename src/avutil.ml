@@ -27,6 +27,14 @@ module Pixel_format = struct
     n
 end
 
+module Time_format = struct
+  type t =
+  | Second
+  | Millisecond
+  | Microsecond
+  | Nanosecond
+end
+
 module Channel_layout = struct
   type t =
   | CL_mono

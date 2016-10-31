@@ -16,6 +16,13 @@
 int PixelFormat_val(value);
 
 
+/**** Time format ****/
+
+#define Time_format_val(v) (Int_val(v))
+
+int64_t second_fractions_of_time_format(int time_format);
+
+
 /**** Channel layout ****/
 
 uint64_t ChannelLayout_val(value v);

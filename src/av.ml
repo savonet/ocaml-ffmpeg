@@ -5,14 +5,23 @@ let () =
   Callback.register_exception "ffmpeg_exn_open_failure" (Open_failure "")
 
 type t
+type time_format = Avutil.Time_format.t
+type pixel_format = Avutil.Pixel_format.t
+type channel_layout = Avutil.Channel_layout.t
+type sample_format = Avutil.Sample_format.t
+type audio_frame = Avutil.Audio_frame.t
+type video_frame = Avutil.Video_frame.t
+type subtitle_frame = Avutil.Subtitle_frame.t
+
 
 external open_input : string -> t = "ocaml_av_open_input"
 
 external get_metadata : t -> (string * string) list = "ocaml_av_get_metadata"
 
-type pixel_format = Avutil.Pixel_format.t
-type channel_layout = Avutil.Channel_layout.t
-type sample_format = Avutil.Sample_format.t
+external get_audio_stream_index : t -> int = "ocaml_av_get_audio_stream_index"
+external get_video_stream_index : t -> int = "ocaml_av_get_video_stream_index"
+
+external get_duration : t -> int -> time_format -> Int64.t = "ocaml_av_get_duration"
 
 external get_channel_layout : t -> channel_layout = "ocaml_av_get_channel_layout"
 external get_nb_channels : t -> int = "ocaml_av_get_nb_channels"
@@ -25,9 +34,6 @@ let get_audio_format t = Avutil.{
   sample_rate = get_sample_rate t
 }
 
-type audio_frame = Avutil.Audio_frame.t
-type video_frame = Avutil.Video_frame.t
-type subtitle_frame = Avutil.Subtitle_frame.t
 
 type audio =
   | Audio of audio_frame
@@ -55,7 +61,7 @@ external read : t -> media = "ocaml_av_read"
 
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
 
-external seek_frame : t -> int -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
+external seek_frame : t -> int -> time_format -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
 
 
 external subtitle_to_string : subtitle_frame -> string = "ocaml_av_subtitle_to_string"

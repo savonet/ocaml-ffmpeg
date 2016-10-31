@@ -15,7 +15,7 @@ module R8 = Swresample.Make (Swresample.FloatArray) (Swresample.S32Bytes)
 
 
 let () =
-  let src = Array.init 55292 (fun t -> cos(float_of_int t *. 0.05)) in
+  let src = Array.init 55292 (fun t -> sin(float_of_int t *. 0.05)) in
   let dst = open_out_bin "test_swresample_out.raw" in
 
   let r0 = R0.create CL_mono 55292 CL_5point1 96000 in

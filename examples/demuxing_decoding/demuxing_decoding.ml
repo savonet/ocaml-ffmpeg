@@ -39,6 +39,7 @@ let () =
     | Av.Subtitle (idx, sf) -> Av.subtitle_to_string sf |> print_endline;
       decode()
     | Av.End_of_file -> ()
+    | exception Avutil.Failure msg -> prerr_endline msg
   in
   decode();
 

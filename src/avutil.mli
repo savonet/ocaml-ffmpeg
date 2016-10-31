@@ -18,6 +18,14 @@ module Pixel_format : sig
   val bits : (*?padding:bool ->*) t -> int
 end
 
+module Time_format : sig
+  type t =
+  | Second
+  | Millisecond
+  | Microsecond
+  | Nanosecond
+end
+
 module Channel_layout : sig
   type t =
   | CL_mono
