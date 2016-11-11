@@ -15,6 +15,7 @@ type subtitle_frame = Avutil.Subtitle_frame.t
 
 
 external open_input : string -> t = "ocaml_av_open_input"
+external close_input : t -> unit = "ocaml_av_close_input"
 
 external get_metadata : t -> (string * string) list = "ocaml_av_get_metadata"
 

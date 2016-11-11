@@ -11,6 +11,7 @@ type subtitle_frame = Avutil.Subtitle_frame.t
 
 
 val open_input : string -> t
+val close_input : t -> unit
 
 val get_metadata : t -> (string * string) list
 

@@ -13,28 +13,28 @@ let () =
     exit 1
   );
 
-  let src_filename = Sys.argv.(1) in
-  let video_dst_filename = Sys.argv.(2) in
-  let audio_dst_filename = Sys.argv.(3) in
+  let input_filename = Sys.argv.(1) in
+  let video_output_filename = Sys.argv.(2) in
+  let audio_output_filename = Sys.argv.(3) in
 
-  let src_file = Av.open_input src_filename in
+  let input_file = Av.open_input input_filename in
 
-  let rbs = FrameToS32Bytes.of_in_audio_format (Av.get_audio_format src_file)
+  let rbs = FrameToS32Bytes.of_in_audio_format (Av.get_audio_format input_file)
       Channel_layout.CL_stereo 44100
   in
 
-  Av.get_metadata src_file |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
+  Av.get_metadata input_file |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
 
-  let video_out = open_out_bin video_dst_filename in
-  let audio_out = open_out_bin audio_dst_filename in
+  let video_output_file = open_out_bin video_output_filename in
+  let audio_output_file = open_out_bin audio_output_filename in
 
   let rec decode() =
-    match Av.read src_file with
+    match Av.read input_file with
     | Av.Audio (idx, af) ->
-      FrameToS32Bytes.convert rbs af |> output_bytes audio_out;
+      FrameToS32Bytes.convert rbs af |> output_bytes audio_output_file;
       decode()
     | Av.Video (idx, vf) ->
-      (*        Swscale.scale_frame vf |> output_string video_out;*)
+      (*        Swscale.scale_frame vf |> output_string video_output_file;*)
       decode()
     | Av.Subtitle (idx, sf) -> Av.subtitle_to_string sf |> print_endline;
       decode()
@@ -43,10 +43,12 @@ let () =
   in
   decode();
 
-  close_out video_out;
-  close_out audio_out;
+  Av.close_input input_file;
+
+  close_out video_output_file;
+  close_out audio_output_file;
 
   Printf.printf "Demuxing succeeded.\n";
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
     (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
-    audio_dst_filename
+    audio_output_filename

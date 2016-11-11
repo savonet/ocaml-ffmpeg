@@ -204,12 +204,11 @@ static struct custom_operations frame_ops =
     custom_deserialize_default
   };
 
-value value_of_frame(AVFrame *frame)
+void value_of_frame(AVFrame *frame, value * pvalue)
 {
   if (!frame)
     Raise(EXN_FAILURE, "Empty frame");
 
-  value ans = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
-  Frame_val(ans) = frame;
-  return ans;
+  *pvalue = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
+  Frame_val((*pvalue)) = frame;
 }

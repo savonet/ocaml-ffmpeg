@@ -51,6 +51,6 @@ enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
 
-value value_of_frame(AVFrame *frame);
+void value_of_frame(AVFrame *frame, value * pvalue);
 
 #endif // _AVUTIL_STUBS_H_ 
