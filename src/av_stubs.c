@@ -15,10 +15,8 @@
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 
-#include <avutil_stubs.h>
-#include <swresample_stubs.h>
-
-#define EXN_OPEN "ffmpeg_exn_open_failure"
+#include "avutil_stubs.h"
+#include "swresample_stubs.h"
 
 #define ERROR_MSG_SIZE 256
 static char error_msg[ERROR_MSG_SIZE + 1];

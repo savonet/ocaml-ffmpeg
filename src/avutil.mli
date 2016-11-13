@@ -1,6 +1,9 @@
+(** A failure occured (with given explanation). *)
 exception Failure of string
 
+(** Formats for pixels. *)
 module Pixel_format : sig
+(** Pixels formats. *)
   type t =
   | YUV420p
   | YUYV422
@@ -18,7 +21,9 @@ module Pixel_format : sig
   val bits : (*?padding:bool ->*) t -> int
 end
 
+(** Formats for time. *)
 module Time_format : sig
+  (** Time formats. *)
   type t =
   | Second
   | Millisecond
@@ -26,7 +31,9 @@ module Time_format : sig
   | Nanosecond
 end
 
+(** Formats for channels layouts. *)
 module Channel_layout : sig
+  (** Channel layout formats *)
   type t =
   | CL_mono
   | CL_stereo
@@ -58,7 +65,9 @@ module Channel_layout : sig
   | CL_stereo_downmix
 end
 
+(** Formats for audio samples. *)
 module Sample_format : sig
+  (** Audio sample formats *)
   type t =
   | SF_U8
   | SF_S16
@@ -74,20 +83,24 @@ module Sample_format : sig
   val get_name : t -> string
 end
 
+(** Audio format properties. *)
 type audio_format = {
   channel_layout : Channel_layout.t;
   sample_format : Sample_format.t;
   sample_rate : int
 }
                     
+(** Audio frame type. *)
 module Audio_frame : sig
   type t
 end
 
+(** Video frame type. *)
 module Video_frame : sig
   type t
 end
 
+(** Subtitle frame type. *)
 module Subtitle_frame : sig
   type t
 end

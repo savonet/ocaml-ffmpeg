@@ -10,7 +10,7 @@
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
 
-#include <avutil_stubs.h>
+#include "avutil_stubs.h"
 
 static const enum AVPixelFormat PIXEL_FORMATS[] = {
   AV_PIX_FMT_YUV420P,
