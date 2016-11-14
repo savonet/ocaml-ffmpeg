@@ -133,8 +133,8 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value
   uint8_t *dst_slice[4];
   int dst_stride[4];
 
-  memset(src_slice, 0, 4*sizeof(uint8_t));
-  memset(dst_slice, 0, 4*sizeof(uint8_t));
+  memset(src_slice, 0, 4*sizeof(uint8_t*));
+  memset(dst_slice, 0, 4*sizeof(uint8_t*));
 
   for (i = 0; i < src_planes; i++)
     {

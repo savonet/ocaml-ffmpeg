@@ -8,6 +8,9 @@ AC_BASE_CHECKS()
 PKG_PROG_PKG_CONFIG()
 PKG_CONFIG_CHECK_MODULE([libavutil])
 PKG_CONFIG_CHECK_MODULE([libswscale])
+PKG_CONFIG_CHECK_MODULE([libavformat])
+PKG_CONFIG_CHECK_MODULE([libavcodec])
+PKG_CONFIG_CHECK_MODULE([libswresample])
 
 # substitutions to perform
 AC_SUBST(VERSION)
