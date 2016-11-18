@@ -6,6 +6,9 @@ addons:
     - ocaml-nox
     - ocaml-findlib
     - libavutil-dev
+    - libavformat-dev
+    - libavcodec-dev
+    - libavresample-dev
     - libswscale-dev
 
 script: ./bootstrap && ./configure && make
