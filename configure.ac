@@ -12,6 +12,9 @@ PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
 #PKG_CONFIG_CHECK_MODULE([libswresample])
 AC_CHECK_HEADERS([libswresample/swresample.h],[HAS_SWRESAMPLE="yes"],[HAS_SWRESAMPLE=""])
+if test "x$HAS_SWRESAMPLE" = "xyes" ; then
+  LIBS="$LIBS -lswresample"
+fi
 AC_SUBST(HAS_SWRESAMPLE)
 AC_CHECK_HEADERS([libavutil/channel_layout.h],[HAS_CHANNEL_LAYOUT="yes"],[HAS_CHANNEL_LAYOUT=""])
 if test "x$HAS_CHANNEL_LAYOUT" = "xyes" ; then

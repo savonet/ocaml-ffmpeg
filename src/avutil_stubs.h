@@ -9,6 +9,8 @@
 #endif
 #ifdef HAS_FRAME
 #include <libavutil/frame.h>
+#else
+typedef void AVFrame;
 #endif
 
 #define EXN_FAILURE "ffmpeg_exn_failure"
