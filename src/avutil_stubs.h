@@ -7,7 +7,9 @@
 #ifdef HAS_CHANNEL_LAYOUT
 #include <libavutil/channel_layout.h>
 #endif
+#ifdef HAS_FRAME
 #include <libavutil/frame.h>
+#endif
 
 #define EXN_FAILURE "ffmpeg_exn_failure"
 

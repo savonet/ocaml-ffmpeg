@@ -17,6 +17,10 @@ AC_CHECK_HEADERS([libavutil/channel_layout.h],[HAS_CHANNEL_LAYOUT="yes"],[HAS_CH
 if test "x$HAS_CHANNEL_LAYOUT" = "xyes" ; then
   CFLAGS="$CFLAGS -DHAS_CHANNEL_LAYOUT"
 fi
+AC_CHECK_HEADERS([libavutil/frame.h],[HAS_FRAME="yes"],[HAS_FRAME=""])
+if test "x$HAS_FRAME" = "xyes" ; then
+  CFLAGS="$CFLAGS -DHAS_FRAME"
+fi
 
 # substitutions to perform
 AC_SUBST(VERSION)
