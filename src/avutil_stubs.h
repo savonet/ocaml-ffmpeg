@@ -4,7 +4,9 @@
 #include <caml/mlvalues.h>
 
 #include <libavutil/samplefmt.h>
+#ifdef HAS_CHANNEL_LAYOUT
 #include <libavutil/channel_layout.h>
+#endif
 #include <libavutil/frame.h>
 
 #define EXN_FAILURE "ffmpeg_exn_failure"

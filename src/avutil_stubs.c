@@ -58,6 +58,7 @@ int64_t second_fractions_of_time_format(int time_format)
 
 /**** Channel layout ****/
 
+#ifdef HAS_CHANNEL_LAYOUT
 #define CHANNEL_LAYOUTS_LEN 28
 static const uint64_t CHANNEL_LAYOUTS[CHANNEL_LAYOUTS_LEN] = {
   AV_CH_LAYOUT_MONO,
@@ -89,20 +90,29 @@ static const uint64_t CHANNEL_LAYOUTS[CHANNEL_LAYOUTS_LEN] = {
   AV_CH_LAYOUT_HEXADECAGONAL,
   AV_CH_LAYOUT_STEREO_DOWNMIX
 };
+#endif
 
 uint64_t ChannelLayout_val(value v)
 {
+#ifndef HAS_CHANNEL_LAYOUT
+  caml_failwith("Not implemented.");
+#else
   return CHANNEL_LAYOUTS[Int_val(v)];
+#endif
 }
 
 value Val_channelLayout(uint64_t cl)
 {
+#ifndef HAS_CHANNEL_LAYOUT
+  caml_failwith("Not implemented.");
+#else
   for (int i = 0; i < CHANNEL_LAYOUTS_LEN; i++) {
     if (cl == CHANNEL_LAYOUTS[i])
       return Val_int(i);
   }
   printf("error in channel layout : %llu\n", cl);
   return Val_int(0);
+#endif
 }
 
 
