@@ -47,7 +47,7 @@ type video = Video of video_frame | End_of_file
 type subtitle = Subtitle of subtitle_frame | End_of_file
 
 type media =
-    Audio of int * audio_frame
+  | Audio of int * audio_frame
   | Video of int * video_frame
   | Subtitle of int * subtitle_frame
   | End_of_file
