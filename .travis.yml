@@ -8,7 +8,6 @@ addons:
     - libavutil-dev
     - libavformat-dev
     - libavcodec-dev
-    - libswresample-dev
     - libswscale-dev
 
 script: ./bootstrap && ./configure && make

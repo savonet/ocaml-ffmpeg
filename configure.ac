@@ -10,7 +10,9 @@ PKG_CONFIG_CHECK_MODULE([libavutil])
 PKG_CONFIG_CHECK_MODULE([libswscale])
 PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
-PKG_CONFIG_CHECK_MODULE([libswresample])
+#PKG_CONFIG_CHECK_MODULE([libswresample])
+AC_CHECK_HEADERS([libswresample/swresample.h],[HAS_SWRESAMPLE="yes"],[HAS_SWRESAMPLE=""])
+AC_SUBST(HAS_SWRESAMPLE)
 
 # substitutions to perform
 AC_SUBST(VERSION)

@@ -25,7 +25,10 @@ DVIPS = @DVIPS@
 PS2PDF = @PS2PDF@
 OCAMLLIBPATH = @CAMLLIBPATH@
 
-SOURCES = avutil_stubs.h avutil_stubs.c avutil.ml swscale_stubs.c swscale.ml av_stubs.c av.ml
+SOURCES = avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml av_stubs.c av.mli av.ml
+ifeq "@HAS_SWRESAMPLE@" "yes"
+	SOURCES += swresample_stubs.c swresample.mli swresample.ml
+endif
 RESULT = ffmpeg
 LIB_PACK_NAME = FFmpeg
 OCAMLDOCFLAGS = -stars
