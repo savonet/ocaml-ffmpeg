@@ -17,24 +17,17 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
 
-  let rsp = FrameToS32Bytes.of_in_audio_format (Av.get_audio_format src)
+  let rsp = FrameToS32Bytes.from_audio_format (Av.get_audio_format src)
       Channel_layout.CL_stereo 44100
   in
-  let rec decode() =
-    match Av.read_audio src with
-    | Av.Audio af ->
-      FrameToS32Bytes.convert rsp af |> output_bytes audio_output_file;
-      decode()
-    | Av.End_of_file -> ()
-    | exception Avutil.Failure msg -> prerr_endline msg
-  in
-  decode();
+  Av.iter_audio src
+    (fun af -> FrameToS32Bytes.convert rsp af |> output_bytes audio_output_file);
 
   Av.close_input src;
-
   close_out audio_output_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
     (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
-    audio_output_filename
+    audio_output_filename;
 
+  Gc.full_major ()

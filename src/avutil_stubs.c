@@ -12,6 +12,9 @@
 
 #include "avutil_stubs.h"
 
+char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
+char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
+
 static const enum AVPixelFormat PIXEL_FORMATS[] = {
   AV_PIX_FMT_YUV420P,
   AV_PIX_FMT_YUYV422,
@@ -45,10 +48,10 @@ CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
 
 
 /**** Time format ****/
-#define SECOND_FRACTIONS_LEN 4
-static const int64_t SECOND_FRACTIONS[SECOND_FRACTIONS_LEN] = {
+static const int64_t SECOND_FRACTIONS[] = {
   1, 1000, 1000000, 1000000000
 };
+#define SECOND_FRACTIONS_LEN (sizeof(SECOND_FRACTIONS) / sizeof(int64_t))
 
 int64_t second_fractions_of_time_format(int time_format)
 {
@@ -59,8 +62,7 @@ int64_t second_fractions_of_time_format(int time_format)
 /**** Channel layout ****/
 
 #ifdef HAS_CHANNEL_LAYOUT
-#define CHANNEL_LAYOUTS_LEN 28
-static const uint64_t CHANNEL_LAYOUTS[CHANNEL_LAYOUTS_LEN] = {
+static const uint64_t CHANNEL_LAYOUTS[] = {
   AV_CH_LAYOUT_MONO,
   AV_CH_LAYOUT_STEREO,
   AV_CH_LAYOUT_2POINT1,
@@ -90,6 +92,7 @@ static const uint64_t CHANNEL_LAYOUTS[CHANNEL_LAYOUTS_LEN] = {
   AV_CH_LAYOUT_HEXADECAGONAL,
   AV_CH_LAYOUT_STEREO_DOWNMIX
 };
+#define CHANNEL_LAYOUTS_LEN (sizeof(CHANNEL_LAYOUTS) / sizeof(uint64_t))
 #endif
 
 uint64_t ChannelLayout_val(value v)
@@ -118,8 +121,8 @@ value Val_channelLayout(uint64_t cl)
 
 /**** Sample format ****/
 
-#define SAMPLE_FORMATS_LEN 10
-static const enum AVSampleFormat SAMPLE_FORMATS[SAMPLE_FORMATS_LEN] = {
+static const enum AVSampleFormat SAMPLE_FORMATS[] = {
+  AV_SAMPLE_FMT_NONE,
   AV_SAMPLE_FMT_U8,
   AV_SAMPLE_FMT_S16,
   AV_SAMPLE_FMT_S32,
@@ -131,6 +134,7 @@ static const enum AVSampleFormat SAMPLE_FORMATS[SAMPLE_FORMATS_LEN] = {
   AV_SAMPLE_FMT_FLTP,
   AV_SAMPLE_FMT_DBLP
 };
+#define SAMPLE_FORMATS_LEN (sizeof(SAMPLE_FORMATS) / sizeof(enum AVSampleFormat))
 
 enum AVSampleFormat SampleFormat_val(value v)
 {
@@ -153,39 +157,31 @@ value Val_sampleFormat(enum AVSampleFormat sf)
 }
 
 static const enum caml_ba_kind BIGARRAY_KINDS[SAMPLE_FORMATS_LEN] = {
+  CAML_BA_KIND_MASK,
   CAML_BA_UINT8,
-  CAML_BA_SINT16,	
-  CAML_BA_INT32,	
+  CAML_BA_SINT16,
+  CAML_BA_INT32,
   CAML_BA_FLOAT32,
   CAML_BA_FLOAT64,
   CAML_BA_UINT8,
   CAML_BA_SINT16,
-  CAML_BA_INT32,	
+  CAML_BA_INT32,
   CAML_BA_FLOAT32,
   CAML_BA_FLOAT64
 };
-
-enum caml_ba_kind bigarray_kind_of_Sample_format(int sf)
-{
-  return BIGARRAY_KINDS[sf];
-}
-
-enum caml_ba_kind bigarray_kind_of_Sample_format_val(value val)
-{
-  return BIGARRAY_KINDS[Int_val(val)];
-}
 
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf)
 {
   for (int i = 0; i < SAMPLE_FORMATS_LEN; i++)
     {
       if (sf == SAMPLE_FORMATS[i])
-	return BIGARRAY_KINDS[i];
+        return BIGARRAY_KINDS[i];
     }
   return CAML_BA_KIND_MASK;
 }
 
-CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt) {
+CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
+{
   CAMLparam1(_sample_fmt);
   CAMLlocal1(ans);
 
@@ -216,8 +212,7 @@ static struct custom_operations frame_ops =
 
 void value_of_frame(AVFrame *frame, value * pvalue)
 {
-  if (!frame)
-    Raise(EXN_FAILURE, "Empty frame");
+  if( ! frame) Raise(EXN_FAILURE, "Empty frame");
 
   *pvalue = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
   Frame_val((*pvalue)) = frame;

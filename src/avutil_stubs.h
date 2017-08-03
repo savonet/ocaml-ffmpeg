@@ -13,9 +13,23 @@
 typedef void AVFrame;
 #endif
 
+#define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
 
-#define Raise(exn, msg) caml_raise_with_string(*caml_named_value(exn), (msg))
+#define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
+
+#define Fail(...) {                             \
+    Log(__VA_ARGS__);                           \
+    return NULL;                                \
+  }
+
+#define Raise(exn, ...) {                                               \
+    snprintf(ocaml_av_exn_msg, ERROR_MSG_SIZE, __VA_ARGS__);            \
+    caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
+  }
+
+extern char ocaml_av_error_msg[];
+extern char ocaml_av_exn_msg[];
 
 /**** Pixel format ****/
 
@@ -45,11 +59,6 @@ enum AVSampleFormat SampleFormat_val(value v);
 enum AVSampleFormat AVSampleFormat_of_Sample_format(int i);
 
 value Val_sampleFormat(enum AVSampleFormat sf);
-
-enum caml_ba_kind bigarray_kind_of_Sample_format(int sf);
-
-enum caml_ba_kind bigarray_kind_of_Sample_format_val(value val);
-
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 

@@ -5,7 +5,7 @@ LIBS = bigarray ffmpeg
 INCDIRS = ../src
 THREADS = yes
 
-all: dnc
+all: dc
 
 test: all
 	./test
