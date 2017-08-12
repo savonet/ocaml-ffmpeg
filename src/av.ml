@@ -33,10 +33,10 @@ external get_sample_rate : t -> int = "ocaml_av_get_sample_rate"
 external get_sample_format : t -> sample_format = "ocaml_av_get_sample_format"
 
 let get_audio_format t =
-  Avutil.{
-    channel_layout = get_channel_layout t;
-    sample_format = get_sample_format t;
-    sample_rate = get_sample_rate t
+  {
+    Avutil.channel_layout = get_channel_layout t;
+    Avutil.sample_format = get_sample_format t;
+    Avutil.sample_rate = get_sample_rate t
   }
 
 
