@@ -22,3 +22,4 @@ type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1
 type planes = (data * int) array
 
 external scale : t -> planes -> int -> int -> planes -> int -> unit = "ocaml_swscale_scale_byte" "ocaml_swscale_scale"
+

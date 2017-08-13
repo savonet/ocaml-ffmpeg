@@ -217,3 +217,45 @@ void value_of_frame(AVFrame *frame, value * pvalue)
   *pvalue = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
   Frame_val((*pvalue)) = frame;
 }
+
+CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format)
+{
+  CAMLparam1(_format);
+  CAMLlocal1(ans);
+
+  AVFrame *frame = av_frame_alloc();
+  if( ! frame) Raise(EXN_FAILURE, "Failed to alloc video frame");
+
+  frame->format = PixelFormat_val(_format);
+  frame->width  = Int_val(_w);
+  frame->height = Int_val(_h);
+
+  int ret = av_frame_get_buffer(frame, 32);
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer");
+
+  value_of_frame(frame, &ans);
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x, value _y)
+{
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+  int line = Int_val(_line);
+  int x = Int_val(_x);
+  int y = Int_val(_y);
+  CAMLreturn(Val_int(frame->data[line][y * frame->linesize[line] + x]));
+}
+
+CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x, value _y, value _v)
+{
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+  int line = Int_val(_line);
+  int x = Int_val(_x);
+  int y = Int_val(_y);
+
+  frame->data[line][y * frame->linesize[line] + x] = Int_val(_v);
+
+  CAMLreturn(Val_unit);
+}

@@ -17,4 +17,3 @@ type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1
 type planes = (data * int) array
 
 val scale : t -> planes -> int -> int -> planes -> int -> unit
-

@@ -1,13 +1,13 @@
-SOURCES = encode_audio.ml
-RESULT = encode_audio
+SOURCES = encode_video.ml
+RESULT = encode_video
 LIBS = bigarray ffmpeg
 
 INCDIRS = ../../src
 THREADS = yes
 
-all: nc
+all: dc
 
 test: all
-	./encode_audio A4.ogg libvorbis
+	./encode_video video.ogg libtheora
 
 include OCamlMakefile

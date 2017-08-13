@@ -84,8 +84,12 @@ module Audio = struct
   | AC_XMA1
   | AC_XMA2
   | AC_DST
+    
+external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
 
-external find_best_sample_format : id -> Avutil.Sample_format.t = "ocaml_av_find_best_sample_format"
+external find_by_name : string -> id = "ocaml_avcodec_find_audio_codec_id_by_name"
+
+external find_best_sample_format : id -> Avutil.Sample_format.t = "ocaml_avcodec_find_best_sample_format"
 end
 
 (** Video codecs. *)
@@ -307,6 +311,10 @@ module Video = struct
   | VC_MAGICYUV
   | VC_SHEERVIDEO
   | VC_YLC
+
+external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
+
+external find_by_name : string -> id = "ocaml_avcodec_find_video_codec_id_by_name"
 end
 
 (** Subtitle codecs. *)
@@ -337,4 +345,9 @@ module Subtitle = struct
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
+
+external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
+
+external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
+
 end

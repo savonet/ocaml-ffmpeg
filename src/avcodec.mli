@@ -85,7 +85,11 @@ module Audio : sig
   | AC_XMA2
   | AC_DST
 
-val find_best_sample_format : id -> Avutil.Sample_format.t
+  val get_name : id -> string
+
+  val find_by_name : string -> id
+
+  val find_best_sample_format : id -> Avutil.Sample_format.t
 end
 
 (** Video codecs. *)
@@ -307,6 +311,10 @@ module Video : sig
   | VC_MAGICYUV
   | VC_SHEERVIDEO
   | VC_YLC
+
+  val get_name : id -> string
+
+  val find_by_name : string -> id
 end
 
 (** Subtitle codecs. *)
@@ -337,4 +345,8 @@ module Subtitle : sig
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
+
+  val get_name : id -> string
+
+  val find_by_name : string -> id
 end

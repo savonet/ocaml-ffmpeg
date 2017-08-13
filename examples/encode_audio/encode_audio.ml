@@ -1,5 +1,4 @@
 open FFmpeg
-open Avcodec
 module CL = Avutil.Channel_layout
 module Resampler = Swresample.Make (Swresample.FloatArray) (Swresample.Frame)
 
@@ -7,11 +6,17 @@ let pi = 4.0 *. atan 1.0
 let rate = 44100
 
 let () =
-  let rsp = Resampler.to_codec CL.CL_mono rate Audio.AC_VORBIS CL.CL_stereo rate
+  if Array.length Sys.argv < 3 then (
+    Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
+    exit 1
+  );
+  let codec_id = Avcodec.Audio.find_by_name Sys.argv.(2)
   in
-  let dst = Av.open_output "A4.ogg"
+  let rsp = Resampler.to_codec CL.CL_mono rate codec_id CL.CL_stereo rate
   in
-  let sid = Av.new_audio_stream dst Audio.AC_VORBIS CL.CL_stereo rate
+  let dst = Av.open_output Sys.argv.(1)
+  in
+  let sid = Av.new_audio_stream ~codec_id CL.CL_stereo rate dst
   in
   let c = (2. *. pi *. 440.) /. (float_of_int rate) in
 

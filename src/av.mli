@@ -59,19 +59,19 @@ type media =
 val read_audio : t -> audio
 
 (** Read iteratively selected audio stream. *)
-val iter_audio : t -> (audio_frame -> unit) -> unit
+val iter_audio : (audio_frame -> unit) -> t -> unit
 
 (** Read selected video stream. *)
 val read_video : t -> video
 
 (** Read iteratively selected video stream. *)
-val iter_video : t -> (video_frame -> unit) -> unit
+val iter_video : (video_frame -> unit) -> t -> unit
 
 (** Read selected subtitle stream. *)
 val read_subtitle : t -> subtitle
 
 (** Read iteratively selected subtitle stream. *)
-val iter_subtitle : t -> (subtitle_frame -> unit) -> unit
+val iter_subtitle : (subtitle_frame -> unit) -> t -> unit
 
 (** Read input  streams. *)
 val read : t -> media
@@ -95,8 +95,15 @@ val open_output : string -> t
 val close_output : t -> unit
 
 (** Add a new audio stream *)
-val new_audio_stream : t -> audio_codec_id -> channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> int -> int
+val new_audio_stream : ?codec_id:audio_codec_id -> ?codec_name:string -> channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> int -> t -> int
+
+(** Add a new video stream *)
+val new_video_stream : ?codec_id:video_codec_id -> ?codec_name:string -> int -> int -> pixel_format -> ?bit_rate:int -> ?frame_rate:int -> t -> int
+
 
 (** Write an audio frame to a stream *)
 val write_audio_frame : t -> int -> audio_frame -> unit
 
+
+(** Write an video frame to a stream *)
+val write_video_frame : t -> int -> video_frame -> unit

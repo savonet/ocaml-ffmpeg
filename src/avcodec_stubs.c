@@ -21,6 +21,16 @@
 #include "avcodec_stubs.h"
 
 
+static enum AVCodecID find_codec_id_by_name(const char *name)
+{
+  av_register_all();
+
+  AVCodec * codec = avcodec_find_encoder_by_name(name);
+  if( ! codec) Raise(EXN_FAILURE, "Failed to find %s codec", name);
+
+  return codec->id;
+}
+
 /**** Audio codec ID ****/
 static const enum AVCodecID AUDIO_CODEC_IDS[] = {
   AV_CODEC_ID_MP2,
@@ -122,7 +132,20 @@ value Val_audioCodecId(enum AVCodecID id)
   return Val_int(0);
 }
 
-CAMLprim value ocaml_av_find_best_sample_format(value _audio_codec_id)
+CAMLprim value ocaml_avcodec_get_audio_codec_name(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLreturn(caml_copy_string(avcodec_get_name(AudioCodecId_val(_codec_id))));
+}
+  
+CAMLprim value ocaml_avcodec_find_audio_codec_id_by_name(value _name)
+{
+  CAMLparam1(_name);
+  CAMLreturn(Val_audioCodecId(find_codec_id_by_name(String_val(_name))));
+}
+
+
+CAMLprim value ocaml_avcodec_find_best_sample_format(value _audio_codec_id)
 {
   CAMLparam1(_audio_codec_id);
   enum AVCodecID codec_id = AudioCodecId_val(_audio_codec_id);
@@ -372,6 +395,18 @@ value Val_videoCodecId(enum AVCodecID id)
   return Val_int(0);
 }
 
+CAMLprim value ocaml_avcodec_get_video_codec_name(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLreturn(caml_copy_string(avcodec_get_name(VideoCodecId_val(_codec_id))));
+}
+  
+CAMLprim value ocaml_avcodec_find_video_codec_id_by_name(value _name)
+{
+  CAMLparam1(_name);
+  CAMLreturn(Val_videoCodecId(find_codec_id_by_name(String_val(_name))));
+}
+
 
 /**** Subtitle codec ID ****/
 static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
@@ -415,5 +450,17 @@ value Val_subtitleCodecId(enum AVCodecID id)
   }
   printf("error in subtitle codec id : %d\n", id);
   return Val_int(0);
+}
+
+CAMLprim value ocaml_avcodec_get_subtitle_codec_name(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLreturn(caml_copy_string(avcodec_get_name(SubtitleCodecId_val(_codec_id))));
+}
+  
+CAMLprim value ocaml_avcodec_find_subtitle_codec_id_by_name(value _name)
+{
+  CAMLparam1(_name);
+  CAMLreturn(Val_subtitleCodecId(find_codec_id_by_name(String_val(_name))));
 }
 
