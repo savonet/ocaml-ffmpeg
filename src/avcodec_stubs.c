@@ -4,16 +4,16 @@
 #include <caml/fail.h>
 #include <caml/callback.h>
 /*
-#include <caml/custom.h>
-#include <caml/bigarray.h>
-#include <caml/threads.h>
+  #include <caml/custom.h>
+  #include <caml/bigarray.h>
+  #include <caml/threads.h>
 
-#include <libavutil/opt.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/timestamp.h>
-#include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
-#include "libavutil/audio_fifo.h"
+  #include <libavutil/opt.h>
+  #include <libavutil/imgutils.h>
+  #include <libavutil/timestamp.h>
+  #include <libavformat/avformat.h>
+  #include <libswresample/swresample.h>
+  #include "libavutil/audio_fifo.h"
 */
 #include <libavformat/avformat.h>
 #include "avutil_stubs.h"
@@ -33,6 +33,91 @@ static enum AVCodecID find_codec_id_by_name(const char *name)
 
 /**** Audio codec ID ****/
 static const enum AVCodecID AUDIO_CODEC_IDS[] = {
+  AV_CODEC_ID_PCM_S16LE,
+  AV_CODEC_ID_PCM_S16BE,
+  AV_CODEC_ID_PCM_U16LE,
+  AV_CODEC_ID_PCM_U16BE,
+  AV_CODEC_ID_PCM_S8,
+  AV_CODEC_ID_PCM_U8,
+  AV_CODEC_ID_PCM_MULAW,
+  AV_CODEC_ID_PCM_ALAW,
+  AV_CODEC_ID_PCM_S32LE,
+  AV_CODEC_ID_PCM_S32BE,
+  AV_CODEC_ID_PCM_U32LE,
+  AV_CODEC_ID_PCM_U32BE,
+  AV_CODEC_ID_PCM_S24LE,
+  AV_CODEC_ID_PCM_S24BE,
+  AV_CODEC_ID_PCM_U24LE,
+  AV_CODEC_ID_PCM_U24BE,
+  AV_CODEC_ID_PCM_S24DAUD,
+  AV_CODEC_ID_PCM_ZORK,
+  AV_CODEC_ID_PCM_S16LE_PLANAR,
+  AV_CODEC_ID_PCM_DVD,
+  AV_CODEC_ID_PCM_F32BE,
+  AV_CODEC_ID_PCM_F32LE,
+  AV_CODEC_ID_PCM_F64BE,
+  AV_CODEC_ID_PCM_F64LE,
+  AV_CODEC_ID_PCM_BLURAY,
+  AV_CODEC_ID_PCM_LXF,
+  AV_CODEC_ID_S302M,
+  AV_CODEC_ID_PCM_S8_PLANAR,
+  AV_CODEC_ID_PCM_S24LE_PLANAR,
+  AV_CODEC_ID_PCM_S32LE_PLANAR,
+  AV_CODEC_ID_PCM_S16BE_PLANAR,
+  AV_CODEC_ID_PCM_S64LE,
+  AV_CODEC_ID_PCM_S64BE,
+  AV_CODEC_ID_PCM_F16LE,
+  AV_CODEC_ID_PCM_F24LE,
+  AV_CODEC_ID_ADPCM_IMA_QT,
+  AV_CODEC_ID_ADPCM_IMA_WAV,
+  AV_CODEC_ID_ADPCM_IMA_DK3,
+  AV_CODEC_ID_ADPCM_IMA_DK4,
+  AV_CODEC_ID_ADPCM_IMA_WS,
+  AV_CODEC_ID_ADPCM_IMA_SMJPEG,
+  AV_CODEC_ID_ADPCM_MS,
+  AV_CODEC_ID_ADPCM_4XM,
+  AV_CODEC_ID_ADPCM_XA,
+  AV_CODEC_ID_ADPCM_ADX,
+  AV_CODEC_ID_ADPCM_EA,
+  AV_CODEC_ID_ADPCM_G726,
+  AV_CODEC_ID_ADPCM_CT,
+  AV_CODEC_ID_ADPCM_SWF,
+  AV_CODEC_ID_ADPCM_YAMAHA,
+  AV_CODEC_ID_ADPCM_SBPRO_4,
+  AV_CODEC_ID_ADPCM_SBPRO_3,
+  AV_CODEC_ID_ADPCM_SBPRO_2,
+  AV_CODEC_ID_ADPCM_THP,
+  AV_CODEC_ID_ADPCM_IMA_AMV,
+  AV_CODEC_ID_ADPCM_EA_R1,
+  AV_CODEC_ID_ADPCM_EA_R3,
+  AV_CODEC_ID_ADPCM_EA_R2,
+  AV_CODEC_ID_ADPCM_IMA_EA_SEAD,
+  AV_CODEC_ID_ADPCM_IMA_EA_EACS,
+  AV_CODEC_ID_ADPCM_EA_XAS,
+  AV_CODEC_ID_ADPCM_EA_MAXIS_XA,
+  AV_CODEC_ID_ADPCM_IMA_ISS,
+  AV_CODEC_ID_ADPCM_G722,
+  AV_CODEC_ID_ADPCM_IMA_APC,
+  AV_CODEC_ID_ADPCM_VIMA,
+  AV_CODEC_ID_ADPCM_AFC,
+  AV_CODEC_ID_ADPCM_IMA_OKI,
+  AV_CODEC_ID_ADPCM_DTK,
+  AV_CODEC_ID_ADPCM_IMA_RAD,
+  AV_CODEC_ID_ADPCM_G726LE,
+  AV_CODEC_ID_ADPCM_THP_LE,
+  AV_CODEC_ID_ADPCM_PSX,
+  AV_CODEC_ID_ADPCM_AICA,
+  AV_CODEC_ID_ADPCM_IMA_DAT4,
+  AV_CODEC_ID_ADPCM_MTAF,
+  AV_CODEC_ID_AMR_NB,
+  AV_CODEC_ID_AMR_WB,
+  AV_CODEC_ID_RA_144,
+  AV_CODEC_ID_RA_288,
+  AV_CODEC_ID_ROQ_DPCM,
+  AV_CODEC_ID_INTERPLAY_DPCM,
+  AV_CODEC_ID_XAN_DPCM,
+  AV_CODEC_ID_SOL_DPCM,
+  AV_CODEC_ID_SDX2_DPCM,
   AV_CODEC_ID_MP2,
   AV_CODEC_ID_MP3,
   AV_CODEC_ID_AAC,
@@ -128,7 +213,7 @@ value Val_audioCodecId(enum AVCodecID id)
     if (id == AUDIO_CODEC_IDS[i])
       return Val_int(i);
   }
-  printf("error in audio codec id : %d\n", id);
+  Raise(EXN_FAILURE, "Failed to find audio codec %s (%d)", avcodec_get_name(id), id);
   return Val_int(0);
 }
 
@@ -391,7 +476,7 @@ value Val_videoCodecId(enum AVCodecID id)
     if (id == VIDEO_CODEC_IDS[i])
       return Val_int(i);
   }
-  printf("error in video codec id : %d\n", id);
+  Raise(EXN_FAILURE, "Failed to find video codec %s (%d)", avcodec_get_name(id), id);
   return Val_int(0);
 }
 
@@ -448,7 +533,7 @@ value Val_subtitleCodecId(enum AVCodecID id)
     if (id == SUBTITLE_CODEC_IDS[i])
       return Val_int(i);
   }
-  printf("error in subtitle codec id : %d\n", id);
+  Raise(EXN_FAILURE, "Failed to find subtitle codec %s (%d)", avcodec_get_name(id), id);
   return Val_int(0);
 }
 
