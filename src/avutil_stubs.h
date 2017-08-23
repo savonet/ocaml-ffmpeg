@@ -1,6 +1,8 @@
 #ifndef _AVUTIL_STUBS_H_               
 #define _AVUTIL_STUBS_H_
 
+#include <stdio.h>
+
 #include <caml/mlvalues.h>
 
 #include <libavutil/samplefmt.h>
