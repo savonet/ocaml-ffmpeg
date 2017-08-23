@@ -114,7 +114,7 @@ value Val_channelLayout(uint64_t cl)
     if (cl == CHANNEL_LAYOUTS[i])
       return Val_int(i);
   }
-  Raise(EXN_FAILURE, "Invalid channel layout : %llu", cl);
+  Raise(EXN_FAILURE, "Invalid channel layout : %u", (unsigned int)cl);
   return Val_int(0);
 #endif
 }
@@ -249,6 +249,7 @@ CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format
 CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x, value _y)
 {
   CAMLparam1(_frame);
+  CAMLlocal1(ans);
 #ifndef HAS_FRAME
   caml_failwith("Not implemented.");
 #else
@@ -256,8 +257,10 @@ CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x,
   int line = Int_val(_line);
   int x = Int_val(_x);
   int y = Int_val(_y);
+
+  ans = Val_int(frame->data[line][y * frame->linesize[line] + x]);
 #endif
-  CAMLreturn(Val_int(frame->data[line][y * frame->linesize[line] + x]));
+  CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x, value _y, value _v)
