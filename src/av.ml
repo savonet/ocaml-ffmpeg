@@ -12,6 +12,9 @@ type sample_format = Avutil.Sample_format.t
 type audio_frame = Avutil.Audio_frame.t
 type video_frame = Avutil.Video_frame.t
 type subtitle_frame = Avutil.Subtitle_frame.t
+type audio_codec_id = Avcodec.Audio.id
+type video_codec_id = Avcodec.Video.id
+type subtitle_codec_id = Avcodec.Subtitle.id
 
 
 external open_input : string -> t = "ocaml_av_open_input"
@@ -41,13 +44,43 @@ type audio =
   | Audio of audio_frame
   | End_of_file
 
+external read_audio : t -> audio = "ocaml_av_read_audio"
+
+let iter_audio src f =
+  let rec iter() = match read_audio src with
+    | Audio frame -> f frame; iter()
+    | End_of_file -> ()
+  in
+  iter();
+
+
 type video =
   | Video of video_frame
   | End_of_file
 
+external read_video : t -> video = "ocaml_av_read_video"
+
+let iter_video src f =
+  let rec iter() = match read_video src with
+    | Video frame -> f frame; iter()
+    | End_of_file -> ()
+  in
+  iter();
+
+
 type subtitle =
   | Subtitle of subtitle_frame
   | End_of_file
+
+external read_subtitle : t -> subtitle = "ocaml_av_read_subtitle"
+
+let iter_subtitle src f =
+  let rec iter() = match read_subtitle src with
+    | Subtitle frame -> f frame; iter()
+    | End_of_file -> ()
+  in
+  iter();
+
 
 type media =
   | Audio of int * audio_frame
@@ -55,9 +88,6 @@ type media =
   | Subtitle of int * subtitle_frame
   | End_of_file
 
-external read_audio : t -> audio = "ocaml_av_read_audio"
-external read_video : t -> video = "ocaml_av_read_video"
-external read_subtitle : t -> subtitle = "ocaml_av_read_subtitle"
 external read : t -> media = "ocaml_av_read"
 
 
@@ -65,5 +95,17 @@ type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag
 
 external seek_frame : t -> int -> time_format -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
 
-
 external subtitle_to_string : subtitle_frame -> string = "ocaml_av_subtitle_to_string"
+
+
+external open_output : string -> t = "ocaml_av_open_output"
+external close_output : t -> unit = "ocaml_av_close_output"
+
+external new_audio_stream : t -> audio_codec_id -> channel_layout -> sample_format -> int -> int -> int = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
+
+let new_audio_stream t aci cl ?sample_format ?(bit_rate=192000) sr =
+  let sf = match sample_format with Some sf -> sf | None -> Avcodec.Audio.find_best_sample_format aci
+  in
+  new_audio_stream t aci cl sf bit_rate sr
+
+external write_audio_frame : t -> int -> audio_frame -> unit = "ocaml_av_write_audio_frame"

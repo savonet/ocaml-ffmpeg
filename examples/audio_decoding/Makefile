@@ -5,9 +5,9 @@ LIBS = bigarray ffmpeg
 INCDIRS = ../../src
 THREADS = yes
 
-all: dnc
+all: dc
 
 test: all
-	./audio_decoding ../../../ocaml-mm/examples/test.mp3
+	./audio_decoding ../encode_audio/A4.ogg A4
 
 include OCamlMakefile

@@ -5,3 +5,7 @@ all:
 
 clean:
 	for i in $(DIRS); do $(MAKE) -C $$i $@; done
+
+test: all
+	for i in $(DIRS); do $(MAKE) -C $$i $@; done
+

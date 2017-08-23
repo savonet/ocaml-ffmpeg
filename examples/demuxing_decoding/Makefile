@@ -8,6 +8,6 @@ THREADS = yes
 all: dnc
 
 test: all
-	./demuxing_decoding ../../../ocaml-mm/examples/test.mp3 vo.raw ao.raw
+	./demuxing_decoding ../encode_audio/A4.ogg vo.raw ao.raw
 
 include OCamlMakefile

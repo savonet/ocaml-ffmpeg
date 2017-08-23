@@ -7,6 +7,9 @@ type sample_format = Avutil.Sample_format.t
 type audio_frame = Avutil.Audio_frame.t
 type video_frame = Avutil.Video_frame.t
 type subtitle_frame = Avutil.Subtitle_frame.t
+type audio_codec_id = Avcodec.Audio.id
+type video_codec_id = Avcodec.Video.id
+type subtitle_codec_id = Avcodec.Subtitle.id
 
 
 (** Open an input. *)
@@ -55,11 +58,20 @@ type media =
 (** Read selected audio stream. *)
 val read_audio : t -> audio
 
+(** Read iteratively selected audio stream. *)
+val iter_audio : t -> (audio_frame -> unit) -> unit
+
 (** Read selected video stream. *)
 val read_video : t -> video
 
+(** Read iteratively selected video stream. *)
+val iter_video : t -> (video_frame -> unit) -> unit
+
 (** Read selected subtitle stream. *)
 val read_subtitle : t -> subtitle
+
+(** Read iteratively selected subtitle stream. *)
+val iter_subtitle : t -> (subtitle_frame -> unit) -> unit
 
 (** Read input  streams. *)
 val read : t -> media
@@ -74,4 +86,17 @@ val seek_frame : t -> int -> time_format -> Int64.t -> seek_flag array -> unit
 
 (** Convert subtitle frame to string. *)
 val subtitle_to_string : subtitle_frame -> string
+
+
+(** Open an output. *)
+val open_output : string -> t
+
+(** Close an output. *)
+val close_output : t -> unit
+
+(** Add a new audio stream *)
+val new_audio_stream : t -> audio_codec_id -> channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> int -> int
+
+(** Write an audio frame to a stream *)
+val write_audio_frame : t -> int -> audio_frame -> unit
 

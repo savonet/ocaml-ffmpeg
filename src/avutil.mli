@@ -69,6 +69,7 @@ end
 module Sample_format : sig
   (** Audio sample formats *)
   type t =
+  | SF_none
   | SF_U8
   | SF_S16
   | SF_S32
