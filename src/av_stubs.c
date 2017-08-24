@@ -11,7 +11,6 @@
 
 #include <libavutil/opt.h>
 #include <libavutil/imgutils.h>
-#include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
 #include <libswresample/swresample.h>
 #include "libavutil/audio_fifo.h"
