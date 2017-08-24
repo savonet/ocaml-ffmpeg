@@ -14,7 +14,7 @@
 
 #include "avutil_stubs.h"
 #include "avcodec_stubs.h"
-#include "swresample_stubs.h"
+
 
 /**** Context ****/
 
