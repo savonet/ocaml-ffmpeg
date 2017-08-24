@@ -9,10 +9,7 @@
 #include <caml/bigarray.h>
 #include <caml/threads.h>
 
-#include <libavutil/opt.h>
-#include <libavutil/imgutils.h>
 #include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
 #include "libavutil/audio_fifo.h"
 
 #include "avutil_stubs.h"
