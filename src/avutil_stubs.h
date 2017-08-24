@@ -12,7 +12,8 @@
 #ifdef HAS_FRAME
 #include <libavutil/frame.h>
 #else
-typedef void AVFrame;
+#include <libavformat/avformat.h>
+//typedef void AVFrame;
 #endif
 
 #define ERROR_MSG_SIZE 256

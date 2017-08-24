@@ -66,6 +66,7 @@ module Audio : sig
   | AC_OPUS
   | AC_COMFORT_NOISE
   | AC_TAK
+    (*
   | AC_METASOUND
   | AC_PAF_AUDIO
   | AC_ON2AVC
@@ -86,7 +87,7 @@ module Audio : sig
   | AC_DST
 
   val get_name : id -> string
-
+*)
   val find_by_name : string -> id
 
   val find_best_sample_format : id -> Avutil.Sample_format.t
@@ -263,6 +264,7 @@ module Video : sig
   | VC_MTS2
   | VC_CLLC
   | VC_MSS2
+    (*
   | VC_VP9
   | VC_AIC
   | VC_ESCAPE130
@@ -313,7 +315,7 @@ module Video : sig
   | VC_YLC
 
   val get_name : id -> string
-
+*)
   val find_by_name : string -> id
 end
 
@@ -345,8 +347,8 @@ module Subtitle : sig
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
-
+(*
   val get_name : id -> string
-
+*)
   val find_by_name : string -> id
 end
