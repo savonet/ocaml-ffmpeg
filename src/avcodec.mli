@@ -332,6 +332,7 @@ module Subtitle : sig
   | SC_HDMV_PGS_SUBTITLE
   | SC_DVB_TELETEXT
   | SC_SRT
+(*
   | SC_MICRODVD
   | SC_EIA_608
   | SC_JACOSUB
@@ -347,7 +348,7 @@ module Subtitle : sig
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
-(*
+
   val get_name : id -> string
 *)
   val find_by_name : string -> id

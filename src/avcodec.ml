@@ -332,6 +332,7 @@ module Subtitle = struct
   | SC_HDMV_PGS_SUBTITLE
   | SC_DVB_TELETEXT
   | SC_SRT
+(*    
   | SC_MICRODVD
   | SC_EIA_608
   | SC_JACOSUB
@@ -347,7 +348,7 @@ module Subtitle = struct
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
-(*
+
 external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
 *)
 external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
