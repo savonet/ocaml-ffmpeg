@@ -25,7 +25,10 @@ DVIPS = @DVIPS@
 PS2PDF = @PS2PDF@
 OCAMLLIBPATH = @CAMLLIBPATH@
 
-SOURCES = avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml avcodec_stubs.h avcodec_stubs.c avcodec.mli avcodec.ml swscale_stubs.c swscale.mli swscale.ml av_stubs.c av.mli av.ml
+SOURCES = avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml
+ifeq "@HAS_AV@" "yes"
+	SOURCES += avcodec_stubs.h avcodec_stubs.c avcodec.mli avcodec.ml av_stubs.c av.mli av.ml
+endif
 ifeq "@HAS_SWRESAMPLE@" "yes"
 	SOURCES += swresample_stubs.c swresample.mli swresample.ml
 endif

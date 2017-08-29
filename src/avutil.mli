@@ -61,7 +61,7 @@ module Channel_layout : sig
   | CL_7point1_wide
   | CL_7point1_wide_back
   | CL_octagonal
-  | CL_hexadecagonal
+  (*  | CL_hexadecagonal*)
   | CL_stereo_downmix
 end
 
@@ -99,6 +99,12 @@ end
 (** Video frame type. *)
 module Video_frame : sig
   type t
+
+  val create : int -> int -> Pixel_format.t -> t
+
+  val get : t -> int -> int -> int -> int
+
+  val set : t -> int -> int -> int -> int -> unit
 end
 
 (** Subtitle frame type. *)

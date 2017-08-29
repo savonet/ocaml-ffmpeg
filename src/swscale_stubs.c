@@ -38,22 +38,22 @@ CAMLprim value ocaml_swscale_license(value unit)
 /***** Filters *****/
 
 /*
-#define Filter_val(v) (*(SwsFilter**)Data_custom_val(v))
+  #define Filter_val(v) (*(SwsFilter**)Data_custom_val(v))
 
-static void finalize_filter(value v)
-{
+  static void finalize_filter(value v)
+  {
   SwsFilter *f = Filter_val(v);
   sws_freeFilter(f);
-}
+  }
 
-static struct custom_operations filter_ops =
+  static struct custom_operations filter_ops =
   {
-    "ocaml_swscale_filter",
-    finalize_filter,
-    custom_compare_default,
-    custom_hash_default,
-    custom_serialize_default,
-    custom_deserialize_default
+  "ocaml_swscale_filter",
+  finalize_filter,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default
   };
 */
 
@@ -161,3 +161,4 @@ CAMLprim value ocaml_swscale_scale_byte(value *argv, int argn)
   /* TODO */
   assert(0);
 }
+

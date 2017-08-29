@@ -20,8 +20,8 @@ let () =
   let rsp = FrameToS32Bytes.from_audio_format (Av.get_audio_format src)
       Channel_layout.CL_stereo 44100
   in
-  Av.iter_audio src
-    (fun af -> FrameToS32Bytes.convert rsp af |> output_bytes audio_output_file);
+  Av.iter_audio (fun af ->
+      FrameToS32Bytes.convert rsp af |> output_bytes audio_output_file) src;
 
   Av.close_input src;
   close_out audio_output_file;

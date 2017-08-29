@@ -1,9 +1,3 @@
-(*exception End_of_file*)
-exception Open_failure of string
-
-let () =
-  Callback.register_exception "ffmpeg_exn_open_failure" (Open_failure "")
-
 type t
 type time_format = Avutil.Time_format.t
 type pixel_format = Avutil.Pixel_format.t
@@ -46,7 +40,7 @@ type audio =
 
 external read_audio : t -> audio = "ocaml_av_read_audio"
 
-let iter_audio src f =
+let iter_audio f src =
   let rec iter() = match read_audio src with
     | Audio frame -> f frame; iter()
     | End_of_file -> ()
@@ -60,7 +54,7 @@ type video =
 
 external read_video : t -> video = "ocaml_av_read_video"
 
-let iter_video src f =
+let iter_video f src =
   let rec iter() = match read_video src with
     | Video frame -> f frame; iter()
     | End_of_file -> ()
@@ -74,7 +68,7 @@ type subtitle =
 
 external read_subtitle : t -> subtitle = "ocaml_av_read_subtitle"
 
-let iter_subtitle src f =
+let iter_subtitle f src =
   let rec iter() = match read_subtitle src with
     | Subtitle frame -> f frame; iter()
     | End_of_file -> ()
@@ -103,9 +97,38 @@ external close_output : t -> unit = "ocaml_av_close_output"
 
 external new_audio_stream : t -> audio_codec_id -> channel_layout -> sample_format -> int -> int -> int = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
 
-let new_audio_stream t aci cl ?sample_format ?(bit_rate=192000) sr =
-  let sf = match sample_format with Some sf -> sf | None -> Avcodec.Audio.find_best_sample_format aci
+let new_audio_stream ?codec_id ?codec_name cl ?sample_format ?(bit_rate=192000) sr t =
+
+  let ci = match codec_id with
+    | Some ci -> ci
+    | None -> match codec_name with
+      | Some cn -> Avcodec.Audio.find_by_name cn
+      | None -> raise(Failure "Audio codec undefined")
   in
-  new_audio_stream t aci cl sf bit_rate sr
+  let sf = match sample_format with
+    | Some sf -> sf
+    | None -> Avcodec.Audio.find_best_sample_format ci
+  in
+  new_audio_stream t ci cl sf bit_rate sr
+
+
+external new_video_stream : t -> video_codec_id -> int -> int -> pixel_format -> int -> int -> int = "ocaml_av_new_video_stream_byte" "ocaml_av_new_video_stream"
+
+let new_video_stream ?codec_id ?codec_name w h pixel_format ?bit_rate ?(frame_rate=25) t =
+
+  let ci = match codec_id with
+    | Some ci -> ci
+    | None -> match codec_name with
+      | Some cn -> Avcodec.Video.find_by_name cn
+      | None -> raise(Failure "Video codec undefined")
+  in
+  let br = match bit_rate with
+    | Some br -> br
+    | None -> w * h * 4
+  in
+  new_video_stream t ci w h pixel_format br frame_rate
+
 
 external write_audio_frame : t -> int -> audio_frame -> unit = "ocaml_av_write_audio_frame"
+
+external write_video_frame : t -> int -> video_frame -> unit = "ocaml_av_write_video_frame"
