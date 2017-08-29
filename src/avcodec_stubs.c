@@ -181,6 +181,7 @@ static const enum AVCodecID AUDIO_CODEC_IDS[] = {
   AV_CODEC_ID_OPUS,
   AV_CODEC_ID_COMFORT_NOISE,
   AV_CODEC_ID_TAK,
+  /*
   AV_CODEC_ID_METASOUND,
   AV_CODEC_ID_PAF_AUDIO,
   AV_CODEC_ID_ON2AVC,
@@ -199,6 +200,7 @@ static const enum AVCodecID AUDIO_CODEC_IDS[] = {
   AV_CODEC_ID_XMA1,
   AV_CODEC_ID_XMA2,
   AV_CODEC_ID_DST
+  */
 };
 #define AUDIO_CODEC_IDS_LEN (sizeof(AUDIO_CODEC_IDS) / sizeof(enum AVCodecID))
 
@@ -209,20 +211,21 @@ enum AVCodecID AudioCodecId_val(value v)
 
 value Val_audioCodecId(enum AVCodecID id)
 {
-  for (int i = 0; i < AUDIO_CODEC_IDS_LEN; i++) {
+  int i;
+  for (i = 0; i < AUDIO_CODEC_IDS_LEN; i++) {
     if (id == AUDIO_CODEC_IDS[i])
       return Val_int(i);
   }
-  Raise(EXN_FAILURE, "Failed to find audio codec %s (%d)", avcodec_get_name(id), id);
+  Raise(EXN_FAILURE, "Invalid audio codec id : %d\n", id);
   return Val_int(0);
 }
-
+/*
 CAMLprim value ocaml_avcodec_get_audio_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(AudioCodecId_val(_codec_id))));
 }
-  
+*/  
 CAMLprim value ocaml_avcodec_find_audio_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);
@@ -238,8 +241,8 @@ CAMLprim value ocaml_avcodec_find_best_sample_format(value _audio_codec_id)
   av_register_all();
 
   AVCodec * codec = avcodec_find_encoder(codec_id);
-  if( ! codec) Raise(EXN_FAILURE, "Failed to find %s codec", avcodec_get_name(codec_id));
-  if( ! codec->sample_fmts) Raise(EXN_FAILURE, "Failed to find %s codec sample formats", avcodec_get_name(codec_id));
+  if( ! codec) Raise(EXN_FAILURE, "Failed to find codec");
+  if( ! codec->sample_fmts) Raise(EXN_FAILURE, "Failed to find codec sample formats");
     
   CAMLreturn(Val_sampleFormat(codec->sample_fmts[0]));
 }
@@ -414,6 +417,7 @@ static const enum AVCodecID VIDEO_CODEC_IDS[] = {
   AV_CODEC_ID_MTS2,
   AV_CODEC_ID_CLLC,
   AV_CODEC_ID_MSS2,
+  /*
   AV_CODEC_ID_VP9,
   AV_CODEC_ID_AIC,
   AV_CODEC_ID_ESCAPE130,
@@ -461,7 +465,8 @@ static const enum AVCodecID VIDEO_CODEC_IDS[] = {
   AV_CODEC_ID_M101,
   AV_CODEC_ID_MAGICYUV,
   AV_CODEC_ID_SHEERVIDEO,
-  AV_CODEC_ID_YLC,
+  AV_CODEC_ID_YLC
+  */
 };
 #define VIDEO_CODEC_IDS_LEN (sizeof(VIDEO_CODEC_IDS) / sizeof(enum AVCodecID))
 
@@ -472,20 +477,21 @@ enum AVCodecID VideoCodecId_val(value v)
 
 value Val_videoCodecId(enum AVCodecID id)
 {
-  for (int i = 0; i < VIDEO_CODEC_IDS_LEN; i++) {
+  int i;
+  for (i = 0; i < VIDEO_CODEC_IDS_LEN; i++) {
     if (id == VIDEO_CODEC_IDS[i])
       return Val_int(i);
   }
-  Raise(EXN_FAILURE, "Failed to find video codec %s (%d)", avcodec_get_name(id), id);
+  Raise(EXN_FAILURE, "Invalid video codec id : %d\n", id);
   return Val_int(0);
 }
-
+/*
 CAMLprim value ocaml_avcodec_get_video_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(VideoCodecId_val(_codec_id))));
 }
-  
+*/
 CAMLprim value ocaml_avcodec_find_video_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);
@@ -504,6 +510,7 @@ static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
   AV_CODEC_ID_HDMV_PGS_SUBTITLE,
   AV_CODEC_ID_DVB_TELETEXT,
   AV_CODEC_ID_SRT,
+  /*
   AV_CODEC_ID_MICRODVD,
   AV_CODEC_ID_EIA_608,
   AV_CODEC_ID_JACOSUB,
@@ -519,6 +526,7 @@ static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
   AV_CODEC_ID_PJS,
   AV_CODEC_ID_ASS,
   AV_CODEC_ID_HDMV_TEXT_SUBTITLE
+  */
 };
 #define SUBTITLE_CODEC_IDS_LEN (sizeof(SUBTITLE_CODEC_IDS) / sizeof(enum AVCodecID))
 
@@ -529,20 +537,21 @@ enum AVCodecID SubtitleCodecId_val(value v)
 
 value Val_subtitleCodecId(enum AVCodecID id)
 {
-  for (int i = 0; i < SUBTITLE_CODEC_IDS_LEN; i++) {
+  int i;
+  for (i = 0; i < SUBTITLE_CODEC_IDS_LEN; i++) {
     if (id == SUBTITLE_CODEC_IDS[i])
       return Val_int(i);
   }
-  Raise(EXN_FAILURE, "Failed to find subtitle codec %s (%d)", avcodec_get_name(id), id);
+  Raise(EXN_FAILURE, "Invalid subtitle codec id : %d\n", id);
   return Val_int(0);
 }
-
+/*
 CAMLprim value ocaml_avcodec_get_subtitle_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(SubtitleCodecId_val(_codec_id))));
 }
-  
+*/
 CAMLprim value ocaml_avcodec_find_subtitle_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);

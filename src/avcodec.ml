@@ -151,6 +151,7 @@ module Audio = struct
   | AC_OPUS
   | AC_COMFORT_NOISE
   | AC_TAK
+    (*
   | AC_METASOUND
   | AC_PAF_AUDIO
   | AC_ON2AVC
@@ -169,9 +170,9 @@ module Audio = struct
   | AC_XMA1
   | AC_XMA2
   | AC_DST
-    
-external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
 
+external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
+    *)
 external find_by_name : string -> id = "ocaml_avcodec_find_audio_codec_id_by_name"
 
 external find_best_sample_format : id -> Avutil.Sample_format.t = "ocaml_avcodec_find_best_sample_format"
@@ -348,6 +349,7 @@ module Video = struct
   | VC_MTS2
   | VC_CLLC
   | VC_MSS2
+    (*
   | VC_VP9
   | VC_AIC
   | VC_ESCAPE130
@@ -398,7 +400,7 @@ module Video = struct
   | VC_YLC
 
 external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
-
+*)
 external find_by_name : string -> id = "ocaml_avcodec_find_video_codec_id_by_name"
 end
 
@@ -415,6 +417,7 @@ module Subtitle = struct
   | SC_HDMV_PGS_SUBTITLE
   | SC_DVB_TELETEXT
   | SC_SRT
+(*    
   | SC_MICRODVD
   | SC_EIA_608
   | SC_JACOSUB
@@ -432,7 +435,7 @@ module Subtitle = struct
   | SC_HDMV_TEXT_SUBTITLE
 
 external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
-
+*)
 external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
 
 end

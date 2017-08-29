@@ -9,16 +9,11 @@
 #include <caml/bigarray.h>
 #include <caml/threads.h>
 
-#include <libavutil/opt.h>
-#include <libavutil/imgutils.h>
-#include <libavutil/timestamp.h>
 #include <libavformat/avformat.h>
-#include <libswresample/swresample.h>
 #include "libavutil/audio_fifo.h"
 
 #include "avutil_stubs.h"
 #include "avcodec_stubs.h"
-#include "swresample_stubs.h"
 #include "av_stubs.h"
 
 
@@ -103,7 +98,8 @@ static void close_av(av_t * av)
   if(av->format_context) {
 
     if(av->streams) {
-      for(int i = 0; i < av->format_context->nb_streams; i++) {
+      int i;
+      for(i = 0; i < av->format_context->nb_streams; i++) {
         if(av->streams[i]) free_stream(av->streams[i]);
       }
       free(av->streams);
@@ -760,7 +756,8 @@ CAMLprim value ocaml_av_seek_frame(value _av, value _stream_index, value _time_f
   timestamp = (timestamp * num) / (den * second_fractions);
 
   int flags = 0;
-  for (int i = 0; i < Wosize_val(_flags); i++)
+  int i;
+  for(i = 0; i < Wosize_val(_flags); i++)
     flags |= seek_flags_val(Field(_flags, i));
 
   caml_release_runtime_system();
@@ -784,13 +781,13 @@ CAMLprim value ocaml_av_subtitle_to_string(value _av)
   unsigned num_rects = av->subtitle_stream->subtitle->num_rects;
   AVSubtitleRect **rects = av->subtitle_stream->subtitle->rects;
   size_t len = 0;
-  
-  for(unsigned i = 0; i < num_rects; i++) len += strlen(rects[i]->text);
+  unsigned i;
+  for(i = 0; i < num_rects; i++) len += strlen(rects[i]->text);
     
   ans = caml_alloc_string(len + 1);
   char * dest = String_val(ans);
 
-  for(unsigned i = 0; i < num_rects; i++) strcat(dest, rects[i]->text);
+  for(i = 0; i < num_rects; i++) strcat(dest, rects[i]->text);
 
   CAMLreturn(ans);
 }
@@ -1244,8 +1241,8 @@ CAMLprim value ocaml_av_close_output(value _av)
   // flush encoders
   AVPacket * packet = &av->packet;
   caml_release_runtime_system();
-
-  for(int i = 0; i < av->format_context->nb_streams && packet; i++) {
+  int i;
+  for(i = 0; i < av->format_context->nb_streams && packet; i++) {
 
     AVCodecContext * enc_ctx = av->streams[i]->codec_context;
 

@@ -1,4 +1,4 @@
-AC_INIT([ocaml-ffmpeg],[0.1.2],[savonet-users@lists.sourceforge.net])
+AC_INIT([ocaml-ffmpeg],[0.2.0],[savonet-users@lists.sourceforge.net])
 
 VERSION=$PACKAGE_VERSION
 AC_MSG_RESULT([configuring $PACKAGE_STRING])
@@ -12,6 +12,9 @@ PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
 PKG_CONFIG_CHECK_MODULE([libavdevice])
 #PKG_CONFIG_CHECK_MODULE([libswresample])
+
+AC_CHECK_DECL([avcodec_send_packet],[HAS_AV="yes"],[HAS_AV=""],[#include "libavcodec/avcodec.h"])
+AC_SUBST(HAS_AV)
 AC_CHECK_HEADERS([libswresample/swresample.h],[HAS_SWRESAMPLE="yes"],[HAS_SWRESAMPLE=""])
 if test "x$HAS_SWRESAMPLE" = "xyes" ; then
   LIBS="$LIBS -lswresample"

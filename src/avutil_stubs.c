@@ -89,7 +89,7 @@ static const uint64_t CHANNEL_LAYOUTS[] = {
   AV_CH_LAYOUT_7POINT1_WIDE,
   AV_CH_LAYOUT_7POINT1_WIDE_BACK,
   AV_CH_LAYOUT_OCTAGONAL,
-  AV_CH_LAYOUT_HEXADECAGONAL,
+  //  AV_CH_LAYOUT_HEXADECAGONAL,
   AV_CH_LAYOUT_STEREO_DOWNMIX
 };
 #define CHANNEL_LAYOUTS_LEN (sizeof(CHANNEL_LAYOUTS) / sizeof(uint64_t))
@@ -109,11 +109,12 @@ value Val_channelLayout(uint64_t cl)
 #ifndef HAS_CHANNEL_LAYOUT
   caml_failwith("Not implemented.");
 #else
-  for (int i = 0; i < CHANNEL_LAYOUTS_LEN; i++) {
+  int i;
+  for (i = 0; i < CHANNEL_LAYOUTS_LEN; i++) {
     if (cl == CHANNEL_LAYOUTS[i])
       return Val_int(i);
   }
-  printf("error in channel layout : %llu\n", cl);
+  Raise(EXN_FAILURE, "Invalid channel layout : %u", (unsigned int)cl);
   return Val_int(0);
 #endif
 }
@@ -148,11 +149,12 @@ enum AVSampleFormat AVSampleFormat_of_Sample_format(int i)
 
 value Val_sampleFormat(enum AVSampleFormat sf)
 {
-  for (int i = 0; i < SAMPLE_FORMATS_LEN; i++) {
+  int i;
+  for (i = 0; i < SAMPLE_FORMATS_LEN; i++) {
     if (sf == SAMPLE_FORMATS[i])
       return Val_int(i);
   }
-  printf("error in sample format : %d\n", sf);
+  Raise(EXN_FAILURE, "Invalid sample format : %d", sf);
   return Val_int(0);
 }
 
@@ -172,7 +174,8 @@ static const enum caml_ba_kind BIGARRAY_KINDS[SAMPLE_FORMATS_LEN] = {
 
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf)
 {
-  for (int i = 0; i < SAMPLE_FORMATS_LEN; i++)
+  int i;
+  for (i = 0; i < SAMPLE_FORMATS_LEN; i++)
     {
       if (sf == SAMPLE_FORMATS[i])
         return BIGARRAY_KINDS[i];
@@ -196,8 +199,10 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 
 static void finalize_frame(value v)
 {
+#ifdef HAS_FRAME
   struct AVFrame *frame = Frame_val(v);
   av_frame_free(&frame);
+#endif
 }
 
 static struct custom_operations frame_ops =
@@ -223,6 +228,9 @@ CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format
   CAMLparam1(_format);
   CAMLlocal1(ans);
 
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = av_frame_alloc();
   if( ! frame) Raise(EXN_FAILURE, "Failed to alloc video frame");
 
@@ -234,28 +242,39 @@ CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format
   if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer");
 
   value_of_frame(frame, &ans);
+#endif
   CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x, value _y)
 {
   CAMLparam1(_frame);
+  CAMLlocal1(ans);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
   int x = Int_val(_x);
   int y = Int_val(_y);
-  CAMLreturn(Val_int(frame->data[line][y * frame->linesize[line] + x]));
+
+  ans = Val_int(frame->data[line][y * frame->linesize[line] + x]);
+#endif
+  CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x, value _y, value _v)
 {
   CAMLparam1(_frame);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
   int x = Int_val(_x);
   int y = Int_val(_y);
 
   frame->data[line][y * frame->linesize[line] + x] = Int_val(_v);
-
+#endif
   CAMLreturn(Val_unit);
 }

@@ -61,7 +61,7 @@ module Channel_layout : sig
   | CL_7point1_wide
   | CL_7point1_wide_back
   | CL_octagonal
-  | CL_hexadecagonal
+  (*  | CL_hexadecagonal*)
   | CL_stereo_downmix
 end
 
