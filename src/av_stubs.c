@@ -195,7 +195,7 @@ static av_t * open_input(char *url, AVInputFormat *format)
   
   if (ret < 0 || ! av->format_context) {
     free(av);
-    Fail("Failed to open file %s", url);
+    Fail("Failed to open input %s", format ? format->name : url);
   }
 
   // retrieve stream information
@@ -443,6 +443,10 @@ CAMLprim value ocaml_av_get_channel_layout(value _av) {
   av_t * av = Av_val(_av);
 
   if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+  if(av->audio_stream->codec_context->channel_layout == 0) {
+    av->audio_stream->codec_context->channel_layout = av_get_default_channel_layout(av->audio_stream->codec_context->channels);
+  }
 
   CAMLreturn(Val_channelLayout(av->audio_stream->codec_context->channel_layout));
 }
