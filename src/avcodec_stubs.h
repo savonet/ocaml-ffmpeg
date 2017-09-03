@@ -4,6 +4,12 @@
 #include <caml/mlvalues.h>
 #include <libavcodec/avcodec.h>
 
+/***** Codec parameters *****/
+
+#define CodecParameters_val(v) (*(struct AVCodecParameters**)Data_custom_val(v))
+
+void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
+
 /**** Audio codec ID ****/
 
 enum AVCodecID AudioCodecId_val(value v);

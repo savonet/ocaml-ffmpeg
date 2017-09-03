@@ -44,6 +44,8 @@ let get_audio_format input_t =
     Avutil.sample_rate = get_sample_rate input_t
   }
 
+external get_input_audio_codec_parameters : input_t -> Avcodec.Audio.Parameters.t = "ocaml_av_get_audio_codec_parameters"
+
 
 type audio =
   | Audio of audio_frame
@@ -115,28 +117,43 @@ end
 
 type output_t
 
-external _open_output : string option -> Output_format.t option -> string option -> output_t = "ocaml_av_open_output"
-let open_output filename = _open_output (Some filename) None None
-let open_output_format format = _open_output None (Some format) None
-let open_output_format_name format_name = _open_output None None (Some format_name)
-
-external close_output : output_t -> unit = "ocaml_av_close_output"
-
 external new_audio_stream : output_t -> audio_codec_id -> channel_layout -> sample_format -> int -> int -> int = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
 
-let new_audio_stream ?codec_id ?codec_name cl ?sample_format ?(bit_rate=192000) sr t =
+let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_rate ?sample_rate ?codec_parameters t =
 
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
       | Some cn -> Avcodec.Audio.find_by_name cn
-      | None -> raise(Failure "Audio codec undefined")
+      | None -> match codec_parameters with
+        | Some cp -> Avcodec.Audio.Parameters.get_codec_id cp
+        | None -> raise(Failure "Audio codec undefined")
+  in
+  let cl = match channel_layout with
+    | Some cl -> cl
+    | None -> match codec_parameters with
+      | Some cp -> Avcodec.Audio.Parameters.get_channel_layout cp
+      | None -> Avutil.Channel_layout.CL_stereo
   in
   let sf = match sample_format with
     | Some sf -> sf
-    | None -> Avcodec.Audio.find_best_sample_format ci
+    | None -> match codec_parameters with
+      | Some cp -> Avcodec.Audio.Parameters.get_sample_format cp
+      | None -> Avcodec.Audio.find_best_sample_format ci
   in
-  new_audio_stream t ci cl sf bit_rate sr
+  let br = match bit_rate with
+    | Some br -> br
+    | None -> match codec_parameters with
+      | Some cp -> Avcodec.Audio.Parameters.get_bit_rate cp
+      | None -> 192000
+  in
+  let sr = match sample_rate with
+    | Some sr -> sr
+    | None -> match codec_parameters with
+      | Some cp -> Avcodec.Audio.Parameters.get_sample_rate cp
+      | None -> 44100
+  in
+  new_audio_stream t ci cl sf br sr
 
 
 external new_video_stream : output_t -> video_codec_id -> int -> int -> pixel_format -> int -> int -> int = "ocaml_av_new_video_stream_byte" "ocaml_av_new_video_stream"
@@ -154,6 +171,30 @@ let new_video_stream ?codec_id ?codec_name w h pixel_format ?bit_rate ?(frame_ra
     | None -> w * h * 4
   in
   new_video_stream t ci w h pixel_format br frame_rate
+
+
+let may_add_stream audio_parameters output =
+  let () = match audio_parameters with
+    | Some codec_parameters -> new_audio_stream ~codec_parameters output |> ignore
+    | None -> ()
+  in
+  output
+
+
+external _open_output : string option -> Output_format.t option -> string option -> output_t = "ocaml_av_open_output"
+
+let open_output ?audio_parameters filename =
+  _open_output (Some filename) None None |> may_add_stream audio_parameters
+
+let open_output_format ?audio_parameters format =
+  _open_output None (Some format) None |> may_add_stream audio_parameters
+
+let open_output_format_name ?audio_parameters format_name =
+  _open_output None None (Some format_name) |> may_add_stream audio_parameters
+
+external close_output : output_t -> unit = "ocaml_av_close_output"
+
+external get_output_audio_codec_parameters : output_t -> Avcodec.Audio.Parameters.t = "ocaml_av_get_audio_codec_parameters"
 
 
 external write_audio_frame : output_t -> int -> audio_frame -> unit = "ocaml_av_write_audio_frame"

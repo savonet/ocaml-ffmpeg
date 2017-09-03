@@ -3,6 +3,7 @@
 * Add support for demuxing and resampling (#2).
 * Add audio and video encoding.
 * Add avdevice.
+* Add codec parameters structure.
 
 0.1.2 (05-23-2016)
 =====

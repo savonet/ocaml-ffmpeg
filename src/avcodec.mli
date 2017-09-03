@@ -1,4 +1,5 @@
-
+open Avutil
+    
 (** Audio codecs. *)
 module Audio : sig
   (** Audio codec ids *)
@@ -175,7 +176,20 @@ module Audio : sig
 *)
   val find_by_name : string -> id
 
-  val find_best_sample_format : id -> Avutil.Sample_format.t
+  val find_best_sample_format : id -> Sample_format.t
+
+  module Parameters : sig
+    type t
+
+    val get_codec_id : t -> id
+    val get_channel_layout : t -> Channel_layout.t
+    val get_nb_channels : t -> int
+    val get_sample_format : t -> Sample_format.t
+    val get_bit_rate : t -> int
+    val get_sample_rate : t -> int
+
+    val copy : ?codec_id:id -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?sample_rate:int -> t -> t
+  end    
 end
 
 (** Video codecs. *)

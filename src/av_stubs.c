@@ -478,6 +478,20 @@ CAMLprim value ocaml_av_get_sample_format(value _av) {
   CAMLreturn(Val_sampleFormat(av->audio_stream->codec_context->sample_fmt));
 }
 
+CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
+
+  CAMLreturn(ans);
+}
+
+
 static frame_kind decode_packet(av_t * av, stream_t * stream, AVFrame * frame)
 {
   AVPacket * packet = &av->packet;

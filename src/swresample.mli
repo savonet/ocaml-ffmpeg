@@ -219,6 +219,9 @@ module Make :
       val from_audio_format_to_codec : Avutil.audio_format ->
         Avcodec.Audio.id -> channel_layout -> int -> t
 
-      (** Resample and convert input audio data to output audio data format. *)
+      (** Create a Swresample.t with input and output. *)
+      val from_input_to_output : Av.input_t -> Av.output_t -> t
+
+    (** Resample and convert input audio data to output audio data format. *)
       val convert : t -> I.t -> O.t
     end

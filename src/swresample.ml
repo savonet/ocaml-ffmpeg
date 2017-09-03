@@ -223,5 +223,17 @@ module Make (I : AudioData) (O : AudioData) = struct
       out_channel_layout ~out_sample_format out_sample_rate
 
 
+  let from_input_to_output input output =
+    let ip = Av.get_input_audio_codec_parameters input in
+    let op = Av.get_output_audio_codec_parameters output in
+    
+    create (Avcodec.Audio.Parameters.get_channel_layout ip)
+      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format ip)
+      (Avcodec.Audio.Parameters.get_sample_rate ip)
+      (Avcodec.Audio.Parameters.get_channel_layout op)
+      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format op)
+      (Avcodec.Audio.Parameters.get_sample_rate op)
+
+
   external convert : t -> I.t -> O.t = "ocaml_swresample_convert"
 end
