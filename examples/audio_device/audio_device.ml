@@ -1,41 +1,42 @@
 open FFmpeg
-open Avutil
-open Printf
-    
-module CL = Avutil.Channel_layout
+module If = Av.Input_format
+module Of = Av.Output_format
 module Resampler = Swresample.Make (Swresample.Frame) (Swresample.Frame)
 
 let () =
-  if Array.length Sys.argv < 2 then (
-    printf "input devices :";
-    Avdevice.get_input_audio_devices() |> List.iter(fun d -> printf" %s"(Av.Input_format.get_name d));
-    printf "\noutput devices :";
-    Avdevice.get_output_audio_devices() |> List.iter(fun d -> printf" %s"(Av.Output_format.get_name d));
-    
-    printf "\nusage: %s input_name [output_device]\n" Sys.argv.(0);
-    exit 1);
+  if Array.length Sys.argv < 2 then Printf.(
+      printf "\ninput devices :";
+      Avdevice.get_input_audio_devices() |> List.iter(fun d -> printf" %s"(If.get_name d));
+      printf "\noutput devices :";
+      Avdevice.get_output_audio_devices() |> List.iter(fun d -> printf" %s"(Of.get_name d));
 
-  let input_name = Sys.argv.(1) in
-  
+      printf"\nusage: %s input [output]\ninput and output can be devices or file names\n" Sys.argv.(0);
+      exit 1);
+
   let src = try Avdevice.get_input_audio_devices()
-                   |> List.find(fun d -> Av.Input_format.get_name d = input_name)
-                   |> Av.open_input_format
-    with Not_found -> Av.open_input input_name in
+                |> List.find(fun d -> If.get_name d = Sys.argv.(1))
+                |> Av.open_input_format
+    with Not_found -> Av.open_input Sys.argv.(1) in
 
-  let output_name = if Array.length Sys.argv < 3 then "default" else Sys.argv.(2) in
+  let dst, codec_id = try Avdevice.get_output_audio_devices()
+                          |> (if Array.length Sys.argv < 3 then List.hd
+                              else List.find(fun d -> Of.get_name d = Sys.argv.(2)))
+                          |> fun fmt ->
+                          (Av.open_output_format fmt, Of.get_audio_codec fmt)
+    with Not_found ->
+      (Av.open_output Sys.argv.(2), Avcodec.Audio.AC_FLAC) in
 
-  let out_fmts = Avdevice.get_output_audio_devices() in
+  let sid = Av.new_audio_stream ~codec_id dst in
 
-  let out_fmt = try List.find(fun d -> Av.Output_format.get_name d = output_name) out_fmts
-    with Not_found -> List.hd out_fmts in
+  let rsp = Resampler.from_input_to_output src dst in
 
-  let rsp = Resampler.from_audio_format_to_codec (Av.get_audio_format src)
-       (Av.Output_format.get_audio_codec out_fmt) CL.CL_stereo 44100 in
-
-  let dst = Av.open_output_format out_fmt in
-
-  src |> Av.iter_audio (fun frame ->
-      Resampler.convert rsp frame |> Av.write_audio_frame dst 0);
+  let rec run n =
+    if n > 0 then match Av.read_audio src with
+      | Av.Audio frm -> Resampler.convert rsp frm |> Av.write_audio_frame dst sid;
+        run(n - 1)
+      | Av.End_of_file -> ()
+  in
+  run 1000;
 
   Av.close_input src;
   Av.close_output dst;

@@ -1,3 +1,4 @@
+#include <string.h>
 #include <pthread.h>
 
 #include <caml/mlvalues.h>
@@ -191,6 +192,10 @@ static av_t * open_input(char *url, AVInputFormat *format)
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate input context");
 
+  if(url && 0 == strncmp("http", url, 4)) {
+    avformat_network_init();
+  }
+  
   int ret = avformat_open_input(&av->format_context, url, format, NULL);
   
   if (ret < 0 || ! av->format_context) {
@@ -218,7 +223,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format)
   if (Is_block(_url)) {
     url = caml_strdup(String_val(Field(_url, 0)));
   }
-  
+
   if (Is_block(_format)) {
     format = InputFormat_val(Field(_format, 0));
   }
@@ -226,7 +231,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format)
   av_register_all();
 
   caml_release_runtime_system();
-  // open input url
+  // open input url or format
   av_t *av = open_input(url, format);
 
   if(url) caml_stat_free(url);

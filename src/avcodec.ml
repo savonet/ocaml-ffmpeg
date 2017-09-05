@@ -1,5 +1,5 @@
 open Avutil
-    
+
 (** Audio codecs. *)
 module Audio = struct
   (** Audio codec ids *)
@@ -171,9 +171,9 @@ module Audio = struct
   | AC_XMA1
   | AC_XMA2
   | AC_DST
-
-external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
     *)
+  external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
+
   external find_by_name : string -> id = "ocaml_avcodec_find_audio_codec_id_by_name"
 
   external find_best_sample_format : id -> Sample_format.t = "ocaml_avcodec_find_best_sample_format"
@@ -190,7 +190,7 @@ external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
 
     external copy : id -> Channel_layout.t -> Sample_format.t -> int -> t -> t = "ocaml_avcodec_parameters_audio_copy"
     let copy ?codec_id ?channel_layout ?sample_format ?sample_rate p =
-      
+
       let ci = match codec_id with Some ci -> ci | None -> get_codec_id p in
       let cl = match channel_layout with Some cl -> cl | None -> get_channel_layout p in
       let sf = match sample_format with Some sf -> sf | None -> get_sample_format p in
@@ -420,10 +420,34 @@ module Video = struct
   | VC_MAGICYUV
   | VC_SHEERVIDEO
   | VC_YLC
-
-external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
 *)
+  external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
+
   external find_by_name : string -> id = "ocaml_avcodec_find_video_codec_id_by_name"
+
+  module Parameters = struct
+    type t
+
+    external get_codec_id : t -> id = "ocaml_avcodec_parameters_get_video_codec_id"
+    external get_width : t -> int = "ocaml_avcodec_parameters_get_width"
+    external get_height : t -> int = "ocaml_avcodec_parameters_get_height"
+    external get_sample_aspect_ratio : t -> int * int = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
+    external get_pixel_format : t -> Pixel_format.t = "ocaml_avcodec_parameters_get_pixel_format"
+    external get_bit_rate : t -> int = "ocaml_avcodec_parameters_get_bit_rate"
+
+    external copy : id -> int -> int -> int * int -> Pixel_format.t -> int -> t -> t = "ocaml_avcodec_parameters_video_copy_byte" "ocaml_avcodec_parameters_video_copy"
+
+    let copy ?codec_id ?width ?height ?sample_aspect_ratio ?pixel_format ?bit_rate p =
+
+      let ci = match codec_id with Some ci -> ci | None -> get_codec_id p in
+      let w = match width with Some w -> w | None -> get_width p in
+      let h = match height with Some h -> h | None -> get_height p in
+      let sar = match sample_aspect_ratio with Some sar -> sar | None -> get_sample_aspect_ratio p in
+      let pf = match pixel_format with Some pf -> pf | None -> get_pixel_format p in
+      let br = match bit_rate with Some br -> br | None -> get_bit_rate p in
+
+      copy ci w h sar pf br p
+  end    
 end
 
 (** Subtitle codecs. *)
@@ -455,9 +479,17 @@ module Subtitle = struct
   | SC_PJS
   | SC_ASS
   | SC_HDMV_TEXT_SUBTITLE
-
-external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
 *)
+  external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
+
   external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
 
+end
+
+module Parameters = struct
+  type t =
+    | Audio of Audio.Parameters.t
+    | Video of Video.Parameters.t
+    | Subtitle
+    | Unknown
 end

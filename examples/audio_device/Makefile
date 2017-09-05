@@ -8,6 +8,6 @@ THREADS = yes
 all: dc
 
 test: all
-	./audio_device ../encode_audio/A4.ogg
+	./audio_device http://37.187.70.49:80/canalb
 
 include OCamlMakefile
