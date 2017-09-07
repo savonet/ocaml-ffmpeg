@@ -464,12 +464,20 @@ module Subtitle : sig
   val get_name : id -> string
 
   val find_by_name : string -> id
+
+  module Parameters : sig
+    type t
+
+    val get_codec_id : t -> id
+
+    val copy : ?codec_id:id -> t -> t
+  end    
 end
 
 module Parameters : sig
   type t =
     | Audio of Audio.Parameters.t
     | Video of Video.Parameters.t
-    | Subtitle
+    | Subtitle of Subtitle.Parameters.t
     | Unknown
 end

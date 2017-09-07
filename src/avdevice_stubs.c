@@ -14,7 +14,7 @@
 static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputFormat *))
 {
   CAMLparam0();
-  CAMLlocal2(v, list);
+  CAMLlocal2(v, ans);
   AVInputFormat *fmt = NULL;
   int len = 0;
 
@@ -22,7 +22,7 @@ static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputForma
 
   while(NULL != (fmt = input_device_next (fmt))) len++;
   
-  list = caml_alloc_tuple(len);
+  ans = caml_alloc_tuple(len);
 
   int i = 0;
   fmt = NULL;
@@ -30,11 +30,11 @@ static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputForma
   while(NULL != (fmt = input_device_next (fmt))) {
 
     value_of_inputFormat(fmt, &v);
-    Store_field(list, i, v);
+    Store_field(ans, i, v);
     i++;
   }
 
-  CAMLreturn(list);
+  CAMLreturn(ans);
 }
   
 CAMLprim value ocaml_avdevice_get_input_audio_devices(value unit)
@@ -52,7 +52,7 @@ CAMLprim value ocaml_avdevice_get_input_video_devices(value unit)
 static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputFormat *))
 {
   CAMLparam0();
-  CAMLlocal2(v, list);
+  CAMLlocal2(v, ans);
   AVOutputFormat *fmt = NULL;
   int len = 0;
 
@@ -60,7 +60,7 @@ static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputF
 
   while(NULL != (fmt = output_device_next (fmt))) len++;
   
-  list = caml_alloc_tuple(len);
+  ans = caml_alloc_tuple(len);
 
   int i = 0;
   fmt = NULL;
@@ -68,11 +68,11 @@ static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputF
   while(NULL != (fmt = output_device_next (fmt))) {
 
     value_of_outputFormat(fmt, &v);
-    Store_field(list, i, v);
+    Store_field(ans, i, v);
     i++;
   }
 
-  CAMLreturn(list);
+  CAMLreturn(ans);
 }
   
 CAMLprim value ocaml_avdevice_get_output_audio_devices(value unit)

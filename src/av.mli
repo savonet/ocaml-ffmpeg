@@ -28,6 +28,9 @@ val open_input_format : Input_format.t -> input_t
 (** Close an input. *)
 val close_input : input_t -> unit
 
+(** Input streams codec parameters array. *)
+val get_streams_codec_parameters : input_t -> Avcodec.Parameters.t array
+
 (** Input tag list. *)
 val get_metadata : input_t -> (string * string) list
 

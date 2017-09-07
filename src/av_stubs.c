@@ -255,6 +255,22 @@ CAMLprim value ocaml_av_close_input(value _av)
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal2(v, ans);
+  av_t * av = Av_val(_av);
+  int i, len = av->format_context->nb_streams;
+
+  ans = caml_alloc_tuple(len);
+
+  for(i = 0; i < len; i++) {
+    value_of_codec_parameters_variants(av->format_context->streams[i]->codecpar, &v);
+    Store_field(ans, i, v);
+  }
+
+  CAMLreturn(ans);
+}
+
 CAMLprim value ocaml_av_get_metadata(value _av) {
   CAMLparam1(_av);
   CAMLlocal3(pair, cons, list);

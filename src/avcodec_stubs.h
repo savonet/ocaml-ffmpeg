@@ -10,6 +10,8 @@
 
 void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
 
+void value_of_codec_parameters_variants(AVCodecParameters *src, value * pvalue);
+
 /**** Audio codec ID ****/
 
 enum AVCodecID AudioCodecId_val(value v);

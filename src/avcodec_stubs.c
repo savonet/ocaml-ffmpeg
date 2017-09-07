@@ -13,6 +13,11 @@
 
 /***** AVCodecParameters *****/
 
+#define AUDIO_CODEC_PARAMETERS_TAG 0
+#define VIDEO_CODEC_PARAMETERS_TAG 1
+#define SUBTITLE_CODEC_PARAMETERS_TAG 2
+#define UNKNOWN_CODEC_PARAMETERS_TAG 0
+
 static void finalize_codec_parameters(value v)
 {
   struct AVCodecParameters *codec_parameters = CodecParameters_val(v);
@@ -40,8 +45,38 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
   if(ret < 0) Raise(EXN_FAILURE, "Failed to copy codec parameters : %s", av_err2str(ret));
 
   *pvalue = caml_alloc_custom(&codec_parameters_ops, sizeof(AVCodecParameters*), 0, 1);
-  CodecParameters_val((*pvalue)) = dst;
+  CodecParameters_val(*pvalue) = dst;
 }
+
+void value_of_codec_parameters_variants(AVCodecParameters *src, value *pvalue)
+{
+  CAMLparam0();
+  CAMLlocal1(cpv);
+
+  if(src && (src->codec_type == AVMEDIA_TYPE_AUDIO
+             || src->codec_type == AVMEDIA_TYPE_VIDEO
+             || src->codec_type == AVMEDIA_TYPE_SUBTITLE)) {
+    
+    value_of_codec_parameters_copy(src, &cpv);
+
+    if(src->codec_type == AVMEDIA_TYPE_AUDIO) {
+      *pvalue = caml_alloc_small(1, AUDIO_CODEC_PARAMETERS_TAG);
+    }
+    else if(src->codec_type == AVMEDIA_TYPE_VIDEO) {
+      *pvalue = caml_alloc_small(1, VIDEO_CODEC_PARAMETERS_TAG);
+    }
+    else {
+      *pvalue = caml_alloc_small(1, SUBTITLE_CODEC_PARAMETERS_TAG);
+    }
+
+    Field(*pvalue, 0) = cpv;
+  }
+  else {
+    *pvalue = Val_int(UNKNOWN_CODEC_PARAMETERS_TAG);
+  }
+  CAMLreturn0;
+}
+
 
 /**** codec ****/
 static enum AVCodecID find_codec_id_by_name(const char *name)
@@ -210,24 +245,24 @@ static const enum AVCodecID AUDIO_CODEC_IDS[] = {
   AV_CODEC_ID_COMFORT_NOISE,
   AV_CODEC_ID_TAK,
   /*
-  AV_CODEC_ID_METASOUND,
-  AV_CODEC_ID_PAF_AUDIO,
-  AV_CODEC_ID_ON2AVC,
-  AV_CODEC_ID_DSS_SP,
-  AV_CODEC_ID_FFWAVESYNTH,
-  AV_CODEC_ID_SONIC,
-  AV_CODEC_ID_SONIC_LS,
-  AV_CODEC_ID_EVRC,
-  AV_CODEC_ID_SMV,
-  AV_CODEC_ID_DSD_LSBF,
-  AV_CODEC_ID_DSD_MSBF,
-  AV_CODEC_ID_DSD_LSBF_PLANAR,
-  AV_CODEC_ID_DSD_MSBF_PLANAR,
-  AV_CODEC_ID_4GV,
-  AV_CODEC_ID_INTERPLAY_ACM,
-  AV_CODEC_ID_XMA1,
-  AV_CODEC_ID_XMA2,
-  AV_CODEC_ID_DST
+    AV_CODEC_ID_METASOUND,
+    AV_CODEC_ID_PAF_AUDIO,
+    AV_CODEC_ID_ON2AVC,
+    AV_CODEC_ID_DSS_SP,
+    AV_CODEC_ID_FFWAVESYNTH,
+    AV_CODEC_ID_SONIC,
+    AV_CODEC_ID_SONIC_LS,
+    AV_CODEC_ID_EVRC,
+    AV_CODEC_ID_SMV,
+    AV_CODEC_ID_DSD_LSBF,
+    AV_CODEC_ID_DSD_MSBF,
+    AV_CODEC_ID_DSD_LSBF_PLANAR,
+    AV_CODEC_ID_DSD_MSBF_PLANAR,
+    AV_CODEC_ID_4GV,
+    AV_CODEC_ID_INTERPLAY_ACM,
+    AV_CODEC_ID_XMA1,
+    AV_CODEC_ID_XMA2,
+    AV_CODEC_ID_DST
   */
 };
 #define AUDIO_CODEC_IDS_LEN (sizeof(AUDIO_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -495,54 +530,54 @@ static const enum AVCodecID VIDEO_CODEC_IDS[] = {
   AV_CODEC_ID_CLLC,
   AV_CODEC_ID_MSS2,
   /*
-  AV_CODEC_ID_VP9,
-  AV_CODEC_ID_AIC,
-  AV_CODEC_ID_ESCAPE130,
-  AV_CODEC_ID_G2M,
-  AV_CODEC_ID_WEBP,
-  AV_CODEC_ID_HNM4_VIDEO,
-  AV_CODEC_ID_HEVC,
-  AV_CODEC_ID_H265,
-  AV_CODEC_ID_FIC,
-  AV_CODEC_ID_ALIAS_PIX,
-  AV_CODEC_ID_BRENDER_PIX,
-  AV_CODEC_ID_PAF_VIDEO,
-  AV_CODEC_ID_EXR,
-  AV_CODEC_ID_VP7,
-  AV_CODEC_ID_SANM,
-  AV_CODEC_ID_SGIRLE,
-  AV_CODEC_ID_MVC1,
-  AV_CODEC_ID_MVC2,
-  AV_CODEC_ID_HQX,
-  AV_CODEC_ID_TDSC,
-  AV_CODEC_ID_HQ_HQA,
-  AV_CODEC_ID_HAP,
-  AV_CODEC_ID_DDS,
-  AV_CODEC_ID_DXV,
-  AV_CODEC_ID_SCREENPRESSO,
-  AV_CODEC_ID_RSCC,
-  AV_CODEC_ID_Y41P,
-  AV_CODEC_ID_AVRP,
-  AV_CODEC_ID_012V,
-  AV_CODEC_ID_AVUI,
-  AV_CODEC_ID_AYUV,
-  AV_CODEC_ID_TARGA_Y216,
-  AV_CODEC_ID_V308,
-  AV_CODEC_ID_V408,
-  AV_CODEC_ID_YUV4,
-  AV_CODEC_ID_AVRN,
-  AV_CODEC_ID_CPIA,
-  AV_CODEC_ID_XFACE,
-  AV_CODEC_ID_SNOW,
-  AV_CODEC_ID_SMVJPEG,
-  AV_CODEC_ID_APNG,
-  AV_CODEC_ID_DAALA,
-  AV_CODEC_ID_CFHD,
-  AV_CODEC_ID_TRUEMOTION2RT,
-  AV_CODEC_ID_M101,
-  AV_CODEC_ID_MAGICYUV,
-  AV_CODEC_ID_SHEERVIDEO,
-  AV_CODEC_ID_YLC
+    AV_CODEC_ID_VP9,
+    AV_CODEC_ID_AIC,
+    AV_CODEC_ID_ESCAPE130,
+    AV_CODEC_ID_G2M,
+    AV_CODEC_ID_WEBP,
+    AV_CODEC_ID_HNM4_VIDEO,
+    AV_CODEC_ID_HEVC,
+    AV_CODEC_ID_H265,
+    AV_CODEC_ID_FIC,
+    AV_CODEC_ID_ALIAS_PIX,
+    AV_CODEC_ID_BRENDER_PIX,
+    AV_CODEC_ID_PAF_VIDEO,
+    AV_CODEC_ID_EXR,
+    AV_CODEC_ID_VP7,
+    AV_CODEC_ID_SANM,
+    AV_CODEC_ID_SGIRLE,
+    AV_CODEC_ID_MVC1,
+    AV_CODEC_ID_MVC2,
+    AV_CODEC_ID_HQX,
+    AV_CODEC_ID_TDSC,
+    AV_CODEC_ID_HQ_HQA,
+    AV_CODEC_ID_HAP,
+    AV_CODEC_ID_DDS,
+    AV_CODEC_ID_DXV,
+    AV_CODEC_ID_SCREENPRESSO,
+    AV_CODEC_ID_RSCC,
+    AV_CODEC_ID_Y41P,
+    AV_CODEC_ID_AVRP,
+    AV_CODEC_ID_012V,
+    AV_CODEC_ID_AVUI,
+    AV_CODEC_ID_AYUV,
+    AV_CODEC_ID_TARGA_Y216,
+    AV_CODEC_ID_V308,
+    AV_CODEC_ID_V408,
+    AV_CODEC_ID_YUV4,
+    AV_CODEC_ID_AVRN,
+    AV_CODEC_ID_CPIA,
+    AV_CODEC_ID_XFACE,
+    AV_CODEC_ID_SNOW,
+    AV_CODEC_ID_SMVJPEG,
+    AV_CODEC_ID_APNG,
+    AV_CODEC_ID_DAALA,
+    AV_CODEC_ID_CFHD,
+    AV_CODEC_ID_TRUEMOTION2RT,
+    AV_CODEC_ID_M101,
+    AV_CODEC_ID_MAGICYUV,
+    AV_CODEC_ID_SHEERVIDEO,
+    AV_CODEC_ID_YLC
   */
 };
 #define VIDEO_CODEC_IDS_LEN (sizeof(VIDEO_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -595,10 +630,10 @@ CAMLprim value ocaml_avcodec_parameters_get_height(value _cp) {
 CAMLprim value ocaml_avcodec_parameters_get_sample_aspect_ratio(value _cp) {
   CAMLparam1(_cp);
   CAMLlocal1(ans);
-  
-  ans = caml_alloc_small(2, 0);
-  Field(ans, 0) = CodecParameters_val(_cp)->sample_aspect_ratio.num;
-  Field(ans, 1) = CodecParameters_val(_cp)->sample_aspect_ratio.den;
+
+  ans = caml_alloc_tuple(2);
+  Field(ans, 0) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.num);
+  Field(ans, 1) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.den);
 
   CAMLreturn(ans);
 }
@@ -645,21 +680,21 @@ static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
   AV_CODEC_ID_DVB_TELETEXT,
   AV_CODEC_ID_SRT,
   /*
-  AV_CODEC_ID_MICRODVD,
-  AV_CODEC_ID_EIA_608,
-  AV_CODEC_ID_JACOSUB,
-  AV_CODEC_ID_SAMI,
-  AV_CODEC_ID_REALTEXT,
-  AV_CODEC_ID_STL,
-  AV_CODEC_ID_SUBVIEWER1,
-  AV_CODEC_ID_SUBVIEWER,
-  AV_CODEC_ID_SUBRIP,
-  AV_CODEC_ID_WEBVTT,
-  AV_CODEC_ID_MPL2,
-  AV_CODEC_ID_VPLAYER,
-  AV_CODEC_ID_PJS,
-  AV_CODEC_ID_ASS,
-  AV_CODEC_ID_HDMV_TEXT_SUBTITLE
+    AV_CODEC_ID_MICRODVD,
+    AV_CODEC_ID_EIA_608,
+    AV_CODEC_ID_JACOSUB,
+    AV_CODEC_ID_SAMI,
+    AV_CODEC_ID_REALTEXT,
+    AV_CODEC_ID_STL,
+    AV_CODEC_ID_SUBVIEWER1,
+    AV_CODEC_ID_SUBVIEWER,
+    AV_CODEC_ID_SUBRIP,
+    AV_CODEC_ID_WEBVTT,
+    AV_CODEC_ID_MPL2,
+    AV_CODEC_ID_VPLAYER,
+    AV_CODEC_ID_PJS,
+    AV_CODEC_ID_ASS,
+    AV_CODEC_ID_HDMV_TEXT_SUBTITLE
   */
 };
 #define SUBTITLE_CODEC_IDS_LEN (sizeof(SUBTITLE_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -692,3 +727,21 @@ CAMLprim value ocaml_avcodec_find_subtitle_codec_id_by_name(value _name)
   CAMLreturn(Val_subtitleCodecId(find_codec_id_by_name(String_val(_name))));
 }
 
+/**** Subtitle codec parameters ****/
+CAMLprim value ocaml_avcodec_parameters_get_subtitle_codec_id(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_subtitleCodecId(CodecParameters_val(_cp)->codec_id));
+}
+
+CAMLprim value ocaml_avcodec_parameters_subtitle_copy(value _codec_id, value _cp) {
+  CAMLparam2(_codec_id, _cp);
+  CAMLlocal1(ans);
+
+  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
+  
+  AVCodecParameters * dst = CodecParameters_val(ans);
+
+  dst->codec_id = SubtitleCodecId_val(_codec_id);
+
+  CAMLreturn(ans);
+}

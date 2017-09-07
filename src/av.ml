@@ -25,6 +25,8 @@ let open_input_format format = _open_input None (Some format)
 
 external close_input : input_t -> unit = "ocaml_av_close_input"
 
+external get_streams_codec_parameters : input_t -> Avcodec.Parameters.t array = "ocaml_av_get_streams_codec_parameters"
+
 external get_metadata : input_t -> (string * string) list = "ocaml_av_get_metadata"
 
 external get_audio_stream_index : input_t -> int = "ocaml_av_get_audio_stream_index"

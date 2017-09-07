@@ -484,12 +484,23 @@ module Subtitle = struct
 
   external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
 
+  module Parameters = struct
+    type t
+
+    external get_codec_id : t -> id = "ocaml_avcodec_parameters_get_subtitle_codec_id"
+
+    external copy : id -> t -> t = "ocaml_avcodec_parameters_subtitle_copy"
+
+    let copy ?codec_id p =
+      let ci = match codec_id with Some ci -> ci | None -> get_codec_id p in
+      copy ci p
+  end    
 end
 
 module Parameters = struct
   type t =
     | Audio of Audio.Parameters.t
     | Video of Video.Parameters.t
-    | Subtitle
+    | Subtitle of Subtitle.Parameters.t
     | Unknown
 end
