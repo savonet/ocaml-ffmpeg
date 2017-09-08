@@ -15,14 +15,14 @@ module R7 = Swresample.Make (Swresample.S32Frame) (Swresample.FloatArray)
 module R8 = Swresample.Make (Swresample.FloatArray) (Swresample.S32BigArray)
 module R9 = Swresample.Make (Swresample.S32BigArray) (Swresample.S32Bytes)
 
-let logStep step v = Gc.full_major (); Printf.printf"%s done\n%!" step; v
+let logStep step v = Gc.full_major (); (*Printf.printf"%s done\n%!" step;*) v
 
 let foi = float_of_int
 let pi = 4.0 *. atan 1.0
 let rate = 44100
 let frate = float_of_int rate
 
-let () =
+let test() =
   let dst1 = open_out_bin "test_swresample_out1.raw" in
   let r = R.create CL_mono rate CL_stereo 44100 in
 
@@ -65,5 +65,3 @@ let () =
 
   close_out dst1 |> logStep"close_out dst1";
   close_out dst2 |> logStep"close_out dst2";
-
-

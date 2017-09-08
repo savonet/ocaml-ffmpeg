@@ -38,6 +38,8 @@ extern char ocaml_av_exn_msg[];
 
 int PixelFormat_val(value);
 
+value Val_pixelFormat(enum AVPixelFormat pf);
+
 
 /**** Time format ****/
 

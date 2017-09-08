@@ -29,10 +29,22 @@ static const enum AVPixelFormat PIXEL_FORMATS[] = {
   AV_PIX_FMT_RGBA,
   AV_PIX_FMT_BGRA
 };
+#define PIXEL_FORMATS_LEN (sizeof(PIXEL_FORMATS) / sizeof(enum AVPixelFormat))
 
 enum AVPixelFormat PixelFormat_val(value v)
 {
   return PIXEL_FORMATS[Int_val(v)];
+}
+
+value Val_pixelFormat(enum AVPixelFormat pf)
+{
+  int i;
+  for (i = 0; i < PIXEL_FORMATS_LEN; i++) {
+    if (pf == PIXEL_FORMATS[i])
+      return Val_int(i);
+  }
+  Raise(EXN_FAILURE, "Invalid pixel format : %d", pf);
+  return Val_int(0);
 }
 
 CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)

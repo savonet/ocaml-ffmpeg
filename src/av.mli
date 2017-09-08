@@ -28,32 +28,21 @@ val open_input_format : Input_format.t -> input_t
 (** Close an input. *)
 val close_input : input_t -> unit
 
+(** Input streams codec parameters array. *)
+val get_streams_codec_parameters : input_t -> Avcodec.Parameters.t array
+
 (** Input tag list. *)
 val get_metadata : input_t -> (string * string) list
-
-(** Selected audio stream index. *)
-val get_audio_stream_index : input_t -> int
-
-(** Selected video stream index. *)
-val get_video_stream_index : input_t -> int
 
 (** Duration of an input stream. *)
 val get_duration : input_t -> int -> time_format -> Int64.t
 
+(** Best audio stream codec parameters. *)
+val get_input_audio_codec_parameters : input_t -> Avcodec.Audio.Parameters.t
 
-(** Selected audio stream channel layout. *)
-val get_channel_layout : input_t -> channel_layout
+(** Best video stream codec parameters. *)
+val get_input_video_codec_parameters : input_t -> Avcodec.Video.Parameters.t
 
-(** Selected audio stream channels number. *)
-val get_nb_channels : input_t -> int
-
-(** Selected audio stream sample rate. *)
-val get_sample_rate : input_t -> int
-
-(** Selected audio stream sample format. *)
-val get_sample_format : input_t -> sample_format
-
-val get_audio_format : input_t -> Avutil.audio_format
 
 type audio = Audio of audio_frame | End_of_file
 type video = Video of video_frame | End_of_file
@@ -111,19 +100,22 @@ end
 type output_t
 
 (** Open an output file. *)
-val open_output : string -> output_t
+val open_output : ?audio_parameters:Avcodec.Audio.Parameters.t -> string -> output_t
 
 (** Open an output format. *)
-val open_output_format : Output_format.t -> output_t
+val open_output_format : ?audio_parameters:Avcodec.Audio.Parameters.t -> Output_format.t -> output_t
 
 (** Open an output format by name. *)
-val open_output_format_name : string -> output_t
+val open_output_format_name : ?audio_parameters:Avcodec.Audio.Parameters.t -> string -> output_t
 
 (** Close an output. *)
 val close_output : output_t -> unit
 
+(** Best audio stream codec parameters. *)
+val get_output_audio_codec_parameters : output_t -> Avcodec.Audio.Parameters.t
+                                                      
 (** Add a new audio stream *)
-val new_audio_stream : ?codec_id:audio_codec_id -> ?codec_name:string -> channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> int -> output_t -> int
+val new_audio_stream : ?codec_id:audio_codec_id -> ?codec_name:string -> ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> ?sample_rate:int -> ?codec_parameters:Avcodec.Audio.Parameters.t -> output_t -> int
 
 (** Add a new video stream *)
 val new_video_stream : ?codec_id:video_codec_id -> ?codec_name:string -> int -> int -> pixel_format -> ?bit_rate:int -> ?frame_rate:int -> output_t -> int

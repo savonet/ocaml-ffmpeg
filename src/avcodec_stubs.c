@@ -3,24 +3,82 @@
 #include <caml/alloc.h>
 #include <caml/fail.h>
 #include <caml/callback.h>
-/*
-  #include <caml/custom.h>
-  #include <caml/bigarray.h>
-  #include <caml/threads.h>
+#include <caml/custom.h>
 
-  #include <libavutil/opt.h>
-  #include <libavutil/imgutils.h>
-  #include <libavutil/timestamp.h>
-  #include <libavformat/avformat.h>
-  #include <libswresample/swresample.h>
-  #include "libavutil/audio_fifo.h"
-*/
 #include <libavformat/avformat.h>
 #include "avutil_stubs.h"
 
 #include "avcodec_stubs.h"
 
 
+/***** AVCodecParameters *****/
+
+#define AUDIO_CODEC_PARAMETERS_TAG 0
+#define VIDEO_CODEC_PARAMETERS_TAG 1
+#define SUBTITLE_CODEC_PARAMETERS_TAG 2
+#define UNKNOWN_CODEC_PARAMETERS_TAG 0
+
+static void finalize_codec_parameters(value v)
+{
+  struct AVCodecParameters *codec_parameters = CodecParameters_val(v);
+  avcodec_parameters_free(&codec_parameters);
+}
+
+static struct custom_operations codec_parameters_ops =
+  {
+    "ocaml_avcodec_parameters",
+    finalize_codec_parameters,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default
+  };
+
+void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
+{
+  if( ! src) Raise(EXN_FAILURE, "Failed to get codec parameters");
+
+  AVCodecParameters * dst = avcodec_parameters_alloc();
+  if( ! dst) Raise(EXN_FAILURE, "Failed to alloc codec parameters");
+
+  int ret = avcodec_parameters_copy(dst, src);
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to copy codec parameters : %s", av_err2str(ret));
+
+  *pvalue = caml_alloc_custom(&codec_parameters_ops, sizeof(AVCodecParameters*), 0, 1);
+  CodecParameters_val(*pvalue) = dst;
+}
+
+void value_of_codec_parameters_variants(AVCodecParameters *src, value *pvalue)
+{
+  CAMLparam0();
+  CAMLlocal1(cpv);
+
+  if(src && (src->codec_type == AVMEDIA_TYPE_AUDIO
+             || src->codec_type == AVMEDIA_TYPE_VIDEO
+             || src->codec_type == AVMEDIA_TYPE_SUBTITLE)) {
+    
+    value_of_codec_parameters_copy(src, &cpv);
+
+    if(src->codec_type == AVMEDIA_TYPE_AUDIO) {
+      *pvalue = caml_alloc_small(1, AUDIO_CODEC_PARAMETERS_TAG);
+    }
+    else if(src->codec_type == AVMEDIA_TYPE_VIDEO) {
+      *pvalue = caml_alloc_small(1, VIDEO_CODEC_PARAMETERS_TAG);
+    }
+    else {
+      *pvalue = caml_alloc_small(1, SUBTITLE_CODEC_PARAMETERS_TAG);
+    }
+
+    Field(*pvalue, 0) = cpv;
+  }
+  else {
+    *pvalue = Val_int(UNKNOWN_CODEC_PARAMETERS_TAG);
+  }
+  CAMLreturn0;
+}
+
+
+/**** codec ****/
 static enum AVCodecID find_codec_id_by_name(const char *name)
 {
   av_register_all();
@@ -29,6 +87,11 @@ static enum AVCodecID find_codec_id_by_name(const char *name)
   if( ! codec) Raise(EXN_FAILURE, "Failed to find %s codec", name);
 
   return codec->id;
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_bit_rate(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->bit_rate));
 }
 
 /**** Audio codec ID ****/
@@ -182,24 +245,24 @@ static const enum AVCodecID AUDIO_CODEC_IDS[] = {
   AV_CODEC_ID_COMFORT_NOISE,
   AV_CODEC_ID_TAK,
   /*
-  AV_CODEC_ID_METASOUND,
-  AV_CODEC_ID_PAF_AUDIO,
-  AV_CODEC_ID_ON2AVC,
-  AV_CODEC_ID_DSS_SP,
-  AV_CODEC_ID_FFWAVESYNTH,
-  AV_CODEC_ID_SONIC,
-  AV_CODEC_ID_SONIC_LS,
-  AV_CODEC_ID_EVRC,
-  AV_CODEC_ID_SMV,
-  AV_CODEC_ID_DSD_LSBF,
-  AV_CODEC_ID_DSD_MSBF,
-  AV_CODEC_ID_DSD_LSBF_PLANAR,
-  AV_CODEC_ID_DSD_MSBF_PLANAR,
-  AV_CODEC_ID_4GV,
-  AV_CODEC_ID_INTERPLAY_ACM,
-  AV_CODEC_ID_XMA1,
-  AV_CODEC_ID_XMA2,
-  AV_CODEC_ID_DST
+    AV_CODEC_ID_METASOUND,
+    AV_CODEC_ID_PAF_AUDIO,
+    AV_CODEC_ID_ON2AVC,
+    AV_CODEC_ID_DSS_SP,
+    AV_CODEC_ID_FFWAVESYNTH,
+    AV_CODEC_ID_SONIC,
+    AV_CODEC_ID_SONIC_LS,
+    AV_CODEC_ID_EVRC,
+    AV_CODEC_ID_SMV,
+    AV_CODEC_ID_DSD_LSBF,
+    AV_CODEC_ID_DSD_MSBF,
+    AV_CODEC_ID_DSD_LSBF_PLANAR,
+    AV_CODEC_ID_DSD_MSBF_PLANAR,
+    AV_CODEC_ID_4GV,
+    AV_CODEC_ID_INTERPLAY_ACM,
+    AV_CODEC_ID_XMA1,
+    AV_CODEC_ID_XMA2,
+    AV_CODEC_ID_DST
   */
 };
 #define AUDIO_CODEC_IDS_LEN (sizeof(AUDIO_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -219,13 +282,13 @@ value Val_audioCodecId(enum AVCodecID id)
   Raise(EXN_FAILURE, "Invalid audio codec id : %d\n", id);
   return Val_int(0);
 }
-/*
+
 CAMLprim value ocaml_avcodec_get_audio_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(AudioCodecId_val(_codec_id))));
 }
-*/  
+
 CAMLprim value ocaml_avcodec_find_audio_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);
@@ -245,6 +308,55 @@ CAMLprim value ocaml_avcodec_find_best_sample_format(value _audio_codec_id)
   if( ! codec->sample_fmts) Raise(EXN_FAILURE, "Failed to find codec sample formats");
     
   CAMLreturn(Val_sampleFormat(codec->sample_fmts[0]));
+}
+
+/**** Audio codec parameters ****/
+CAMLprim value ocaml_avcodec_parameters_get_audio_codec_id(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_audioCodecId(CodecParameters_val(_cp)->codec_id));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_channel_layout(value _cp) {
+  CAMLparam1(_cp);
+  AVCodecParameters * cp = CodecParameters_val(_cp);
+
+  if(cp->channel_layout == 0) {
+    cp->channel_layout = av_get_default_channel_layout(cp->channels);
+  }
+
+  CAMLreturn(Val_channelLayout(cp->channel_layout));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_nb_channels(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->channels));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_sample_format(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_sampleFormat((enum AVSampleFormat)CodecParameters_val(_cp)->format));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_sample_rate(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->sample_rate));
+}
+
+CAMLprim value ocaml_avcodec_parameters_audio_copy(value _codec_id, value _channel_layout, value _sample_format, value _sample_rate, value _cp) {
+  CAMLparam4(_codec_id, _channel_layout, _sample_format, _cp);
+  CAMLlocal1(ans);
+
+  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
+  
+  AVCodecParameters * dst = CodecParameters_val(ans);
+
+  dst->codec_id = AudioCodecId_val(_codec_id);
+  dst->channel_layout = ChannelLayout_val(_channel_layout);
+  dst->channels = av_get_channel_layout_nb_channels(dst->channel_layout);
+  dst->format = SampleFormat_val(_sample_format);
+  dst->sample_rate = Int_val(_sample_rate);
+
+  CAMLreturn(ans);
 }
 
 
@@ -418,54 +530,54 @@ static const enum AVCodecID VIDEO_CODEC_IDS[] = {
   AV_CODEC_ID_CLLC,
   AV_CODEC_ID_MSS2,
   /*
-  AV_CODEC_ID_VP9,
-  AV_CODEC_ID_AIC,
-  AV_CODEC_ID_ESCAPE130,
-  AV_CODEC_ID_G2M,
-  AV_CODEC_ID_WEBP,
-  AV_CODEC_ID_HNM4_VIDEO,
-  AV_CODEC_ID_HEVC,
-  AV_CODEC_ID_H265,
-  AV_CODEC_ID_FIC,
-  AV_CODEC_ID_ALIAS_PIX,
-  AV_CODEC_ID_BRENDER_PIX,
-  AV_CODEC_ID_PAF_VIDEO,
-  AV_CODEC_ID_EXR,
-  AV_CODEC_ID_VP7,
-  AV_CODEC_ID_SANM,
-  AV_CODEC_ID_SGIRLE,
-  AV_CODEC_ID_MVC1,
-  AV_CODEC_ID_MVC2,
-  AV_CODEC_ID_HQX,
-  AV_CODEC_ID_TDSC,
-  AV_CODEC_ID_HQ_HQA,
-  AV_CODEC_ID_HAP,
-  AV_CODEC_ID_DDS,
-  AV_CODEC_ID_DXV,
-  AV_CODEC_ID_SCREENPRESSO,
-  AV_CODEC_ID_RSCC,
-  AV_CODEC_ID_Y41P,
-  AV_CODEC_ID_AVRP,
-  AV_CODEC_ID_012V,
-  AV_CODEC_ID_AVUI,
-  AV_CODEC_ID_AYUV,
-  AV_CODEC_ID_TARGA_Y216,
-  AV_CODEC_ID_V308,
-  AV_CODEC_ID_V408,
-  AV_CODEC_ID_YUV4,
-  AV_CODEC_ID_AVRN,
-  AV_CODEC_ID_CPIA,
-  AV_CODEC_ID_XFACE,
-  AV_CODEC_ID_SNOW,
-  AV_CODEC_ID_SMVJPEG,
-  AV_CODEC_ID_APNG,
-  AV_CODEC_ID_DAALA,
-  AV_CODEC_ID_CFHD,
-  AV_CODEC_ID_TRUEMOTION2RT,
-  AV_CODEC_ID_M101,
-  AV_CODEC_ID_MAGICYUV,
-  AV_CODEC_ID_SHEERVIDEO,
-  AV_CODEC_ID_YLC
+    AV_CODEC_ID_VP9,
+    AV_CODEC_ID_AIC,
+    AV_CODEC_ID_ESCAPE130,
+    AV_CODEC_ID_G2M,
+    AV_CODEC_ID_WEBP,
+    AV_CODEC_ID_HNM4_VIDEO,
+    AV_CODEC_ID_HEVC,
+    AV_CODEC_ID_H265,
+    AV_CODEC_ID_FIC,
+    AV_CODEC_ID_ALIAS_PIX,
+    AV_CODEC_ID_BRENDER_PIX,
+    AV_CODEC_ID_PAF_VIDEO,
+    AV_CODEC_ID_EXR,
+    AV_CODEC_ID_VP7,
+    AV_CODEC_ID_SANM,
+    AV_CODEC_ID_SGIRLE,
+    AV_CODEC_ID_MVC1,
+    AV_CODEC_ID_MVC2,
+    AV_CODEC_ID_HQX,
+    AV_CODEC_ID_TDSC,
+    AV_CODEC_ID_HQ_HQA,
+    AV_CODEC_ID_HAP,
+    AV_CODEC_ID_DDS,
+    AV_CODEC_ID_DXV,
+    AV_CODEC_ID_SCREENPRESSO,
+    AV_CODEC_ID_RSCC,
+    AV_CODEC_ID_Y41P,
+    AV_CODEC_ID_AVRP,
+    AV_CODEC_ID_012V,
+    AV_CODEC_ID_AVUI,
+    AV_CODEC_ID_AYUV,
+    AV_CODEC_ID_TARGA_Y216,
+    AV_CODEC_ID_V308,
+    AV_CODEC_ID_V408,
+    AV_CODEC_ID_YUV4,
+    AV_CODEC_ID_AVRN,
+    AV_CODEC_ID_CPIA,
+    AV_CODEC_ID_XFACE,
+    AV_CODEC_ID_SNOW,
+    AV_CODEC_ID_SMVJPEG,
+    AV_CODEC_ID_APNG,
+    AV_CODEC_ID_DAALA,
+    AV_CODEC_ID_CFHD,
+    AV_CODEC_ID_TRUEMOTION2RT,
+    AV_CODEC_ID_M101,
+    AV_CODEC_ID_MAGICYUV,
+    AV_CODEC_ID_SHEERVIDEO,
+    AV_CODEC_ID_YLC
   */
 };
 #define VIDEO_CODEC_IDS_LEN (sizeof(VIDEO_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -485,17 +597,74 @@ value Val_videoCodecId(enum AVCodecID id)
   Raise(EXN_FAILURE, "Invalid video codec id : %d\n", id);
   return Val_int(0);
 }
-/*
+
 CAMLprim value ocaml_avcodec_get_video_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(VideoCodecId_val(_codec_id))));
 }
-*/
+
 CAMLprim value ocaml_avcodec_find_video_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);
   CAMLreturn(Val_videoCodecId(find_codec_id_by_name(String_val(_name))));
+}
+
+
+/**** Video codec parameters ****/
+CAMLprim value ocaml_avcodec_parameters_get_video_codec_id(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_videoCodecId(CodecParameters_val(_cp)->codec_id));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_width(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->width));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_height(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->height));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_sample_aspect_ratio(value _cp) {
+  CAMLparam1(_cp);
+  CAMLlocal1(ans);
+
+  ans = caml_alloc_tuple(2);
+  Field(ans, 0) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.num);
+  Field(ans, 1) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.den);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_pixel_format(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_pixelFormat((enum AVPixelFormat)CodecParameters_val(_cp)->format));
+}
+
+CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id, value _width, value _height, value _sample_aspect_ratio, value _pixel_format, value _bit_rate, value _cp) {
+  CAMLparam4(_codec_id, _sample_aspect_ratio, _pixel_format, _cp);
+  CAMLlocal1(ans);
+
+  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
+  
+  AVCodecParameters * dst = CodecParameters_val(ans);
+
+  dst->codec_id = VideoCodecId_val(_codec_id);
+  dst->width = Int_val(_width);
+  dst->height = Int_val(_height);
+  dst->sample_aspect_ratio.num = Int_val(Field(_sample_aspect_ratio, 0));
+  dst->sample_aspect_ratio.den = Int_val(Field(_sample_aspect_ratio, 1));
+  dst->format = PixelFormat_val(_pixel_format);
+  dst->bit_rate = Int_val(_bit_rate);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avcodec_parameters_video_copy_byte(value *argv, int argn)
+{
+  return ocaml_avcodec_parameters_video_copy(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[7]);
 }
 
 
@@ -511,21 +680,21 @@ static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
   AV_CODEC_ID_DVB_TELETEXT,
   AV_CODEC_ID_SRT,
   /*
-  AV_CODEC_ID_MICRODVD,
-  AV_CODEC_ID_EIA_608,
-  AV_CODEC_ID_JACOSUB,
-  AV_CODEC_ID_SAMI,
-  AV_CODEC_ID_REALTEXT,
-  AV_CODEC_ID_STL,
-  AV_CODEC_ID_SUBVIEWER1,
-  AV_CODEC_ID_SUBVIEWER,
-  AV_CODEC_ID_SUBRIP,
-  AV_CODEC_ID_WEBVTT,
-  AV_CODEC_ID_MPL2,
-  AV_CODEC_ID_VPLAYER,
-  AV_CODEC_ID_PJS,
-  AV_CODEC_ID_ASS,
-  AV_CODEC_ID_HDMV_TEXT_SUBTITLE
+    AV_CODEC_ID_MICRODVD,
+    AV_CODEC_ID_EIA_608,
+    AV_CODEC_ID_JACOSUB,
+    AV_CODEC_ID_SAMI,
+    AV_CODEC_ID_REALTEXT,
+    AV_CODEC_ID_STL,
+    AV_CODEC_ID_SUBVIEWER1,
+    AV_CODEC_ID_SUBVIEWER,
+    AV_CODEC_ID_SUBRIP,
+    AV_CODEC_ID_WEBVTT,
+    AV_CODEC_ID_MPL2,
+    AV_CODEC_ID_VPLAYER,
+    AV_CODEC_ID_PJS,
+    AV_CODEC_ID_ASS,
+    AV_CODEC_ID_HDMV_TEXT_SUBTITLE
   */
 };
 #define SUBTITLE_CODEC_IDS_LEN (sizeof(SUBTITLE_CODEC_IDS) / sizeof(enum AVCodecID))
@@ -545,16 +714,34 @@ value Val_subtitleCodecId(enum AVCodecID id)
   Raise(EXN_FAILURE, "Invalid subtitle codec id : %d\n", id);
   return Val_int(0);
 }
-/*
+
 CAMLprim value ocaml_avcodec_get_subtitle_codec_name(value _codec_id)
 {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(avcodec_get_name(SubtitleCodecId_val(_codec_id))));
 }
-*/
+
 CAMLprim value ocaml_avcodec_find_subtitle_codec_id_by_name(value _name)
 {
   CAMLparam1(_name);
   CAMLreturn(Val_subtitleCodecId(find_codec_id_by_name(String_val(_name))));
 }
 
+/**** Subtitle codec parameters ****/
+CAMLprim value ocaml_avcodec_parameters_get_subtitle_codec_id(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(Val_subtitleCodecId(CodecParameters_val(_cp)->codec_id));
+}
+
+CAMLprim value ocaml_avcodec_parameters_subtitle_copy(value _codec_id, value _cp) {
+  CAMLparam2(_codec_id, _cp);
+  CAMLlocal1(ans);
+
+  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
+  
+  AVCodecParameters * dst = CodecParameters_val(ans);
+
+  dst->codec_id = SubtitleCodecId_val(_codec_id);
+
+  CAMLreturn(ans);
+}

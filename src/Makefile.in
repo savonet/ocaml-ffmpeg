@@ -31,9 +31,9 @@ ifeq "@HAS_AV@" "yes"
 ifeq "@HAS_AVDEVICE@" "yes"
 	SOURCES +=  avdevice_stubs.c avdevice.mli avdevice.ml
 endif
-endif
 ifeq "@HAS_SWRESAMPLE@" "yes"
 	SOURCES += swresample_stubs.c swresample.mli swresample.ml
+endif
 endif
 RESULT = ffmpeg
 LIB_PACK_NAME = FFmpeg

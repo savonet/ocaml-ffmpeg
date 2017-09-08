@@ -84,11 +84,6 @@ module Sample_format = struct
 external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end
 
-type audio_format = {
-  channel_layout : Channel_layout.t;
-  sample_format : Sample_format.t;
-  sample_rate : int
-}
 
 module Audio_frame = struct
   type t

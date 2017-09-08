@@ -1,3 +1,4 @@
+#include <string.h>
 #include <pthread.h>
 
 #include <caml/mlvalues.h>
@@ -191,6 +192,10 @@ static av_t * open_input(char *url, AVInputFormat *format)
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate input context");
 
+  if(url && 0 == strncmp("http", url, 4)) {
+    avformat_network_init();
+  }
+  
   int ret = avformat_open_input(&av->format_context, url, format, NULL);
   
   if (ret < 0 || ! av->format_context) {
@@ -218,7 +223,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format)
   if (Is_block(_url)) {
     url = caml_strdup(String_val(Field(_url, 0)));
   }
-  
+
   if (Is_block(_format)) {
     format = InputFormat_val(Field(_format, 0));
   }
@@ -226,7 +231,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format)
   av_register_all();
 
   caml_release_runtime_system();
-  // open input url
+  // open input url or format
   av_t *av = open_input(url, format);
 
   if(url) caml_stat_free(url);
@@ -248,6 +253,22 @@ CAMLprim value ocaml_av_close_input(value _av)
   close_av(Av_val(_av));
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal2(v, ans);
+  av_t * av = Av_val(_av);
+  int i, len = av->format_context->nb_streams;
+
+  ans = caml_alloc_tuple(len);
+
+  for(i = 0; i < len; i++) {
+    value_of_codec_parameters_variants(av->format_context->streams[i]->codecpar, &v);
+    Store_field(ans, i, v);
+  }
+
+  CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_av_get_metadata(value _av) {
@@ -277,39 +298,6 @@ CAMLprim value ocaml_av_get_metadata(value _av) {
   CAMLreturn(list);
 }
 
-CAMLprim value ocaml_av_get_audio_stream_index(value _av)
-{
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-  int index = -1;
-  
-  if(av->audio_stream) {
-    index = av->audio_stream->index;
-  }
-  else {
-    index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-  }
-
-  CAMLreturn(Val_int(index));
-}
-
-CAMLprim value ocaml_av_get_video_stream_index(value _av)
-{
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-  int index = -1;
-  
-  if(av->video_stream) {
-    index = av->video_stream->index;
-  }
-  else {
-    index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-  }
-
-  CAMLreturn(Val_int(index));
-}
-
-
 CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time_format)
 {
   CAMLparam2(_av, _time_format);
@@ -333,6 +321,32 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   int64_t second_fractions = second_fractions_of_time_format(time_format);
 
   ans = caml_copy_int64((duration * second_fractions * num) / den);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_video_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find video stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
 
   CAMLreturn(ans);
 }
@@ -437,46 +451,6 @@ static stream_t * open_subtitle_stream(av_t * av)
   return (av->subtitle_stream = open_best_stream(av, AVMEDIA_TYPE_SUBTITLE));
 }
 
-
-CAMLprim value ocaml_av_get_channel_layout(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  if(av->audio_stream->codec_context->channel_layout == 0) {
-    av->audio_stream->codec_context->channel_layout = av_get_default_channel_layout(av->audio_stream->codec_context->channels);
-  }
-
-  CAMLreturn(Val_channelLayout(av->audio_stream->codec_context->channel_layout));
-}
-
-CAMLprim value ocaml_av_get_nb_channels(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_int(av_get_channel_layout_nb_channels(av->audio_stream->codec_context->channel_layout)));
-}
-
-CAMLprim value ocaml_av_get_sample_rate(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_int(av->audio_stream->codec_context->sample_rate));
-}
-
-CAMLprim value ocaml_av_get_sample_format(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_sampleFormat(av->audio_stream->codec_context->sample_fmt));
-}
 
 static frame_kind decode_packet(av_t * av, stream_t * stream, AVFrame * frame)
 {

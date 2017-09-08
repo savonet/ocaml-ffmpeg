@@ -5,14 +5,14 @@ type sample_format = Avutil.Sample_format.t
 type audio_frame = Avutil.Audio_frame.t
 
 type u8ba =
-    (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+  (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s16ba =
-    (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
+  (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s32ba = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f32ba =
-    (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
+  (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
 type f64ba =
-    (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
+  (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
 
 type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
 
@@ -195,30 +195,23 @@ end
 type ('i, 'o) t
 
 (** Functor building an implementation of the swresample structure with parameterized input an output audio data types *)
-module Make :
-  functor (I : AudioData) (O : AudioData) ->
-    sig
-      type nonrec t = (I.t, O.t) t
+module Make : functor (I : AudioData) (O : AudioData) ->
+sig
+  type nonrec t = (I.t, O.t) t
 
-      (** Create a Swresample.t with parameterized input and output audio format. *)
-      val create : channel_layout -> ?in_sample_format:sample_format ->
-        int -> channel_layout -> ?out_sample_format:sample_format -> int -> t
+  (** Create a Swresample.t with parameterized input and output audio format. *)
+  val create : channel_layout -> ?in_sample_format:sample_format ->
+    int -> channel_layout -> ?out_sample_format:sample_format -> int -> t
 
-      (** Create a Swresample.t with audio_format properties input format and output audio format parameters. *)
-      val from_audio_format : Avutil.audio_format ->
-        channel_layout -> ?out_sample_format:sample_format -> int -> t
+  (** Create a Swresample.t with input and output audio parameters. *)
+  val from_input : Av.input_t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
 
-      (** Create a Swresample.t with input and output audio_format properties. *)
-      val of_audio_formats : Avutil.audio_format -> Avutil.audio_format -> t
+  (** Create a Swresample.t with input audio parameters and output. *)
+  val to_output : channel_layout -> ?in_sample_format:sample_format -> int -> Av.output_t -> t
 
-      (** Create a Swresample.t with parameterized input and output codec best audio format. *)
-      val to_codec : channel_layout -> ?in_sample_format:sample_format ->
-        int -> Avcodec.Audio.id -> channel_layout -> int -> t
+  (** Create a Swresample.t with input and output. *)
+  val from_input_to_output : Av.input_t -> Av.output_t -> t
 
-      (** Create a Swresample.t with audio_format properties input format and output codec best audio format. *)
-      val from_audio_format_to_codec : Avutil.audio_format ->
-        Avcodec.Audio.id -> channel_layout -> int -> t
-
-      (** Resample and convert input audio data to output audio data format. *)
-      val convert : t -> I.t -> O.t
-    end
+  (** Resample and convert input audio data to output audio data format. *)
+  val convert : t -> I.t -> O.t
+end

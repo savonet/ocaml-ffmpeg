@@ -1,4 +1,4 @@
-SOURCES = test_swresample.ml
+SOURCES = swresample.ml info.ml test.ml
 RESULT = test
 LIBS = bigarray ffmpeg
 
@@ -8,6 +8,6 @@ THREADS = yes
 all: dc
 
 test: all
-	./test
+	./test ../examples/encode_audio/A4.ogg ../examples/transcode_aac/A4.mp4
 
 include OCamlMakefile

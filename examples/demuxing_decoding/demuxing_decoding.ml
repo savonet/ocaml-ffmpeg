@@ -19,9 +19,7 @@ let () =
 
   let input_file = Av.open_input input_filename in
 
-  let rbs = FrameToS32Bytes.from_audio_format (Av.get_audio_format input_file)
-      Channel_layout.CL_stereo 44100
-  in
+  let rbs = FrameToS32Bytes.from_input input_file Channel_layout.CL_stereo 44100 in
 
   Av.get_metadata input_file |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
 
