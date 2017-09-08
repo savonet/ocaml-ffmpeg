@@ -5,7 +5,7 @@ LIBS = bigarray ffmpeg
 INCDIRS = ../../src
 THREADS = yes
 
-all: dc
+all: nc
 
 test: all
 	./encode_video video.ogg libtheora

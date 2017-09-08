@@ -11,18 +11,28 @@ PKG_CONFIG_CHECK_MODULE([libswscale])
 PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
 #PKG_CONFIG_CHECK_MODULE([libswresample])
+#PKG_CONFIG_CHECK_MODULE([libavdevice])
 
 AC_CHECK_DECL([avcodec_send_packet],[HAS_AV="yes"],[HAS_AV=""],[#include "libavcodec/avcodec.h"])
 AC_SUBST(HAS_AV)
+
 AC_CHECK_HEADERS([libswresample/swresample.h],[HAS_SWRESAMPLE="yes"],[HAS_SWRESAMPLE=""])
 if test "x$HAS_SWRESAMPLE" = "xyes" ; then
   LIBS="$LIBS -lswresample"
 fi
 AC_SUBST(HAS_SWRESAMPLE)
+
+AC_CHECK_HEADERS([libavdevice/avdevice.h],[HAS_AVDEVICE="yes"],[HAS_AVDEVICE=""])
+if test "x$HAS_AVDEVICE" = "xyes" ; then
+  LIBS="$LIBS -lavdevice"
+fi
+AC_SUBST(HAS_AVDEVICE)
+
 AC_CHECK_HEADERS([libavutil/channel_layout.h],[HAS_CHANNEL_LAYOUT="yes"],[HAS_CHANNEL_LAYOUT=""])
 if test "x$HAS_CHANNEL_LAYOUT" = "xyes" ; then
   CFLAGS="$CFLAGS -DHAS_CHANNEL_LAYOUT"
 fi
+
 AC_CHECK_HEADERS([libavutil/frame.h],[HAS_FRAME="yes"],[HAS_FRAME=""])
 if test "x$HAS_FRAME" = "xyes" ; then
   CFLAGS="$CFLAGS -DHAS_FRAME"
