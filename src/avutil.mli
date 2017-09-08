@@ -84,13 +84,6 @@ module Sample_format : sig
   val get_name : t -> string
 end
 
-(** Audio format properties. *)
-type audio_format = {
-  channel_layout : Channel_layout.t;
-  sample_format : Sample_format.t;
-  sample_rate : int
-}
-                    
 (** Audio frame type. *)
 module Audio_frame : sig
   type t

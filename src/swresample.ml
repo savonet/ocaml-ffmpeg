@@ -166,7 +166,7 @@ module Make (I : AudioData) (O : AudioData) = struct
     vector_kind -> channel_layout -> sample_format -> int ->
     t = "ocaml_swresample_create_byte" "ocaml_swresample_create"
 
-  
+
   let create in_channel_layout ?in_sample_format in_sample_rate
       out_channel_layout ?out_sample_format out_sample_rate =
 
@@ -183,50 +183,32 @@ module Make (I : AudioData) (O : AudioData) = struct
     create I.vk in_channel_layout in_sample_format in_sample_rate
       O.vk out_channel_layout out_sample_format out_sample_rate
 
-  
-  let from_audio_format in_audio_format
-      out_channel_layout ?out_sample_format out_sample_rate =
 
-    create in_audio_format.channel_layout
-      ~in_sample_format:in_audio_format.sample_format
-      in_audio_format.sample_rate
+  let from_input input out_channel_layout ?out_sample_format out_sample_rate =
+    let ip = Av.get_input_audio_codec_parameters input in
+
+    create (Avcodec.Audio.Parameters.get_channel_layout ip)
+      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format ip)
+      (Avcodec.Audio.Parameters.get_sample_rate ip)
       out_channel_layout
       ?out_sample_format:out_sample_format
       out_sample_rate
 
 
-  let of_audio_formats in_audio_format out_audio_format =
+  let to_output in_channel_layout ?in_sample_format in_sample_rate output =
 
-    create in_audio_format.channel_layout
-      ~in_sample_format:in_audio_format.sample_format in_audio_format.sample_rate
-      out_audio_format.channel_layout
-      ~out_sample_format:out_audio_format.sample_format out_audio_format.sample_rate
+    let op = Av.get_output_audio_codec_parameters output in
 
-  
-  let to_codec in_channel_layout ?in_sample_format in_sample_rate
-      out_codec_id out_channel_layout out_sample_rate =
-
-    let out_sample_format = Avcodec.Audio.find_best_sample_format out_codec_id
-    in
     create in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
-      out_channel_layout ~out_sample_format out_sample_rate
-
-  
-  let from_audio_format_to_codec in_audio_format
-      out_codec_id out_channel_layout out_sample_rate =
-
-    let out_sample_format = Avcodec.Audio.find_best_sample_format out_codec_id
-    in
-    create in_audio_format.channel_layout
-      ~in_sample_format:in_audio_format.sample_format
-      in_audio_format.sample_rate
-      out_channel_layout ~out_sample_format out_sample_rate
+      (Avcodec.Audio.Parameters.get_channel_layout op)
+      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format op)
+      (Avcodec.Audio.Parameters.get_sample_rate op)
 
 
   let from_input_to_output input output =
     let ip = Av.get_input_audio_codec_parameters input in
     let op = Av.get_output_audio_codec_parameters output in
-    
+
     create (Avcodec.Audio.Parameters.get_channel_layout ip)
       ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format ip)
       (Avcodec.Audio.Parameters.get_sample_rate ip)

@@ -34,32 +34,14 @@ val get_streams_codec_parameters : input_t -> Avcodec.Parameters.t array
 (** Input tag list. *)
 val get_metadata : input_t -> (string * string) list
 
-(** Selected audio stream index. *)
-val get_audio_stream_index : input_t -> int
-
-(** Selected video stream index. *)
-val get_video_stream_index : input_t -> int
-
 (** Duration of an input stream. *)
 val get_duration : input_t -> int -> time_format -> Int64.t
 
-
-(** Selected audio stream channel layout. *)
-val get_channel_layout : input_t -> channel_layout
-
-(** Selected audio stream channels number. *)
-val get_nb_channels : input_t -> int
-
-(** Selected audio stream sample rate. *)
-val get_sample_rate : input_t -> int
-
-(** Selected audio stream sample format. *)
-val get_sample_format : input_t -> sample_format
-
-val get_audio_format : input_t -> Avutil.audio_format
-
 (** Best audio stream codec parameters. *)
 val get_input_audio_codec_parameters : input_t -> Avcodec.Audio.Parameters.t
+
+(** Best video stream codec parameters. *)
+val get_input_video_codec_parameters : input_t -> Avcodec.Video.Parameters.t
 
 
 type audio = Audio of audio_frame | End_of_file

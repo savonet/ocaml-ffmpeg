@@ -12,12 +12,12 @@ let () =
   
   let codec_id = Avcodec.Audio.find_by_name Sys.argv.(2) in
   
-  let rsp = Resampler.to_codec CL.CL_mono sample_rate codec_id CL.CL_stereo sample_rate in
-  
   let dst = Av.open_output Sys.argv.(1) in
   
   let sid = Av.new_audio_stream ~codec_id ~channel_layout:CL.CL_stereo ~sample_rate dst in
 
+  let rsp = Resampler.to_output CL.CL_mono sample_rate dst in
+  
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
   for i = 0 to 200 do

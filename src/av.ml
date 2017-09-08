@@ -29,24 +29,11 @@ external get_streams_codec_parameters : input_t -> Avcodec.Parameters.t array = 
 
 external get_metadata : input_t -> (string * string) list = "ocaml_av_get_metadata"
 
-external get_audio_stream_index : input_t -> int = "ocaml_av_get_audio_stream_index"
-external get_video_stream_index : input_t -> int = "ocaml_av_get_video_stream_index"
-
 external get_duration : input_t -> int -> time_format -> Int64.t = "ocaml_av_get_duration"
 
-external get_channel_layout : input_t -> channel_layout = "ocaml_av_get_channel_layout"
-external get_nb_channels : input_t -> int = "ocaml_av_get_nb_channels"
-external get_sample_rate : input_t -> int = "ocaml_av_get_sample_rate"
-external get_sample_format : input_t -> sample_format = "ocaml_av_get_sample_format"
-
-let get_audio_format input_t =
-  {
-    Avutil.channel_layout = get_channel_layout input_t;
-    Avutil.sample_format = get_sample_format input_t;
-    Avutil.sample_rate = get_sample_rate input_t
-  }
-
 external get_input_audio_codec_parameters : input_t -> Avcodec.Audio.Parameters.t = "ocaml_av_get_audio_codec_parameters"
+
+external get_input_video_codec_parameters : input_t -> Avcodec.Video.Parameters.t = "ocaml_av_get_video_codec_parameters"
 
 
 type audio =

@@ -298,39 +298,6 @@ CAMLprim value ocaml_av_get_metadata(value _av) {
   CAMLreturn(list);
 }
 
-CAMLprim value ocaml_av_get_audio_stream_index(value _av)
-{
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-  int index = -1;
-  
-  if(av->audio_stream) {
-    index = av->audio_stream->index;
-  }
-  else {
-    index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-  }
-
-  CAMLreturn(Val_int(index));
-}
-
-CAMLprim value ocaml_av_get_video_stream_index(value _av)
-{
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-  int index = -1;
-  
-  if(av->video_stream) {
-    index = av->video_stream->index;
-  }
-  else {
-    index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-  }
-
-  CAMLreturn(Val_int(index));
-}
-
-
 CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time_format)
 {
   CAMLparam2(_av, _time_format);
@@ -354,6 +321,32 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   int64_t second_fractions = second_fractions_of_time_format(time_format);
 
   ans = caml_copy_int64((duration * second_fractions * num) / den);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_video_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find video stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
 
   CAMLreturn(ans);
 }
@@ -456,60 +449,6 @@ static stream_t * open_video_stream(av_t * av)
 static stream_t * open_subtitle_stream(av_t * av)
 {
   return (av->subtitle_stream = open_best_stream(av, AVMEDIA_TYPE_SUBTITLE));
-}
-
-
-CAMLprim value ocaml_av_get_channel_layout(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  if(av->audio_stream->codec_context->channel_layout == 0) {
-    av->audio_stream->codec_context->channel_layout = av_get_default_channel_layout(av->audio_stream->codec_context->channels);
-  }
-
-  CAMLreturn(Val_channelLayout(av->audio_stream->codec_context->channel_layout));
-}
-
-CAMLprim value ocaml_av_get_nb_channels(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_int(av_get_channel_layout_nb_channels(av->audio_stream->codec_context->channel_layout)));
-}
-
-CAMLprim value ocaml_av_get_sample_rate(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_int(av->audio_stream->codec_context->sample_rate));
-}
-
-CAMLprim value ocaml_av_get_sample_format(value _av) {
-  CAMLparam1(_av);
-  av_t * av = Av_val(_av);
-
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  CAMLreturn(Val_sampleFormat(av->audio_stream->codec_context->sample_fmt));
-}
-
-CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
-
-  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
-
-  CAMLreturn(ans);
 }
 
 
