@@ -20,14 +20,14 @@ static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputForma
 
   avdevice_register_all();
 
-  while(NULL != (fmt = input_device_next (fmt))) len++;
+  while((fmt = input_device_next(fmt))) len++;
   
   ans = caml_alloc_tuple(len);
 
   int i = 0;
   fmt = NULL;
 
-  while(NULL != (fmt = input_device_next (fmt))) {
+  while((fmt = input_device_next(fmt))) {
 
     value_of_inputFormat(fmt, &v);
     Store_field(ans, i, v);
@@ -58,14 +58,14 @@ static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputF
 
   avdevice_register_all();
 
-  while(NULL != (fmt = output_device_next (fmt))) len++;
+  while((fmt = output_device_next (fmt))) len++;
   
   ans = caml_alloc_tuple(len);
 
   int i = 0;
   fmt = NULL;
 
-  while(NULL != (fmt = output_device_next (fmt))) {
+  while((fmt = output_device_next (fmt))) {
 
     value_of_outputFormat(fmt, &v);
     Store_field(ans, i, v);

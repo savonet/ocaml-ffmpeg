@@ -3,11 +3,11 @@ open Avutil
 open Printf
 
 let test() =
-  Sys.argv |> Array.to_list |> List.tl |> List.iter(fun input_filename ->
-      printf"%s :\n" input_filename;
-      let input_file = Av.open_input input_filename in
+  Sys.argv |> Array.to_list |> List.tl |> List.iter(fun url ->
+      printf"%s :\n" url;
+      let input = Av.Input.open_url url in
 
-      Av.get_streams_codec_parameters input_file |> Array.iter(function
+      Av.(get_streams_codec_parameters@@of_input input) |> Array.iter(function
           | Avcodec.Parameters.Audio cp -> Avcodec.Audio.(
               printf"\tAudio stream : %s %s, %s %s, %s %d, %s %d, %s %d\n"
                 "codec" (Parameters.get_codec_id cp |> get_name)
@@ -32,7 +32,7 @@ let test() =
           | Avcodec.Parameters.Unknown -> printf"\tUnknown stream\n"
         );
       printf"\n";
-      Av.get_metadata input_file |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
+      Av.Input.get_metadata input |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
     );
 
 

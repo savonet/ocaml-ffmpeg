@@ -1,6 +1,7 @@
 open FFmpeg
 open Avutil
-    
+open Av
+
 module FrameToS32Bytes = Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
 
 let () =
@@ -15,14 +16,14 @@ let () =
   let audio_output_filename = Sys.argv.(2) ^ ".raw" in
   let audio_output_file = open_out_bin audio_output_filename in
 
-  let src = Av.open_input Sys.argv.(1) in
+  let src = Input.open_url Sys.argv.(1) in
 
   let rsp = FrameToS32Bytes.from_input src Channel_layout.CL_stereo 44100 in
   
-  Av.iter_audio (fun af ->
-      FrameToS32Bytes.convert rsp af |> output_bytes audio_output_file) src;
+  src |> Input.iter_audio (fun frame ->
+      FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
 
-  Av.close_input src;
+  Input.close src;
   close_out audio_output_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"

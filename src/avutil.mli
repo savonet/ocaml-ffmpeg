@@ -31,6 +31,9 @@ module Time_format : sig
   | Nanosecond
 end
 
+val time_base : unit -> int64
+
+
 (** Formats for channels layouts. *)
 module Channel_layout : sig
   (** Channel layout formats *)
@@ -103,4 +106,12 @@ end
 (** Subtitle frame type. *)
 module Subtitle_frame : sig
   type t
+
+  val time_base : unit -> int64
+  
+  (** Convert lines to a subtitle frame. The two float parameters are the start and the end dislpay time in seconds. *)
+  val from_lines : float -> float -> string list -> t
+    
+  (** Convert subtitle frame to lines. *)
+  val to_lines : t -> (float * float * string list)
 end

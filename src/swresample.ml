@@ -184,37 +184,50 @@ module Make (I : AudioData) (O : AudioData) = struct
       O.vk out_channel_layout out_sample_format out_sample_rate
 
 
-  let from_input input out_channel_layout ?out_sample_format out_sample_rate =
-    let ip = Av.get_input_audio_codec_parameters input in
+  let from_codec_parameters in_codec_param out_channel_layout ?out_sample_format out_sample_rate =
 
-    create (Avcodec.Audio.Parameters.get_channel_layout ip)
-      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format ip)
-      (Avcodec.Audio.Parameters.get_sample_rate ip)
+    create (Avcodec.Audio.Parameters.get_channel_layout in_codec_param)
+      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format in_codec_param)
+      (Avcodec.Audio.Parameters.get_sample_rate in_codec_param)
       out_channel_layout
       ?out_sample_format:out_sample_format
       out_sample_rate
 
 
-  let to_output in_channel_layout ?in_sample_format in_sample_rate output =
-
-    let op = Av.get_output_audio_codec_parameters output in
+  let to_codec_parameters in_channel_layout ?in_sample_format in_sample_rate out_codec_param =
 
     create in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
-      (Avcodec.Audio.Parameters.get_channel_layout op)
-      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format op)
-      (Avcodec.Audio.Parameters.get_sample_rate op)
+      (Avcodec.Audio.Parameters.get_channel_layout out_codec_param)
+      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format out_codec_param)
+      (Avcodec.Audio.Parameters.get_sample_rate out_codec_param)
+
+
+  let from_codec_parameters_to_codec_parameters in_codec_param out_codec_param =
+
+    create (Avcodec.Audio.Parameters.get_channel_layout in_codec_param)
+      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format in_codec_param)
+      (Avcodec.Audio.Parameters.get_sample_rate in_codec_param)
+      (Avcodec.Audio.Parameters.get_channel_layout out_codec_param)
+      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format out_codec_param)
+      (Avcodec.Audio.Parameters.get_sample_rate out_codec_param)
+
+
+  let from_input input out_channel_layout ?out_sample_format out_sample_rate =
+    (*    let ip = Av.(get_audio_codec_parameters(Input.base input)) in*)
+    let ip = Av.(input >- get_audio_codec_parameters) in
+    from_codec_parameters ip out_channel_layout ?out_sample_format out_sample_rate
+
+
+  let to_output in_channel_layout ?in_sample_format in_sample_rate output =
+    let op = Av.(get_audio_codec_parameters(Output.base output)) in
+    to_codec_parameters in_channel_layout ?in_sample_format in_sample_rate op
 
 
   let from_input_to_output input output =
-    let ip = Av.get_input_audio_codec_parameters input in
-    let op = Av.get_output_audio_codec_parameters output in
-
-    create (Avcodec.Audio.Parameters.get_channel_layout ip)
-      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format ip)
-      (Avcodec.Audio.Parameters.get_sample_rate ip)
-      (Avcodec.Audio.Parameters.get_channel_layout op)
-      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format op)
-      (Avcodec.Audio.Parameters.get_sample_rate op)
+(*    let ip = Av.(get_audio_codec_parameters(Input.base input)) in*)
+    let ip = Av.(get_audio_codec_parameters @@ of_input input) in
+    let op = Av.(get_audio_codec_parameters(Output.base output)) in
+    from_codec_parameters_to_codec_parameters ip op
 
 
   external convert : t -> I.t -> O.t = "ocaml_swresample_convert"

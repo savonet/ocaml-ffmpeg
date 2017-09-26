@@ -425,6 +425,8 @@ module Video = struct
 
   external find_by_name : string -> id = "ocaml_avcodec_find_video_codec_id_by_name"
 
+  external find_best_pixel_format : id -> Pixel_format.t = "ocaml_avcodec_find_best_pixel_format"
+
   module Parameters = struct
     type t
 
@@ -463,23 +465,22 @@ module Subtitle = struct
     | SC_HDMV_PGS_SUBTITLE
     | SC_DVB_TELETEXT
     | SC_SRT
-    (*    
-  | SC_MICRODVD
-  | SC_EIA_608
-  | SC_JACOSUB
-  | SC_SAMI
-  | SC_REALTEXT
-  | SC_STL
-  | SC_SUBVIEWER1
-  | SC_SUBVIEWER
-  | SC_SUBRIP
-  | SC_WEBVTT
-  | SC_MPL2
-  | SC_VPLAYER
-  | SC_PJS
-  | SC_ASS
-  | SC_HDMV_TEXT_SUBTITLE
-*)
+    | SC_MICRODVD
+    | SC_EIA_608
+    | SC_JACOSUB
+    | SC_SAMI
+    | SC_REALTEXT
+    | SC_STL
+    | SC_SUBVIEWER1
+    | SC_SUBVIEWER
+    | SC_SUBRIP
+    | SC_WEBVTT
+    | SC_MPL2
+    | SC_VPLAYER
+    | SC_PJS
+    | SC_ASS
+    | SC_HDMV_TEXT_SUBTITLE
+
   external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
 
   external find_by_name : string -> id = "ocaml_avcodec_find_subtitle_codec_id_by_name"
