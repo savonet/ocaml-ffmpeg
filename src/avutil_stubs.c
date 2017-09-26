@@ -217,10 +217,10 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 
 static void finalize_frame(value v)
 {
-  //#ifdef HAS_FRAME
+#ifdef HAS_FRAME
   struct AVFrame *frame = Frame_val(v);
   av_frame_free(&frame);
-  //#endif
+#endif
 }
 
 static struct custom_operations frame_ops =
@@ -246,9 +246,9 @@ CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format
   CAMLparam1(_format);
   CAMLlocal1(ans);
 
-  //#ifndef HAS_FRAME
-  //  caml_failwith("Not implemented.");
-  //#else
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = av_frame_alloc();
   if( ! frame) Raise(EXN_FAILURE, "Failed to alloc video frame");
 
@@ -260,7 +260,7 @@ CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format
   if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer");
 
   value_of_frame(frame, &ans);
-  //#endif
+#endif
   CAMLreturn(ans);
 }
 
@@ -268,32 +268,32 @@ CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x,
 {
   CAMLparam1(_frame);
   CAMLlocal1(ans);
-  //#ifndef HAS_FRAME
-  //  caml_failwith("Not implemented.");
-  //#else
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
   int x = Int_val(_x);
   int y = Int_val(_y);
 
   ans = Val_int(frame->data[line][y * frame->linesize[line] + x]);
-  //#endif
+#endif
   CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x, value _y, value _v)
 {
   CAMLparam1(_frame);
-  //#ifndef HAS_FRAME
-  //  caml_failwith("Not implemented.");
-  //#else
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
   int x = Int_val(_x);
   int y = Int_val(_y);
 
   frame->data[line][y * frame->linesize[line] + x] = Int_val(_v);
-  //#endif
+#endif
   CAMLreturn(Val_unit);
 }
 
@@ -331,7 +331,7 @@ CAMLprim value ocaml_avutil_subtitle_time_base()
   CAMLparam0();
   CAMLreturn(caml_copy_int64(SUBTITLE_TIME_BASE));
 }
-
+/*
 int subtitle_header(AVCodecContext *codec_context,
                     const char *font, int font_size,
                     int color, int back_color,
@@ -357,12 +357,13 @@ int subtitle_header(AVCodecContext *codec_context,
 
   return 0;
 }
-
+*/
 int subtitle_header_default(AVCodecContext *codec_context)
 {
-  return subtitle_header(codec_context, "Arial", 16, 0xffffff, 0, 0, 0, 0, 1, 2);
+  //  return subtitle_header(codec_context, "Arial", 16, 0xffffff, 0, 0, 0, 0, 1, 2);
+  return 0;
 }
-
+/*
 char *get_dialog(int readorder, int layer, const char *style,
                  const char *speaker, const char *text)
 {
@@ -371,7 +372,7 @@ char *get_dialog(int readorder, int layer, const char *style,
                               speaker ? speaker : "", text);
   return dialog;
 }
-
+*/
 CAMLprim value ocaml_avutil_subtitle_from_lines(value _start_time, value _end_time, value _lines)
 {
   CAMLparam3(_start_time, _end_time, _lines);
@@ -400,9 +401,13 @@ CAMLprim value ocaml_avutil_subtitle_from_lines(value _start_time, value _end_ti
     subtitle->rects[i] = (AVSubtitleRect *)av_mallocz(sizeof(AVSubtitleRect));
     if( ! subtitle->rects[i]) Raise(EXN_FAILURE, "Failed to allocate subtitle frame");
 
-    subtitle->rects[i]->type = SUBTITLE_ASS;
-    subtitle->rects[i]->ass = get_dialog(i + 1, 0, NULL, NULL, text);
-    if( ! subtitle->rects[i]->ass) Raise(EXN_FAILURE, "Failed to allocate subtitle frame");
+    subtitle->rects[i]->type = SUBTITLE_TEXT;
+    subtitle->rects[i]->text = strdup(text);
+    if( ! subtitle->rects[i]->text) Raise(EXN_FAILURE, "Failed to allocate subtitle frame");
+
+    //    subtitle->rects[i]->type = SUBTITLE_ASS;
+    //    subtitle->rects[i]->ass = get_dialog(i + 1, 0, NULL, NULL, text);
+    //    if( ! subtitle->rects[i]->ass) Raise(EXN_FAILURE, "Failed to allocate subtitle frame");
   }
 
   CAMLreturn(ans);

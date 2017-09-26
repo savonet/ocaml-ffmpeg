@@ -63,14 +63,16 @@ let () =
   let frame = Video_frame.create width height pixel_format in
 
   let video_on_off = [|fill_image_on; fill_image_off|] in
-
+(*
   let ssi = Output.new_subtitle_stream ~codec_name:Sys.argv.(4) dst in
-
+*)
   for i = 0 to 29 do
     audio |> Resampler.convert rsp |> Output.write_audio_frame dst asi;
+    (*
     let s = float_of_int i in
     Subtitle_frame.from_lines s (s +. 0.5) [string_of_int i]
     |> Output.write_subtitle_frame dst ssi;
+*)
   done;
 
   for i = 0 to frame_rate * 30 - 1 do

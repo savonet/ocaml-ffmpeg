@@ -97,9 +97,9 @@ module Video_frame = struct
 
   external create : int -> int -> Pixel_format.t -> t = "ocaml_avutil_video_frame_create"
 
-  external get : t -> int -> int -> int -> int = "ocaml_avutil_video_frame_get" [@@noalloc]
+  external get : t -> int -> int -> int -> int = "ocaml_avutil_video_frame_get"(* [@@noalloc]*)
 
-  external set : t -> int -> int -> int -> int -> unit = "ocaml_avutil_video_frame_set" [@@noalloc]
+  external set : t -> int -> int -> int -> int -> unit = "ocaml_avutil_video_frame_set"(* [@@noalloc]*)
 end
 
 module Subtitle_frame = struct
