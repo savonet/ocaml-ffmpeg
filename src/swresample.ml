@@ -213,20 +213,18 @@ module Make (I : AudioData) (O : AudioData) = struct
 
 
   let from_input input out_channel_layout ?out_sample_format out_sample_rate =
-    (*    let ip = Av.(get_audio_codec_parameters(Input.base input)) in*)
     let ip = Av.(input >- get_audio_codec_parameters) in
     from_codec_parameters ip out_channel_layout ?out_sample_format out_sample_rate
 
 
   let to_output in_channel_layout ?in_sample_format in_sample_rate output =
-    let op = Av.(get_audio_codec_parameters(Output.base output)) in
+    let op = Av.(output -< get_audio_codec_parameters) in
     to_codec_parameters in_channel_layout ?in_sample_format in_sample_rate op
 
 
   let from_input_to_output input output =
-(*    let ip = Av.(get_audio_codec_parameters(Input.base input)) in*)
-    let ip = Av.(get_audio_codec_parameters @@ of_input input) in
-    let op = Av.(get_audio_codec_parameters(Output.base output)) in
+    let ip = Av.(input >- get_audio_codec_parameters ) in
+    let op = Av.(output -< get_audio_codec_parameters) in
     from_codec_parameters_to_codec_parameters ip op
 
 

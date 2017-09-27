@@ -97,10 +97,9 @@ end
 val of_input : Input.t -> t
 val (>-) : Input.t -> (t -> 'a) -> 'a
 
-type base = t
+
 module Output : sig
   type t
-  val base : t -> base
 
   module Format : sig
     type t
@@ -146,3 +145,6 @@ module Output : sig
   (** Write an subtitle frame to a stream *)
   val write_subtitle_frame : t -> int -> subtitle_frame -> unit
 end
+
+val of_output : Output.t -> t
+val (-<) : Output.t -> (t -> 'a) -> 'a

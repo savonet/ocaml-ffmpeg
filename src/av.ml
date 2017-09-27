@@ -108,11 +108,9 @@ end
 external of_input : Input.t -> t = "%identity"
 let (>-) i f = f(of_input i)
 
-type base = t
 (* Output *)
 module Output = struct
   type t
-  external base : t -> base = "%identity"
 
   module Format = struct
     type t
@@ -236,4 +234,7 @@ module Output = struct
 
   external write_subtitle_frame : t -> int -> subtitle_frame -> unit = "ocaml_av_write_subtitle_frame"
 end
+
+external of_output : Output.t -> t = "%identity"
+let (-<) o f = f(of_output o)
 
