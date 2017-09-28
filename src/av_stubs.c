@@ -42,10 +42,11 @@ typedef struct {
   int64_t pts;
 } stream_t;
 
-typedef struct {
+typedef struct av_t {
   AVFormatContext *format_context;
   stream_t ** streams;
   AVPacket packet;
+  value control_message_callback;
 
   // input
   int end_of_file;
@@ -67,6 +68,8 @@ typedef enum {
   error
 } frame_kind;
   
+#define Av_val(v) (*(av_t**)Data_custom_val(v))
+
 #define AUDIO_TAG 0
 #define VIDEO_TAG 0
 #define SUBTITLE_TAG 0
@@ -74,8 +77,6 @@ typedef enum {
 #define VIDEO_MEDIA_TAG 1
 #define SUBTITLE_MEDIA_TAG 2
 #define END_OF_FILE_TAG 0
-
-#define Av_val(v) (*(av_t**)Data_custom_val(v))
 
 static void free_stream(stream_t * stream)
 {
@@ -148,6 +149,11 @@ static void free_av(av_t * av)
   if( ! av) return;
 
   close_av(av);
+  
+  if(av->control_message_callback) {
+    caml_remove_generational_global_root(&av->control_message_callback);
+  }
+
   free(av);
 }
 
@@ -164,6 +170,69 @@ static struct custom_operations av_ops = {
   custom_serialize_default,
   custom_deserialize_default
 };
+
+AVFormatContext * ocaml_av_get_format_context(value *p_av) {
+  return Av_val(*p_av)->format_context;
+}
+
+CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal2(v, ans);
+  av_t * av = Av_val(_av);
+  int i, len = av->format_context->nb_streams;
+
+  ans = caml_alloc_tuple(len);
+
+  for(i = 0; i < len; i++) {
+    value_of_codec_parameters_variants(av->format_context->streams[i]->codecpar, &v);
+    Store_field(ans, i, v);
+  }
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_video_codec_parameters(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t * av = Av_val(_av);
+
+  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find video stream");
+
+  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
+
+  CAMLreturn(ans);
+}
+
+value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx) {
+  return &((av_t *)av_format_get_opaque(ctx))->control_message_callback;
+}
+
+void ocaml_av_set_control_message_callback(value *p_av, av_format_control_message c_callback, value *p_ocaml_callback) {
+  av_t * av = Av_val(*p_av);
+
+  if( ! av->control_message_callback) {
+    caml_register_generational_global_root(&av->control_message_callback);
+  }
+
+  av->control_message_callback = *p_ocaml_callback;
+
+  av_format_set_opaque(av->format_context, av);
+  av_format_set_control_message_cb(av->format_context, c_callback);
+}
 
 
 CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
@@ -222,12 +291,12 @@ static struct custom_operations inputFormat_ops = {
   custom_deserialize_default
 };
 
-void value_of_inputFormat(AVInputFormat *inputFormat, value * pvalue)
+void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value)
 {
   if( ! inputFormat) Raise(EXN_FAILURE, "Empty input format");
 
-  *pvalue = caml_alloc_custom(&inputFormat_ops, sizeof(AVInputFormat*), 0, 1);
-  InputFormat_val((*pvalue)) = inputFormat;
+  *p_value = caml_alloc_custom(&inputFormat_ops, sizeof(AVInputFormat*), 0, 1);
+  InputFormat_val((*p_value)) = inputFormat;
 }
 
 CAMLprim value ocaml_av_input_format_get_name(value _input_format)
@@ -771,12 +840,12 @@ static struct custom_operations outputFormat_ops = {
   custom_deserialize_default
 };
 
-void value_of_outputFormat(AVOutputFormat *outputFormat, value * pvalue)
+void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value)
 {
   if( ! outputFormat) Raise(EXN_FAILURE, "Empty output format");
 
-  *pvalue = caml_alloc_custom(&outputFormat_ops, sizeof(AVOutputFormat*), 0, 1);
-  OutputFormat_val((*pvalue)) = outputFormat;
+  *p_value = caml_alloc_custom(&outputFormat_ops, sizeof(AVOutputFormat*), 0, 1);
+  OutputFormat_val((*p_value)) = outputFormat;
 }
 
 CAMLprim value ocaml_av_output_format_get_name(value _output_format)
