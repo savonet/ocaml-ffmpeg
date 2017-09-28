@@ -237,4 +237,3 @@ end
 
 external of_output : Output.t -> t = "%identity"
 let (-<) o f = f(of_output o)
-
