@@ -108,6 +108,7 @@ end
 external of_input : Input.t -> t = "%identity"
 let (>-) i f = f(of_input i)
 
+
 (* Output *)
 module Output = struct
   type t

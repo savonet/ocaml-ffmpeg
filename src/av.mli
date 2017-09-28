@@ -97,8 +97,6 @@ end
 val of_input : Input.t -> t
 val (>-) : Input.t -> (t -> 'a) -> 'a
 
-val of_input : Input.t -> t
-val (>-) : Input.t -> (t -> 'a) -> 'a
 
 module Output : sig
   type t
