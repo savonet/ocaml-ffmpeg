@@ -500,11 +500,11 @@ static void swresample_set_context(swr_t * swr,
 
   // initialize the resampling context
   int ret = swr_init(ctx);
-    if(ret < 0) Raise(EXN_FAILURE, "Failed to initialize the resampling context : %s", av_err2str(ret));
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to initialize the resampling context : %s", av_err2str(ret));
 }
 
 swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
-			vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
+                          vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
 {
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
 
@@ -639,7 +639,7 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
   int out_sample_rate = Int_val(_out_sample_rate);
 
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
-			  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate);
+                                  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
   Swr_val(ans) = swr;
@@ -649,6 +649,6 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
 
 CAMLprim value ocaml_swresample_create_byte(value *argv, int argn)
 {
-  return ocaml_swresample_create( argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+  return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
 }
 

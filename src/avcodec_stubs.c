@@ -610,6 +610,20 @@ CAMLprim value ocaml_avcodec_find_video_codec_id_by_name(value _name)
   CAMLreturn(Val_videoCodecId(find_codec_id_by_name(String_val(_name))));
 }
 
+CAMLprim value ocaml_avcodec_find_best_pixel_format(value _video_codec_id)
+{
+  CAMLparam1(_video_codec_id);
+  enum AVCodecID codec_id = VideoCodecId_val(_video_codec_id);
+
+  av_register_all();
+
+  AVCodec * codec = avcodec_find_encoder(codec_id);
+  if( ! codec) Raise(EXN_FAILURE, "Failed to find codec");
+  if( ! codec->pix_fmts) Raise(EXN_FAILURE, "Failed to find codec pixel formats");
+    
+  CAMLreturn(Val_pixelFormat(codec->pix_fmts[0]));
+}
+
 
 /**** Video codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_video_codec_id(value _cp) {
@@ -679,23 +693,21 @@ static const enum AVCodecID SUBTITLE_CODEC_IDS[] = {
   AV_CODEC_ID_HDMV_PGS_SUBTITLE,
   AV_CODEC_ID_DVB_TELETEXT,
   AV_CODEC_ID_SRT,
-  /*
-    AV_CODEC_ID_MICRODVD,
-    AV_CODEC_ID_EIA_608,
-    AV_CODEC_ID_JACOSUB,
-    AV_CODEC_ID_SAMI,
-    AV_CODEC_ID_REALTEXT,
-    AV_CODEC_ID_STL,
-    AV_CODEC_ID_SUBVIEWER1,
-    AV_CODEC_ID_SUBVIEWER,
-    AV_CODEC_ID_SUBRIP,
-    AV_CODEC_ID_WEBVTT,
-    AV_CODEC_ID_MPL2,
-    AV_CODEC_ID_VPLAYER,
-    AV_CODEC_ID_PJS,
-    AV_CODEC_ID_ASS,
-    AV_CODEC_ID_HDMV_TEXT_SUBTITLE
-  */
+  AV_CODEC_ID_MICRODVD,
+  AV_CODEC_ID_EIA_608,
+  AV_CODEC_ID_JACOSUB,
+  AV_CODEC_ID_SAMI,
+  AV_CODEC_ID_REALTEXT,
+  AV_CODEC_ID_STL,
+  AV_CODEC_ID_SUBVIEWER1,
+  AV_CODEC_ID_SUBVIEWER,
+  AV_CODEC_ID_SUBRIP,
+  AV_CODEC_ID_WEBVTT,
+  AV_CODEC_ID_MPL2,
+  AV_CODEC_ID_VPLAYER,
+  AV_CODEC_ID_PJS,
+  AV_CODEC_ID_ASS,
+  AV_CODEC_ID_HDMV_TEXT_SUBTITLE
 };
 #define SUBTITLE_CODEC_IDS_LEN (sizeof(SUBTITLE_CODEC_IDS) / sizeof(enum AVCodecID))
 
@@ -711,7 +723,7 @@ value Val_subtitleCodecId(enum AVCodecID id)
     if (id == SUBTITLE_CODEC_IDS[i])
       return Val_int(i);
   }
-  Raise(EXN_FAILURE, "Invalid subtitle codec id : %d\n", id);
+  Raise(EXN_FAILURE, "Subtitle codec %s (%d) not supported\n", avcodec_get_name(id), id);
   return Val_int(0);
 }
 

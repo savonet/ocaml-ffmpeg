@@ -113,8 +113,7 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_, value src_h
 
 CAMLprim value ocaml_swscale_get_context_byte(value *argv, int argn)
 {
-  /* TODO */
-  assert(0);
+  return ocaml_swscale_get_context(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
 CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value h_, value dst_, value dst_off)
@@ -158,7 +157,6 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_, value
 
 CAMLprim value ocaml_swscale_scale_byte(value *argv, int argn)
 {
-  /* TODO */
-  assert(0);
+  return ocaml_swscale_scale(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 

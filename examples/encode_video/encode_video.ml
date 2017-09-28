@@ -1,5 +1,6 @@
 open FFmpeg
 open Avutil
+open Av
 
 let fill_yuv_image width height frame_index frame =
   (* Y *)
@@ -30,15 +31,15 @@ let () =
   let codec_name = Sys.argv.(2) in
   let pixel_format = Pixel_format.YUV420p in
 
-  let dst = Av.open_output Sys.argv.(1) in
+  let dst = Output.open_file Sys.argv.(1) in
 
-  let sid = Av.new_video_stream ~codec_name width height pixel_format dst in
+  let sid = Output.new_video_stream ~codec_name ~width ~height ~pixel_format dst in
 
   let frame = Video_frame.create width height pixel_format in
 
   for i = 0 to 24 do
-    fill_yuv_image width height i frame |> Av.write_video_frame dst sid;
+    fill_yuv_image width height i frame |> Output.write_video_frame dst sid;
   done;
 
-  Av.close_output dst;
+  Output.close dst;
   Gc.full_major ()

@@ -15,6 +15,7 @@
 #include <libavformat/avformat.h>
 //typedef void AVFrame;
 #endif
+#include <libavcodec/avcodec.h>
 
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
@@ -72,5 +73,17 @@ enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
 
 void value_of_frame(AVFrame *frame, value * pvalue);
+
+
+/***** AVSubtitle *****/
+
+#define SUBTITLE_TIME_BASE 100
+#define SUBTITLE_TIME_BASE_Q (AVRational){1, SUBTITLE_TIME_BASE}
+
+#define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
+
+void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);
+
+int subtitle_header_default(AVCodecContext *avctx);
 
 #endif // _AVUTIL_STUBS_H_ 

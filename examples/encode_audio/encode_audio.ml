@@ -1,4 +1,5 @@
 open FFmpeg
+open Av
 module CL = Avutil.Channel_layout
 module Resampler = Swresample.Make (Swresample.FloatArray) (Swresample.Frame)
 
@@ -12,9 +13,10 @@ let () =
   
   let codec_id = Avcodec.Audio.find_by_name Sys.argv.(2) in
   
-  let dst = Av.open_output Sys.argv.(1) in
+  let dst = Output.open_file Sys.argv.(1) in
   
-  let sid = Av.new_audio_stream ~codec_id ~channel_layout:CL.CL_stereo ~sample_rate dst in
+  let sid = Output.new_audio_stream ~codec_id ~channel_layout:CL.CL_stereo
+      ~sample_rate dst in
 
   let rsp = Resampler.to_output CL.CL_mono sample_rate dst in
   
@@ -23,9 +25,9 @@ let () =
   for i = 0 to 200 do
     Array.init 1024 (fun t -> sin(float_of_int(t + (i * 1024)) *. c))
     |> Resampler.convert rsp
-    |> Av.write_audio_frame dst sid;
+    |> Output.write_audio_frame dst sid;
   done;
 
-  Av.close_output dst;
+  Output.close dst;
 
   Gc.full_major ()

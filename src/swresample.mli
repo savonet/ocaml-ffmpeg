@@ -203,14 +203,23 @@ sig
   val create : channel_layout -> ?in_sample_format:sample_format ->
     int -> channel_layout -> ?out_sample_format:sample_format -> int -> t
 
+  (** Create a Swresample.t with input audio codec parameters and output audio parameters. *)
+  val from_codec_parameters : Avcodec.Audio.Parameters.t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
+
+  (** Create a Swresample.t with input audio parameters and output audio codec parameters. *)
+  val to_codec_parameters : channel_layout -> ?in_sample_format:sample_format -> int -> Avcodec.Audio.Parameters.t -> t
+
+  (** Create a Swresample.t with input audio codec parameters and output audio codec parameters. *)
+  val from_codec_parameters_to_codec_parameters : Avcodec.Audio.Parameters.t -> Avcodec.Audio.Parameters.t -> t
+
   (** Create a Swresample.t with input and output audio parameters. *)
-  val from_input : Av.input_t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
+  val from_input : Av.Input.t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
 
   (** Create a Swresample.t with input audio parameters and output. *)
-  val to_output : channel_layout -> ?in_sample_format:sample_format -> int -> Av.output_t -> t
+  val to_output : channel_layout -> ?in_sample_format:sample_format -> int -> Av.Output.t -> t
 
   (** Create a Swresample.t with input and output. *)
-  val from_input_to_output : Av.input_t -> Av.output_t -> t
+  val from_input_to_output : Av.Input.t -> Av.Output.t -> t
 
   (** Resample and convert input audio data to output audio data format. *)
   val convert : t -> I.t -> O.t
