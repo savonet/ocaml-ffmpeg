@@ -235,50 +235,6 @@ void ocaml_av_set_control_message_callback(value *p_av, av_format_control_messag
 }
 
 
-CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
-  CAMLparam1(_av);
-  CAMLlocal2(v, ans);
-  av_t * av = Av_val(_av);
-  int i, len = av->format_context->nb_streams;
-
-  ans = caml_alloc_tuple(len);
-
-  for(i = 0; i < len; i++) {
-    value_of_codec_parameters_variants(av->format_context->streams[i]->codecpar, &v);
-    Store_field(ans, i, v);
-  }
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
-
-  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_get_video_codec_parameters(value _av) {
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-  if(index < 0) Raise(EXN_FAILURE, "Failed to find video stream");
-
-  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
-
-  CAMLreturn(ans);
-}
-
-
-
 /***** Input *****/
 
 /***** AVInputFormat *****/
