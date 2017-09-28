@@ -230,8 +230,8 @@ void ocaml_av_set_control_message_callback(value *p_av, av_format_control_messag
 
   av->control_message_callback = *p_ocaml_callback;
 
-  av_format_set_control_message_cb(av->format_context, c_callback);
   av_format_set_opaque(av->format_context, av);
+  av_format_set_control_message_cb(av->format_context, c_callback);
 }
 
 

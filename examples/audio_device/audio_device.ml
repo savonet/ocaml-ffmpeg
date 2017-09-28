@@ -27,12 +27,13 @@ let () =
 
   let sid = Av.Output.new_audio_stream ~codec_id dst in
 
-  Av.(dst -< Avdevice.Dev_to_app.(set_control_message_callback (function
+  Av.(dst-<Avdevice.Dev_to_app.(set_control_message_callback (function
       | Volume_level_changed v ->
         Printf.printf "Volume level changed to %f %%\n"(v *. 100.)
-      | _ -> print_endline "Dev to app controle message")));
+      | _ -> print_endline "Unexpected dev to app controle message")));
 
-  Av.(dst -< Avdevice.App_to_dev.(control_messages[Get_volume; Set_volume 0.3]));
+  try Av.(dst-<Avdevice.App_to_dev.(control_messages[Get_volume; Set_volume 0.3]))
+  with Avutil.Failure msg -> prerr_endline msg |> ignore;
 
   let rec run n =
     if n > 0 then match Av.Input.read_audio src with

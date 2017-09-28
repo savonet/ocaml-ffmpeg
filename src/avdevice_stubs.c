@@ -102,7 +102,7 @@ static const enum AVAppToDevMessageType APP_TO_DEV_MESSAGE_TYPES[] = {
 static const enum AVAppToDevMessageType APP_TO_DEV_MESSAGE_WITH_DATA_TYPES[] = {
   AV_APP_TO_DEV_WINDOW_SIZE,
   AV_APP_TO_DEV_WINDOW_REPAINT,
-  AV_APP_TO_DEV_SET_VOLUME,
+  AV_APP_TO_DEV_SET_VOLUME
 };
 
 CAMLprim value ocaml_avdevice_app_to_dev_control_message(value _message, value _av)
@@ -139,40 +139,12 @@ CAMLprim value ocaml_avdevice_app_to_dev_control_message(value _message, value _
   }
 
   int ret = avdevice_app_to_dev_control_message(ocaml_av_get_format_context(&_av), message_type, data, data_size);
-
-  if(ret == AVERROR(ENOSYS)) Raise(EXN_FAILURE, "App to device control message failed : application doesn't implement handler of the message");
+  if(ret == AVERROR(ENOSYS)) Raise(EXN_FAILURE, "App to device control message failed : device doesn't implement handler of the message");
   if(ret < 0) Raise(EXN_FAILURE, "App to device control message failed : %s", av_err2str(ret));
 
   CAMLreturn(Val_unit);
 }
 
-
-
-static const enum AVDevToAppMessageType DEV_TO_APP_MESSAGE_TYPES[] = {
-  AV_DEV_TO_APP_NONE,
-  AV_DEV_TO_APP_CREATE_WINDOW_BUFFER,
-  AV_DEV_TO_APP_PREPARE_WINDOW_BUFFER,
-  AV_DEV_TO_APP_DISPLAY_WINDOW_BUFFER,
-  AV_DEV_TO_APP_DESTROY_WINDOW_BUFFER,
-  AV_DEV_TO_APP_BUFFER_OVERFLOW,
-  AV_DEV_TO_APP_BUFFER_UNDERFLOW,
-  AV_DEV_TO_APP_BUFFER_READABLE,
-  AV_DEV_TO_APP_BUFFER_WRITABLE,
-  AV_DEV_TO_APP_MUTE_STATE_CHANGED,
-  AV_DEV_TO_APP_VOLUME_LEVEL_CHANGED
-};
-#define DEV_TO_APP_MESSAGE_TYPES_LEN (sizeof(DEV_TO_APP_MESSAGE_TYPES) / sizeof(enum AVDevToAppMessageType))
-
-value Val_devToAppMessageType(enum AVDevToAppMessageType e)
-{
-  int i;
-  for (i = 0; i < DEV_TO_APP_MESSAGE_TYPES_LEN; i++) {
-    if (e == DEV_TO_APP_MESSAGE_TYPES[i])
-      return Val_int(i);
-  }
-  //  Raise(EXN_FAILURE, "Invalid device to application message type : %d", e);
-  return -1;
-}
 
 #define NONE_TAG 0
 #define CREATE_WINDOW_BUFFER_TAG 0
