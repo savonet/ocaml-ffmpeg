@@ -32,8 +32,9 @@ let () =
         Printf.printf "Volume level changed to %f %%\n"(v *. 100.)
       | _ -> print_endline "Unexpected dev to app controle message")));
 
-  try Av.(dst-<Avdevice.App_to_dev.(control_messages[Get_volume; Set_volume 0.3]))
-  with Avutil.Failure msg -> prerr_endline msg |> ignore;
+  (try
+     Av.(dst-<Avdevice.App_to_dev.(control_messages[Get_volume; Set_volume 0.3]))
+   with Avutil.Failure msg -> prerr_endline msg) |> ignore;
 
   let rec run n =
     if n > 0 then match Av.Input.read_audio src with
