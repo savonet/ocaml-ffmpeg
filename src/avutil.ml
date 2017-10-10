@@ -1,3 +1,21 @@
+(* Line *)
+type input
+type output
+
+(* Container *)
+type 'a container
+
+(* Media *)
+type audio
+type video
+type subtitle
+
+(* Format *)
+type ('line, 'media) format
+
+(* Frame *)
+type 'media frame
+
 exception Failure of string
 
 let () =
@@ -88,37 +106,41 @@ module Sample_format = struct
 end
 
 
-module Audio_frame = struct
-  type t
+module Media_type = struct
+  type t =
+  | MT_audio
+  | MT_video
+  | MT_subtitle
+  | MT_data
+  | MT_attachment
+  | MT_unknown
 end
 
-module Video_frame = struct
-  type t
 
-  external create : int -> int -> Pixel_format.t -> t = "ocaml_avutil_video_frame_create"
+module Video = struct
+  external create_frame : int -> int -> Pixel_format.t -> video frame = "ocaml_avutil_video_create_frame"
 
-  external get : t -> int -> int -> int -> int = "ocaml_avutil_video_frame_get"(* [@@noalloc]*)
+  external frame_get : video frame -> int -> int -> int -> int = "ocaml_avutil_video_frame_get"(* [@@noalloc]*)
 
-  external set : t -> int -> int -> int -> int -> unit = "ocaml_avutil_video_frame_set"(* [@@noalloc]*)
+  external frame_set : video frame -> int -> int -> int -> int -> unit = "ocaml_avutil_video_frame_set"(* [@@noalloc]*)
 end
 
-module Subtitle_frame = struct
-  type t
-
+module Subtitle = struct
   external time_base : unit -> int64 = "ocaml_avutil_subtitle_time_base"
 
-  external from_lines : int64 -> int64 -> string array -> t = "ocaml_avutil_subtitle_from_lines"
+  external create_frame : int64 -> int64 -> string array -> subtitle frame = "ocaml_avutil_subtitle_create_frame"
 
-  let from_lines start_time end_time lines =
+  let create_frame start_time end_time lines =
     let time_base = Int64.to_float(time_base()) in
-    from_lines (Int64.of_float(start_time *. time_base))
+    create_frame (Int64.of_float(start_time *. time_base))
       (Int64.of_float(end_time *. time_base))
       (Array.of_list lines)
 
 
-  external to_lines : t -> (int64 * int64 * string array) = "ocaml_avutil_subtitle_to_lines"
+  external frame_to_lines : subtitle frame -> (int64 * int64 * string array) = "ocaml_avutil_subtitle_to_lines"
 
-  let to_lines t = let s, e, lines = to_lines t in let time_base = Int64.to_float(time_base()) in
+  let frame_to_lines t =
+    let s, e, lines = frame_to_lines t in let time_base = Int64.to_float(time_base()) in
     Int64.(to_float s /. time_base, to_float e /. time_base, Array.to_list lines)
 
 end

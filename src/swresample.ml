@@ -1,10 +1,7 @@
 open Avutil
 
-module SF = Sample_format
-
-type channel_layout = Channel_layout.t
-type sample_format = Sample_format.t
-type audio_frame = Audio_frame.t
+module SF = Avutil.Sample_format
+module CL = Avutil.Channel_layout
 
 type u8ba = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s16ba = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
@@ -17,7 +14,7 @@ type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
 module type AudioData = sig
   type t
   val vk : vector_kind
-  val sf : Sample_format.t
+  val sf : SF.t
 end
 
 module Bytes = struct
@@ -113,47 +110,47 @@ module DblPlanarBigArray = struct
 end
 
 module Frame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_none
+  type t = audio frame let vk = Frm let sf = SF.SF_none
 end
 
 module U8Frame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_U8
+  type t = audio frame let vk = Frm let sf = SF.SF_U8
 end
 
 module S16Frame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_S16
+  type t = audio frame let vk = Frm let sf = SF.SF_S16
 end
 
 module S32Frame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_S32
+  type t = audio frame let vk = Frm let sf = SF.SF_S32
 end
 
 module FltFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_FLT
+  type t = audio frame let vk = Frm let sf = SF.SF_FLT
 end
 
 module DblFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_DBL
+  type t = audio frame let vk = Frm let sf = SF.SF_DBL
 end
 
 module U8PlanarFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_U8P
+  type t = audio frame let vk = Frm let sf = SF.SF_U8P
 end
 
 module S16PlanarFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_S16P
+  type t = audio frame let vk = Frm let sf = SF.SF_S16P
 end
 
 module S32PlanarFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_S32P
+  type t = audio frame let vk = Frm let sf = SF.SF_S32P
 end
 
 module FltPlanarFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_FLTP
+  type t = audio frame let vk = Frm let sf = SF.SF_FLTP
 end
 
 module DblPlanarFrame = struct
-  type t = audio_frame let vk = Frm let sf = SF.SF_DBLP
+  type t = audio frame let vk = Frm let sf = SF.SF_DBLP
 end
 
 
@@ -162,8 +159,8 @@ type ('i, 'o) t
 module Make (I : AudioData) (O : AudioData) = struct
   type nonrec t = (I.t, O.t) t
 
-  external create : vector_kind -> channel_layout -> sample_format -> int ->
-    vector_kind -> channel_layout -> sample_format -> int ->
+  external create : vector_kind -> CL.t -> SF.t -> int ->
+    vector_kind -> CL.t -> SF.t -> int ->
     t = "ocaml_swresample_create_byte" "ocaml_swresample_create"
 
 
@@ -184,48 +181,32 @@ module Make (I : AudioData) (O : AudioData) = struct
       O.vk out_channel_layout out_sample_format out_sample_rate
 
 
-  let from_codec_parameters in_codec_param out_channel_layout ?out_sample_format out_sample_rate =
+  let from_codec in_codec out_channel_layout ?out_sample_format out_sample_rate =
 
-    create (Avcodec.Audio.Parameters.get_channel_layout in_codec_param)
-      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format in_codec_param)
-      (Avcodec.Audio.Parameters.get_sample_rate in_codec_param)
+    create (Avcodec.Audio.get_channel_layout in_codec)
+      ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
+      (Avcodec.Audio.get_sample_rate in_codec)
       out_channel_layout
       ?out_sample_format:out_sample_format
       out_sample_rate
 
 
-  let to_codec_parameters in_channel_layout ?in_sample_format in_sample_rate out_codec_param =
+  let to_codec in_channel_layout ?in_sample_format in_sample_rate out_codec =
 
     create in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
-      (Avcodec.Audio.Parameters.get_channel_layout out_codec_param)
-      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format out_codec_param)
-      (Avcodec.Audio.Parameters.get_sample_rate out_codec_param)
+      (Avcodec.Audio.get_channel_layout out_codec)
+      ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
+      (Avcodec.Audio.get_sample_rate out_codec)
 
 
-  let from_codec_parameters_to_codec_parameters in_codec_param out_codec_param =
+  let from_codec_to_codec in_codec out_codec =
 
-    create (Avcodec.Audio.Parameters.get_channel_layout in_codec_param)
-      ~in_sample_format:(Avcodec.Audio.Parameters.get_sample_format in_codec_param)
-      (Avcodec.Audio.Parameters.get_sample_rate in_codec_param)
-      (Avcodec.Audio.Parameters.get_channel_layout out_codec_param)
-      ~out_sample_format:(Avcodec.Audio.Parameters.get_sample_format out_codec_param)
-      (Avcodec.Audio.Parameters.get_sample_rate out_codec_param)
-
-
-  let from_input input out_channel_layout ?out_sample_format out_sample_rate =
-    let ip = Av.(input >- get_audio_codec_parameters) in
-    from_codec_parameters ip out_channel_layout ?out_sample_format out_sample_rate
-
-
-  let to_output in_channel_layout ?in_sample_format in_sample_rate output =
-    let op = Av.(output -< get_audio_codec_parameters) in
-    to_codec_parameters in_channel_layout ?in_sample_format in_sample_rate op
-
-
-  let from_input_to_output input output =
-    let ip = Av.(input >- get_audio_codec_parameters ) in
-    let op = Av.(output -< get_audio_codec_parameters) in
-    from_codec_parameters_to_codec_parameters ip op
+    create (Avcodec.Audio.get_channel_layout in_codec)
+      ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
+      (Avcodec.Audio.get_sample_rate in_codec)
+      (Avcodec.Audio.get_channel_layout out_codec)
+      ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
+      (Avcodec.Audio.get_sample_rate out_codec)
 
 
   external convert : t -> I.t -> O.t = "ocaml_swresample_convert"

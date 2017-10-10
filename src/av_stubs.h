@@ -21,6 +21,7 @@ void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value);
 
 void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value);
 
+
 /***** Control message *****/
 value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx);
 

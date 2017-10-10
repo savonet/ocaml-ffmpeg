@@ -1,5 +1,4 @@
 
 let () =
-  Info.test();
   Swresample.test();
-  
+  Info.test();

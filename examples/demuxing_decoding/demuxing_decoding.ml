@@ -1,6 +1,5 @@
 open FFmpeg
 open Avutil
-open Av
 module FrameToS32Bytes = Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
 
 let () =
@@ -17,32 +16,35 @@ let () =
   let video_output_filename = Sys.argv.(2) in
   let audio_output_filename = Sys.argv.(3) in
 
-  let input_file = Input.open_url input_filename in
+  let src = Av.open_input input_filename in
+  let (audio_index, audio_stream, audio_codec) = Av.find_best_audio_stream src in
 
-  let rbs = FrameToS32Bytes.from_input input_file Channel_layout.CL_stereo 44100 in
+  let rbs = FrameToS32Bytes.from_codec audio_codec Channel_layout.CL_stereo 44100 in
 
-  Input.get_metadata input_file |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
+  Av.get_input_metadata src |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
 
   let video_output_file = open_out_bin video_output_filename in
   let audio_output_file = open_out_bin audio_output_filename in
 
   let rec decode() =
-    match Input.read input_file with
-    | Input.Audio (idx, af) ->
-      FrameToS32Bytes.convert rbs af |> output_bytes audio_output_file;
+    match Av.read_input src with
+    | Av.Audio (idx, af) ->
+      if idx = audio_index then (
+        FrameToS32Bytes.convert rbs af |> output_bytes audio_output_file);
       decode()
-    | Input.Video (idx, vf) ->
+    | Av.Video (idx, vf) ->
       (*        Swscale.scale_frame vf |> output_video video_output_file;*)
       decode()
-    | Input.Subtitle (idx, sf) -> let _, _, lines = Subtitle_frame.to_lines sf in
+    | Av.Subtitle (idx, sf) ->
+      let _, _, lines = Subtitle.frame_to_lines sf in
       lines |> List.iter print_endline;
       decode()
-    | Input.End_of_file -> ()
-    | exception Avutil.Failure msg -> prerr_endline msg
+    | Av.End_of_file -> ()
+    | exception Failure msg -> prerr_endline msg
   in
   decode();
 
-  Input.close input_file;
+  Av.close_input src;
 
   close_out video_output_file;
   close_out audio_output_file;

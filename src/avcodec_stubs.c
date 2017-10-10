@@ -13,11 +13,6 @@
 
 /***** AVCodecParameters *****/
 
-#define AUDIO_CODEC_PARAMETERS_TAG 0
-#define VIDEO_CODEC_PARAMETERS_TAG 1
-#define SUBTITLE_CODEC_PARAMETERS_TAG 2
-#define UNKNOWN_CODEC_PARAMETERS_TAG 0
-
 static void finalize_codec_parameters(value v)
 {
   struct AVCodecParameters *codec_parameters = CodecParameters_val(v);
@@ -46,35 +41,6 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 
   *pvalue = caml_alloc_custom(&codec_parameters_ops, sizeof(AVCodecParameters*), 0, 1);
   CodecParameters_val(*pvalue) = dst;
-}
-
-void value_of_codec_parameters_variants(AVCodecParameters *src, value *pvalue)
-{
-  CAMLparam0();
-  CAMLlocal1(cpv);
-
-  if(src && (src->codec_type == AVMEDIA_TYPE_AUDIO
-             || src->codec_type == AVMEDIA_TYPE_VIDEO
-             || src->codec_type == AVMEDIA_TYPE_SUBTITLE)) {
-    
-    value_of_codec_parameters_copy(src, &cpv);
-
-    if(src->codec_type == AVMEDIA_TYPE_AUDIO) {
-      *pvalue = caml_alloc_small(1, AUDIO_CODEC_PARAMETERS_TAG);
-    }
-    else if(src->codec_type == AVMEDIA_TYPE_VIDEO) {
-      *pvalue = caml_alloc_small(1, VIDEO_CODEC_PARAMETERS_TAG);
-    }
-    else {
-      *pvalue = caml_alloc_small(1, SUBTITLE_CODEC_PARAMETERS_TAG);
-    }
-
-    Field(*pvalue, 0) = cpv;
-  }
-  else {
-    *pvalue = Val_int(UNKNOWN_CODEC_PARAMETERS_TAG);
-  }
-  CAMLreturn0;
 }
 
 

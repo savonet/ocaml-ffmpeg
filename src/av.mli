@@ -1,150 +1,142 @@
-type time_format = Avutil.Time_format.t
-type pixel_format = Avutil.Pixel_format.t
-type channel_layout = Avutil.Channel_layout.t
-type sample_format = Avutil.Sample_format.t
-type audio_frame = Avutil.Audio_frame.t
-type video_frame = Avutil.Video_frame.t
-type subtitle_frame = Avutil.Subtitle_frame.t
-type audio_codec_id = Avcodec.Audio.id
-type video_codec_id = Avcodec.Video.id
-type subtitle_codec_id = Avcodec.Subtitle.id
+(** Input, output and streams reading and writing module *)
+
+open Avutil
+
+(** Format *)
+
+(** Return the name of the format *)
+val get_format_name : (_, _)format -> string
+
+(** Return the long name of the format *)
+val get_format_long_name : (_, _)format -> string
+
+(** Return the audio codec id of the output audio format *)
+val get_format_audio_codec_id : (output, audio)format -> Avcodec.Audio.id
+
+(** Return the video codec id of the output video format *)
+val get_format_video_codec_id : (output, video)format -> Avcodec.Video.id
+
+(** Input *)
+
+(** Open an input URL. *)
+val open_input : string -> input container
+
+(** Open an input format. *)
+val open_input_format : (input, _)format -> input container
+
+(** Close an input. *)
+val close_input : input container -> unit
 
 
-type t
+(** Return the duration of an input. *)
+val get_input_duration : input container -> Time_format.t -> Int64.t
 
-(** Best audio stream codec parameters. *)
-val get_audio_codec_parameters : t -> Avcodec.Audio.Parameters.t
-
-(** Best video stream codec parameters. *)
-val get_video_codec_parameters : t -> Avcodec.Video.Parameters.t
-
-(** Streams codec parameters array. *)
-val get_streams_codec_parameters : t -> Avcodec.Parameters.t array
+(** Return the input tag list. *)
+val get_input_metadata : input container -> (string * string) list
 
 
-(* Input *)
-module Input : sig
-  type t
+(** Input/output, audio/video/subtitle stream type *)
+type ('line, 'media) stream
 
-  module Format : sig
-    type t
-    val get_name : t -> string
-    val get_long_name : t -> string
-  end
+(** Return the audio stream list of the input *)
+val get_audio_streams : input container -> (int * (input, audio)stream * audio Avcodec.t) list
 
+(** Return the video stream list of the input *)
+val get_video_streams : input container -> (int * (input, video)stream * video Avcodec.t) list
 
-  (** Open an input URL. *)
-  val open_url : string -> t
-
-  (** Open an input format. *)
-  val open_format : Format.t -> t
-
-  (** Close an input. *)
-  val close : t -> unit
-
-  (** Input tag list. *)
-  val get_metadata : t -> (string * string) list
-
-  (** Duration of an input stream. *)
-  val get_duration : t -> int -> time_format -> Int64.t
+(** Return the subtitle stream list of the input *)
+val get_subtitle_streams : input container -> (int * (input, subtitle)stream * subtitle Avcodec.t) list
 
 
-  type audio = Audio of audio_frame | End_of_file
-  type video = Video of video_frame | End_of_file
-  type subtitle = Subtitle of subtitle_frame | End_of_file
+(** Return the best audio stream of the input *)
+val find_best_audio_stream : input container -> (int * (input, audio)stream * audio Avcodec.t)
 
-  type media =
-    | Audio of int * audio_frame
-    | Video of int * video_frame
-    | Subtitle of int * subtitle_frame
-    | End_of_file
+(** Return the best video stream of the input *)
+val find_best_video_stream : input container -> (int * (input, video)stream * video Avcodec.t)
 
-  (** Read selected audio stream. *)
-  val read_audio : t -> audio
+(** Return the best subtitle stream of the input *)
+val find_best_subtitle_stream : input container -> (int * (input, subtitle)stream * subtitle Avcodec.t)
 
-  (** Read iteratively selected audio stream. *)
-  val iter_audio : (audio_frame -> unit) -> t -> unit
+(** Return the index of the stream. *)
+val get_index : (_, _)stream -> int
 
-  (** Read selected video stream. *)
-  val read_video : t -> video
+(** Return the codec of the stream. *)
+val get_codec : (_, 'media)stream -> 'media Avcodec.t
 
-  (** Read iteratively selected video stream. *)
-  val iter_video : (video_frame -> unit) -> t -> unit
+(** Return the duration of the input stream. *)
+val get_duration : (input, _)stream -> Time_format.t -> Int64.t
 
-  (** Read selected subtitle stream. *)
-  val read_subtitle : t -> subtitle
+(** Return the input stream tag list. *)
+val get_metadata : (input, _)stream -> (string * string) list
 
-  (** Read iteratively selected subtitle stream. *)
-  val iter_subtitle : (subtitle_frame -> unit) -> t -> unit
+(** Select the input stream for reading. *)
+val select : (input, _)stream -> unit
 
-  (** Read input streams. *)
-  val read : t -> media
+(** Stream reading result. *)
+type 'media result = Frame of 'media frame | End_of_file
 
-  (** Read iteratively input streams. *)
-  val iter : ?audio:(int -> audio_frame -> unit) ->
-    ?video:(int -> video_frame -> unit) ->
-    ?subtitle:(int -> subtitle_frame -> unit) ->
-    t -> unit
+(** Read the input stream. *)
+val read : (input, 'media)stream -> 'media result
 
+(** Read iteratively the input stream. *)
+val iter : ('media frame -> unit) -> (input, 'media)stream -> unit
 
-  (** Seek mode. *)
-  type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
+(** Seek mode. *)
+type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
 
-  (** Seek in a stream. *)
-  val seek_frame : t -> int -> time_format -> Int64.t -> seek_flag array -> unit
-end
-
-val of_input : Input.t -> t
-val (>-) : Input.t -> (t -> 'a) -> 'a
+(** Seek in the input stream. *)
+val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
 
 
-module Output : sig
-  type t
+type media =
+  | Audio of int * audio frame
+  | Video of int * video frame
+  | Subtitle of int * subtitle frame
+  | End_of_file
 
-  module Format : sig
-    type t
-    val get_name : t -> string
-    val get_long_name : t -> string
-    val get_audio_codec : t -> audio_codec_id
-    val get_video_codec : t -> video_codec_id
-  end
+(** Reads the selected streams if any or all streams otherwise. *)
+val read_input : input container -> media
 
-
-  (** Open an output file. *)
-  val open_file : string -> t
-
-  (** Open an output format. *)
-  val open_format : Format.t -> t
-
-  (** Open an output format by name. *)
-  val open_format_name : string -> t
-
-  (** Close an output. *)
-  val close : t -> unit
-
-  (** Set output tag list. This must be set before starting writing streams. *)
-  val set_metadata : t -> (string * string) list -> unit
+(** Reads iteratively the selected streams if any or all streams otherwise. *)
+val iter_input : ?audio:(int -> audio frame -> unit) ->
+  ?video:(int -> video frame -> unit) ->
+  ?subtitle:(int -> subtitle frame -> unit) ->
+  input container -> unit
 
 
-  (** Add a new audio stream. This must be set before starting writing streams. *)
-  val new_audio_stream : ?codec_id:audio_codec_id -> ?codec_name:string -> ?channel_layout:channel_layout -> ?sample_format:sample_format -> ?bit_rate:int -> ?sample_rate:int -> ?codec_parameters:Avcodec.Audio.Parameters.t -> t -> int
+(** Output *)
 
-  (** Add a new video stream. This must be set before starting writing streams. *)
-  val new_video_stream : ?codec_id:video_codec_id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:pixel_format -> ?bit_rate:int -> ?frame_rate:int -> ?codec_parameters:Avcodec.Video.Parameters.t -> t -> int
+(** Open an output file. *)
+val open_output : string -> output container
 
-  (** Add a new subtitle stream. This must be set before starting writing streams. *)
-  val new_subtitle_stream : ?codec_id:subtitle_codec_id -> ?codec_name:string -> ?codec_parameters:Avcodec.Subtitle.Parameters.t -> t -> int
+(** Open an output format. *)
+val open_output_format : (output, _) format -> output container
 
+(** Open an output format by name. *)
+val open_output_format_name : string -> output container
 
-  (** Write an audio frame to a stream *)
-  val write_audio_frame : t -> int -> audio_frame -> unit
+(** Close an output. *)
+val close_output : output container -> unit
 
-  (** Write an video frame to a stream *)
-  val write_video_frame : t -> int -> video_frame -> unit
+(** Set output tag list. *)
+val set_output_metadata : output container -> (string * string) list -> unit
+(** This must be set before starting writing streams. *)
 
-  (** Write an subtitle frame to a stream *)
-  val write_subtitle_frame : t -> int -> subtitle_frame -> unit
-end
+(** Set output stream tag list. *)
+val set_metadata : (output, _)stream -> (string * string) list -> unit
+(** This must be set before starting writing streams. *)
 
-val of_output : Output.t -> t
-val (-<) : Output.t -> (t -> 'a) -> 'a
+(** Add a new audio stream to a media file. *)
+val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> output container -> (output, audio)stream
+(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+
+(** Add a new video stream to a media file. *)
+val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> output container -> (output, video)stream
+(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+
+(** Add a new subtitle stream to a media file. *)
+val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> output container -> (output, subtitle)stream
+(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+
+(** Write a frame to the output stream *)
+val write : (output, 'media)stream -> 'media frame -> unit

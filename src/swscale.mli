@@ -1,3 +1,5 @@
+(** Video color conversion and scaling module *)
+
 val version : unit -> int
 
 val configuration : unit -> string

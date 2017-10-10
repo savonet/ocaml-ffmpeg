@@ -15,7 +15,7 @@ module R7 = Swresample.Make (Swresample.S32Frame) (Swresample.FloatArray)
 module R8 = Swresample.Make (Swresample.FloatArray) (Swresample.S32BigArray)
 module R9 = Swresample.Make (Swresample.S32BigArray) (Swresample.S32Bytes)
 
-let logStep step v = Gc.full_major (); (*Printf.printf"%s done\n%!" step;*) v
+let logStep step v = Gc.full_major (); Printf.printf"%s done\n%!" step; v
 
 let foi = float_of_int
 let pi = 4.0 *. atan 1.0

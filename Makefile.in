@@ -10,6 +10,7 @@ all clean install uninstall:
 
 distclean: clean
 	$(MAKE) -C examples clean
+	$(MAKE) -C test clean
 
 doc:
 	$(MAKE) -C src htdoc
@@ -24,5 +25,9 @@ dist:
 	cp -R -L --parents $(DISTFILES) $(PROGNAME)-$(VERSION)
 	tar zcvf ../$(PROGNAME)-$(VERSION).tar.gz $(PROGNAME)-$(VERSION)
 	rm -rf $(PROGNAME)-$(VERSION)
+
+test: all
+	$(MAKE) -C examples $@
+	$(MAKE) -C test $@
 
 .PHONY: dist doc

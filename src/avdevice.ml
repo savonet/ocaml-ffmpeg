@@ -1,18 +1,19 @@
+open Avutil
 
-external get_input_audio_devices : unit -> Av.Input.Format.t array = "ocaml_avdevice_get_input_audio_devices"
+external get_input_audio_devices : unit -> (input, audio)format array = "ocaml_avdevice_get_input_audio_devices"
 let get_input_audio_devices() = Array.to_list ( get_input_audio_devices() )
 
-external get_input_video_devices : unit -> Av.Input.Format.t array = "ocaml_avdevice_get_input_video_devices"
+external get_input_video_devices : unit -> (input, video)format array = "ocaml_avdevice_get_input_video_devices"
 let get_input_video_devices() = Array.to_list ( get_input_video_devices() )
 
-external get_output_audio_devices : unit -> Av.Output.Format.t array = "ocaml_avdevice_get_output_audio_devices"
+external get_output_audio_devices : unit -> (output, audio)format array = "ocaml_avdevice_get_output_audio_devices"
 let get_output_audio_devices() = Array.to_list ( get_output_audio_devices() )
 
-external get_output_video_devices : unit -> Av.Output.Format.t array = "ocaml_avdevice_get_output_video_devices"
+external get_output_video_devices : unit -> (output, video)format array = "ocaml_avdevice_get_output_video_devices"
 let get_output_video_devices() = Array.to_list ( get_output_video_devices() )
 
 module App_to_dev = struct
-  type message_t =
+  type message =
   | None
   | Window_size of int * int * int * int
   | Window_repaint of int * int * int * int
@@ -26,12 +27,12 @@ module App_to_dev = struct
   | Get_volume
   | Get_mute
 
-  external control_message : message_t -> Av.t -> unit = "ocaml_avdevice_app_to_dev_control_message"
+  external control_message : message -> _ container -> unit = "ocaml_avdevice_app_to_dev_control_message"
   let control_messages messages av = List.iter(fun msg -> control_message msg av) messages
 end
 
 module Dev_to_app = struct
-  type message_t =
+  type message =
     | None
     | Create_window_buffer of (int * int * int * int) option
     | Prepare_window_buffer
@@ -44,5 +45,5 @@ module Dev_to_app = struct
     | Mute_state_changed of bool
     | Volume_level_changed of float
 
-  external set_control_message_callback : (message_t -> unit) -> Av.t -> unit = "ocaml_avdevice_set_control_message_callback"
+  external set_control_message_callback : (message -> unit) -> _ container -> unit = "ocaml_avdevice_set_control_message_callback"
 end

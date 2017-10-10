@@ -213,6 +213,24 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 }
 
 
+/**** Media Type ****/
+
+static const enum AVMediaType MEDIA_TYPES[] = {
+  AVMEDIA_TYPE_AUDIO,
+  AVMEDIA_TYPE_VIDEO,
+  AVMEDIA_TYPE_SUBTITLE,
+  AVMEDIA_TYPE_DATA,
+  AVMEDIA_TYPE_ATTACHMENT,
+  AVMEDIA_TYPE_UNKNOWN
+};
+#define MEDIA_TYPES_LEN (sizeof(MEDIA_TYPES) / sizeof(enum AVMediaType))
+
+enum AVMediaType MediaType_val(value v)
+{
+  return MEDIA_TYPES[Int_val(v)];
+}
+
+
 /***** AVFrame *****/
 
 static void finalize_frame(value v)
@@ -241,7 +259,7 @@ void value_of_frame(AVFrame *frame, value * pvalue)
   Frame_val((*pvalue)) = frame;
 }
 
-CAMLprim value ocaml_avutil_video_frame_create(value _w, value _h, value _format)
+CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format)
 {
   CAMLparam1(_format);
   CAMLlocal1(ans);
@@ -373,7 +391,7 @@ char *get_dialog(int readorder, int layer, const char *style,
   return dialog;
 }
 */
-CAMLprim value ocaml_avutil_subtitle_from_lines(value _start_time, value _end_time, value _lines)
+CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time, value _end_time, value _lines)
 {
   CAMLparam3(_start_time, _end_time, _lines);
   CAMLlocal1(ans);

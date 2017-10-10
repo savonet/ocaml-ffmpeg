@@ -51,9 +51,9 @@ typedef struct av_t {
   // input
   int end_of_file;
   int selected_streams;
-  stream_t * audio_stream;
-  stream_t * video_stream;
-  stream_t * subtitle_stream;
+  stream_t * best_audio_stream;
+  stream_t * best_video_stream;
+  stream_t * best_subtitle_stream;
 
   // output
   int header_written;
@@ -70,12 +70,18 @@ typedef enum {
   
 #define Av_val(v) (*(av_t**)Data_custom_val(v))
 
-#define AUDIO_TAG 0
-#define VIDEO_TAG 0
-#define SUBTITLE_TAG 0
+
+/***** Stream handler *****/
+
+#define StreamAv_val(v) Av_val(Field(v, 0))
+#define StreamIndex_val(v) Int_val(Field(v, 1))
+
+
+#define MEDIA_TAG 0
 #define AUDIO_MEDIA_TAG 0
 #define VIDEO_MEDIA_TAG 1
 #define SUBTITLE_MEDIA_TAG 2
+#define UNKNOWN_MEDIA_TAG 3
 #define END_OF_FILE_TAG 0
 
 static void free_stream(stream_t * stream)
@@ -136,9 +142,9 @@ static void close_av(av_t * av)
       av->format_context = NULL;
     }
 
-    av->audio_stream = NULL;
-    av->video_stream = NULL;
-    av->subtitle_stream = NULL;
+    av->best_audio_stream = NULL;
+    av->best_video_stream = NULL;
+    av->best_subtitle_stream = NULL;
 
     av_packet_unref(&av->packet);
   }
@@ -175,42 +181,35 @@ AVFormatContext * ocaml_av_get_format_context(value *p_av) {
   return Av_val(*p_av)->format_context;
 }
 
-CAMLprim value ocaml_av_get_streams_codec_parameters(value _av) {
-  CAMLparam1(_av);
+CAMLprim value ocaml_av_get_streams(value _av, value _media_type)
+{
+  CAMLparam2(_av, _media_type);
   CAMLlocal2(v, ans);
   av_t * av = Av_val(_av);
-  int i, len = av->format_context->nb_streams;
+  enum AVMediaType type = MediaType_val(_media_type);
+  int i, j, len = 0;
+
+  for(i = 0; i < av->format_context->nb_streams; i++) {
+    if(av->format_context->streams[i]->codecpar->codec_type == type) len++;
+  }
 
   ans = caml_alloc_tuple(len);
 
-  for(i = 0; i < len; i++) {
-    value_of_codec_parameters_variants(av->format_context->streams[i]->codecpar, &v);
-    Store_field(ans, i, v);
+  for(i = 0, j = 0; i < av->format_context->nb_streams; i++) {
+    if(av->format_context->streams[i]->codecpar->codec_type == type) {
+      Store_field(ans, j, Val_int(i));
+      j++;
+    }
   }
 
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_get_audio_codec_parameters(value _av) {
-  CAMLparam1(_av);
+CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
+  CAMLparam1(_stream);
   CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_AUDIO, -1, -1, NULL, 0);
-  if(index < 0) Raise(EXN_FAILURE, "Failed to find audio stream");
-
-  value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_get_video_codec_parameters(value _av) {
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  int index = av_find_best_stream(av->format_context, AVMEDIA_TYPE_VIDEO, -1, -1, NULL, 0);
-  if(index < 0) Raise(EXN_FAILURE, "Failed to find video stream");
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
 
   value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
 
@@ -336,13 +335,18 @@ CAMLprim value ocaml_av_close_input(value _av)
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_get_metadata(value _av) {
+CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index)
+{
   CAMLparam1(_av);
   CAMLlocal3(pair, cons, list);
-
   av_t * av = Av_val(_av);
+  int index = Int_val(_stream_index);
   AVDictionary * metadata = av->format_context->metadata;
   AVDictionaryEntry *tag = NULL;
+
+  if(index >= 0) {
+    metadata = av->format_context->streams[index]->metadata;
+  }
 
   list = Val_emptylist;
 
@@ -466,30 +470,32 @@ static stream_t * open_stream_index(av_t *av, int index)
   return stream;
 }
 
-static stream_t * open_best_stream(av_t *av, enum AVMediaType type)
+CAMLprim value ocaml_av_find_best_stream(value _av, value _media_type)
 {
-  if( ! av->format_context) Fail("Failed to find stream : input closed");
+  CAMLparam2(_av, _media_type);
+  av_t * av = Av_val(_av);
+  enum AVMediaType type = MediaType_val(_media_type);
 
   int index = av_find_best_stream(av->format_context, type, -1, -1, NULL, 0);
+  if(index < 0) Raise(EXN_FAILURE, "Failed to find %s stream", av_get_media_type_string(type));
 
-  if(index < 0) Fail("Failed to find %s stream", av_get_media_type_string(type));
-
-  return open_stream_index(av, index);
+  CAMLreturn(Val_int(index));
 }
 
-static stream_t * open_audio_stream(av_t * av)
-{
-  return (av->audio_stream = open_best_stream(av, AVMEDIA_TYPE_AUDIO));
-}
 
-static stream_t * open_video_stream(av_t * av)
+CAMLprim value ocaml_av_select_stream(value _stream)
 {
-  return (av->video_stream = open_best_stream(av, AVMEDIA_TYPE_VIDEO));
-}
+  CAMLparam1(_stream);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
 
-static stream_t * open_subtitle_stream(av_t * av)
-{
-  return (av->subtitle_stream = open_best_stream(av, AVMEDIA_TYPE_SUBTITLE));
+  if( ! av->streams[index]) {
+    stream_t * stream = open_stream_index(av, index);
+    if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+  av->selected_streams = 1;
+
+  CAMLreturn(Val_unit);
 }
 
 
@@ -514,11 +520,11 @@ static frame_kind decode_packet(av_t * av, stream_t * stream)
     }
   
     if(dec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      av->audio_stream = stream;
+      //av->audio_stream = stream;
       frame_kind = audio_frame;
     }
     else {
-      av->video_stream = stream;
+      //av->video_stream = stream;
       frame_kind = video_frame;
     }
   }
@@ -528,7 +534,7 @@ static frame_kind decode_packet(av_t * av, stream_t * stream)
   
     if (ret >= 0) packet->size = 0;
   
-    av->subtitle_stream = stream;
+    //    av->subtitle_stream = stream;
     frame_kind = subtitle_frame;
   }
   
@@ -582,75 +588,38 @@ static frame_kind read_stream_frame(av_t * av, stream_t * stream)
     }
     frame_kind = decode_packet(av, stream);
   }
-  
+
   caml_acquire_runtime_system();
   if(frame_kind == error) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   return frame_kind;
 }
 
-CAMLprim value ocaml_av_read_audio(value _av)
-{
-  CAMLparam1(_av);
+
+CAMLprim value ocaml_av_read_stream(value _stream) {
+  CAMLparam1(_stream);
   CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+  stream_t * stream = NULL;
+
+  if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  stream = av->streams[index];
   
-  if( ! av->audio_stream && ! open_audio_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-  
-  frame_kind frame_kind = read_stream_frame(av, av->audio_stream);
+  frame_kind frame_kind = read_stream_frame(av, stream);
 
   if(frame_kind == end_of_file) {
     ans = Val_int(END_OF_FILE_TAG);
   }
   else {
-    ans = caml_alloc_small(1, AUDIO_TAG);
-    Field(ans, 0) = av->audio_stream->frame;
+    ans = caml_alloc_small(1, MEDIA_TAG);
+    Field(ans, 0) = stream->frame;
   }
 
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_read_video(value _av)
-{
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  if( ! av->video_stream && ! open_video_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  frame_kind frame_kind = read_stream_frame(av, av->video_stream);
-
-  if(frame_kind == end_of_file) {
-    ans = Val_int(END_OF_FILE_TAG);
-  }
-  else {
-    ans = caml_alloc_small(1, VIDEO_TAG);
-    Field(ans, 0) = av->video_stream->frame;
-  }
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_read_subtitle(value _av)
-{
-  CAMLparam1(_av);
-  CAMLlocal1(ans);
-  av_t * av = Av_val(_av);
-
-  if( ! av->subtitle_stream && ! open_subtitle_stream(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  frame_kind frame_kind = read_stream_frame(av, av->subtitle_stream);
-
-  if(frame_kind == end_of_file) {
-    ans = Val_int(END_OF_FILE_TAG);
-  }
-  else {
-    ans = caml_alloc_small(1, SUBTITLE_TAG);
-    Field(ans, 0) = av->subtitle_stream->frame;
-  }
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_read(value _av)
+CAMLprim value ocaml_av_read_input(value _av)
 {
   CAMLparam1(_av);
   CAMLlocal1(ans);
@@ -743,12 +712,11 @@ static int seek_flags_val(value v)
   return seek_flags[Int_val(v)];
 }
 
-CAMLprim value ocaml_av_seek_frame(value _av, value _stream_index, value _time_format, value _timestamp, value _flags)
+CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _timestamp, value _flags)
 {
-  CAMLparam4(_av, _time_format, _timestamp, _flags);
-
-  av_t * av = Av_val(_av);
-  int index = Int_val(_stream_index);
+  CAMLparam4(_stream, _time_format, _timestamp, _flags);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
   int time_format = Time_format_val(_time_format);
   int64_t timestamp = Int64_val(_timestamp);
 
@@ -816,13 +784,13 @@ CAMLprim value ocaml_av_output_format_get_long_name(value _output_format)
   CAMLreturn(caml_copy_string(OutputFormat_val(_output_format)->long_name));
 }
 
-CAMLprim value ocaml_av_output_format_get_audio_codec(value _output_format)
+CAMLprim value ocaml_av_output_format_get_audio_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
   CAMLreturn(Val_audioCodecId(OutputFormat_val(_output_format)->audio_codec));
 }
 
-CAMLprim value ocaml_av_output_format_get_video_codec(value _output_format)
+CAMLprim value ocaml_av_output_format_get_video_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
   CAMLreturn(Val_videoCodecId(OutputFormat_val(_output_format)->video_codec));
@@ -891,10 +859,11 @@ CAMLprim value ocaml_av_open_output(value _file_name, value _format, value _form
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_set_metadata(value _av, value _tags) {
+CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags) {
   CAMLparam2(_av, _tags);
   CAMLlocal1(pair);
   av_t * av = Av_val(_av);
+  int index = Int_val(_stream_index);
   AVDictionary * metadata = NULL;
 
   if( ! av->format_context) Raise(EXN_FAILURE, "Failed to set metadata to closed output");
@@ -913,7 +882,13 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _tags) {
     if (ret < 0) Raise(EXN_FAILURE, "Failed to set metadata : %s", av_err2str(ret));
   }
 
-  av->format_context->metadata = metadata;
+  if(index < 0) {
+    av->format_context->metadata = metadata;
+  }
+  else {
+    av->format_context->streams[index]->metadata = metadata;
+  }
+
   CAMLreturn(Val_unit);
 }
 
@@ -1464,10 +1439,42 @@ CAMLprim value ocaml_av_write_subtitle_frame(value _av, value _stream_index, val
 }
 
 
+CAMLprim value ocaml_av_write_stream(value _stream, value _frame)
+{
+  CAMLparam2(_stream, _frame);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+  AVPacket * packet = NULL;
+
+  if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
+
+  caml_release_runtime_system();
+
+  enum AVMediaType type = av->streams[index]->codec_context->codec_type;
+
+  if(type == AVMEDIA_TYPE_AUDIO) {
+    packet = write_audio_frame(av, index, Frame_val(_frame));
+  }
+  else if(type == AVMEDIA_TYPE_VIDEO) {
+    packet = write_video_frame(av, index, Frame_val(_frame));
+  }
+  else if(type == AVMEDIA_TYPE_SUBTITLE) {
+    packet = write_subtitle_frame(av, index, Subtitle_val(_frame));
+  }
+
+  caml_acquire_runtime_system();
+
+  if( ! packet) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  CAMLreturn(Val_unit);
+}
+
+
 CAMLprim value ocaml_av_close_output(value _av)
 {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
+
+  if( ! av->streams) Raise(EXN_FAILURE, "Failed to close closed output");
 
   // flush encoders
   AVPacket * packet = &av->packet;

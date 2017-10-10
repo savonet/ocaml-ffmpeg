@@ -1,18 +1,15 @@
+(** Audio resampling, sample format conversion and mixing module *)
+
+open Avutil
+
 module SF = Avutil.Sample_format
+module CL = Avutil.Channel_layout
 
-type channel_layout = Avutil.Channel_layout.t
-type sample_format = Avutil.Sample_format.t
-type audio_frame = Avutil.Audio_frame.t
-
-type u8ba =
-  (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-type s16ba =
-  (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
+type u8ba = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+type s16ba = (int, Bigarray.int16_signed_elt, Bigarray.c_layout) Bigarray.Array1.t
 type s32ba = (int32, Bigarray.int32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f32ba =
-  (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
-type f64ba =
-  (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
+type f32ba = (float, Bigarray.float32_elt, Bigarray.c_layout) Bigarray.Array1.t
+type f64ba = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
 
 type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
 
@@ -139,57 +136,57 @@ end
 
 (** Audio frame with undefined sample format. *)
 module Frame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Unsigned 8 bit sample format audio frame for interleaved channels. *)
 module U8Frame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Signed 16 bit sample format audio frame for interleaved channels. *)
 module S16Frame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Signed 32 bit sample format audio frame for interleaved channels. *)
 module S32Frame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Float 32 bit sample format audio frame for interleaved channels. *)
 module FltFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Float 64 bit sample format audio frame for interleaved channels. *)
 module DblFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Unsigned 8 bit sample format audio frame for planar channels. *)
 module U8PlanarFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Signed 16 bit sample format audio frame for planar channels. *)
 module S16PlanarFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Signed 32 bit sample format audio frame for planar channels. *)
 module S32PlanarFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Float 32 bit sample format audio frame for planar channels. *)
 module FltPlanarFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 (** Float 64 bit sample format audio frame for planar channels. *)
 module DblPlanarFrame : sig
-  type t = audio_frame val vk : vector_kind val sf : SF.t
+  type t = audio frame val vk : vector_kind val sf : SF.t
 end
 
 type ('i, 'o) t
@@ -200,26 +197,17 @@ sig
   type nonrec t = (I.t, O.t) t
 
   (** Create a Swresample.t with parameterized input and output audio format. *)
-  val create : channel_layout -> ?in_sample_format:sample_format ->
-    int -> channel_layout -> ?out_sample_format:sample_format -> int -> t
+  val create : CL.t -> ?in_sample_format:SF.t ->
+    int -> CL.t -> ?out_sample_format:SF.t -> int -> t
 
   (** Create a Swresample.t with input audio codec parameters and output audio parameters. *)
-  val from_codec_parameters : Avcodec.Audio.Parameters.t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
+  val from_codec : audio Avcodec.t -> CL.t -> ?out_sample_format:SF.t -> int -> t
 
   (** Create a Swresample.t with input audio parameters and output audio codec parameters. *)
-  val to_codec_parameters : channel_layout -> ?in_sample_format:sample_format -> int -> Avcodec.Audio.Parameters.t -> t
+  val to_codec : CL.t -> ?in_sample_format:SF.t -> int -> audio Avcodec.t -> t
 
   (** Create a Swresample.t with input audio codec parameters and output audio codec parameters. *)
-  val from_codec_parameters_to_codec_parameters : Avcodec.Audio.Parameters.t -> Avcodec.Audio.Parameters.t -> t
-
-  (** Create a Swresample.t with input and output audio parameters. *)
-  val from_input : Av.Input.t -> channel_layout -> ?out_sample_format:sample_format -> int -> t
-
-  (** Create a Swresample.t with input audio parameters and output. *)
-  val to_output : channel_layout -> ?in_sample_format:sample_format -> int -> Av.Output.t -> t
-
-  (** Create a Swresample.t with input and output. *)
-  val from_input_to_output : Av.Input.t -> Av.Output.t -> t
+  val from_codec_to_codec : audio Avcodec.t -> audio Avcodec.t -> t
 
   (** Resample and convert input audio data to output audio data format. *)
   val convert : t -> I.t -> O.t

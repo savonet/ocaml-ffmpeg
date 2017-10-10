@@ -1,18 +1,23 @@
-    
+(** Special devices access module *)
+
+open Avutil
+
 (** Return the audio input device list as input format. *)
-val get_input_audio_devices : unit -> Av.Input.Format.t list
+val get_input_audio_devices : unit -> (input, audio) format list
     
 (** Return the video input device list as input format. *)
-val get_input_video_devices : unit -> Av.Input.Format.t list
+val get_input_video_devices : unit -> (input, video) format list
     
 (** Return the audio output device list as output format. *)
-val get_output_audio_devices : unit -> Av.Output.Format.t list
+val get_output_audio_devices : unit -> (output, audio) format list
     
 (** Return the video output device list as output format. *)
-val get_output_video_devices : unit -> Av.Output.Format.t list
+val get_output_video_devices : unit -> (output, video) format list
 
+(** Application to device communication *)
 module App_to_dev : sig
-  type message_t =
+(** Application to device control messages *)
+  type message =
   | None
   | Window_size of int * int * int * int
   | Window_repaint of int * int * int * int
@@ -26,11 +31,14 @@ module App_to_dev : sig
   | Get_volume
   | Get_mute
 
-  val control_messages : message_t list -> Av.t -> unit
+  (** Send a list of control message to the device *)
+  val control_messages : message list -> _ container -> unit
 end
 
+(** Device to application communication *)
 module Dev_to_app : sig
-  type message_t =
+(** Device to application control messages *)
+  type message =
     | None
     | Create_window_buffer of (int * int * int * int) option
     | Prepare_window_buffer
@@ -43,5 +51,6 @@ module Dev_to_app : sig
     | Mute_state_changed of bool
     | Volume_level_changed of float
 
-  val set_control_message_callback : (message_t -> unit) -> Av.t -> unit
+  (** Set the callback for device message reception *)
+  val set_control_message_callback : (message -> unit) -> _ container -> unit
 end
