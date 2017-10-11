@@ -1,10 +1,17 @@
 open Avutil
 
 (* Format *)
-external get_format_name : (_, _)format -> string = "ocaml_av_input_format_get_name"
-external get_format_long_name : (_, _)format -> string = "ocaml_av_input_format_get_long_name"
+external get_input_format_name : (input, _)format -> string = "ocaml_av_input_format_get_name"
+external get_input_format_long_name : (input, _)format -> string = "ocaml_av_input_format_get_long_name"
+
+external get_output_format_name : (output, _)format -> string = "ocaml_av_output_format_get_name"
+external get_output_format_long_name : (output, _)format -> string = "ocaml_av_output_format_get_long_name"
 external get_format_audio_codec_id : (output, audio)format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
 external get_format_video_codec_id : (output, video)format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
+external get_format_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
+
+
+
 
 
 (* Input *)
@@ -21,7 +28,7 @@ external _get_metadata : input container -> int -> (string * string) list = "oca
 let get_input_metadata i = List.rev(_get_metadata i (-1))
 
 
-(* Stream *)
+(* Input Stream *)
 type ('a, 'b) stream = {container : 'a container; index : int}
 
 let mk_stream container index = {container; index}

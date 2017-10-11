@@ -1,4 +1,4 @@
-(** Special devices access module *)
+(** Special devices access *)
 
 open Avutil
 

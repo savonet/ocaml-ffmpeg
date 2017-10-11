@@ -1,4 +1,4 @@
-(** Audio resampling, sample format conversion and mixing module *)
+(** Audio resampling, sample format conversion and mixing *)
 
 open Avutil
 
@@ -13,11 +13,11 @@ type f64ba = (float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t
 
 type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
 
+(** Audio data modules for Swresample module input and output parameterization. *)
 module type AudioData = sig
   type t val vk : vector_kind val sf : Avutil.Sample_format.t
 end
 
-(** Audio data modules for Swresample module input and output parameterization. *)
 
 (** Byte string with undefined sample format for interleaved channels. *)
 module Bytes : sig

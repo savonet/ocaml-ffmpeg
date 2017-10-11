@@ -254,16 +254,18 @@ void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value)
   InputFormat_val((*p_value)) = inputFormat;
 }
 
-CAMLprim value ocaml_av_input_format_get_name(value _input_format)
+CAMLprim value ocaml_av_input_format_get_name(value _format)
 {
-  CAMLparam1(_input_format);
-  CAMLreturn(caml_copy_string(InputFormat_val(_input_format)->name));
+  CAMLparam1(_format);
+  const char * n = InputFormat_val(_format)->name;
+  CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
-CAMLprim value ocaml_av_input_format_get_long_name(value _input_format)
+CAMLprim value ocaml_av_input_format_get_long_name(value _format)
 {
-  CAMLparam1(_input_format);
-  CAMLreturn(caml_copy_string(InputFormat_val(_input_format)->long_name));
+  CAMLparam1(_format);
+  const char * n = InputFormat_val(_format)->long_name;
+  CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
 
@@ -772,16 +774,18 @@ void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value)
   OutputFormat_val((*p_value)) = outputFormat;
 }
 
-CAMLprim value ocaml_av_output_format_get_name(value _output_format)
+CAMLprim value ocaml_av_output_format_get_name(value _format)
 {
-  CAMLparam1(_output_format);
-  CAMLreturn(caml_copy_string(OutputFormat_val(_output_format)->name));
+  CAMLparam1(_format);
+  const char * n = OutputFormat_val(_format)->name;
+  CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
-CAMLprim value ocaml_av_output_format_get_long_name(value _output_format)
+CAMLprim value ocaml_av_output_format_get_long_name(value _format)
 {
-  CAMLparam1(_output_format);
-  CAMLreturn(caml_copy_string(OutputFormat_val(_output_format)->long_name));
+  CAMLparam1(_format);
+  const char * n = OutputFormat_val(_format)->long_name;
+  CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
 CAMLprim value ocaml_av_output_format_get_audio_codec_id(value _output_format)
@@ -794,6 +798,12 @@ CAMLprim value ocaml_av_output_format_get_video_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
   CAMLreturn(Val_videoCodecId(OutputFormat_val(_output_format)->video_codec));
+}
+
+CAMLprim value ocaml_av_output_format_get_subtitle_codec_id(value _output_format)
+{
+  CAMLparam1(_output_format);
+  CAMLreturn(Val_subtitleCodecId(OutputFormat_val(_output_format)->subtitle_codec));
 }
 
 

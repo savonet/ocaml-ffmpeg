@@ -17,4 +17,5 @@ let () =
   Av.close_input src;
   Av.close_output dst;
 
-  Gc.full_major ()
+  Gc.full_major ();
+  Gc.full_major ();

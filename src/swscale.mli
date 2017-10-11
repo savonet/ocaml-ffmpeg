@@ -1,4 +1,4 @@
-(** Video color conversion and scaling module *)
+(** Video color conversion and scaling *)
 
 val version : unit -> int
 

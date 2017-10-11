@@ -29,4 +29,5 @@ let () =
     (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
-  Gc.full_major ()
+  Gc.full_major ();
+  Gc.full_major ();

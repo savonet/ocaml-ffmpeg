@@ -1,22 +1,32 @@
 (** Common code shared across all FFmpeg libraries. *)
 
 (** Line *)
+
 type input
 type output
 
+
 (** Container *)
+
 type 'a container
 
+
 (** Media *)
+
 type audio
 type video
 type subtitle
 
+
 (** Format *)
+
 type ('line, 'media) format
 
+
 (** Frame *)
+
 type 'media frame
+
 
 (** A failure occured (with given explanation). *)
 exception Failure of string

@@ -1,20 +1,30 @@
-(** Input, output and streams reading and writing module *)
+(** Format, input, output and streams reading and writing *)
 
 open Avutil
 
 (** Format *)
 
-(** Return the name of the format *)
-val get_format_name : (_, _)format -> string
+(** Return the name of the input format *)
+val get_input_format_name : (input, _)format -> string
 
-(** Return the long name of the format *)
-val get_format_long_name : (_, _)format -> string
+(** Return the long name of the input format *)
+val get_input_format_long_name : (input, _)format -> string
+
+(** Return the name of the output format *)
+val get_output_format_name : (output, _)format -> string
+
+(** Return the long name of the output format *)
+val get_output_format_long_name : (output, _)format -> string
 
 (** Return the audio codec id of the output audio format *)
 val get_format_audio_codec_id : (output, audio)format -> Avcodec.Audio.id
 
 (** Return the video codec id of the output video format *)
 val get_format_video_codec_id : (output, video)format -> Avcodec.Video.id
+
+(** Return the subtitle codec id of the output subtitle format *)
+val get_format_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id
+
 
 (** Input *)
 
