@@ -11,10 +11,8 @@ let () =
 
   let codec_id = Avcodec.Audio.find_by_name Sys.argv.(2) in
 
-  let dst = Av.open_output Sys.argv.(1) in
-
-  let oas = Av.new_audio_stream ~codec_id ~channel_layout:CL.CL_stereo
-      ~sample_rate dst in
+  let oas = Av.open_output Sys.argv.(1) |> Av.new_audio_stream ~codec_id
+              ~channel_layout:CL.CL_stereo ~sample_rate in
 
   let rsp = Resampler.to_codec CL.CL_mono sample_rate (Av.get_codec oas) in
 
@@ -25,6 +23,6 @@ let () =
     |> Resampler.convert rsp |> Av.write oas;
   done;
 
-  Av.close_output dst;
+  Av.get_output oas |> Av.close_output;
 
   Gc.full_major ()

@@ -57,6 +57,7 @@ let find_best_audio_stream c = find_best_stream c Media_type.MT_audio
 let find_best_video_stream c = find_best_stream c Media_type.MT_video
 let find_best_subtitle_stream c = find_best_stream c Media_type.MT_subtitle
 
+let get_input s = s.container
 let get_index s = s.index
 
 let get_duration s fmt = _get_duration s.container s.index fmt
@@ -116,6 +117,7 @@ let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
 
 let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 
+let get_output s = s.container
 
 external new_audio_stream : output container -> Avcodec.Audio.id -> Channel_layout.t -> Sample_format.t -> int -> int -> int = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
 

@@ -67,6 +67,9 @@ val find_best_video_stream : input container -> (int * (input, video)stream * vi
 (** Return the best subtitle stream of the input *)
 val find_best_subtitle_stream : input container -> (int * (input, subtitle)stream * subtitle Avcodec.t)
 
+(** Return the input container of the input stream. *)
+val get_input : (input, _)stream -> input container
+
 (** Return the index of the stream. *)
 val get_index : (_, _)stream -> int
 
@@ -128,25 +131,35 @@ val open_output_format_name : string -> output container
 (** Close an output. *)
 val close_output : output container -> unit
 
-(** Set output tag list. *)
+
+(** Set output tag list.
+This must be set before starting writing streams. *)
 val set_output_metadata : output container -> (string * string) list -> unit
-(** This must be set before starting writing streams. *)
 
-(** Set output stream tag list. *)
+
+(** Set output stream tag list.
+This must be set before starting writing streams. *)
 val set_metadata : (output, _)stream -> (string * string) list -> unit
-(** This must be set before starting writing streams. *)
 
-(** Add a new audio stream to a media file. *)
+
+(** Return the output container of the output stream. *)
+val get_output : (output, _)stream -> output container
+
+
+(** Add a new audio stream to a media file.
+Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> output container -> (output, audio)stream
-(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 
-(** Add a new video stream to a media file. *)
+
+(** Add a new video stream to a media file.
+Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> output container -> (output, video)stream
-(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 
-(** Add a new subtitle stream to a media file. *)
+
+(** Add a new subtitle stream to a media file.
+Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> output container -> (output, subtitle)stream
-(** Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+
 
 (** Write a frame to the output stream *)
 val write : (output, 'media)stream -> 'media frame -> unit
