@@ -192,11 +192,12 @@ end
 type ('i, 'o) t
 
 (** Functor building an implementation of the swresample structure with parameterized input an output audio data types *)
-module Make : functor (I : AudioData) (O : AudioData) ->
-sig
+module Make : functor (I : AudioData) (O : AudioData) -> sig
+
   type nonrec t = (I.t, O.t) t
 
-  (** Create a Swresample.t with parameterized input and output audio format. *)
+  (** Create a Swresample.t with parameterized input and output audio format.
+      If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used. A Failure exception is raised if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
   val create : CL.t -> ?in_sample_format:SF.t ->
     int -> CL.t -> ?out_sample_format:SF.t -> int -> t
 
