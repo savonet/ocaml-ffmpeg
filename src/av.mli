@@ -3,28 +3,29 @@
 open Avutil
 
 (** Format *)
+module Format : sig
 
-(** Return the name of the input format *)
-val get_input_format_name : (input, _)format -> string
+  (** Return the name of the input format *)
+  val get_input_name : (input, _)format -> string
 
-(** Return the long name of the input format *)
-val get_input_format_long_name : (input, _)format -> string
+  (** Return the long name of the input format *)
+  val get_input_long_name : (input, _)format -> string
 
-(** Return the name of the output format *)
-val get_output_format_name : (output, _)format -> string
+  (** Return the name of the output format *)
+  val get_output_name : (output, _)format -> string
 
-(** Return the long name of the output format *)
-val get_output_format_long_name : (output, _)format -> string
+  (** Return the long name of the output format *)
+  val get_output_long_name : (output, _)format -> string
 
-(** Return the audio codec id of the output audio format *)
-val get_format_audio_codec_id : (output, audio)format -> Avcodec.Audio.id
+  (** Return the audio codec id of the output audio format *)
+  val get_audio_codec_id : (output, audio)format -> Avcodec.Audio.id
 
-(** Return the video codec id of the output video format *)
-val get_format_video_codec_id : (output, video)format -> Avcodec.Video.id
+  (** Return the video codec id of the output video format *)
+  val get_video_codec_id : (output, video)format -> Avcodec.Video.id
 
-(** Return the subtitle codec id of the output subtitle format *)
-val get_format_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id
-
+  (** Return the subtitle codec id of the output subtitle format *)
+  val get_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id
+end
 
 (** Input *)
 
@@ -133,12 +134,12 @@ val close_output : output container -> unit
 
 
 (** Set output tag list.
-This must be set before starting writing streams. *)
+    This must be set before starting writing streams. *)
 val set_output_metadata : output container -> (string * string) list -> unit
 
 
 (** Set output stream tag list.
-This must be set before starting writing streams. *)
+    This must be set before starting writing streams. *)
 val set_metadata : (output, _)stream -> (string * string) list -> unit
 
 
@@ -147,17 +148,17 @@ val get_output : (output, _)stream -> output container
 
 
 (** Add a new audio stream to a media file.
-Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> output container -> (output, audio)stream
 
 
 (** Add a new video stream to a media file.
-Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> output container -> (output, video)stream
 
 
 (** Add a new subtitle stream to a media file.
-Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams. *)
 val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> output container -> (output, subtitle)stream
 
 

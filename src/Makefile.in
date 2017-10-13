@@ -37,7 +37,7 @@ endif
 endif
 RESULT = ffmpeg
 LIB_PACK_NAME = FFmpeg
-OCAMLDOCFLAGS = -stars
+OCAMLDOCFLAGS = -stars -hide Avutil
 LIBINSTALL_FILES = $(wildcard *.mli *.cmi *.cma *.cmxa *.cmx *.a *.so)
 ACLIBS = @LIBS@
 LDFLAGS = @LDFLAGS@

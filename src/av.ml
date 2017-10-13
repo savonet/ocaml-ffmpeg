@@ -1,15 +1,16 @@
 open Avutil
 
 (* Format *)
-external get_input_format_name : (input, _)format -> string = "ocaml_av_input_format_get_name"
-external get_input_format_long_name : (input, _)format -> string = "ocaml_av_input_format_get_long_name"
+module Format = struct
+  external get_input_name : (input, _)format -> string = "ocaml_av_input_format_get_name"
+  external get_input_long_name : (input, _)format -> string = "ocaml_av_input_format_get_long_name"
 
-external get_output_format_name : (output, _)format -> string = "ocaml_av_output_format_get_name"
-external get_output_format_long_name : (output, _)format -> string = "ocaml_av_output_format_get_long_name"
-external get_format_audio_codec_id : (output, audio)format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
-external get_format_video_codec_id : (output, video)format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
-external get_format_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
-
+  external get_output_name : (output, _)format -> string = "ocaml_av_output_format_get_name"
+  external get_output_long_name : (output, _)format -> string = "ocaml_av_output_format_get_long_name"
+  external get_audio_codec_id : (output, audio)format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
+  external get_video_codec_id : (output, video)format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
+  external get_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
+end
 
 
 
@@ -52,7 +53,7 @@ external _find_best_stream : input container -> Media_type.t -> int = "ocaml_av_
 
 let find_best_stream c t =
   let i = _find_best_stream c t in let s = mk_stream c i in (i, s, get_codec s)
-  
+
 let find_best_audio_stream c = find_best_stream c Media_type.MT_audio
 let find_best_video_stream c = find_best_stream c Media_type.MT_video
 let find_best_subtitle_stream c = find_best_stream c Media_type.MT_subtitle

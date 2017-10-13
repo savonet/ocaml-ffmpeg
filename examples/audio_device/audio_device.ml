@@ -1,18 +1,18 @@
 open FFmpeg
 
 let () =
-  if Array.length Sys.argv < 2 then Printf.(
+  if Array.length Sys.argv < 2 then Printf.(Av.Format.(
       printf "\ninput devices :\n";
       Avdevice.get_input_audio_devices() |> List.iter
-        (fun d -> printf"\t%s (%s)\n"(Av.get_input_format_name d)(Av.get_input_format_long_name d));
+        (fun d -> printf"\t%s (%s)\n"(get_input_name d)(get_input_long_name d));
       printf "\noutput devices :\n";
       Avdevice.get_output_audio_devices() |> List.iter
-        (fun d -> printf"\t%s (%s)\n"(Av.get_output_format_name d)(Av.get_output_format_long_name d));
+        (fun d -> printf"\t%s (%s)\n"(get_output_name d)(get_output_long_name d));
       printf"\nusage: %s input [output]\ninput and output can be devices or file names\n" Sys.argv.(0);
-      exit 0);
+      exit 0));
 
   let src = try Avdevice.get_input_audio_devices()
-                |> List.find(fun d -> Av.get_input_format_name d = Sys.argv.(1))
+                |> List.find(fun d -> Av.Format.get_input_name d = Sys.argv.(1))
                 |> Av.open_input_format
     with Not_found -> Av.open_input Sys.argv.(1) in
 
@@ -20,9 +20,9 @@ let () =
 
   let dst, codec_id = try Avdevice.get_output_audio_devices()
                           |> (if Array.length Sys.argv < 3 then List.hd
-                              else List.find(fun d -> Av.get_output_format_name d = Sys.argv.(2)))
+                              else List.find(fun d -> Av.Format.get_output_name d = Sys.argv.(2)))
                           |> fun fmt ->
-                          (Av.open_output_format fmt, Av.get_format_audio_codec_id fmt)
+                          (Av.open_output_format fmt, Av.Format.get_audio_codec_id fmt)
     with Not_found ->
       (Av.open_output Sys.argv.(2), Avcodec.Audio.AC_FLAC) in
 
@@ -46,5 +46,4 @@ let () =
   Av.close_input src;
   Av.close_output dst;
 
-  Gc.full_major ();
-  Gc.full_major ();
+  Gc.full_major (); Gc.full_major ();

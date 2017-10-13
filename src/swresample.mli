@@ -19,7 +19,7 @@ module type AudioData = sig
 end
 
 
-(** Byte string with undefined sample format for interleaved channels. *)
+(** Byte string with undefined sample format for interleaved channels. The sample format must be passed to the create function. *)
 module Bytes : sig
   type t = bytes val vk : vector_kind val sf : SF.t
 end
@@ -134,7 +134,7 @@ module DblPlanarBigArray : sig
   type t = f64ba array val vk : vector_kind val sf : SF.t
 end
 
-(** Audio frame with undefined sample format. *)
+(** Audio frame with undefined sample format. The sample format must be passed to the create function. *)
 module Frame : sig
   type t = audio frame val vk : vector_kind val sf : SF.t
 end
@@ -198,8 +198,7 @@ module Make : functor (I : AudioData) (O : AudioData) -> sig
 
   (** Create a Swresample.t with parameterized input and output audio format.
       If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used. A Failure exception is raised if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
-  val create : CL.t -> ?in_sample_format:SF.t ->
-    int -> CL.t -> ?out_sample_format:SF.t -> int -> t
+  val create : CL.t -> ?in_sample_format:SF.t -> int -> CL.t -> ?out_sample_format:SF.t -> int -> t
 
   (** Create a Swresample.t with input audio codec parameters and output audio parameters. *)
   val from_codec : audio Avcodec.t -> CL.t -> ?out_sample_format:SF.t -> int -> t
