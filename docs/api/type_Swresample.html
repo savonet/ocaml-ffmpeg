@@ -17,8 +17,117 @@
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">SF</span>&nbsp;=&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">CL</span>&nbsp;=&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;vector_kind&nbsp;=&nbsp;<span class="constructor">Str</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Str</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Fa</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Fa</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Ba</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Ba</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Frm</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="keyword">type</span>&nbsp;<span class="constructor">AudioData</span>&nbsp;=<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>i,&nbsp;<span class="keywordsign">'</span>o)&nbsp;t<br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Make</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">functor</span>&nbsp;(<span class="constructor">I</span>&nbsp;:&nbsp;<span class="constructor">AudioData</span>)&nbsp;(<span class="constructor">O</span>&nbsp;:&nbsp;<span class="constructor">AudioData</span>)&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;nonrec&nbsp;t&nbsp;=&nbsp;(<span class="constructor">I</span>.t,&nbsp;<span class="constructor">O</span>.t)&nbsp;<span class="constructor">Swresample</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?out_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?out_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_codec&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec_to_codec&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;convert&nbsp;:&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">I</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">O</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Bytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8Bytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16Bytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32Bytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8PlanarBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16PlanarBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32PlanarBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltPlanarBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblPlanarBytes</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FloatArray</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;float&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">PlanarFloatArray</span>&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;float&nbsp;array&nbsp;array<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;u8ba&nbsp;=<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(int,&nbsp;<span class="constructor">Bigarray</span>.int8_unsigned_elt,&nbsp;<span class="constructor">Bigarray</span>.c_layout)&nbsp;<span class="constructor">Bigarray</span>.<span class="constructor">Array1</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;s16ba&nbsp;=<br>
@@ -29,212 +138,130 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(float,&nbsp;<span class="constructor">Bigarray</span>.float32_elt,&nbsp;<span class="constructor">Bigarray</span>.c_layout)&nbsp;<span class="constructor">Bigarray</span>.<span class="constructor">Array1</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;f64ba&nbsp;=<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(float,&nbsp;<span class="constructor">Bigarray</span>.float64_elt,&nbsp;<span class="constructor">Bigarray</span>.c_layout)&nbsp;<span class="constructor">Bigarray</span>.<span class="constructor">Array1</span>.t<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;vector_kind&nbsp;=&nbsp;<span class="constructor">Str</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Str</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Fa</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Fa</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Ba</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">P_Ba</span>&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Frm</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="keyword">type</span>&nbsp;<span class="constructor">AudioData</span>&nbsp;=<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Bytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8Bytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16Bytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32Bytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8PlanarBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16PlanarBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32PlanarBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltPlanarBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblPlanarBytes</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;bytes&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FloatArray</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;float&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">PlanarFloatArray</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;float&nbsp;array&nbsp;array<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8BigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.u8ba<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16BigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.s16ba<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32BigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.s32ba<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.f32ba<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.f64ba<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8PlanarBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.u8ba&nbsp;array<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16PlanarBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.s16ba&nbsp;array<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32PlanarBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.s32ba&nbsp;array<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltPlanarBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.f32ba&nbsp;array<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblPlanarBigArray</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Swresample</span>.f64ba&nbsp;array<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Frame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8Frame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16Frame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32Frame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">U8PlanarFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S16PlanarFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">S32PlanarFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FltPlanarFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">DblPlanarFrame</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;vk&nbsp;:&nbsp;<span class="constructor">Swresample</span>.vector_kind<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">SF</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;sf&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>i,&nbsp;<span class="keywordsign">'</span>o)&nbsp;t<br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Make</span>&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">functor</span>&nbsp;(<span class="constructor">I</span>&nbsp;:&nbsp;<span class="constructor">AudioData</span>)&nbsp;(<span class="constructor">O</span>&nbsp;:&nbsp;<span class="constructor">AudioData</span>)&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;nonrec&nbsp;t&nbsp;=&nbsp;(<span class="constructor">I</span>.t,&nbsp;<span class="constructor">O</span>.t)&nbsp;<span class="constructor">Swresample</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?out_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?out_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_codec&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec_to_codec&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;convert&nbsp;:&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">I</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">O</span>.t<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">end</span><br>
 <span class="keyword">end</span></code></body></html>

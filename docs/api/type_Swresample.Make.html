@@ -20,15 +20,18 @@
 &nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;nonrec&nbsp;t&nbsp;=&nbsp;(<span class="constructor">I</span>.t,&nbsp;<span class="constructor">O</span>.t)&nbsp;<span class="constructor">Swresample</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?out_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?out_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;?out_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?out_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_codec&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">CL</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">SF</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;?in_sample_format:<span class="constructor">Avutil</span>.<span class="constructor">Sample_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_codec_to_codec&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Swresample</span>.<span class="constructor">Make</span>.t<br>
