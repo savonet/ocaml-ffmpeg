@@ -14,9 +14,8 @@ distclean: clean
 
 doc:
 	$(MAKE) -C src htdoc
-	mkdir -p docs
-	rm -rf docs/html
-	mv src/doc/ffmpeg/html docs
+	rm -rf docs/api
+	mv -T src/doc/ffmpeg/html docs/api
 	rm -rf src/doc
 
 dist:
