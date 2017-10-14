@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Avdevice.App_to_dev.html">
+<link rel="Up" href="Avdevice.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avdevice.Dev_to_app</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Avdevice.App_to_dev.html" title="Avdevice.App_to_dev">Previous</a>
+&nbsp;<a class="up" href="Avdevice.html" title="Avdevice">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Avdevice.Dev_to_app.html">Avdevice.Dev_to_app</a></h1>
+
+<pre><span class="keyword">module</span> Dev_to_app: <code class="code">sig</code> <a href="Avdevice.Dev_to_app.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Device to application communication<br>
+</div>
+<hr width="100%">
+
+<pre><code><span id="TYPEmessage"><span class="keyword">type</span> <code class="type"></code>message</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.None"><span class="constructor">None</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Create_window_buffer"><span class="constructor">Create_window_buffer</span></span> <span class="keyword">of</span> <code class="type">(int * int * int * int) option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Prepare_window_buffer"><span class="constructor">Prepare_window_buffer</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Display_window_buffer"><span class="constructor">Display_window_buffer</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Destroy_window_buffer"><span class="constructor">Destroy_window_buffer</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Buffer_overflow"><span class="constructor">Buffer_overflow</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Buffer_underflow"><span class="constructor">Buffer_underflow</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Buffer_readable"><span class="constructor">Buffer_readable</span></span> <span class="keyword">of</span> <code class="type">Int64.t option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Buffer_writable"><span class="constructor">Buffer_writable</span></span> <span class="keyword">of</span> <code class="type">Int64.t option</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Mute_state_changed"><span class="constructor">Mute_state_changed</span></span> <span class="keyword">of</span> <code class="type">bool</code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmessage.Volume_level_changed"><span class="constructor">Volume_level_changed</span></span> <span class="keyword">of</span> <code class="type">float</code></code></td>
+
+</tr></table>
+
+<div class="info ">
+Device to application control messages<br>
+</div>
+
+
+<pre><span id="VALset_control_message_callback"><span class="keyword">val</span> set_control_message_callback</span> : <code class="type">(<a href="Avdevice.Dev_to_app.html#TYPEmessage">message</a> -> unit) -> 'a <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
+Set the callback for device message reception<br>
+</div>
+</body></html>

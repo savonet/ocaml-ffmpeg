@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Avcodec.html">
+<link rel="next" href="Swresample.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Av</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Avcodec.html" title="Avcodec">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Swresample.html" title="Swresample">Next</a>
+</div>
+<h1>Module <a href="type_Av.html">Av</a></h1>
+
+<pre><span class="keyword">module</span> Av: <code class="code">sig</code> <a href="Av.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Format, input, output and streams reading and writing<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Av.Format.html">Format</a>: <code class="code">sig</code> <a href="Av.Format.html">..</a> <code class="code">end</code></pre><div class="info">
+Format
+</div>
+<br>
+Input<br>
+
+<pre><span id="VALopen_input"><span class="keyword">val</span> open_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open an input URL.<br>
+</div>
+
+<pre><span id="VALopen_input_format"><span class="keyword">val</span> open_input_format</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open an input format.<br>
+</div>
+
+<pre><span id="VALclose_input"><span class="keyword">val</span> close_input</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
+Close an input.<br>
+</div>
+
+<pre><span id="VALget_input_duration"><span class="keyword">val</span> get_input_duration</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t</code></pre><div class="info ">
+Return the duration of an input.<br>
+</div>
+
+<pre><span id="VALget_input_metadata"><span class="keyword">val</span> get_input_metadata</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (string * string) list</code></pre><div class="info ">
+Return the input tag list.<br>
+</div>
+
+<pre><span id="TYPEstream"><span class="keyword">type</span> <code class="type">('line, 'media)</code> stream</span> </pre>
+<div class="info ">
+Input/output, audio/video/subtitle stream type<br>
+</div>
+
+
+<pre><span id="VALget_audio_streams"><span class="keyword">val</span> get_audio_streams</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       (int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a>) list</code></pre><div class="info ">
+Return the audio stream list of the input<br>
+</div>
+
+<pre><span id="VALget_video_streams"><span class="keyword">val</span> get_video_streams</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       (int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a>) list</code></pre><div class="info ">
+Return the video stream list of the input<br>
+</div>
+
+<pre><span id="VALget_subtitle_streams"><span class="keyword">val</span> get_subtitle_streams</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       (int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEsubtitle">subtitle</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a>)<br>       list</code></pre><div class="info ">
+Return the subtitle stream list of the input<br>
+</div>
+
+<pre><span id="VALfind_best_audio_stream"><span class="keyword">val</span> find_best_audio_stream</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a></code></pre><div class="info ">
+Return the best audio stream of the input<br>
+</div>
+
+<pre><span id="VALfind_best_video_stream"><span class="keyword">val</span> find_best_video_stream</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a></code></pre><div class="info ">
+Return the best video stream of the input<br>
+</div>
+
+<pre><span id="VALfind_best_subtitle_stream"><span class="keyword">val</span> find_best_subtitle_stream</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -><br>       int * (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEsubtitle">subtitle</a>) <a href="Av.html#TYPEstream">stream</a> * <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a></code></pre><div class="info ">
+Return the best subtitle stream of the input<br>
+</div>
+
+<pre><span id="VALget_input"><span class="keyword">val</span> get_input</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Return the input container of the input stream.<br>
+</div>
+
+<pre><span id="VALget_index"><span class="keyword">val</span> get_index</span> : <code class="type">('a, 'b) <a href="Av.html#TYPEstream">stream</a> -> int</code></pre><div class="info ">
+Return the index of the stream.<br>
+</div>
+
+<pre><span id="VALget_codec"><span class="keyword">val</span> get_codec</span> : <code class="type">('a, 'media) <a href="Av.html#TYPEstream">stream</a> -> 'media <a href="Avcodec.html#TYPEt">Avcodec.t</a></code></pre><div class="info ">
+Return the codec of the stream.<br>
+</div>
+
+<pre><span id="VALget_duration"><span class="keyword">val</span> get_duration</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t</code></pre><div class="info ">
+Return the duration of the input stream.<br>
+</div>
+
+<pre><span id="VALget_metadata"><span class="keyword">val</span> get_metadata</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> (string * string) list</code></pre><div class="info ">
+Return the input stream tag list.<br>
+</div>
+
+<pre><span id="VALselect"><span class="keyword">val</span> select</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> unit</code></pre><div class="info ">
+Select the input stream for reading.<br>
+</div>
+
+<pre><code><span id="TYPEresult"><span class="keyword">type</span> <code class="type">'media</code> result</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTresult.Frame"><span class="constructor">Frame</span></span> <span class="keyword">of</span> <code class="type">'media <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTresult.End_of_file"><span class="constructor">End_of_file</span></span></code></td>
+
+</tr></table>
+
+<div class="info ">
+Stream reading result.<br>
+</div>
+
+
+<pre><span id="VALread"><span class="keyword">val</span> read</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'media) <a href="Av.html#TYPEstream">stream</a> -> 'media <a href="Av.html#TYPEresult">result</a></code></pre><div class="info ">
+Read the input stream.<br>
+</div>
+
+<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">('media <a href="Avutil.html#TYPEframe">frame</a> -> unit) -> (<a href="Avutil.html#TYPEinput">input</a>, 'media) <a href="Av.html#TYPEstream">stream</a> -> unit</code></pre><div class="info ">
+Read iteratively the input stream.<br>
+</div>
+
+<pre><code><span id="TYPEseek_flag"><span class="keyword">type</span> <code class="type"></code>seek_flag</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTseek_flag.Seek_flag_backward"><span class="constructor">Seek_flag_backward</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTseek_flag.Seek_flag_byte"><span class="constructor">Seek_flag_byte</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTseek_flag.Seek_flag_any"><span class="constructor">Seek_flag_any</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTseek_flag.Seek_flag_frame"><span class="constructor">Seek_flag_frame</span></span></code></td>
+
+</tr></table>
+
+<div class="info ">
+Seek mode.<br>
+</div>
+
+
+<pre><span id="VALseek"><span class="keyword">val</span> seek</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -><br>       <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t -> <a href="Av.html#TYPEseek_flag">seek_flag</a> array -> unit</code></pre><div class="info ">
+Seek in the input stream.<br>
+</div>
+
+<pre><code><span id="TYPEmedia"><span class="keyword">type</span> <code class="type"></code>media</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmedia.Audio"><span class="constructor">Audio</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmedia.Video"><span class="constructor">Video</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmedia.Subtitle"><span class="constructor">Subtitle</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmedia.End_of_file"><span class="constructor">End_of_file</span></span></code></td>
+
+</tr></table>
+
+
+
+<pre><span id="VALread_input"><span class="keyword">val</span> read_input</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> <a href="Av.html#TYPEmedia">media</a></code></pre><div class="info ">
+Reads the selected streams if any or all streams otherwise.<br>
+</div>
+
+<pre><span id="VALiter_input"><span class="keyword">val</span> iter_input</span> : <code class="type">?audio:(int -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avutil.html#TYPEframe">frame</a> -> unit) -><br>       ?video:(int -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> unit) -><br>       ?subtitle:(int -> <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a> -> unit) -><br>       <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
+Reads iteratively the selected streams if any or all streams otherwise.<br>
+</div>
+<br>
+Output<br>
+
+<pre><span id="VALopen_output"><span class="keyword">val</span> open_output</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open an output file.<br>
+</div>
+
+<pre><span id="VALopen_output_format"><span class="keyword">val</span> open_output_format</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open an output format.<br>
+</div>
+
+<pre><span id="VALopen_output_format_name"><span class="keyword">val</span> open_output_format_name</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open an output format by name.<br>
+</div>
+
+<pre><span id="VALclose_output"><span class="keyword">val</span> close_output</span> : <code class="type"><a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
+Close an output.<br>
+</div>
+
+<pre><span id="VALset_output_metadata"><span class="keyword">val</span> set_output_metadata</span> : <code class="type"><a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (string * string) list -> unit</code></pre><div class="info ">
+Set output tag list.
+    This must be set before starting writing streams.<br>
+</div>
+
+<pre><span id="VALset_metadata"><span class="keyword">val</span> set_metadata</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> (string * string) list -> unit</code></pre><div class="info ">
+Set output stream tag list.
+    This must be set before starting writing streams.<br>
+</div>
+
+<pre><span id="VALget_output"><span class="keyword">val</span> get_output</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Return the output container of the output stream.<br>
+</div>
+
+<pre><span id="VALnew_audio_stream"><span class="keyword">val</span> new_audio_stream</span> : <code class="type">?codec_id:<a href="Avcodec.Audio.html#TYPEid">Avcodec.Audio.id</a> -><br>       ?codec_name:string -><br>       ?channel_layout:<a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       ?bit_rate:int -><br>       ?sample_rate:int -><br>       ?codec:<a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Av.html#TYPEstream">stream</a></code></pre><div class="info ">
+Add a new audio stream to a media file.
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams.<br>
+</div>
+
+<pre><span id="VALnew_video_stream"><span class="keyword">val</span> new_video_stream</span> : <code class="type">?codec_id:<a href="Avcodec.Video.html#TYPEid">Avcodec.Video.id</a> -><br>       ?codec_name:string -><br>       ?width:int -><br>       ?height:int -><br>       ?pixel_format:<a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a> -><br>       ?bit_rate:int -><br>       ?frame_rate:int -><br>       ?codec:<a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Av.html#TYPEstream">stream</a></code></pre><div class="info ">
+Add a new video stream to a media file.
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams.<br>
+</div>
+
+<pre><span id="VALnew_subtitle_stream"><span class="keyword">val</span> new_subtitle_stream</span> : <code class="type">?codec_id:<a href="Avcodec.Subtitle.html#TYPEid">Avcodec.Subtitle.id</a> -><br>       ?codec_name:string -><br>       ?codec:<a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEsubtitle">subtitle</a>) <a href="Av.html#TYPEstream">stream</a></code></pre><div class="info ">
+Add a new subtitle stream to a media file.
+    Parameters passed unitarily take precedence over those of the codec. This must be set before starting writing streams.<br>
+</div>
+
+<pre><span id="VALwrite"><span class="keyword">val</span> write</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'media) <a href="Av.html#TYPEstream">stream</a> -> 'media <a href="Avutil.html#TYPEframe">frame</a> -> unit</code></pre><div class="info ">
+Write a frame to the output stream<br>
+</div>
+</body></html>

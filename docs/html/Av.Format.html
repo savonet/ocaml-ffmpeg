@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="Up" href="Av.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Av.Format</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Av.html" title="Av">Up</a>
+&nbsp;</div>
+<h1>Module <a href="type_Av.Format.html">Av.Format</a></h1>
+
+<pre><span class="keyword">module</span> Format: <code class="code">sig</code> <a href="Av.Format.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Format<br>
+</div>
+<hr width="100%">
+
+<pre><span id="VALget_input_name"><span class="keyword">val</span> get_input_name</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
+Return the name of the input format<br>
+</div>
+
+<pre><span id="VALget_input_long_name"><span class="keyword">val</span> get_input_long_name</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
+Return the long name of the input format<br>
+</div>
+
+<pre><span id="VALget_output_name"><span class="keyword">val</span> get_output_name</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
+Return the name of the output format<br>
+</div>
+
+<pre><span id="VALget_output_long_name"><span class="keyword">val</span> get_output_long_name</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
+Return the long name of the output format<br>
+</div>
+
+<pre><span id="VALget_audio_codec_id"><span class="keyword">val</span> get_audio_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Audio.html#TYPEid">Avcodec.Audio.id</a></code></pre><div class="info ">
+Return the audio codec id of the output audio format<br>
+</div>
+
+<pre><span id="VALget_video_codec_id"><span class="keyword">val</span> get_video_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Video.html#TYPEid">Avcodec.Video.id</a></code></pre><div class="info ">
+Return the video codec id of the output video format<br>
+</div>
+
+<pre><span id="VALget_subtitle_codec_id"><span class="keyword">val</span> get_subtitle_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEsubtitle">subtitle</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Subtitle.html#TYPEid">Avcodec.Subtitle.id</a></code></pre><div class="info ">
+Return the subtitle codec id of the output subtitle format<br>
+</div>
+</body></html>

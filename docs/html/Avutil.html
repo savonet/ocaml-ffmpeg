@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Swscale.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Swscale.html" title="Swscale">Next</a>
+</div>
+<h1>Module <a href="type_Avutil.html">Avutil</a></h1>
+
+<pre><span class="keyword">module</span> Avutil: <code class="code">sig</code> <a href="Avutil.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Common code shared across all FFmpeg libraries.<br>
+</div>
+<hr width="100%">
+<br>
+Line<br>
+
+<pre><span id="TYPEinput"><span class="keyword">type</span> <code class="type"></code>input</span> </pre>
+
+
+<pre><span id="TYPEoutput"><span class="keyword">type</span> <code class="type"></code>output</span> </pre>
+
+<br>
+Container<br>
+
+<pre><span id="TYPEcontainer"><span class="keyword">type</span> <code class="type">'a</code> container</span> </pre>
+
+<br>
+Media<br>
+
+<pre><span id="TYPEaudio"><span class="keyword">type</span> <code class="type"></code>audio</span> </pre>
+
+
+<pre><span id="TYPEvideo"><span class="keyword">type</span> <code class="type"></code>video</span> </pre>
+
+
+<pre><span id="TYPEsubtitle"><span class="keyword">type</span> <code class="type"></code>subtitle</span> </pre>
+
+<br>
+Format<br>
+
+<pre><span id="TYPEformat"><span class="keyword">type</span> <code class="type">('line, 'media)</code> format</span> </pre>
+
+<br>
+Frame<br>
+
+<pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type">'media</code> frame</span> </pre>
+
+
+<pre><span id="EXCEPTIONFailure"><span class="keyword">exception</span> Failure</span> <span class="keyword">of</span> <code class="type">string</code></pre>
+<div class="info ">
+A failure occured (with given explanation).<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Pixel_format.html">Pixel_format</a>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info">
+Formats for pixels.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Time_format.html">Time_format</a>: <code class="code">sig</code> <a href="Avutil.Time_format.html">..</a> <code class="code">end</code></pre><div class="info">
+Formats for time.
+</div>
+
+<pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> int64</code></pre><div class="info ">
+Return the time base of FFmpeg.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Channel_layout.html">Channel_layout</a>: <code class="code">sig</code> <a href="Avutil.Channel_layout.html">..</a> <code class="code">end</code></pre><div class="info">
+Formats for channels layouts.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Sample_format.html">Sample_format</a>: <code class="code">sig</code> <a href="Avutil.Sample_format.html">..</a> <code class="code">end</code></pre><div class="info">
+Formats for audio samples.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Media_type.html">Media_type</a>: <code class="code">sig</code> <a href="Avutil.Media_type.html">..</a> <code class="code">end</code></pre><div class="info">
+Media type.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Video.html">Video</a>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><div class="info">
+Video utilities.
+</div>
+
+<pre><span class="keyword">module</span> <a href="Avutil.Subtitle.html">Subtitle</a>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info">
+Subtitle utilities.
+</div>
+</body></html>

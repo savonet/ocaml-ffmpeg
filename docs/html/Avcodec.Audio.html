@@ -1,0 +1,1111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Avcodec.Video.html">
+<link rel="Up" href="Avcodec.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avcodec.Audio</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="Avcodec.html" title="Avcodec">Up</a>
+&nbsp;<a class="post" href="Avcodec.Video.html" title="Avcodec.Video">Next</a>
+</div>
+<h1>Module <a href="type_Avcodec.Audio.html">Avcodec.Audio</a></h1>
+
+<pre><span class="keyword">module</span> Audio: <code class="code">sig</code> <a href="Avcodec.Audio.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Audio codecs.<br>
+</div>
+<hr width="100%">
+
+<pre><code><span id="TYPEid"><span class="keyword">type</span> <code class="type"></code>id</span> = </code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S16LE"><span class="constructor">AC_PCM_S16LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S16BE"><span class="constructor">AC_PCM_S16BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U16LE"><span class="constructor">AC_PCM_U16LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U16BE"><span class="constructor">AC_PCM_U16BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S8"><span class="constructor">AC_PCM_S8</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U8"><span class="constructor">AC_PCM_U8</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_MULAW"><span class="constructor">AC_PCM_MULAW</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_ALAW"><span class="constructor">AC_PCM_ALAW</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S32LE"><span class="constructor">AC_PCM_S32LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S32BE"><span class="constructor">AC_PCM_S32BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U32LE"><span class="constructor">AC_PCM_U32LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U32BE"><span class="constructor">AC_PCM_U32BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S24LE"><span class="constructor">AC_PCM_S24LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S24BE"><span class="constructor">AC_PCM_S24BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U24LE"><span class="constructor">AC_PCM_U24LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_U24BE"><span class="constructor">AC_PCM_U24BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S24DAUD"><span class="constructor">AC_PCM_S24DAUD</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_ZORK"><span class="constructor">AC_PCM_ZORK</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S16LE_PLANAR"><span class="constructor">AC_PCM_S16LE_PLANAR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_DVD"><span class="constructor">AC_PCM_DVD</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F32BE"><span class="constructor">AC_PCM_F32BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F32LE"><span class="constructor">AC_PCM_F32LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F64BE"><span class="constructor">AC_PCM_F64BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F64LE"><span class="constructor">AC_PCM_F64LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_BLURAY"><span class="constructor">AC_PCM_BLURAY</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_LXF"><span class="constructor">AC_PCM_LXF</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_S302M"><span class="constructor">AC_S302M</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S8_PLANAR"><span class="constructor">AC_PCM_S8_PLANAR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S24LE_PLANAR"><span class="constructor">AC_PCM_S24LE_PLANAR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S32LE_PLANAR"><span class="constructor">AC_PCM_S32LE_PLANAR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S16BE_PLANAR"><span class="constructor">AC_PCM_S16BE_PLANAR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S64LE"><span class="constructor">AC_PCM_S64LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_S64BE"><span class="constructor">AC_PCM_S64BE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F16LE"><span class="constructor">AC_PCM_F16LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_PCM_F24LE"><span class="constructor">AC_PCM_F24LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_QT"><span class="constructor">AC_ADPCM_IMA_QT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_WAV"><span class="constructor">AC_ADPCM_IMA_WAV</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_DK3"><span class="constructor">AC_ADPCM_IMA_DK3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_DK4"><span class="constructor">AC_ADPCM_IMA_DK4</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_WS"><span class="constructor">AC_ADPCM_IMA_WS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_SMJPEG"><span class="constructor">AC_ADPCM_IMA_SMJPEG</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_MS"><span class="constructor">AC_ADPCM_MS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_4XM"><span class="constructor">AC_ADPCM_4XM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_XA"><span class="constructor">AC_ADPCM_XA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_ADX"><span class="constructor">AC_ADPCM_ADX</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA"><span class="constructor">AC_ADPCM_EA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_G726"><span class="constructor">AC_ADPCM_G726</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_CT"><span class="constructor">AC_ADPCM_CT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_SWF"><span class="constructor">AC_ADPCM_SWF</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_YAMAHA"><span class="constructor">AC_ADPCM_YAMAHA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_SBPRO_4"><span class="constructor">AC_ADPCM_SBPRO_4</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_SBPRO_3"><span class="constructor">AC_ADPCM_SBPRO_3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_SBPRO_2"><span class="constructor">AC_ADPCM_SBPRO_2</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_THP"><span class="constructor">AC_ADPCM_THP</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_AMV"><span class="constructor">AC_ADPCM_IMA_AMV</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA_R1"><span class="constructor">AC_ADPCM_EA_R1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA_R3"><span class="constructor">AC_ADPCM_EA_R3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA_R2"><span class="constructor">AC_ADPCM_EA_R2</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_EA_SEAD"><span class="constructor">AC_ADPCM_IMA_EA_SEAD</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_EA_EACS"><span class="constructor">AC_ADPCM_IMA_EA_EACS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA_XAS"><span class="constructor">AC_ADPCM_EA_XAS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_EA_MAXIS_XA"><span class="constructor">AC_ADPCM_EA_MAXIS_XA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_ISS"><span class="constructor">AC_ADPCM_IMA_ISS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_G722"><span class="constructor">AC_ADPCM_G722</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_APC"><span class="constructor">AC_ADPCM_IMA_APC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_VIMA"><span class="constructor">AC_ADPCM_VIMA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_AFC"><span class="constructor">AC_ADPCM_AFC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_OKI"><span class="constructor">AC_ADPCM_IMA_OKI</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_DTK"><span class="constructor">AC_ADPCM_DTK</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_RAD"><span class="constructor">AC_ADPCM_IMA_RAD</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_G726LE"><span class="constructor">AC_ADPCM_G726LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_THP_LE"><span class="constructor">AC_ADPCM_THP_LE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_PSX"><span class="constructor">AC_ADPCM_PSX</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_AICA"><span class="constructor">AC_ADPCM_AICA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_IMA_DAT4"><span class="constructor">AC_ADPCM_IMA_DAT4</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ADPCM_MTAF"><span class="constructor">AC_ADPCM_MTAF</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_AMR_NB"><span class="constructor">AC_AMR_NB</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_AMR_WB"><span class="constructor">AC_AMR_WB</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_RA_144"><span class="constructor">AC_RA_144</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_RA_288"><span class="constructor">AC_RA_288</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ROQ_DPCM"><span class="constructor">AC_ROQ_DPCM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_INTERPLAY_DPCM"><span class="constructor">AC_INTERPLAY_DPCM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_XAN_DPCM"><span class="constructor">AC_XAN_DPCM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SOL_DPCM"><span class="constructor">AC_SOL_DPCM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SDX2_DPCM"><span class="constructor">AC_SDX2_DPCM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP2"><span class="constructor">AC_MP2</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP3"><span class="constructor">AC_MP3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_AAC"><span class="constructor">AC_AAC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_AC3"><span class="constructor">AC_AC3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_DTS"><span class="constructor">AC_DTS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_VORBIS"><span class="constructor">AC_VORBIS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_DVAUDIO"><span class="constructor">AC_DVAUDIO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WMAV1"><span class="constructor">AC_WMAV1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WMAV2"><span class="constructor">AC_WMAV2</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MACE3"><span class="constructor">AC_MACE3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MACE6"><span class="constructor">AC_MACE6</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_VMDAUDIO"><span class="constructor">AC_VMDAUDIO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_FLAC"><span class="constructor">AC_FLAC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP3ADU"><span class="constructor">AC_MP3ADU</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP3ON4"><span class="constructor">AC_MP3ON4</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SHORTEN"><span class="constructor">AC_SHORTEN</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ALAC"><span class="constructor">AC_ALAC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WESTWOOD_SND1"><span class="constructor">AC_WESTWOOD_SND1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_GSM"><span class="constructor">AC_GSM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_QDM2"><span class="constructor">AC_QDM2</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_COOK"><span class="constructor">AC_COOK</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_TRUESPEECH"><span class="constructor">AC_TRUESPEECH</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_TTA"><span class="constructor">AC_TTA</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SMACKAUDIO"><span class="constructor">AC_SMACKAUDIO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_QCELP"><span class="constructor">AC_QCELP</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WAVPACK"><span class="constructor">AC_WAVPACK</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_DSICINAUDIO"><span class="constructor">AC_DSICINAUDIO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_IMC"><span class="constructor">AC_IMC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MUSEPACK7"><span class="constructor">AC_MUSEPACK7</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MLP"><span class="constructor">AC_MLP</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_GSM_MS"><span class="constructor">AC_GSM_MS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ATRAC3"><span class="constructor">AC_ATRAC3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_APE"><span class="constructor">AC_APE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_NELLYMOSER"><span class="constructor">AC_NELLYMOSER</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MUSEPACK8"><span class="constructor">AC_MUSEPACK8</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SPEEX"><span class="constructor">AC_SPEEX</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WMAVOICE"><span class="constructor">AC_WMAVOICE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WMAPRO"><span class="constructor">AC_WMAPRO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_WMALOSSLESS"><span class="constructor">AC_WMALOSSLESS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ATRAC3P"><span class="constructor">AC_ATRAC3P</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_EAC3"><span class="constructor">AC_EAC3</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_SIPR"><span class="constructor">AC_SIPR</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP1"><span class="constructor">AC_MP1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_TWINVQ"><span class="constructor">AC_TWINVQ</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_TRUEHD"><span class="constructor">AC_TRUEHD</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_MP4ALS"><span class="constructor">AC_MP4ALS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ATRAC1"><span class="constructor">AC_ATRAC1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_BINKAUDIO_RDFT"><span class="constructor">AC_BINKAUDIO_RDFT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_BINKAUDIO_DCT"><span class="constructor">AC_BINKAUDIO_DCT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_AAC_LATM"><span class="constructor">AC_AAC_LATM</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_QDMC"><span class="constructor">AC_QDMC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_CELT"><span class="constructor">AC_CELT</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_G723_1"><span class="constructor">AC_G723_1</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_G729"><span class="constructor">AC_G729</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_8SVX_EXP"><span class="constructor">AC_8SVX_EXP</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_8SVX_FIB"><span class="constructor">AC_8SVX_FIB</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_BMV_AUDIO"><span class="constructor">AC_BMV_AUDIO</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_RALF"><span class="constructor">AC_RALF</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_IAC"><span class="constructor">AC_IAC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_ILBC"><span class="constructor">AC_ILBC</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_OPUS"><span class="constructor">AC_OPUS</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_COMFORT_NOISE"><span class="constructor">AC_COMFORT_NOISE</span></span></code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code><span class="keyword">|</span></code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTid.AC_TAK"><span class="constructor">AC_TAK</span></span></code></td>
+
+</tr></table>
+
+<div class="info ">
+Audio codec ids<br>
+</div>
+
+
+<pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> string</code></pre><div class="info ">
+Return the name of the codec.<br>
+</div>
+
+<pre><span id="VALfind_by_name"><span class="keyword">val</span> find_by_name</span> : <code class="type">string -> <a href="Avcodec.Audio.html#TYPEid">id</a></code></pre><div class="info ">
+Return the id of a codec from is name.<br>
+</div>
+
+<pre><span id="VALfind_best_sample_format"><span class="keyword">val</span> find_best_sample_format</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
+Return the best sample format of a codec.<br>
+</div>
+
+<pre><span id="VALget_codec_id"><span class="keyword">val</span> get_codec_id</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Audio.html#TYPEid">id</a></code></pre><div class="info ">
+Return the id of the codec.<br>
+</div>
+
+<pre><span id="VALget_channel_layout"><span class="keyword">val</span> get_channel_layout</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a></code></pre><div class="info ">
+Return the channel layout set for the codec.<br>
+</div>
+
+<pre><span id="VALget_nb_channels"><span class="keyword">val</span> get_nb_channels</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
+Returns the number of channels set for the codec.<br>
+</div>
+
+<pre><span id="VALget_sample_format"><span class="keyword">val</span> get_sample_format</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
+Returns the sample format set for the codec.<br>
+</div>
+
+<pre><span id="VALget_bit_rate"><span class="keyword">val</span> get_bit_rate</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
+Returns the bit rate set for the codec.<br>
+</div>
+
+<pre><span id="VALget_sample_rate"><span class="keyword">val</span> get_sample_rate</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
+Returns the sample rate set for the codec.<br>
+</div>
+</body></html>
