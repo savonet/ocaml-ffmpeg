@@ -25,25 +25,18 @@
 &nbsp;</div>
 <h1>Module <a href="type_Avutil.Subtitle.html">Avutil.Subtitle</a></h1>
 
-<pre><span class="keyword">module</span> Subtitle: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Subtitle utilities.<br>
-</div>
-<hr width="100%">
+<pre><span class="keyword">module</span> Subtitle: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> int64</code></pre><div class="info ">
 Return the time base for subtitles.<br>
 </div>
 
 <pre><span id="VALcreate_frame"><span class="keyword">val</span> create_frame</span> : <code class="type">float -> float -> string list -> <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a></code></pre><div class="info ">
-Create a subtitle frame from lines.
-<p>
-Parameters : start end lines
-   The start and the end are dislpay time in seconds.<br>
+<code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.<br>
+<b>Raises</b> <code>Failure</code> if the allocation failed.<br>
 </div>
 
 <pre><span id="VALframe_to_lines"><span class="keyword">val</span> frame_to_lines</span> : <code class="type"><a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a> -> float * float * string list</code></pre><div class="info ">
-Convert subtitle frame to lines.
-<p>
-The two float are the start and the end dislpay time in seconds.<br>
+Convert subtitle frame to lines. The two float are the start and the end dislpay time in seconds.<br>
 </div>
 </body></html>

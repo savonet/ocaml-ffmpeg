@@ -1212,15 +1212,17 @@ Video codec ids<br>
 Return the name of the codec.<br>
 </div>
 
-<pre><span id="VALfind_by_name"><span class="keyword">val</span> find_by_name</span> : <code class="type">string -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
-Return the id of a codec from is name.<br>
+<pre><span id="VALfind_id"><span class="keyword">val</span> find_id</span> : <code class="type">string -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
+Return the id of a codec from his name.<br>
+<b>Raises</b> <code>Failure</code> if the codec is not found or is not a video codec.<br>
 </div>
 
 <pre><span id="VALfind_best_pixel_format"><span class="keyword">val</span> find_best_pixel_format</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a></code></pre><div class="info ">
 Return the best pixel format of a codec.<br>
+<b>Raises</b> <code>Failure</code> if the codec has no best pixel format.<br>
 </div>
 
-<pre><span id="VALget_codec_id"><span class="keyword">val</span> get_codec_id</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
+<pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
 Return the id of the codec.<br>
 </div>
 

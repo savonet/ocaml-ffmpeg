@@ -5,7 +5,7 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Avutil.Media_type.html">
+<link rel="previous" href="Avutil.Pixel_format.html">
 <link rel="next" href="Avutil.Subtitle.html">
 <link rel="Up" href="Avutil.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -21,32 +21,26 @@
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil.Video</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Avutil.Media_type.html" title="Avutil.Media_type">Previous</a>
+<div class="navbar"><a class="pre" href="Avutil.Pixel_format.html" title="Avutil.Pixel_format">Previous</a>
 &nbsp;<a class="up" href="Avutil.html" title="Avutil">Up</a>
 &nbsp;<a class="post" href="Avutil.Subtitle.html" title="Avutil.Subtitle">Next</a>
 </div>
 <h1>Module <a href="type_Avutil.Video.html">Avutil.Video</a></h1>
 
-<pre><span class="keyword">module</span> Video: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Video utilities.<br>
-</div>
-<hr width="100%">
+<pre><span class="keyword">module</span> Video: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALcreate_frame"><span class="keyword">val</span> create_frame</span> : <code class="type">int -> int -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a></code></pre><div class="info ">
-Create a video frame.
-<p>
-Parameters : width height pixel_format<br>
+<code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.<br>
+<b>Raises</b> <code>Failure</code> if the allocation failed.<br>
 </div>
 
 <pre><span id="VALframe_get"><span class="keyword">val</span> frame_get</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> int -> int -> int -> int</code></pre><div class="info ">
-Return a data of a pixel in a plane
-<p>
-Parameters : plane_number x y<br>
+<code class="code">Avutil.Video.frame_get p x y</code> return the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.<br>
+<b>Raises</b> <code>Failure</code> if <code class="code">p</code>, <code class="code">x</code> or <code class="code">y</code> are out of boundaries.<br>
 </div>
 
 <pre><span id="VALframe_set"><span class="keyword">val</span> frame_set</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> int -> int -> int -> int -> unit</code></pre><div class="info ">
-Set a data of a pixel in a plane
-<p>
-Parameters : plane_number x y<br>
+<code class="code">Avutil.Video.frame_set p x y</code> set the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.<br>
+<b>Raises</b> <code>Failure</code> if <code class="code">p</code>, <code class="code">x</code> or <code class="code">y</code> are out of boundaries.<br>
 </div>
 </body></html>

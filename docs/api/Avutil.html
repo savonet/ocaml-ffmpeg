@@ -17,7 +17,17 @@
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
-<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil</title>
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><link title="Audio utilities" rel="Section" href="#6_Audioutilities">
+<link title="Video utilities" rel="Section" href="#6_Videoutilities">
+<link title="Subtitle utilities" rel="Section" href="#6_Subtitleutilities">
+<link title="Line" rel="Subsection" href="#9_Line">
+<link title="Container" rel="Subsection" href="#9_Container">
+<link title="Media" rel="Subsection" href="#9_Media">
+<link title="Format" rel="Subsection" href="#9_Format">
+<link title="Frame" rel="Subsection" href="#9_Frame">
+<link title="Exception" rel="Subsection" href="#9_Exception">
+<link title="Timestamp" rel="Subsection" href="#9_Timestamp">
+<title>Avutil</title>
 </head>
 <body>
 <div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
@@ -30,7 +40,7 @@ Common code shared across all FFmpeg libraries.<br>
 </div>
 <hr width="100%">
 <br>
-Line<br>
+<div class="h9" id="9_Line">Line</div><br>
 
 <pre><span id="TYPEinput"><span class="keyword">type</span> <code class="type"></code>input</span> </pre>
 
@@ -38,12 +48,12 @@ Line<br>
 <pre><span id="TYPEoutput"><span class="keyword">type</span> <code class="type"></code>output</span> </pre>
 
 <br>
-Container<br>
+<div class="h9" id="9_Container">Container</div><br>
 
 <pre><span id="TYPEcontainer"><span class="keyword">type</span> <code class="type">'a</code> container</span> </pre>
 
 <br>
-Media<br>
+<div class="h9" id="9_Media">Media</div><br>
 
 <pre><span id="TYPEaudio"><span class="keyword">type</span> <code class="type"></code>audio</span> </pre>
 
@@ -54,24 +64,24 @@ Media<br>
 <pre><span id="TYPEsubtitle"><span class="keyword">type</span> <code class="type"></code>subtitle</span> </pre>
 
 <br>
-Format<br>
+<div class="h9" id="9_Format">Format</div><br>
 
 <pre><span id="TYPEformat"><span class="keyword">type</span> <code class="type">('line, 'media)</code> format</span> </pre>
 
 <br>
-Frame<br>
+<div class="h9" id="9_Frame">Frame</div><br>
 
 <pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type">'media</code> frame</span> </pre>
 
+<br>
+<div class="h9" id="9_Exception">Exception</div><br>
 
 <pre><span id="EXCEPTIONFailure"><span class="keyword">exception</span> Failure</span> <span class="keyword">of</span> <code class="type">string</code></pre>
 <div class="info ">
 A failure occured (with given explanation).<br>
 </div>
-
-<pre><span class="keyword">module</span> <a href="Avutil.Pixel_format.html">Pixel_format</a>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info">
-Formats for pixels.
-</div>
+<br>
+<div class="h9" id="9_Timestamp">Timestamp</div><br>
 
 <pre><span class="keyword">module</span> <a href="Avutil.Time_format.html">Time_format</a>: <code class="code">sig</code> <a href="Avutil.Time_format.html">..</a> <code class="code">end</code></pre><div class="info">
 Formats for time.
@@ -80,6 +90,8 @@ Formats for time.
 <pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> int64</code></pre><div class="info ">
 Return the time base of FFmpeg.<br>
 </div>
+<br>
+<h6 id="6_Audioutilities">Audio utilities</h6><br>
 
 <pre><span class="keyword">module</span> <a href="Avutil.Channel_layout.html">Channel_layout</a>: <code class="code">sig</code> <a href="Avutil.Channel_layout.html">..</a> <code class="code">end</code></pre><div class="info">
 Formats for channels layouts.
@@ -88,16 +100,14 @@ Formats for channels layouts.
 <pre><span class="keyword">module</span> <a href="Avutil.Sample_format.html">Sample_format</a>: <code class="code">sig</code> <a href="Avutil.Sample_format.html">..</a> <code class="code">end</code></pre><div class="info">
 Formats for audio samples.
 </div>
+<br>
+<h6 id="6_Videoutilities">Video utilities</h6><br>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Media_type.html">Media_type</a>: <code class="code">sig</code> <a href="Avutil.Media_type.html">..</a> <code class="code">end</code></pre><div class="info">
-Media type.
+<pre><span class="keyword">module</span> <a href="Avutil.Pixel_format.html">Pixel_format</a>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info">
+Formats for pixels.
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Video.html">Video</a>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><div class="info">
-Video utilities.
-</div>
+<pre><span class="keyword">module</span> <a href="Avutil.Video.html">Video</a>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><br>
+<h6 id="6_Subtitleutilities">Subtitle utilities</h6><br>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Subtitle.html">Subtitle</a>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info">
-Subtitle utilities.
-</div>
-</body></html>
+<pre><span class="keyword">module</span> <a href="Avutil.Subtitle.html">Subtitle</a>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre></body></html>

@@ -53,23 +53,25 @@ Functor building an implementation of the swresample structure with parameterize
 
 
 <pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type"><a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-Create a Swresample.t with parameterized input and output audio format.
-      If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used. A Failure exception is raised if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame.<br>
+<code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.
+If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.<br>
+<b>Raises</b> <code>Failure</code> "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame.<br>
 </div>
 
 <pre><span id="VALfrom_codec"><span class="keyword">val</span> from_codec</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-Create a Swresample.t with input audio codec parameters and output audio parameters.<br>
+<code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.<br>
 </div>
 
 <pre><span id="VALto_codec"><span class="keyword">val</span> to_codec</span> : <code class="type"><a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-Create a Swresample.t with input audio parameters and output audio codec parameters.<br>
+<code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.<br>
 </div>
 
 <pre><span id="VALfrom_codec_to_codec"><span class="keyword">val</span> from_codec_to_codec</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-Create a Swresample.t with input audio codec parameters and output audio codec parameters.<br>
+<code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.<br>
 </div>
 
 <pre><span id="VALconvert"><span class="keyword">val</span> convert</span> : <code class="type"><a href="Swresample.Make.html#TYPEt">t</a> -> I.t -> O.t</code></pre><div class="info ">
-Resample and convert input audio data to output audio data format.<br>
+<code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.<br>
+<b>Raises</b> <code>Failure</code> if the conversion failed.<br>
 </div>
 </body></html>

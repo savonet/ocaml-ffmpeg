@@ -28,49 +28,47 @@ Return the number of bits of the pixel format.
 </div>
 </td></tr>
 <tr><td align="left"><br>C</td></tr>
-<tr><td><a href="Av.html#VALclose_input">close_input</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Av.html#VALclose">close</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Close an input.
-</div>
-</td></tr>
-<tr><td><a href="Av.html#VALclose_output">close_output</a> [<a href="Av.html">Av</a>]</td>
-<td><div class="info">
-Close an output.
+Close an input or output container.
 </div>
 </td></tr>
 <tr><td><a href="Swscale.html#VALconfiguration">configuration</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td></td></tr>
 <tr><td><a href="Avdevice.App_to_dev.html#VALcontrol_messages">control_messages</a> [<a href="Avdevice.App_to_dev.html">Avdevice.App_to_dev</a>]</td>
 <td><div class="info">
-Send a list of control message to the device
+<code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALconvert">convert</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-Resample and convert input audio data to output audio data format.
+<code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALcreate">create</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-Create a Swresample.t with parameterized input and output audio format.
+<code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.
 </div>
 </td></tr>
 <tr><td><a href="Swscale.html#VALcreate">create</a> [<a href="Swscale.html">Swscale</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<code class="code">Swscale.create flags in_w in_h in_pf out_w out_h out_pf</code> create a Swscale.t scale context with the <code class="code">flags</code> flag list defining the conversion type, the <code class="code">in_w</code> width, <code class="code">in_h</code> height and <code class="code">in_pf</code> pixel format for input format and <code class="code">out_w</code> width, <code class="code">out_h</code> height and <code class="code">out_pf</code> pixel format for output format.
+</div>
+</td></tr>
 <tr><td><a href="Avutil.Subtitle.html#VALcreate_frame">create_frame</a> [<a href="Avutil.Subtitle.html">Avutil.Subtitle</a>]</td>
 <td><div class="info">
-Create a subtitle frame from lines.
+<code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Video.html#VALcreate_frame">create_frame</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
 <td><div class="info">
-Create a video frame.
+<code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.
 </div>
 </td></tr>
 <tr><td align="left"><br>F</td></tr>
 <tr><td><a href="Av.html#VALfind_best_audio_stream">find_best_audio_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the best audio stream of the input
+Return the best audio stream of the input.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALfind_best_pixel_format">find_best_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
@@ -85,37 +83,57 @@ Return the best sample format of a codec.
 </td></tr>
 <tr><td><a href="Av.html#VALfind_best_subtitle_stream">find_best_subtitle_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the best subtitle stream of the input
+Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the subtitle streams.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALfind_best_video_stream">find_best_video_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the best video stream of the input
+Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the video streams.
 </div>
 </td></tr>
-<tr><td><a href="Avcodec.Subtitle.html#VALfind_by_name">find_by_name</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
+<tr><td><a href="Avcodec.Subtitle.html#VALfind_id">find_id</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
 <td><div class="info">
-Return the id of a codec from is name.
+Return the id of a codec from his name.
 </div>
 </td></tr>
-<tr><td><a href="Avcodec.Video.html#VALfind_by_name">find_by_name</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<tr><td><a href="Avcodec.Video.html#VALfind_id">find_id</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Return the id of a codec from is name.
+Return the id of a codec from his name.
 </div>
 </td></tr>
-<tr><td><a href="Avcodec.Audio.html#VALfind_by_name">find_by_name</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<tr><td><a href="Avcodec.Audio.html#VALfind_id">find_id</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the id of a codec from is name.
+Return the id of a codec from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALfind_input_audio_device">find_input_audio_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the input audio device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALfind_input_video_device">find_input_video_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the input video device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALfind_output_audio_device">find_output_audio_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the output audio device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALfind_output_video_device">find_output_video_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the output video device from his name.
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Video.html#VALframe_get">frame_get</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
 <td><div class="info">
-Return a data of a pixel in a plane
+<code class="code">Avutil.Video.frame_get p x y</code> return the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Video.html#VALframe_set">frame_set</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
 <td><div class="info">
-Set a data of a pixel in a plane
+<code class="code">Avutil.Video.frame_set p x y</code> set the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Subtitle.html#VALframe_to_lines">frame_to_lines</a> [<a href="Avutil.Subtitle.html">Avutil.Subtitle</a>]</td>
@@ -125,12 +143,12 @@ Convert subtitle frame to lines.
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALfrom_codec">from_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-Create a Swresample.t with input audio codec parameters and output audio parameters.
+<code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALfrom_codec_to_codec">from_codec_to_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-Create a Swresample.t with input audio codec parameters and output audio codec parameters.
+<code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.
 </div>
 </td></tr>
 <tr><td align="left"><br>G</td></tr>
@@ -141,7 +159,7 @@ Return the audio codec id of the output audio format
 </td></tr>
 <tr><td><a href="Av.html#VALget_audio_streams">get_audio_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the audio stream list of the input
+Return the audio stream list of the input.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_bit_rate">get_bit_rate</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
@@ -161,32 +179,32 @@ Return the channel layout set for the codec.
 </td></tr>
 <tr><td><a href="Av.html#VALget_codec">get_codec</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the codec of the stream.
-</div>
-</td></tr>
-<tr><td><a href="Avcodec.Subtitle.html#VALget_codec_id">get_codec_id</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
-<td><div class="info">
-Return the id of the codec.
-</div>
-</td></tr>
-<tr><td><a href="Avcodec.Video.html#VALget_codec_id">get_codec_id</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
-<td><div class="info">
-Return the id of the codec.
-</div>
-</td></tr>
-<tr><td><a href="Avcodec.Audio.html#VALget_codec_id">get_codec_id</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
-<td><div class="info">
-Return the id of the codec.
+<code class="code">Av.get_codec stream</code> return the codec of the <code class="code">stream</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_duration">get_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the duration of the input stream.
+Same as <a href="Av.html#VALget_input_duration"><code class="code">Av.get_input_duration</code></a> for the input streams.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_height">get_height</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
 Returns the height set for the codec.
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Subtitle.html#VALget_id">get_id</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
+<td><div class="info">
+Return the id of the codec.
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALget_id">get_id</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+Return the id of the codec.
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALget_id">get_id</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+Return the id of the codec.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_index">get_index</a> [<a href="Av.html">Av</a>]</td>
@@ -201,12 +219,12 @@ Return the input container of the input stream.
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_input_audio_devices">get_input_audio_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio input device list as input format.
+Return the input audio device list as input format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_input_duration">get_input_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the duration of an input.
+<code class="code">Av.get_input_duration input fmt</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format.
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_input_long_name">get_input_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
@@ -216,7 +234,7 @@ Return the long name of the input format
 </td></tr>
 <tr><td><a href="Av.html#VALget_input_metadata">get_input_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the input tag list.
+Return the input tag (key, vlue) list.
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_input_name">get_input_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
@@ -226,12 +244,12 @@ Return the name of the input format
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_input_video_devices">get_input_video_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video input device list as input format.
+Return the input video device list as input format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_metadata">get_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the input stream tag list.
+Same as <a href="Av.html#VALget_input_metadata"><code class="code">Av.get_input_metadata</code></a> for the input streams.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Subtitle.html#VALget_name">get_name</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
@@ -266,7 +284,7 @@ Return the output container of the output stream.
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_output_audio_devices">get_output_audio_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio output device list as output format.
+Return the output audio device list as output format.
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_output_long_name">get_output_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
@@ -281,7 +299,7 @@ Return the name of the output format
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_output_video_devices">get_output_video_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video output device list as output format.
+Return the output video device list as output format.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_pixel_format">get_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
@@ -311,7 +329,7 @@ Return the subtitle codec id of the output subtitle format
 </td></tr>
 <tr><td><a href="Av.html#VALget_subtitle_streams">get_subtitle_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the subtitle stream list of the input
+Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the subtitle streams.
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_video_codec_id">get_video_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
@@ -321,7 +339,7 @@ Return the video codec id of the output video format
 </td></tr>
 <tr><td><a href="Av.html#VALget_video_streams">get_video_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the video stream list of the input
+Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the video streams.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_width">get_width</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
@@ -332,12 +350,12 @@ Returns the width set for the codec.
 <tr><td align="left"><br>I</td></tr>
 <tr><td><a href="Av.html#VALiter">iter</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Read iteratively the input stream.
+<code class="code">Av.iter f is</code> applies function <code class="code">f</code> in turn to all the frames of the input stream <code class="code">is</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALiter_input">iter_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Reads iteratively the selected streams if any or all streams otherwise.
+<code class="code">Av.iter_input ~audio:af ~video:vf ~subtitle:sf src</code> reads iteratively the selected streams if any or all streams of the <code class="code">src</code> input otherwise.
 </div>
 </td></tr>
 <tr><td align="left"><br>L</td></tr>
@@ -346,49 +364,49 @@ Reads iteratively the selected streams if any or all streams otherwise.
 <tr><td align="left"><br>N</td></tr>
 <tr><td><a href="Av.html#VALnew_audio_stream">new_audio_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Add a new audio stream to a media file.
+<code class="code">Av.new_audio_stream ~codec_id:ci ~sample_format:sf ~sample_rate:sr ~codec:c dst</code> add a new audio stream to the <code class="code">dst</code> media file.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALnew_subtitle_stream">new_subtitle_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Add a new subtitle stream to a media file.
+Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for subtitle stream.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALnew_video_stream">new_video_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Add a new video stream to a media file.
+Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for video stream.
 </div>
 </td></tr>
 <tr><td align="left"><br>O</td></tr>
 <tr><td><a href="Av.html#VALopen_input">open_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Open an input URL.
+<code class="code">Av.open_input url</code> open the input <code class="code">url</code> (a file name or http URL).
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_input_format">open_input_format</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Open an input format.
+<code class="code">Av.open_input_format format</code> open the input <code class="code">format</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output">open_output</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Open an output file.
+<code class="code">Av.open_output filename</code> open the output file named <code class="code">filename</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output_format">open_output_format</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Open an output format.
+<code class="code">Av.open_output_format format</code> open the output <code class="code">format</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output_format_name">open_output_format_name</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Open an output format by name.
+<code class="code">Av.open_output_format_name name</code> open the output format of name <code class="code">name</code>.
 </div>
 </td></tr>
 <tr><td align="left"><br>R</td></tr>
 <tr><td><a href="Av.html#VALread">read</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Read the input stream.
+<code class="code">Av.read stream</code> read the input <code class="code">stream</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALread_input">read_input</a> [<a href="Av.html">Av</a>]</td>
@@ -398,30 +416,33 @@ Reads the selected streams if any or all streams otherwise.
 </td></tr>
 <tr><td align="left"><br>S</td></tr>
 <tr><td><a href="Swscale.html#VALscale">scale</a> [<a href="Swscale.html">Swscale</a>]</td>
-<td></td></tr>
+<td><div class="info">
+<code class="code">Swscale.scale ctx in_planes y h out_planes off</code> scale the <code class="code">h</code> rows of <code class="code">in_planes</code> strarting from the row <code class="code">y</code> to the <code class="code">off</code> row of the <code class="code">out_planes</code> output.
+</div>
+</td></tr>
 <tr><td><a href="Av.html#VALseek">seek</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Seek in the input stream.
+<code class="code">Av.seek is fmt t flags</code> seek in the input stream <code class="code">is</code> at the position <code class="code">t</code> in the <code class="code">fmt</code> time format according to the method indicated by the <code class="code">flags</code>.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALselect">select</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Select the input stream for reading.
+<code class="code">Av.select stream</code> select the input <code class="code">stream</code> for reading.
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.Dev_to_app.html#VALset_control_message_callback">set_control_message_callback</a> [<a href="Avdevice.Dev_to_app.html">Avdevice.Dev_to_app</a>]</td>
 <td><div class="info">
-Set the callback for device message reception
+<code class="code">Avdevice.Dev_to_app.set_control_message_callback callback device</code> set the <code class="code">callback</code> for <code class="code">device</code> message reception.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALset_metadata">set_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Set output stream tag list.
+Same as <a href="Av.html#VALset_output_metadata"><code class="code">Av.set_output_metadata</code></a> for the output streams.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALset_output_metadata">set_output_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Set output tag list.
+<code class="code">Av.set_output_metadata dst tags</code> set the metadata of the <code class="code">dst</code> output with the <code class="code">tags</code> tag list.
 </div>
 </td></tr>
 <tr><td><a href="Swresample.AudioData.html#VALsf">sf</a> [<a href="Swresample.AudioData.html">Swresample.AudioData</a>]</td>
@@ -507,7 +528,7 @@ Return the time base of FFmpeg.
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALto_codec">to_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-Create a Swresample.t with input audio parameters and output audio codec parameters.
+<code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.
 </div>
 </td></tr>
 <tr><td align="left"><br>V</td></tr>
@@ -586,7 +607,17 @@ Create a Swresample.t with input audio parameters and output audio codec paramet
 <tr><td align="left"><br>W</td></tr>
 <tr><td><a href="Av.html#VALwrite">write</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Write a frame to the output stream
+<code class="code">Av.write os frm</code> write the <code class="code">frm</code> frame to the <code class="code">os</code> output stream.
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALwrite_audio">write_audio</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<code class="code">Av.write dst frm</code> write the <code class="code">frm</code> audio frame to the <code class="code">dst</code> output audio container.
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALwrite_video">write_video</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+Same as <a href="Av.html#VALwrite_audio"><code class="code">Av.write_audio</code></a> for output video container.
 </div>
 </td></tr>
 </table>

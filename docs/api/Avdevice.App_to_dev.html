@@ -122,6 +122,7 @@ Application to device control messages<br>
 
 
 <pre><span id="VALcontrol_messages"><span class="keyword">val</span> control_messages</span> : <code class="type"><a href="Avdevice.App_to_dev.html#TYPEmessage">message</a> list -> 'a <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
-Send a list of control message to the device<br>
+<code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.<br>
+<b>Raises</b> <code>Failure</code> if the application to device control message failed.<br>
 </div>
 </body></html>

@@ -73,11 +73,17 @@ Video color conversion and scaling<br>
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> </pre>
 
 
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type"><a href="Swscale.html#TYPEflag">flag</a> list -><br>       int -><br>       int -><br>       <a href="Swscale.html#TYPEpixel_format">pixel_format</a> -> int -> int -> <a href="Swscale.html#TYPEpixel_format">pixel_format</a> -> <a href="Swscale.html#TYPEt">t</a></code></pre>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type"><a href="Swscale.html#TYPEflag">flag</a> list -><br>       int -><br>       int -><br>       <a href="Swscale.html#TYPEpixel_format">pixel_format</a> -> int -> int -> <a href="Swscale.html#TYPEpixel_format">pixel_format</a> -> <a href="Swscale.html#TYPEt">t</a></code></pre><div class="info ">
+<code class="code">Swscale.create flags in_w in_h in_pf out_w out_h out_pf</code> create a Swscale.t scale context with the <code class="code">flags</code> flag list defining the conversion type, the <code class="code">in_w</code> width, <code class="code">in_h</code> height and <code class="code">in_pf</code> pixel format for input format and <code class="code">out_w</code> width, <code class="code">out_h</code> height and <code class="code">out_pf</code> pixel format for output format.<br>
+</div>
+
 <pre><span id="TYPEdata"><span class="keyword">type</span> <code class="type"></code>data</span> = <code class="type">(int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t</code> </pre>
 
 
 <pre><span id="TYPEplanes"><span class="keyword">type</span> <code class="type"></code>planes</span> = <code class="type">(<a href="Swscale.html#TYPEdata">data</a> * int) array</code> </pre>
 
 
-<pre><span id="VALscale"><span class="keyword">val</span> scale</span> : <code class="type"><a href="Swscale.html#TYPEt">t</a> -> <a href="Swscale.html#TYPEplanes">planes</a> -> int -> int -> <a href="Swscale.html#TYPEplanes">planes</a> -> int -> unit</code></pre></body></html>
+<pre><span id="VALscale"><span class="keyword">val</span> scale</span> : <code class="type"><a href="Swscale.html#TYPEt">t</a> -> <a href="Swscale.html#TYPEplanes">planes</a> -> int -> int -> <a href="Swscale.html#TYPEplanes">planes</a> -> int -> unit</code></pre><div class="info ">
+<code class="code">Swscale.scale ctx in_planes y h out_planes off</code> scale the <code class="code">h</code> rows of <code class="code">in_planes</code> strarting from the row <code class="code">y</code> to the <code class="code">off</code> row of the <code class="code">out_planes</code> output.<br>
+</div>
+</body></html>
