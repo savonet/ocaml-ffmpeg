@@ -15,3 +15,4 @@ test: all
 	$(MAKE) -C transcode_aac $@
 	$(MAKE) -C transcoding $@
 	$(MAKE) -C demuxing_decoding $@
+	$(MAKE) -C player $@
