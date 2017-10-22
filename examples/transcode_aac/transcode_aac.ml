@@ -12,8 +12,7 @@ let () =
 
   is |> Av.iter(fun frm -> Av.write os frm);
 
-  Av.get_input is |> Av.close_input;
-  Av.get_output os |> Av.close_output;
+  Av.get_input is |> Av.close;
+  Av.get_output os |> Av.close;
 
-  Gc.full_major ();
-  Gc.full_major ();
+  Gc.full_major (); Gc.full_major ()

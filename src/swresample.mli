@@ -2,7 +2,10 @@
 
 open Avutil
 
+(**/**)
 type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
+(**/**)
+
 
 (** Audio data modules for Swresample module input and output parameterization. *)
 module type AudioData = sig
@@ -16,21 +19,25 @@ module Make : functor (I : AudioData) (O : AudioData) -> sig
 
   type nonrec t = (I.t, O.t) t
 
-  (** Create a Swresample.t with parameterized input and output audio format.
-      If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used. A Failure exception is raised if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
   val create : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
+  (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl] channel layout, [in_sf] sample format and [in_sr] sample rate as input format and [out_cl] channel layout, [out_sf] sample format and [out_sr] sample rate as output format.
+If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.
+@raise Failure "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
 
-  (** Create a Swresample.t with input audio codec parameters and output audio parameters. *)
   val from_codec : audio Avcodec.t -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
+  (** [Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format. *)
 
-  (** Create a Swresample.t with input audio parameters and output audio codec parameters. *)
+
   val to_codec : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> audio Avcodec.t -> t
+  (** [Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac] do the same as {!Swresample.create} with the [out_ac] audio codec properties as output format. *)
 
-  (** Create a Swresample.t with input audio codec parameters and output audio codec parameters. *)
+
   val from_codec_to_codec : audio Avcodec.t -> audio Avcodec.t -> t
+  (** [Swresample.from_codec_to_codec in_ac out_ac] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format and the [out_ac] audio codec properties as output format. *)
 
-  (** Resample and convert input audio data to output audio data format. *)
   val convert : t -> I.t -> O.t
+  (** [Swresample.convert rsp iad] resample and convert the [iad] input audio data to the output audio data according to the [rsp] resampler context format.
+@raise Failure if the conversion failed. *)
 end
 
 

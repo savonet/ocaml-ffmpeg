@@ -170,12 +170,12 @@ module Make (I : AudioData) (O : AudioData) = struct
     let in_sample_format = match in_sample_format with
       | _ when I.sf <> SF.SF_none -> I.sf
       | Some sf -> sf
-      | _ -> raise(Failure "Swresample.Converter input sample format undefined")
+      | _ -> raise(Failure "Swresample input sample format undefined")
     in
     let out_sample_format = match out_sample_format with
       | _ when O.sf <> SF.SF_none -> O.sf
       | Some sf -> sf
-      | _ -> raise(Failure "Swresample.Converter output sample format undefined")
+      | _ -> raise(Failure "Swresample output sample format undefined")
     in
     create I.vk in_channel_layout in_sample_format in_sample_rate
       O.vk out_channel_layout out_sample_format out_sample_rate

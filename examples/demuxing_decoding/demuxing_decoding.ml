@@ -44,7 +44,7 @@ let () =
   in
   decode();
 
-  Av.close_input src;
+  Av.close src;
 
   close_out video_output_file;
   close_out audio_output_file;
@@ -54,4 +54,4 @@ let () =
     (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
-  Gc.full_major ()
+  Gc.full_major (); Gc.full_major ()

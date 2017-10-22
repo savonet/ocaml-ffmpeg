@@ -20,8 +20,6 @@ external _open_input : string option -> (input, _)format option -> input contain
 let open_input url = _open_input (Some url) None
 let open_input_format format = _open_input None (Some format)
 
-external close_input : input container -> unit = "ocaml_av_close_input"
-
 external _get_duration : input container -> int -> Time_format.t -> Int64.t = "ocaml_av_get_duration"
 let get_input_duration i fmt = _get_duration i (-1) fmt
 
@@ -32,31 +30,34 @@ let get_input_metadata i = List.rev(_get_metadata i (-1))
 (* Input Stream *)
 type ('a, 'b) stream = {container : 'a container; index : int}
 
+type media_type = MT_audio | MT_video | MT_subtitle
+
+
 let mk_stream container index = {container; index}
 
 external get_codec : (_, 'm)stream -> 'm Avcodec.t = "ocaml_av_get_stream_codec_parameters"
 
 
-external _get_streams : input container -> Media_type.t -> int array = "ocaml_av_get_streams"
+external _get_streams : input container -> media_type -> int array = "ocaml_av_get_streams"
 
 let get_streams input media_type =
   _get_streams input media_type
   |> Array.map(fun i -> let s = mk_stream input i in (i, s, get_codec s))
   |> Array.to_list
 
-let get_audio_streams input = get_streams input Media_type.MT_audio
-let get_video_streams input = get_streams input Media_type.MT_video
-let get_subtitle_streams input = get_streams input Media_type.MT_subtitle
+let get_audio_streams input = get_streams input MT_audio
+let get_video_streams input = get_streams input MT_video
+let get_subtitle_streams input = get_streams input MT_subtitle
 
 
-external _find_best_stream : input container -> Media_type.t -> int = "ocaml_av_find_best_stream"
+external _find_best_stream : input container -> media_type -> int = "ocaml_av_find_best_stream"
 
 let find_best_stream c t =
   let i = _find_best_stream c t in let s = mk_stream c i in (i, s, get_codec s)
 
-let find_best_audio_stream c = find_best_stream c Media_type.MT_audio
-let find_best_video_stream c = find_best_stream c Media_type.MT_video
-let find_best_subtitle_stream c = find_best_stream c Media_type.MT_subtitle
+let find_best_audio_stream c = find_best_stream c MT_audio
+let find_best_video_stream c = find_best_stream c MT_video
+let find_best_subtitle_stream c = find_best_stream c MT_subtitle
 
 let get_input s = s.container
 let get_index s = s.index
@@ -66,7 +67,7 @@ let get_metadata s = List.rev(_get_metadata s.container s.index)
 
 external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
-type 'a result = Frame of 'a frame | End_of_file
+type 'a result = Frame of 'a frame | End_of_stream
 
 
 external read : (input, 'm)stream -> 'm result = "ocaml_av_read_stream"
@@ -74,7 +75,7 @@ external read : (input, 'm)stream -> 'm result = "ocaml_av_read_stream"
 let iter f s =
   let rec iter() = match read s with
     | Frame frame -> f frame; iter()
-    | End_of_file -> ()
+    | End_of_stream -> ()
   in
   iter()
 
@@ -93,11 +94,11 @@ type media =
 external read_input : input container -> media = "ocaml_av_read_input"
 
 (** Reads iteratively the selected streams if any or all streams otherwise. *)
-let iter_input ?(audio=(fun _ _ -> ())) ?(video=(fun _ _ -> ())) ?(subtitle=(fun _ _ -> ())) src =
+let iter_input ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _->())) src =
   let rec iter() = match read_input src with
-    | Audio (index, frame) -> audio index frame; iter()
-    | Video (index, frame) -> video index frame; iter()
-    | Subtitle (index, frame) -> subtitle index frame; iter()
+    | Audio(index, frame) -> audio index frame; iter()
+    | Video(index, frame) -> video index frame; iter()
+    | Subtitle(index, frame) -> subtitle index frame; iter()
     | End_of_file -> ()
   in
   iter()
@@ -109,8 +110,6 @@ external _open_output : string option -> (output, _)format option -> string opti
 let open_output filename = _open_output (Some filename) None None
 let open_output_format format = _open_output None (Some format) None
 let open_output_format_name format_name = _open_output None None (Some format_name)
-
-external close_output : output container -> unit = "ocaml_av_close_output"
 
 
 external _set_metadata : output container -> int -> (string * string) array -> unit = "ocaml_av_set_metadata"
@@ -127,9 +126,9 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Audio.find_by_name cn
+      | Some cn -> Avcodec.Audio.find_id cn
       | None -> match codec with
-        | Some cp -> Avcodec.Audio.get_codec_id cp
+        | Some cp -> Avcodec.Audio.get_id cp
         | None -> raise(Failure "Audio codec undefined")
   in
   let cl = match channel_layout with
@@ -166,9 +165,9 @@ let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rat
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Video.find_by_name cn
+      | Some cn -> Avcodec.Video.find_id cn
       | None -> match codec with
-        | Some cp -> Avcodec.Video.get_codec_id cp
+        | Some cp -> Avcodec.Video.get_id cp
         | None -> raise(Failure "Video codec undefined")
   in
   let w = match width with
@@ -205,12 +204,21 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec o =
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Subtitle.find_by_name cn
+      | Some cn -> Avcodec.Subtitle.find_id cn
       | None -> match codec with
-        | Some cp -> Avcodec.Subtitle.get_codec_id cp
+        | Some cp -> Avcodec.Subtitle.get_id cp
         | None -> raise(Failure "Subtitle codec undefined")
   in
   mk_stream o (new_subtitle_stream o ci)
 
 
 external write : (output, 'media)stream -> 'media frame -> unit = "ocaml_av_write_stream"
+
+external write_output : output container -> _ frame -> media_type -> unit = "ocaml_av_write_output"
+
+let write_audio oc af = write_output oc af MT_audio
+let write_video oc af = write_output oc af MT_video
+
+
+external close : _ container -> unit = "ocaml_av_close"
+

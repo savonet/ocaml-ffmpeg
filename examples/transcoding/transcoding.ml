@@ -22,7 +22,7 @@ let () =
     ~video:(fun i frm -> Av.write(List.assoc i ovss) frm)
     ~subtitle:(fun i frm -> Av.write(List.assoc i osss) frm);
 
-  Av.close_input src;
-  Av.close_output dst;
+  Av.close src;
+  Av.close dst;
 
-  Gc.full_major ()
+  Gc.full_major (); Gc.full_major ()

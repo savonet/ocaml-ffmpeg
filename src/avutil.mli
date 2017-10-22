@@ -1,58 +1,40 @@
 (** Common code shared across all FFmpeg libraries. *)
 
-(** Line *)
+(** {9 Line} *)
 
 type input
 type output
 
 
-(** Container *)
+(** {9 Container} *)
 
 type 'a container
 
 
-(** Media *)
+(** {9 Media} *)
 
 type audio
 type video
 type subtitle
 
 
-(** Format *)
+(** {9 Format} *)
 
 type ('line, 'media) format
 
 
-(** Frame *)
+(** {9 Frame} *)
 
 type 'media frame
 
+
+(** {9 Exception} *)
 
 (** A failure occured (with given explanation). *)
 exception Failure of string
 
 
-(** Formats for pixels. *)
-module Pixel_format : sig
-
-  (** Pixels formats. *)
-  type t =
-    | YUV420p
-    | YUYV422
-    | RGB24
-    | BGR24
-    | YUV422p
-    | YUV444p
-    | YUV410p
-    | YUV411p
-    | YUVJ422p
-    | YUVJ444p
-    | RGBA
-    | BGRA
-
-  (** Return the number of bits of the pixel format. *)
-  val bits : (*?padding:bool ->*) t -> int
-end
+(** {9 Timestamp} *)
 
 (** Formats for time. *)
 module Time_format : sig
@@ -68,6 +50,9 @@ end
 (** Return the time base of FFmpeg. *)
 val time_base : unit -> int64
 
+
+
+(** {6 Audio utilities} *)
 
 (** Formats for channels layouts. *)
 module Channel_layout : sig
@@ -126,48 +111,53 @@ module Sample_format : sig
 end
 
 
-(** Media type. *)
-module Media_type : sig
+(** {6 Video utilities} *)
 
-  (** Media type *)
+(** Formats for pixels. *)
+module Pixel_format : sig
+
+  (** Pixels formats. *)
   type t =
-    | MT_audio
-    | MT_video
-    | MT_subtitle
-    | MT_data
-    | MT_attachment
-    | MT_unknown
+    | YUV420p
+    | YUYV422
+    | RGB24
+    | BGR24
+    | YUV422p
+    | YUV444p
+    | YUV410p
+    | YUV411p
+    | YUVJ422p
+    | YUVJ444p
+    | RGBA
+    | BGRA
+
+  (** Return the number of bits of the pixel format. *)
+  val bits : (*?padding:bool ->*) t -> int
 end
 
-
-(** Video utilities. *)
 module Video : sig
 
-  (** Create a video frame. *)
   val create_frame : int -> int -> Pixel_format.t -> video frame
-  (** Parameters : width height pixel_format *)
+  (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width, [h] height and [pf] pixel format. @raise Failure if the allocation failed. *)
 
-  (** Return a data of a pixel in a plane *)
   val frame_get : video frame -> int -> int -> int -> int
-  (** Parameters : plane_number x y *)
+  (** [Avutil.Video.frame_get p x y] return the [p] plane data of the [x] [y] pixel. @raise Failure if [p], [x] or [y] are out of boundaries. *)
 
-  (** Set a data of a pixel in a plane *)
   val frame_set : video frame -> int -> int -> int -> int -> unit
-  (** Parameters : plane_number x y *)
+  (** [Avutil.Video.frame_set p x y] set the [p] plane data of the [x] [y] pixel. @raise Failure if [p], [x] or [y] are out of boundaries. *)
 end
 
-(** Subtitle utilities. *)
+
+(** {6 Subtitle utilities} *)
+
 module Subtitle : sig
 
-  (** Return the time base for subtitles. *)
   val time_base : unit -> int64
+  (** Return the time base for subtitles. *)
 
-  (** Create a subtitle frame from lines. *)
   val create_frame : float -> float -> string list -> subtitle frame
-  (** Parameters : start end lines
-   The start and the end are dislpay time in seconds. *)
+  (** [Avutil.Subtitle.create_frame start end lines] create a subtitle frame from [lines] which is displayed at [start] time and hidden at [end] time in seconds. @raise Failure if the allocation failed. *)
 
-  (** Convert subtitle frame to lines. *)
   val frame_to_lines : subtitle frame -> (float * float * string list)
-  (** The two float are the start and the end dislpay time in seconds. *)
+  (** Convert subtitle frame to lines. The two float are the start and the end dislpay time in seconds. *)
 end

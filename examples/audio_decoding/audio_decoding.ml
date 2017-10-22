@@ -21,12 +21,11 @@ let () =
   is |> Av.iter (fun frame ->
       FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
 
-  Av.get_input is |> Av.close_input;
+  Av.get_input is |> Av.close;
   close_out audio_output_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
     (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
-  Gc.full_major ();
-  Gc.full_major ();
+  Gc.full_major (); Gc.full_major ();

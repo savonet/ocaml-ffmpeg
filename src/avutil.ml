@@ -106,16 +106,6 @@ module Sample_format = struct
 end
 
 
-module Media_type = struct
-  type t =
-  | MT_audio
-  | MT_video
-  | MT_subtitle
-  | MT_data
-  | MT_attachment
-  | MT_unknown
-end
-
 
 module Video = struct
   external create_frame : int -> int -> Pixel_format.t -> video frame = "ocaml_avutil_video_create_frame"

@@ -180,14 +180,16 @@ module Audio : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  (** Return the id of a codec from is name. *)
-  val find_by_name : string -> id
+  val find_id : string -> id
+  (** Return the id of a codec from his name.
+      @raise Failure if the codec is not found or is not an audio codec. *)
 
-  (** Return the best sample format of a codec. *)
   val find_best_sample_format : id -> Avutil.Sample_format.t
+  (** Return the best sample format of a codec.
+      @raise Failure if the codec has no best sample format. *)
 
   (** Return the id of the codec. *)
-  val get_codec_id : audio t -> id
+  val get_id : audio t -> id
 
   (** Return the channel layout set for the codec. *)
   val get_channel_layout : audio t -> Avutil.Channel_layout.t
@@ -430,14 +432,16 @@ module Video : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  (** Return the id of a codec from is name. *)
-  val find_by_name : string -> id
+  val find_id : string -> id
+  (** Return the id of a codec from his name.
+      @raise Failure if the codec is not found or is not a video codec. *)
 
-  (** Return the best pixel format of a codec. *)
   val find_best_pixel_format : id -> Avutil.Pixel_format.t
+  (** Return the best pixel format of a codec.
+      @raise Failure if the codec has no best pixel format. *)
 
   (** Return the id of the codec. *)
-  val get_codec_id : video t -> id
+  val get_id : video t -> id
 
   (** Returns the width set for the codec. *)
   val get_width : video t -> int
@@ -487,9 +491,10 @@ module Subtitle : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  (** Return the id of a codec from is name. *)
-  val find_by_name : string -> id
+  val find_id : string -> id
+  (** Return the id of a codec from his name.
+      @raise Failure if the codec is not found or is not a subtitle codec. *)
 
   (** Return the id of the codec. *)
-  val get_codec_id : subtitle t -> id
+  val get_id : subtitle t -> id
 end

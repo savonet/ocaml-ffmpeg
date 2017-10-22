@@ -40,5 +40,6 @@ let () =
     fill_yuv_image width height i frame |> Av.write ovs;
   done;
 
-  Av.close_output dst;
-  Gc.full_major ()
+  Av.close dst;
+  
+  Gc.full_major (); Gc.full_major ()

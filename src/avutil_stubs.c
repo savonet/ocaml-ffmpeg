@@ -213,24 +213,6 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 }
 
 
-/**** Media Type ****/
-
-static const enum AVMediaType MEDIA_TYPES[] = {
-  AVMEDIA_TYPE_AUDIO,
-  AVMEDIA_TYPE_VIDEO,
-  AVMEDIA_TYPE_SUBTITLE,
-  AVMEDIA_TYPE_DATA,
-  AVMEDIA_TYPE_ATTACHMENT,
-  AVMEDIA_TYPE_UNKNOWN
-};
-#define MEDIA_TYPES_LEN (sizeof(MEDIA_TYPES) / sizeof(enum AVMediaType))
-
-enum AVMediaType MediaType_val(value v)
-{
-  return MEDIA_TYPES[Int_val(v)];
-}
-
-
 /***** AVFrame *****/
 
 static void finalize_frame(value v)
@@ -294,7 +276,12 @@ CAMLprim value ocaml_avutil_video_frame_get(value _frame, value _line, value _x,
   int x = Int_val(_x);
   int y = Int_val(_y);
 
-  ans = Val_int(frame->data[line][y * frame->linesize[line] + x]);
+  if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to get from video frame : line (%d) out of boundaries", line);
+  int linesize = frame->linesize[line];
+  if(x < 0 || x >= linesize) Raise(EXN_FAILURE, "Failed to get from video frame : x (%d) out of 0-%d boundaries", x, linesize - 1);
+  if(y < 0 || y >= frame->height) Raise(EXN_FAILURE, "Failed to get from video frame : y (%d) out of 0-%d boundaries", y, frame->height - 1);
+
+  ans = Val_int(frame->data[line][y * linesize + x]);
 #endif
   CAMLreturn(ans);
 }
@@ -310,7 +297,12 @@ CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x,
   int x = Int_val(_x);
   int y = Int_val(_y);
 
-  frame->data[line][y * frame->linesize[line] + x] = Int_val(_v);
+  if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to set to video frame : line (%d) out of boundaries", line);
+  int linesize = frame->linesize[line];
+  if(x < 0 || x >= linesize) Raise(EXN_FAILURE, "Failed to set to video frame : x (%d) out of 0-%d boundaries", x, linesize - 1);
+  if(y < 0 || y >= frame->height) Raise(EXN_FAILURE, "Failed to set to video frame : y (%d) out of 0-%d boundaries", y, frame->height - 1);
+
+  frame->data[line][y * linesize + x] = Int_val(_v);
 #endif
   CAMLreturn(Val_unit);
 }

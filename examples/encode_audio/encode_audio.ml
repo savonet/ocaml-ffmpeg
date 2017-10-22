@@ -9,7 +9,7 @@ let () =
 
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in
 
-  let codec_id = Avcodec.Audio.find_by_name Sys.argv.(2) in
+  let codec_id = Avcodec.Audio.find_id Sys.argv.(2) in
 
   let oas = Av.open_output Sys.argv.(1) |> Av.new_audio_stream ~codec_id
               ~channel_layout:CL.CL_stereo ~sample_rate in
@@ -23,6 +23,6 @@ let () =
     |> Resampler.convert rsp |> Av.write oas;
   done;
 
-  Av.get_output oas |> Av.close_output;
+  Av.get_output oas |> Av.close;
 
-  Gc.full_major ()
+  Gc.full_major (); Gc.full_major ()

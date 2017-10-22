@@ -2,17 +2,30 @@
 
 open Avutil
 
-(** Return the audio input device list as input format. *)
+(** Return the input audio device list as input format. *)
 val get_input_audio_devices : unit -> (input, audio) format list
     
-(** Return the video input device list as input format. *)
+(** Return the input video device list as input format. *)
 val get_input_video_devices : unit -> (input, video) format list
     
-(** Return the audio output device list as output format. *)
+(** Return the output audio device list as output format. *)
 val get_output_audio_devices : unit -> (output, audio) format list
     
-(** Return the video output device list as output format. *)
+(** Return the output video device list as output format. *)
 val get_output_video_devices : unit -> (output, video) format list
+
+
+val find_input_audio_device : string -> (input, audio) format
+(** Return the input audio device from his name. @raise Failure if the device is not found. *)
+
+val find_input_video_device : string -> (input, video) format
+(** Return the input video device from his name. @raise Failure if the device is not found. *)
+    
+val find_output_audio_device : string -> (output, audio) format
+(** Return the output audio device from his name. @raise Failure if the device is not found. *)
+    
+val find_output_video_device : string -> (output, video) format
+(** Return the output video device from his name. @raise Failure if the device is not found. *)
 
 (** Application to device communication *)
 module App_to_dev : sig
@@ -31,8 +44,8 @@ module App_to_dev : sig
   | Get_volume
   | Get_mute
 
-  (** Send a list of control message to the device *)
   val control_messages : message list -> _ container -> unit
+  (** [Avdevice.App_to_dev.control_messages msg_list device] send the [msg_list] list of control message to the [device]. @raise Failure if the application to device control message failed. *)
 end
 
 (** Device to application communication *)
@@ -51,6 +64,6 @@ module Dev_to_app : sig
     | Mute_state_changed of bool
     | Volume_level_changed of float
 
-  (** Set the callback for device message reception *)
   val set_control_message_callback : (message -> unit) -> _ container -> unit
+  (** [Avdevice.Dev_to_app.set_control_message_callback callback device] set the [callback] for [device] message reception. *)
 end

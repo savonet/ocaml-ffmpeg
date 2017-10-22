@@ -68,11 +68,6 @@ value Val_sampleFormat(enum AVSampleFormat sf);
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 
-/**** Media Type ****/
-
-enum AVMediaType MediaType_val(value v);
-
-
 /***** AVFrame *****/
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))

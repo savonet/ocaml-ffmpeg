@@ -87,5 +87,6 @@ let () =
     video_on_off.(b) width height i frame |> Av.write ovs;
   done;
 
-  Av.close_output dst;
-  Gc.full_major ()
+  Av.close dst;
+
+  Gc.full_major (); Gc.full_major ()
