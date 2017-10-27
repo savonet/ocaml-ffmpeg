@@ -3,25 +3,22 @@ open FFmpeg
 let () =
   if Array.length Sys.argv < 2 then Printf.(Av.Format.(
       printf "\ninput devices :\n";
-      Avdevice.get_input_audio_devices() |> List.iter
+      Avdevice.get_audio_inputs() |> List.iter
         (fun d -> printf"\t%s (%s)\n"(get_input_name d)(get_input_long_name d));
       printf "\noutput devices :\n";
-      Avdevice.get_output_audio_devices() |> List.iter
+      Avdevice.get_audio_outputs() |> List.iter
         (fun d -> printf"\t%s (%s)\n"(get_output_name d)(get_output_long_name d));
       printf"\nusage: %s input [output]\ninput and output can be devices or file names\n" Sys.argv.(0);
       exit 0));
 
-  let src = try Avdevice.find_input_audio_device Sys.argv.(1)
-                |> Av.open_input_format
+  let src = try Avdevice.open_audio_input Sys.argv.(1)
     with Avutil.Failure _ -> Av.open_input Sys.argv.(1) in
 
   let (_, ias, _) = Av.find_best_audio_stream src in
 
   let dst = try
-      (if Array.length Sys.argv < 3 then
-         List.hd(Avdevice.get_output_audio_devices())
-       else Avdevice.find_output_audio_device Sys.argv.(2))
-      |> Av.open_output_format
+      if Array.length Sys.argv < 3 then Avdevice.open_default_audio_output()
+       else Avdevice.open_audio_output Sys.argv.(2)
     with Avutil.Failure _ ->
       Av.open_output Sys.argv.(2)
       |> Av.new_audio_stream ~codec_id:Avcodec.Audio.AC_FLAC |> Av.get_output in

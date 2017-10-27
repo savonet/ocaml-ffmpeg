@@ -1,33 +1,55 @@
 open Avutil
 
-external get_input_audio_devices : unit -> (input, audio)format array = "ocaml_avdevice_get_input_audio_devices"
-let get_input_audio_devices() = Array.to_list ( get_input_audio_devices() )
+external get_audio_inputs : unit -> (input, audio)format array = "ocaml_avdevice_get_audio_inputs"
+let get_audio_inputs() = Array.to_list ( get_audio_inputs() )
 
-external get_input_video_devices : unit -> (input, video)format array = "ocaml_avdevice_get_input_video_devices"
-let get_input_video_devices() = Array.to_list ( get_input_video_devices() )
+external get_video_inputs : unit -> (input, video)format array = "ocaml_avdevice_get_video_inputs"
+let get_video_inputs() = Array.to_list ( get_video_inputs() )
 
-external get_output_audio_devices : unit -> (output, audio)format array = "ocaml_avdevice_get_output_audio_devices"
-let get_output_audio_devices() = Array.to_list ( get_output_audio_devices() )
+external get_audio_outputs : unit -> (output, audio)format array = "ocaml_avdevice_get_audio_outputs"
+let get_audio_outputs() = Array.to_list ( get_audio_outputs() )
 
-external get_output_video_devices : unit -> (output, video)format array = "ocaml_avdevice_get_output_video_devices"
-let get_output_video_devices() = Array.to_list ( get_output_video_devices() )
+external get_video_outputs : unit -> (output, video)format array = "ocaml_avdevice_get_video_outputs"
+let get_video_outputs() = Array.to_list ( get_video_outputs() )
 
 
 let find_input name fmts =
   try List.find(fun d -> Av.Format.get_input_name d = name) fmts
   with Not_found -> raise(Failure("Input device not found : " ^ name))
 
-let find_input_audio_device n = find_input n (get_input_audio_devices())
+let find_audio_input n = find_input n (get_audio_inputs())
 
-let find_input_video_device n = find_input n (get_input_video_devices())
+let find_video_input n = find_input n (get_video_inputs())
 
 let find_output name fmts =
   try List.find(fun d -> Av.Format.get_output_name d = name) fmts
   with Not_found -> raise(Failure("Output device not found : " ^ name))
 
-let find_output_audio_device n = find_output n (get_output_audio_devices())
+let find_audio_output n = find_output n (get_audio_outputs())
 
-let find_output_video_device n = find_output n (get_output_video_devices())
+let find_video_output n = find_output n (get_video_outputs())
+
+
+let open_audio_input n = Av.open_input_format(find_audio_input n)
+
+let open_default_audio_input() =
+  Av.open_input_format(List.hd(get_audio_inputs()))
+
+let open_video_input n = Av.open_input_format(find_video_input n)
+
+let open_default_video_input() =
+  Av.open_input_format(List.hd(get_video_inputs()))
+
+let open_audio_output n = Av.open_output_format(find_audio_output n)
+
+let open_default_audio_output() =
+  Av.open_output_format(List.hd(get_audio_outputs()))
+
+let open_video_output n = Av.open_output_format(find_video_output n)
+
+let open_default_video_output() =
+  Av.open_output_format(List.hd(get_video_outputs()))
+
 
 
 module App_to_dev = struct

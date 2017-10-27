@@ -10,24 +10,22 @@ let () =
   let audio, close_audio = try
       let _, input_stream, _ = Av.find_best_audio_stream src in
 
-      let dst = Avdevice.get_output_audio_devices() |> List.hd
-                |> Av.open_output_format in
+      let dst = Avdevice.open_default_audio_output() in
 
       Av.select input_stream;
 
-      ((fun _ frame -> Av.write_audio dst frame), (fun () -> Av.close dst))
-    with Avutil.Failure msg -> ((fun _ _ -> ()), (fun() -> ())) in
+      ((fun _ frame -> Av.write_audio dst frame), (fun() -> Av.close dst))
+    with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
   let video, close_video = try
       let _, input_stream, _ = Av.find_best_video_stream src in
 
-      let dst = Avdevice.find_output_video_device "xv"
-                |> Av.open_output_format in
+      let dst = Avdevice.open_video_output "xv" in
 
       Av.select input_stream;
 
-      ((fun _ frame -> Av.write_video dst frame), (fun () -> Av.close dst))
-    with Avutil.Failure msg -> ((fun _ _ -> ()), (fun() -> ())) in
+      ((fun _ frame -> Av.write_video dst frame), (fun() -> Av.close dst))
+    with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
   Av.iter_input ~audio ~video src;
 

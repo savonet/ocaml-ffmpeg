@@ -2,30 +2,43 @@
 
 open Avutil
 
-(** Return the input audio device list as input format. *)
-val get_input_audio_devices : unit -> (input, audio) format list
+(** Return the audio input device list as input format. *)
+val get_audio_inputs : unit -> (input, audio)format list
     
-(** Return the input video device list as input format. *)
-val get_input_video_devices : unit -> (input, video) format list
+(** Return the video input device list as input format. *)
+val get_video_inputs : unit -> (input, video)format list
     
-(** Return the output audio device list as output format. *)
-val get_output_audio_devices : unit -> (output, audio) format list
+(** Return the audio output device list as output format. *)
+val get_audio_outputs : unit -> (output, audio)format list
     
-(** Return the output video device list as output format. *)
-val get_output_video_devices : unit -> (output, video) format list
+(** Return the video output device list as output format. *)
+val get_video_outputs : unit -> (output, video)format list
 
 
-val find_input_audio_device : string -> (input, audio) format
-(** Return the input audio device from his name. @raise Failure if the device is not found. *)
+val open_audio_input : string -> input container
+(** Open the audio input device from his name. @raise Failure if the device is not found. *)
 
-val find_input_video_device : string -> (input, video) format
-(** Return the input video device from his name. @raise Failure if the device is not found. *)
-    
-val find_output_audio_device : string -> (output, audio) format
-(** Return the output audio device from his name. @raise Failure if the device is not found. *)
-    
-val find_output_video_device : string -> (output, video) format
-(** Return the output video device from his name. @raise Failure if the device is not found. *)
+val open_default_audio_input : unit -> input container
+(** Open the default audio input device from his name. @raise Failure if the device is not found. *)
+
+val open_video_input : string -> input container
+(** Open the video input device from his name. @raise Failure if the device is not found. *)
+
+val open_default_video_input : unit -> input container
+(** Open the default video input device from his name. @raise Failure if the device is not found. *)
+
+val open_audio_output : string -> output container
+(** Open the audio output device from his name. @raise Failure if the device is not found. *)
+
+val open_default_audio_output : unit -> output container
+(** Open the default audio output device from his name. @raise Failure if the device is not found. *)
+
+val open_video_output : string -> output container
+(** Open the video output device from his name. @raise Failure if the device is not found. *)
+
+val open_default_video_output : unit -> output container
+(** Open the default video output device from his name. @raise Failure if the device is not found. *)
+
 
 (** Application to device communication *)
 module App_to_dev : sig
