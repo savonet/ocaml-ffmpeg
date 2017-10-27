@@ -106,26 +106,6 @@ Return the id of a codec from his name.
 Return the id of a codec from his name.
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALfind_input_audio_device">find_input_audio_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the input audio device from his name.
-</div>
-</td></tr>
-<tr><td><a href="Avdevice.html#VALfind_input_video_device">find_input_video_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the input video device from his name.
-</div>
-</td></tr>
-<tr><td><a href="Avdevice.html#VALfind_output_audio_device">find_output_audio_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the output audio device from his name.
-</div>
-</td></tr>
-<tr><td><a href="Avdevice.html#VALfind_output_video_device">find_output_video_device</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the output video device from his name.
-</div>
-</td></tr>
 <tr><td><a href="Avutil.Video.html#VALframe_get">frame_get</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
 <td><div class="info">
 <code class="code">Avutil.Video.frame_get p x y</code> return the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.
@@ -155,6 +135,16 @@ Convert subtitle frame to lines.
 <tr><td><a href="Av.Format.html#VALget_audio_codec_id">get_audio_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
 Return the audio codec id of the output audio format
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_audio_inputs">get_audio_inputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the audio input device list as input format.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_audio_outputs">get_audio_outputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the audio output device list as output format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_audio_streams">get_audio_streams</a> [<a href="Av.html">Av</a>]</td>
@@ -217,11 +207,6 @@ Return the index of the stream.
 Return the input container of the input stream.
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_input_audio_devices">get_input_audio_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the input audio device list as input format.
-</div>
-</td></tr>
 <tr><td><a href="Av.html#VALget_input_duration">get_input_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <code class="code">Av.get_input_duration input fmt</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format.
@@ -240,11 +225,6 @@ Return the input tag (key, vlue) list.
 <tr><td><a href="Av.Format.html#VALget_input_name">get_input_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
 Return the name of the input format
-</div>
-</td></tr>
-<tr><td><a href="Avdevice.html#VALget_input_video_devices">get_input_video_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the input video device list as input format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_metadata">get_metadata</a> [<a href="Av.html">Av</a>]</td>
@@ -282,11 +262,6 @@ Returns the number of channels set for the codec.
 Return the output container of the output stream.
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_output_audio_devices">get_output_audio_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the output audio device list as output format.
-</div>
-</td></tr>
 <tr><td><a href="Av.Format.html#VALget_output_long_name">get_output_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
 Return the long name of the output format
@@ -295,11 +270,6 @@ Return the long name of the output format
 <tr><td><a href="Av.Format.html#VALget_output_name">get_output_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
 Return the name of the output format
-</div>
-</td></tr>
-<tr><td><a href="Avdevice.html#VALget_output_video_devices">get_output_video_devices</a> [<a href="Avdevice.html">Avdevice</a>]</td>
-<td><div class="info">
-Return the output video device list as output format.
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_pixel_format">get_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
@@ -335,6 +305,16 @@ Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_s
 <tr><td><a href="Av.Format.html#VALget_video_codec_id">get_video_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
 Return the video codec id of the output video format
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_video_inputs">get_video_inputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the video input device list as input format.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_video_outputs">get_video_outputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the video output device list as output format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_video_streams">get_video_streams</a> [<a href="Av.html">Av</a>]</td>
@@ -378,6 +358,36 @@ Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_st
 </div>
 </td></tr>
 <tr><td align="left"><br>O</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_audio_input">open_audio_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the audio input device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_audio_output">open_audio_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the audio output device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_default_audio_input">open_default_audio_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the default audio input device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_default_audio_output">open_default_audio_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the default audio output device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_default_video_input">open_default_video_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the default video input device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_default_video_output">open_default_video_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the default video output device from his name.
+</div>
+</td></tr>
 <tr><td><a href="Av.html#VALopen_input">open_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <code class="code">Av.open_input url</code> open the input <code class="code">url</code> (a file name or http URL).
@@ -401,6 +411,16 @@ Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_st
 <tr><td><a href="Av.html#VALopen_output_format_name">open_output_format_name</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <code class="code">Av.open_output_format_name name</code> open the output format of name <code class="code">name</code>.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_video_input">open_video_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the video input device from his name.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALopen_video_output">open_video_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Open the video output device from his name.
 </div>
 </td></tr>
 <tr><td align="left"><br>R</td></tr>

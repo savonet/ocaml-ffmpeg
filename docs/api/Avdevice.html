@@ -30,39 +30,59 @@ Special devices access<br>
 </div>
 <hr width="100%">
 
-<pre><span id="VALget_input_audio_devices"><span class="keyword">val</span> get_input_audio_devices</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the input audio device list as input format.<br>
+<pre><span id="VALget_audio_inputs"><span class="keyword">val</span> get_audio_inputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the audio input device list as input format.<br>
 </div>
 
-<pre><span id="VALget_input_video_devices"><span class="keyword">val</span> get_input_video_devices</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the input video device list as input format.<br>
+<pre><span id="VALget_video_inputs"><span class="keyword">val</span> get_video_inputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the video input device list as input format.<br>
 </div>
 
-<pre><span id="VALget_output_audio_devices"><span class="keyword">val</span> get_output_audio_devices</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the output audio device list as output format.<br>
+<pre><span id="VALget_audio_outputs"><span class="keyword">val</span> get_audio_outputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the audio output device list as output format.<br>
 </div>
 
-<pre><span id="VALget_output_video_devices"><span class="keyword">val</span> get_output_video_devices</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the output video device list as output format.<br>
+<pre><span id="VALget_video_outputs"><span class="keyword">val</span> get_video_outputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the video output device list as output format.<br>
 </div>
 
-<pre><span id="VALfind_input_audio_device"><span class="keyword">val</span> find_input_audio_device</span> : <code class="type">string -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the input audio device from his name.<br>
+<pre><span id="VALopen_audio_input"><span class="keyword">val</span> open_audio_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the audio input device from his name.<br>
 <b>Raises</b> <code>Failure</code> if the device is not found.<br>
 </div>
 
-<pre><span id="VALfind_input_video_device"><span class="keyword">val</span> find_input_video_device</span> : <code class="type">string -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the input video device from his name.<br>
+<pre><span id="VALopen_default_audio_input"><span class="keyword">val</span> open_default_audio_input</span> : <code class="type">unit -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the default audio input device from his name.<br>
 <b>Raises</b> <code>Failure</code> if the device is not found.<br>
 </div>
 
-<pre><span id="VALfind_output_audio_device"><span class="keyword">val</span> find_output_audio_device</span> : <code class="type">string -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the output audio device from his name.<br>
+<pre><span id="VALopen_video_input"><span class="keyword">val</span> open_video_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the video input device from his name.<br>
 <b>Raises</b> <code>Failure</code> if the device is not found.<br>
 </div>
 
-<pre><span id="VALfind_output_video_device"><span class="keyword">val</span> find_output_video_device</span> : <code class="type">string -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the output video device from his name.<br>
+<pre><span id="VALopen_default_video_input"><span class="keyword">val</span> open_default_video_input</span> : <code class="type">unit -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the default video input device from his name.<br>
+<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+</div>
+
+<pre><span id="VALopen_audio_output"><span class="keyword">val</span> open_audio_output</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the audio output device from his name.<br>
+<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+</div>
+
+<pre><span id="VALopen_default_audio_output"><span class="keyword">val</span> open_default_audio_output</span> : <code class="type">unit -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the default audio output device from his name.<br>
+<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+</div>
+
+<pre><span id="VALopen_video_output"><span class="keyword">val</span> open_video_output</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the video output device from his name.<br>
+<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+</div>
+
+<pre><span id="VALopen_default_video_output"><span class="keyword">val</span> open_default_video_output</span> : <code class="type">unit -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
+Open the default video output device from his name.<br>
 <b>Raises</b> <code>Failure</code> if the device is not found.<br>
 </div>
 

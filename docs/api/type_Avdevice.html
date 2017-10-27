@@ -17,22 +17,22 @@
 </head>
 <body>
 <code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_input_audio_devices&nbsp;:<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_audio_inputs&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="constructor">Avutil</span>.audio)&nbsp;<span class="constructor">Avutil</span>.format&nbsp;list<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_input_video_devices&nbsp;:<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_video_inputs&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="constructor">Avutil</span>.video)&nbsp;<span class="constructor">Avutil</span>.format&nbsp;list<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_output_audio_devices&nbsp;:<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_audio_outputs&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.output,&nbsp;<span class="constructor">Avutil</span>.audio)&nbsp;<span class="constructor">Avutil</span>.format&nbsp;list<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_output_video_devices&nbsp;:<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_video_outputs&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.output,&nbsp;<span class="constructor">Avutil</span>.video)&nbsp;<span class="constructor">Avutil</span>.format&nbsp;list<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;find_input_audio_device&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="constructor">Avutil</span>.audio)&nbsp;<span class="constructor">Avutil</span>.format<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;find_input_video_device&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="constructor">Avutil</span>.video)&nbsp;<span class="constructor">Avutil</span>.format<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;find_output_audio_device&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.output,&nbsp;<span class="constructor">Avutil</span>.audio)&nbsp;<span class="constructor">Avutil</span>.format<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;find_output_video_device&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.output,&nbsp;<span class="constructor">Avutil</span>.video)&nbsp;<span class="constructor">Avutil</span>.format<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_audio_input&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_default_audio_input&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_video_input&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_default_video_input&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_audio_output&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.output&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_default_audio_output&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.output&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_video_output&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.output&nbsp;<span class="constructor">Avutil</span>.container<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_default_video_output&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.output&nbsp;<span class="constructor">Avutil</span>.container<br>
 &nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">App_to_dev</span>&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;message&nbsp;=<br>
