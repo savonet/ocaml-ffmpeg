@@ -157,7 +157,7 @@ val write : (output, 'media)stream -> 'media frame -> unit
 (** [Av.write os frm] write the [frm] frame to the [os] output stream. @raise Failure if the writing failed. *)
 
 val write_audio : output container -> audio frame -> unit
-(** [Av.write dst frm] write the [frm] audio frame to the [dst] output audio container. The output must have been opened with {!Av.open_output_format} or {!Av.open_output_format_name}. @raise Failure if the output format is not defined or if the output media type is not compatible with the frame or if the writing failed. *)
+(** [Av.write dst frm] write the [frm] audio frame to the [dst] output audio container. @raise Failure if the output format is not defined or if the output media type is not compatible with the frame or if the writing failed. *)
 
 val write_video : output container -> video frame -> unit
 (** Same as {!Av.write_audio} for output video container. *)
