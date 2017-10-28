@@ -16,9 +16,8 @@ end
 
 
 (* Input *)
-external _open_input : string option -> (input, _)format option -> input container = "ocaml_av_open_input"
-let open_input url = _open_input (Some url) None
-let open_input_format format = _open_input None (Some format)
+external open_input : string -> input container = "ocaml_av_open_input"
+external open_input_format : (input, _)format -> input container = "ocaml_av_open_input_format"
 
 external _get_duration : input container -> int -> Time_format.t -> Int64.t = "ocaml_av_get_duration"
 let get_input_duration i fmt = _get_duration i (-1) fmt
@@ -105,11 +104,9 @@ let iter_input ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _
 
 
 (* Output *)
-external _open_output : string option -> (output, _)format option -> string option -> output container = "ocaml_av_open_output"
-
-let open_output filename = _open_output (Some filename) None None
-let open_output_format format = _open_output None (Some format) None
-let open_output_format_name format_name = _open_output None None (Some format_name)
+external open_output : string -> output container = "ocaml_av_open_output"
+external open_output_format : (output, _)format -> output container = "ocaml_av_open_output_format"
+external open_output_format_name : string -> output container = "ocaml_av_open_output_format_name"
 
 
 external _set_metadata : output container -> int -> (string * string) array -> unit = "ocaml_av_set_metadata"
@@ -214,10 +211,8 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec o =
 
 external write : (output, 'media)stream -> 'media frame -> unit = "ocaml_av_write_stream"
 
-external write_output : output container -> _ frame -> media_type -> unit = "ocaml_av_write_output"
-
-let write_audio oc af = write_output oc af MT_audio
-let write_video oc af = write_output oc af MT_video
+external write_audio : output container -> audio frame -> unit = "ocaml_av_write_audio"
+external write_video : output container -> video frame -> unit = "ocaml_av_write_video"
 
 
 external close : _ container -> unit = "ocaml_av_close"
