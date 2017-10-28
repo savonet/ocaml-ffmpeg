@@ -277,7 +277,7 @@ Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_st
 </div>
 
 <pre><span id="VALwrite_audio"><span class="keyword">val</span> write_audio</span> : <code class="type"><a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a> -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avutil.html#TYPEframe">frame</a> -> unit</code></pre><div class="info ">
-<code class="code">Av.write dst frm</code> write the <code class="code">frm</code> audio frame to the <code class="code">dst</code> output audio container. The output must have been opened with <a href="Av.html#VALopen_output_format"><code class="code">Av.open_output_format</code></a> or <a href="Av.html#VALopen_output_format_name"><code class="code">Av.open_output_format_name</code></a>.<br>
+<code class="code">Av.write dst frm</code> write the <code class="code">frm</code> audio frame to the <code class="code">dst</code> output audio container.<br>
 <b>Raises</b> <code>Failure</code> if the output format is not defined or if the output media type is not compatible with the frame or if the writing failed.<br>
 </div>
 
