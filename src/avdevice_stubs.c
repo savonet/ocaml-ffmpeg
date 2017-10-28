@@ -37,13 +37,13 @@ static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputForma
   CAMLreturn(ans);
 }
   
-CAMLprim value ocaml_avdevice_get_audio_inputs(value unit)
+CAMLprim value ocaml_avdevice_get_audio_input_formats(value unit)
 {
   CAMLparam0();
   CAMLreturn(get_input_devices(av_input_audio_device_next));
 }
   
-CAMLprim value ocaml_avdevice_get_video_inputs(value unit)
+CAMLprim value ocaml_avdevice_get_video_input_formats(value unit)
 {
   CAMLparam0();
   CAMLreturn(get_input_devices(av_input_video_device_next));
@@ -75,13 +75,13 @@ static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputF
   CAMLreturn(ans);
 }
   
-CAMLprim value ocaml_avdevice_get_audio_outputs(value unit)
+CAMLprim value ocaml_avdevice_get_audio_output_formats(value unit)
 {
   CAMLparam0();
   CAMLreturn(get_output_devices(av_output_audio_device_next));
 }
   
-CAMLprim value ocaml_avdevice_get_video_outputs(value unit)
+CAMLprim value ocaml_avdevice_get_video_output_formats(value unit)
 {
   CAMLparam0();
   CAMLreturn(get_output_devices(av_output_video_device_next));

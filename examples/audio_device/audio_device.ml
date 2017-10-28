@@ -3,10 +3,10 @@ open FFmpeg
 let () =
   if Array.length Sys.argv < 2 then Printf.(Av.Format.(
       printf "\ninput devices :\n";
-      Avdevice.get_audio_inputs() |> List.iter
+      Avdevice.get_audio_input_formats() |> List.iter
         (fun d -> printf"\t%s (%s)\n"(get_input_name d)(get_input_long_name d));
       printf "\noutput devices :\n";
-      Avdevice.get_audio_outputs() |> List.iter
+      Avdevice.get_audio_output_formats() |> List.iter
         (fun d -> printf"\t%s (%s)\n"(get_output_name d)(get_output_long_name d));
       printf"\nusage: %s input [output]\ninput and output can be devices or file names\n" Sys.argv.(0);
       exit 0));

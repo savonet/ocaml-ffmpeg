@@ -2,17 +2,29 @@
 
 open Avutil
 
-(** Return the audio input device list as input format. *)
-val get_audio_inputs : unit -> (input, audio)format list
+(** Return the audio input devices formats. *)
+val get_audio_input_formats : unit -> (input, audio)format list
     
-(** Return the video input device list as input format. *)
-val get_video_inputs : unit -> (input, video)format list
+(** Return the default audio input device format. *)
+val get_default_audio_input_format : unit -> (input, audio)format
     
-(** Return the audio output device list as output format. *)
-val get_audio_outputs : unit -> (output, audio)format list
+(** Return the video input devices formats. *)
+val get_video_input_formats : unit -> (input, video)format list
+
+(** Return the default video input device format. *)
+val get_default_video_input_format : unit -> (input, video)format
+
+(** Return the audio output devices formats. *)
+val get_audio_output_formats : unit -> (output, audio)format list
     
-(** Return the video output device list as output format. *)
-val get_video_outputs : unit -> (output, video)format list
+(** Return the default audio output device format. *)
+val get_default_audio_output_format : unit -> (output, audio)format
+    
+(** Return the video output devices formats. *)
+val get_video_output_formats : unit -> (output, video)format list
+
+(** Return the default video output device format. *)
+val get_default_video_output_format : unit -> (output, video)format
 
 
 val open_audio_input : string -> input container
