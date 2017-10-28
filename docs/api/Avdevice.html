@@ -30,20 +30,36 @@ Special devices access<br>
 </div>
 <hr width="100%">
 
-<pre><span id="VALget_audio_inputs"><span class="keyword">val</span> get_audio_inputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the audio input device list as input format.<br>
+<pre><span id="VALget_audio_input_formats"><span class="keyword">val</span> get_audio_input_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the audio input devices formats.<br>
 </div>
 
-<pre><span id="VALget_video_inputs"><span class="keyword">val</span> get_video_inputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the video input device list as input format.<br>
+<pre><span id="VALget_default_audio_input_format"><span class="keyword">val</span> get_default_audio_input_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
+Return the default audio input device format.<br>
 </div>
 
-<pre><span id="VALget_audio_outputs"><span class="keyword">val</span> get_audio_outputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the audio output device list as output format.<br>
+<pre><span id="VALget_video_input_formats"><span class="keyword">val</span> get_video_input_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the video input devices formats.<br>
 </div>
 
-<pre><span id="VALget_video_outputs"><span class="keyword">val</span> get_video_outputs</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the video output device list as output format.<br>
+<pre><span id="VALget_default_video_input_format"><span class="keyword">val</span> get_default_video_input_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
+Return the default video input device format.<br>
+</div>
+
+<pre><span id="VALget_audio_output_formats"><span class="keyword">val</span> get_audio_output_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the audio output devices formats.<br>
+</div>
+
+<pre><span id="VALget_default_audio_output_format"><span class="keyword">val</span> get_default_audio_output_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
+Return the default audio output device format.<br>
+</div>
+
+<pre><span id="VALget_video_output_formats"><span class="keyword">val</span> get_video_output_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
+Return the video output devices formats.<br>
+</div>
+
+<pre><span id="VALget_default_video_output_format"><span class="keyword">val</span> get_default_video_output_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
+Return the default video output device format.<br>
 </div>
 
 <pre><span id="VALopen_audio_input"><span class="keyword">val</span> open_audio_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">

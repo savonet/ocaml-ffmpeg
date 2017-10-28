@@ -137,14 +137,14 @@ Convert subtitle frame to lines.
 Return the audio codec id of the output audio format
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_audio_inputs">get_audio_inputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<tr><td><a href="Avdevice.html#VALget_audio_input_formats">get_audio_input_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio input device list as input format.
+Return the audio input devices formats.
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_audio_outputs">get_audio_outputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<tr><td><a href="Avdevice.html#VALget_audio_output_formats">get_audio_output_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio output device list as output format.
+Return the audio output devices formats.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_audio_streams">get_audio_streams</a> [<a href="Av.html">Av</a>]</td>
@@ -170,6 +170,26 @@ Return the channel layout set for the codec.
 <tr><td><a href="Av.html#VALget_codec">get_codec</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <code class="code">Av.get_codec stream</code> return the codec of the <code class="code">stream</code>.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_default_audio_input_format">get_default_audio_input_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the default audio input device format.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_default_audio_output_format">get_default_audio_output_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the default audio output device format.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_default_video_input_format">get_default_video_input_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the default video input device format.
+</div>
+</td></tr>
+<tr><td><a href="Avdevice.html#VALget_default_video_output_format">get_default_video_output_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<td><div class="info">
+Return the default video output device format.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_duration">get_duration</a> [<a href="Av.html">Av</a>]</td>
@@ -307,14 +327,14 @@ Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_s
 Return the video codec id of the output video format
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_video_inputs">get_video_inputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<tr><td><a href="Avdevice.html#VALget_video_input_formats">get_video_input_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video input device list as input format.
+Return the video input devices formats.
 </div>
 </td></tr>
-<tr><td><a href="Avdevice.html#VALget_video_outputs">get_video_outputs</a> [<a href="Avdevice.html">Avdevice</a>]</td>
+<tr><td><a href="Avdevice.html#VALget_video_output_formats">get_video_output_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video output device list as output format.
+Return the video output devices formats.
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_video_streams">get_video_streams</a> [<a href="Av.html">Av</a>]</td>
