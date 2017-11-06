@@ -25,8 +25,10 @@
 </div>
 <h1>Module <a href="type_Avcodec.Audio.html">Avcodec.Audio</a></h1>
 
-<pre><span class="keyword">module</span> Audio: <code class="code">sig</code> <a href="Avcodec.Audio.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Audio codecs.<br>
+<pre><span id="MODULEAudio"><span class="keyword">module</span> Audio</span>: <code class="code">sig</code> <a href="Avcodec.Audio.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Audio codecs.</p>
+</div>
 </div>
 <hr width="100%">
 
@@ -1069,45 +1071,69 @@ Audio codecs.<br>
 </tr></table>
 
 <div class="info ">
-Audio codec ids<br>
+<div class="info-desc">
+<p>Audio codec ids</p>
+</div>
 </div>
 
 
 <pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> string</code></pre><div class="info ">
-Return the name of the codec.<br>
+<div class="info-desc">
+<p>Return the name of the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALfind_id"><span class="keyword">val</span> find_id</span> : <code class="type">string -> <a href="Avcodec.Audio.html#TYPEid">id</a></code></pre><div class="info ">
-Return the id of a codec from his name.<br>
-<b>Raises</b> <code>Failure</code> if the codec is not found or is not an audio codec.<br>
+<div class="info-desc">
+<p>Return the id of a codec from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the codec is not found or is not an audio codec.</li>
+</ul>
 </div>
 
 <pre><span id="VALfind_best_sample_format"><span class="keyword">val</span> find_best_sample_format</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
-Return the best sample format of a codec.<br>
-<b>Raises</b> <code>Failure</code> if the codec has no best sample format.<br>
+<div class="info-desc">
+<p>Return the best sample format of a codec.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the codec has no best sample format.</li>
+</ul>
 </div>
 
 <pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Audio.html#TYPEid">id</a></code></pre><div class="info ">
-Return the id of the codec.<br>
+<div class="info-desc">
+<p>Return the id of the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_channel_layout"><span class="keyword">val</span> get_channel_layout</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a></code></pre><div class="info ">
-Return the channel layout set for the codec.<br>
+<div class="info-desc">
+<p>Return the channel layout set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_nb_channels"><span class="keyword">val</span> get_nb_channels</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the number of channels set for the codec.<br>
+<div class="info-desc">
+<p>Returns the number of channels set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_sample_format"><span class="keyword">val</span> get_sample_format</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
-Returns the sample format set for the codec.<br>
+<div class="info-desc">
+<p>Returns the sample format set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_bit_rate"><span class="keyword">val</span> get_bit_rate</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the bit rate set for the codec.<br>
+<div class="info-desc">
+<p>Returns the bit rate set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_sample_rate"><span class="keyword">val</span> get_sample_rate</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the sample rate set for the codec.<br>
+<div class="info-desc">
+<p>Returns the sample rate set for the codec.</p>
+</div>
 </div>
 </body></html>
