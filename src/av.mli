@@ -2,7 +2,7 @@
 
 open Avutil
 
-(** {6 Format} *)
+(** {5 Format} *)
 
 module Format : sig
 
@@ -29,7 +29,7 @@ module Format : sig
 end
 
 
-(** {6 Input} *)
+(** {5 Input} *)
 
 val open_input : string -> input container
 (** [Av.open_input url] open the input [url] (a file name or http URL). @raise Failure if the opening failed. *)
@@ -117,7 +117,7 @@ val iter_input : ?audio:(int -> audio frame -> unit) ->
 (** [Av.iter_input ~audio:af ~video:vf ~subtitle:sf src] reads iteratively the selected streams if any or all streams of the [src] input otherwise. It applies function [af] to the audio frames, [vf] to the video frames and [sf] to the subtitle frames with the index of the related stream as first parameter. @raise Failure if the reading failed. *)
 
 
-(** {6 Output} *)
+(** {5 Output} *)
 
 val open_output : string -> output container
 (** [Av.open_output filename] open the output file named [filename]. @raise Failure if the opening failed. *)

@@ -1,34 +1,34 @@
 (** Common code shared across all FFmpeg libraries. *)
 
-(** {9 Line} *)
+(** {1 Line} *)
 
 type input
 type output
 
 
-(** {9 Container} *)
+(** {1 Container} *)
 
 type 'a container
 
 
-(** {9 Media} *)
+(** {1 Media} *)
 
 type audio
 type video
 type subtitle
 
 
-(** {9 Format} *)
+(** {1 Format} *)
 
 type ('line, 'media) format
 
 
-(** {9 Frame} *)
+(** {1 Frame} *)
 
 type 'media frame
 
 
-(** {9 Exception} *)
+(** {1 Exception} *)
 
 (** A failure occured (with given explanation). *)
 exception Failure of string
@@ -52,7 +52,7 @@ val time_base : unit -> int64
 
 
 
-(** {6 Audio utilities} *)
+(** {5 Audio utilities} *)
 
 (** Formats for channels layouts. *)
 module Channel_layout : sig
@@ -111,7 +111,7 @@ module Sample_format : sig
 end
 
 
-(** {6 Video utilities} *)
+(** {5 Video utilities} *)
 
 (** Formats for pixels. *)
 module Pixel_format : sig
@@ -148,7 +148,7 @@ module Video : sig
 end
 
 
-(** {6 Subtitle utilities} *)
+(** {5 Subtitle utilities} *)
 
 module Subtitle : sig
 
