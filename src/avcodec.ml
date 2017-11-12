@@ -5,7 +5,11 @@ type 'a t
 (** Audio codecs. *)
 module Audio = struct
   (** Audio codec ids *)
-  type id =
+include Codec.Audio
+
+  (*
+type id = Audio_codec.id
+  type id = Codec_id.audio_codec_id
     | AC_PCM_S16LE
     | AC_PCM_S16BE
     | AC_PCM_U16LE
@@ -154,7 +158,8 @@ module Audio = struct
     | AC_OPUS
     | AC_COMFORT_NOISE
     | AC_TAK
-    (*
+*)
+(*
   | AC_METASOUND
   | AC_PAF_AUDIO
   | AC_ON2AVC
@@ -191,7 +196,9 @@ end
 (** Video codecs. *)
 module Video = struct
   (** Video codec ids *)
-  type id =
+  include Codec.Video
+  (*
+  type id = Codec_id.video_codec_id
     | VC_MPEG1VIDEO
     | VC_MPEG2VIDEO
     | VC_H261
@@ -359,7 +366,8 @@ module Video = struct
     | VC_MTS2
     | VC_CLLC
     | VC_MSS2
-    (*
+*)
+(*
   | VC_VP9
   | VC_AIC
   | VC_ESCAPE130
@@ -426,7 +434,10 @@ end
 (** Subtitle codecs. *)
 module Subtitle = struct
   (** Subtitle codec ids *)
-  type id =
+  include Codec.Subtitle
+
+  (*
+  type id = Codec_id.subtitle_codec_id
     | SC_DVD_SUBTITLE
     | SC_DVB_SUBTITLE
     | SC_TEXT
@@ -451,7 +462,7 @@ module Subtitle = struct
     | SC_PJS
     | SC_ASS
     | SC_HDMV_TEXT_SUBTITLE
-
+*)
   external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
 
   external find_id : string -> id = "ocaml_avcodec_find_subtitle_codec_id"

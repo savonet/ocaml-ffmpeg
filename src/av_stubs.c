@@ -12,9 +12,9 @@
 
 #include <libavutil/opt.h>
 #include <libavutil/timestamp.h>
-#include "libavutil/avstring.h"
+#include <libavutil/avstring.h>
 #include <libavformat/avformat.h>
-#include "libavutil/audio_fifo.h"
+#include <libavutil/audio_fifo.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 

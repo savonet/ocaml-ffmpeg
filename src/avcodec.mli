@@ -1,13 +1,17 @@
 (** Audio, video and subtitle encoder and decoder *)
 
 open Avutil
-  
+
 type 'a t
 
 (** Audio codecs. *)
 module Audio : sig
   (** Audio codec ids *)
-  type id =
+  include Codec.Audio
+
+  (*
+type id = Audio_codec.id
+  type id = Codec_id.audio_codec_id
     | AC_PCM_S16LE
     | AC_PCM_S16BE
     | AC_PCM_U16LE
@@ -156,6 +160,7 @@ module Audio : sig
     | AC_OPUS
     | AC_COMFORT_NOISE
     | AC_TAK
+    *)
     (*
   | AC_METASOUND
   | AC_PAF_AUDIO
@@ -210,7 +215,10 @@ end
 (** Video codecs. *)
 module Video : sig
   (** Video codec ids *)
-  type id =
+  include Codec.Video
+
+(*
+  type id = Codec_id.video_codec_id
     | VC_MPEG1VIDEO
     | VC_MPEG2VIDEO
     | VC_H261
@@ -378,6 +386,7 @@ module Video : sig
     | VC_MTS2
     | VC_CLLC
     | VC_MSS2
+    *)
     (*
   | VC_VP9
   | VC_AIC
@@ -462,7 +471,11 @@ end
 (** Subtitle codecs. *)
 module Subtitle : sig
   (** Subtitle codec ids *)
-  type id =
+  include Codec.Subtitle
+
+  (*
+  include Subtitle_codec
+  type id = Codec_id.subtitle_codec_id
     | SC_DVD_SUBTITLE
     | SC_DVB_SUBTITLE
     | SC_TEXT
@@ -487,8 +500,9 @@ module Subtitle : sig
     | SC_PJS
     | SC_ASS
     | SC_HDMV_TEXT_SUBTITLE
+*)
 
-  (** Return the name of the codec. *)
+(** Return the name of the codec. *)
   val get_name : id -> string
 
   val find_id : string -> id
