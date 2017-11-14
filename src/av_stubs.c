@@ -138,7 +138,7 @@ static void close_av(av_t * av)
   if(av->format_context) {
 
     if(av->streams) {
-      int i;
+      unsigned int i;
       for(i = 0; i < av->format_context->nb_streams; i++) {
         if(av->streams[i]) free_stream(av->streams[i]);
       }
@@ -203,7 +203,7 @@ CAMLprim value ocaml_av_get_streams(value _av, value _media_type)
   CAMLlocal2(v, ans);
   av_t * av = Av_val(_av);
   enum AVMediaType type = MediaType_val(_media_type);
-  int i, j, len = 0;
+  unsigned int i, j, len = 0;
 
   for(i = 0; i < av->format_context->nb_streams; i++) {
     if(av->format_context->streams[i]->codecpar->codec_type == type) len++;
@@ -395,7 +395,7 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   int index = Int_val(_stream_index);
   int time_format = Time_format_val(_time_format);
   
-  if(index >= av->format_context->nb_streams) Raise(EXN_FAILURE, "Failed to get stream %d duration : index out of bounds", index);
+  if( ! av->format_context) Raise(EXN_FAILURE, "Failed to get closed input duration");
 
   int64_t duration = av->format_context->duration;
   int64_t num = 1;
@@ -649,7 +649,7 @@ CAMLprim value ocaml_av_read_input(value _av)
 
   AVPacket * packet = &av->packet;
   stream_t ** streams = av->streams;
-  int nb_streams = av->format_context->nb_streams;
+  unsigned int nb_streams = av->format_context->nb_streams;
   stream_t * stream = NULL;
   frame_kind frame_kind = undefined;
 
@@ -686,7 +686,7 @@ CAMLprim value ocaml_av_read_input(value _av)
     }
     else {
       // If the end of file is reached, iteration on the streams to find one to flush
-      int i = 0;
+      unsigned int i = 0;
       for(; i < nb_streams; i++) {
         if((stream = streams[i]) && stream->got_frame) break;
       }
@@ -740,7 +740,7 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _tim
   int time_format = Time_format_val(_time_format);
   int64_t timestamp = Int64_val(_timestamp);
 
-  if( ! av->format_context || index >= av->format_context->nb_streams) Raise(EXN_FAILURE, "Failed to seek stream %d : index out of bounds", index);
+  if( ! av->format_context) Raise(EXN_FAILURE, "Failed to seek closed input");
   
   int64_t num = AV_TIME_BASE;
   int64_t den = 1;
@@ -1499,7 +1499,7 @@ CAMLprim value ocaml_av_close(value _av)
 
   if( ! av->is_input && av->streams) {
     // flush encoders of the output file
-    int i;
+    unsigned int i;
     for(i = 0; i < av->format_context->nb_streams && packet; i++) {
 
       AVCodecContext * enc_ctx = av->streams[i]->codec_context;
