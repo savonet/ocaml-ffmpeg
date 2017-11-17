@@ -15,7 +15,10 @@ module R7 = Swresample.Make (Swresample.S32Frame) (Swresample.FloatArray)
 module R8 = Swresample.Make (Swresample.FloatArray) (Swresample.S32BigArray)
 module R9 = Swresample.Make (Swresample.S32BigArray) (Swresample.S32Bytes)
 
-let logStep step v = Gc.full_major (); Printf.printf"%s done\n%!" step; v
+module ConverterInput = FFmpeg.Swresample.Make(FFmpeg.Swresample.Frame)
+module Converter = ConverterInput(FFmpeg.Swresample.PlanarFloatArray)
+
+let logStep step v = (* /* Gc.full_major (); Printf.printf"%s done\n%!" step; */ *) v
 
 let foi = float_of_int
 let pi = 4.0 *. atan 1.0
@@ -65,3 +68,42 @@ let test() =
 
   close_out dst1 |> logStep"close_out dst1";
   close_out dst2 |> logStep"close_out dst2";
+
+  let output_planar_float_to_s16le audio_output_file planes =
+    let nb_chan = Array.length planes in
+    let bytes = Bytes.create 2 in
+    let cx = float_of_int 0x7FFF in
+
+    for i = 0 to Array.length planes.(0) - 1 do
+      for c = 0 to nb_chan - 1 do
+
+        let v = int_of_float(planes.(c).(i) *. cx) in
+        Printf.printf"%d\n" v;
+
+        Bytes.set bytes 0 (char_of_int(v land 0xFF ));
+        Bytes.set bytes 1 (char_of_int((v lsr 8) land 0xFF ));
+        output_bytes audio_output_file bytes
+      done
+    done
+  in
+
+  Sys.argv |> Array.to_list |> List.tl |> List.iter(fun url ->
+      try
+        let idx, is, ic = Av.open_input url |> Av.find_best_audio_stream in
+        let rsp = Converter.from_codec ic Channel_layout.CL_stereo 44100 in
+
+        let p = try String.rindex url '/' + 1 with Not_found -> 0 in
+        let audio_output_filename = String.(sub url p (length url - p) ^ "." ^ string_of_int idx ^ ".s16le.raw") in
+        let audio_output_file = open_out_bin audio_output_filename in
+
+        print_endline("Convert " ^ url ^ " to " ^ audio_output_filename);
+
+        is |> Av.iter (fun frame ->
+            Converter.convert rsp frame
+            |> output_planar_float_to_s16le audio_output_file);
+        
+        Av.get_input is |> Av.close;
+        close_out audio_output_file;
+
+      with _ -> print_endline("No audio stream in "^url)
+    )
