@@ -14,17 +14,18 @@ let rec id_to_pv_value id values =
 
 let translate_enum_lines ic c_type_name ml_type_name prefix re end_re print_c print_ml =
   let rec loop values =
-    match input_line ic with
-    | line when Str.string_match end_re line 0 -> values
-    | line when Str.string_match re line 0 ->
-      let id = Str.matched_group 1 line in
-      let pv, value = id_to_pv_value id values in
+    try
+      match input_line ic with
+      | line when Str.string_match end_re line 0 -> values
+      | line when Str.string_match re line 0 ->
+        let id = Str.matched_group 1 line in
+        let pv, value = id_to_pv_value id values in
 
-      print_c("  {(" ^ Int64.to_string value ^ "), " ^ prefix ^ id ^ "},");
-      print_ml("  | `" ^ pv);
-      loop (value::values)
-    | _ -> loop values
-    | exception End_of_file -> values
+        print_c("  {(" ^ Int64.to_string value ^ "), " ^ prefix ^ id ^ "},");
+        print_ml("  | `" ^ pv);
+        loop (value::values)
+      | _ -> loop values
+    with End_of_file -> values
   in
   print_c("static const long " ^ c_type_name ^ "[][2] = {");
   print_ml("type " ^ ml_type_name ^ " = [");
@@ -33,9 +34,21 @@ let translate_enum_lines ic c_type_name ml_type_name prefix re end_re print_c pr
   print_ml "]\n"
 
 
-let () =
+let get_path filename =
+  let path = Array.fold_left(fun path param ->
+      if path = None && "-I" = String.sub param 0 2 then (
+        let p = (String.sub param 2 (String.length param - 2)) ^ filename in
+        if Sys.file_exists p then Some p
+        else None)
+      else path
+    ) None Sys.argv in
+  match path with
+  | None -> prerr_endline("File " ^ filename ^ " not found"); exit 1
+  | Some path -> path
 
-  let ic = open_in "/usr/include/i386-linux-gnu/libavcodec/avcodec.h" in
+
+let () =
+  let ic = open_in(get_path"/libavcodec/avcodec.h") in
 
   let c_oc = open_out "codec_id.h" in
   let ml_oc = open_out "codec_id.ml" in
@@ -70,3 +83,4 @@ let () =
   close_in ic;
   close_out c_oc;
   close_out ml_oc;
+
