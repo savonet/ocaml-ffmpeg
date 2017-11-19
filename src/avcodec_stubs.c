@@ -46,6 +46,27 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 
 
 /**** codec ****/
+enum AVCodecID CodecId_val(value v, const long codec_ids[][2], int len)
+{
+  int i;
+  for (i = 0; i < len; i++) {
+    if (v == codec_ids[i][0])
+      return (enum AVCodecID)codec_ids[i][1];
+  }
+  return AV_CODEC_ID_NONE;
+}
+
+value Val_codecId(enum AVCodecID id, const long codec_ids[][2], int len)
+{
+  int i;
+  for (i = 0; i < len; i++) {
+    if (id == (enum AVCodecID)codec_ids[i][1])
+      return (value)codec_ids[i][0];
+  }
+  Raise(EXN_FAILURE, "Codec %s (%d) not supported\n", avcodec_get_name(id), id);
+  return Val_int(0);
+}
+
 static enum AVCodecID find_codec_id(const char *name)
 {
   av_register_all();
@@ -62,22 +83,15 @@ CAMLprim value ocaml_avcodec_parameters_get_bit_rate(value _cp) {
 }
 
 /**** Audio codec ID ****/
-#define AUDIO_CODEC_IDS_LEN (sizeof(AUDIO_CODEC_IDS) / sizeof(enum AVCodecID))
 
 enum AVCodecID AudioCodecId_val(value v)
 {
-  return AUDIO_CODEC_IDS[Int_val(v)];
+return CodecId_val(v, AUDIO_CODEC_IDS, AUDIO_CODEC_IDS_LEN);
 }
 
 value Val_audioCodecId(enum AVCodecID id)
 {
-  int i;
-  for (i = 0; i < AUDIO_CODEC_IDS_LEN; i++) {
-    if (id == AUDIO_CODEC_IDS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Invalid audio codec id : %d\n", id);
-  return Val_int(0);
+  return Val_codecId(id, AUDIO_CODEC_IDS, AUDIO_CODEC_IDS_LEN);
 }
 
 CAMLprim value ocaml_avcodec_get_audio_codec_name(value _codec_id)
@@ -158,22 +172,15 @@ CAMLprim value ocaml_avcodec_parameters_audio_copy(value _codec_id, value _chann
 
 
 /**** Video codec ID ****/
-#define VIDEO_CODEC_IDS_LEN (sizeof(VIDEO_CODEC_IDS) / sizeof(enum AVCodecID))
 
 enum AVCodecID VideoCodecId_val(value v)
 {
-  return VIDEO_CODEC_IDS[Int_val(v)];
+  return CodecId_val(v, VIDEO_CODEC_IDS, VIDEO_CODEC_IDS_LEN);
 }
 
 value Val_videoCodecId(enum AVCodecID id)
 {
-  int i;
-  for (i = 0; i < VIDEO_CODEC_IDS_LEN; i++) {
-    if (id == VIDEO_CODEC_IDS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Invalid video codec id : %d\n", id);
-  return Val_int(0);
+  return Val_codecId(id, VIDEO_CODEC_IDS, VIDEO_CODEC_IDS_LEN);
 }
 
 CAMLprim value ocaml_avcodec_get_video_codec_name(value _codec_id)
@@ -261,22 +268,15 @@ CAMLprim value ocaml_avcodec_parameters_video_copy_byte(value *argv, int argn)
 
 
 /**** Subtitle codec ID ****/
-#define SUBTITLE_CODEC_IDS_LEN (sizeof(SUBTITLE_CODEC_IDS) / sizeof(enum AVCodecID))
 
 enum AVCodecID SubtitleCodecId_val(value v)
 {
-  return SUBTITLE_CODEC_IDS[Int_val(v)];
+  return CodecId_val(v, SUBTITLE_CODEC_IDS, SUBTITLE_CODEC_IDS_LEN);
 }
 
 value Val_subtitleCodecId(enum AVCodecID id)
 {
-  int i;
-  for (i = 0; i < SUBTITLE_CODEC_IDS_LEN; i++) {
-    if (id == SUBTITLE_CODEC_IDS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Subtitle codec %s (%d) not supported\n", avcodec_get_name(id), id);
-  return Val_int(0);
+  return Val_codecId(id, SUBTITLE_CODEC_IDS, SUBTITLE_CODEC_IDS_LEN);
 }
 
 CAMLprim value ocaml_avcodec_get_subtitle_codec_name(value _codec_id)

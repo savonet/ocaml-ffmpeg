@@ -28,7 +28,7 @@ OCAMLLIBPATH = @CAMLLIBPATH@
 SOURCES = avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml
 ifeq "@HAS_AV@" "yes"
 ifeq "@HAS_SWRESAMPLE@" "yes"
-	SOURCES += codec_id.h avcodec_stubs.h avcodec_stubs.c codec.mli codec.ml avcodec.mli avcodec.ml av_stubs.c av.mli av.ml
+	SOURCES += codec_id.h avcodec_stubs.h avcodec_stubs.c codec_id.ml avcodec.mli avcodec.ml av_stubs.c av.mli av.ml
 	SOURCES += swresample_stubs.c swresample.mli swresample.ml
 ifeq "@HAS_AVDEVICE@" "yes"
 	SOURCES +=  avdevice_stubs.c avdevice.mli avdevice.ml
@@ -49,7 +49,7 @@ CPPFLAGS = @CPPFLAGS@
 INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
-PRE_TARGETS = gen-codec-id
+PRE_TARGETS = gen-code
 
 all: $(OCAMLBEST)
 
@@ -59,9 +59,10 @@ opt: native-code-library
 
 native-code-library: byte-code-library
 
-gen-codec-id:
-	$(OCAMLC) str.cma gen_codec_id.ml -o gen_codec_id
-	./gen_codec_id
+gen-code:
+	$(OCAMLOPT) -c gen_code_stubs.c
+	$(OCAMLOPT) str.cmxa gen_code_stubs.o gen_code.ml -o gen_code
+	./gen_code
 
 install: libinstall
 

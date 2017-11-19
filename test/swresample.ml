@@ -78,7 +78,6 @@ let test() =
       for c = 0 to nb_chan - 1 do
 
         let v = int_of_float(planes.(c).(i) *. cx) in
-        Printf.printf"%d\n" v;
 
         Bytes.set bytes 0 (char_of_int(v land 0xFF ));
         Bytes.set bytes 1 (char_of_int((v lsr 8) land 0xFF ));
