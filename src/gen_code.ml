@@ -47,7 +47,28 @@ let get_path filename =
     ) None
 
 
+let print_define_polymorphic_variant_value oc pv =
+  let value = Int64.to_string(polymorphic_variant_string_to_c_value pv) in
+  output_string oc ("#define PVV_" ^ pv ^ " (" ^ value ^ ")\n")
+
+
 let () =
+  let pvv_oc = open_out "polymorphic_variant_values.h" in
+
+  print_define_polymorphic_variant_value pvv_oc "frame";
+  print_define_polymorphic_variant_value pvv_oc "audio";
+  print_define_polymorphic_variant_value pvv_oc "video";
+  print_define_polymorphic_variant_value pvv_oc "subtitle";
+  print_define_polymorphic_variant_value pvv_oc "end_of_stream";
+  print_define_polymorphic_variant_value pvv_oc "end_of_file";
+  print_define_polymorphic_variant_value pvv_oc "error";
+  print_define_polymorphic_variant_value pvv_oc "second";
+  print_define_polymorphic_variant_value pvv_oc "millisecond";
+  print_define_polymorphic_variant_value pvv_oc "microsecond";
+  print_define_polymorphic_variant_value pvv_oc "nanosecond";
+
+  close_out pvv_oc;
+
   match get_path"/libavcodec/avcodec.h" with
   | None -> ()
   | Some path -> (

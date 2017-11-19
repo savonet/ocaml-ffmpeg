@@ -46,11 +46,12 @@ module Pixel_format = struct
 end
 
 module Time_format = struct
-  type t =
-    | Second
-    | Millisecond
-    | Microsecond
-    | Nanosecond
+  type t = [
+    | `second
+    | `millisecond
+    | `microsecond
+    | `nanosecond
+  ]
 end
 
 external time_base : unit -> int64 = "ocaml_avutil_time_base"

@@ -33,8 +33,8 @@ let () =
 
   let rec run n =
     if n > 0 then match Av.read ias with
-      | Av.Frame frame -> Av.write_audio dst frame; run(n - 1)
-      | Av.End_of_stream -> ()
+      | `frame frame -> Av.write_audio dst frame; run(n - 1)
+      | `end_of_stream -> ()
   in
   run 500;
 

@@ -40,11 +40,12 @@ exception Failure of string
 module Time_format : sig
 
   (** Time formats. *)
-  type t =
-    | Second
-    | Millisecond
-    | Microsecond
-    | Nanosecond
+  type t = [
+    | `second
+    | `millisecond
+    | `microsecond
+    | `nanosecond
+  ]
 end
 
 (** Return the time base of FFmpeg. *)

@@ -17,6 +17,8 @@
 #endif
 #include <libavcodec/avcodec.h>
 
+#include "polymorphic_variant_values.h"
+
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
 
@@ -44,9 +46,7 @@ value Val_pixelFormat(enum AVPixelFormat pf);
 
 /**** Time format ****/
 
-#define Time_format_val(v) (Int_val(v))
-
-int64_t second_fractions_of_time_format(int time_format);
+int64_t second_fractions_of_time_format(value time_format);
 
 
 /**** Channel layout ****/

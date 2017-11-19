@@ -38,8 +38,8 @@ val open_input_format : (input, _)format -> input container
 (** [Av.open_input_format format] open the input [format]. @raise Failure if the opening failed. *)
 
 
-val get_input_duration : input container -> Time_format.t -> Int64.t
-(** [Av.get_input_duration input fmt] return the duration of an [input] in the [fmt] time format. *)
+val get_input_duration : ?format:Time_format.t -> input container -> Int64.t
+(** [Av.get_input_duration ~format:fmt input] return the duration of an [input] in the [fmt] time format (in second by default). *)
 
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
@@ -76,7 +76,7 @@ val get_index : (_, _)stream -> int
 val get_codec : (_, 'media)stream -> 'media Avcodec.t
 (** [Av.get_codec stream] return the codec of the [stream]. @raise Failure if the codec allocation failed. *)
 
-val get_duration : (input, _)stream -> Time_format.t -> Int64.t
+val get_duration : ?format:Time_format.t -> (input, _)stream -> Int64.t
 (** Same as {!Av.get_input_duration} for the input streams. *)
 
 val get_metadata : (input, _)stream -> (string * string) list
@@ -86,7 +86,7 @@ val select : (input, _)stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Failure if the selection failed. *)
 
 (** Stream reading result. *)
-type 'media result = Frame of 'media frame | End_of_stream
+type 'media result = [ `frame of 'media frame | `end_of_stream ]
 
 val read : (input, 'media)stream -> 'media result
 (** [Av.read stream] read the input [stream]. Return the next frame of the [stream] or [End_of_stream] if the end of the stream is reached. @raise Failure if the reading failed. *)
@@ -101,11 +101,12 @@ val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> un
 (** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t] in the [fmt] time format according to the method indicated by the [flags]. @raise Failure if the seeking failed. *)
 
 
-type media =
-  | Audio of int * audio frame
-  | Video of int * video frame
-  | Subtitle of int * subtitle frame
-  | End_of_file
+type media = [
+  | `audio of int * audio frame
+  | `video of int * video frame
+  | `subtitle of int * subtitle frame
+  | `end_of_file
+]
 
 val read_input : input container -> media
 (** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and frame of the input or [End_of_file] if the end of the input is reached. @raise Failure if the reading failed. *)

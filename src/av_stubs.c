@@ -22,7 +22,6 @@
 #include "avcodec_stubs.h"
 #include "av_stubs.h"
 
-
 /**** Context ****/
 
 typedef struct {
@@ -60,15 +59,6 @@ typedef struct av_t {
   int header_written;
 } av_t;
 
-typedef enum {
-  undefined,
-  audio_frame,
-  video_frame,
-  subtitle_frame,
-  end_of_file,
-  error
-} frame_kind;
-  
 #define Av_val(v) (*(av_t**)Data_custom_val(v))
 
 
@@ -76,14 +66,6 @@ typedef enum {
 
 #define StreamAv_val(v) Av_val(Field(v, 0))
 #define StreamIndex_val(v) Int_val(Field(v, 1))
-
-
-#define MEDIA_TAG 0
-#define AUDIO_MEDIA_TAG 0
-#define VIDEO_MEDIA_TAG 1
-#define SUBTITLE_MEDIA_TAG 2
-#define UNKNOWN_MEDIA_TAG 3
-#define END_OF_FILE_TAG 0
 
 /**** Media Type ****/
 
@@ -393,7 +375,6 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   CAMLlocal1(ans);
   av_t * av = Av_val(_av);
   int index = Int_val(_stream_index);
-  int time_format = Time_format_val(_time_format);
   
   if( ! av->format_context) Raise(EXN_FAILURE, "Failed to get closed input duration");
 
@@ -407,7 +388,7 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
     den = (int64_t)av->format_context->streams[index]->time_base.den;
   }
 
-  int64_t second_fractions = second_fractions_of_time_format(time_format);
+  int64_t second_fractions = second_fractions_of_time_format(_time_format);
 
   ans = caml_copy_int64((duration * second_fractions * num) / den);
 
@@ -519,11 +500,11 @@ CAMLprim value ocaml_av_select_stream(value _stream)
 }
 
 
-static frame_kind decode_packet(av_t * av, stream_t * stream)
+static value decode_packet(av_t * av, stream_t * stream)
 {
   AVPacket * packet = &av->packet;
   AVCodecContext * dec = stream->codec_context;
-  frame_kind frame_kind = undefined;
+  value frame_kind = 0;
   int ret = AVERROR_INVALIDDATA;
 
   if(dec->codec_type == AVMEDIA_TYPE_AUDIO ||
@@ -540,12 +521,10 @@ static frame_kind decode_packet(av_t * av, stream_t * stream)
     }
   
     if(dec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      //av->audio_stream = stream;
-      frame_kind = audio_frame;
+      frame_kind = PVV_audio;
     }
     else {
-      //av->video_stream = stream;
-      frame_kind = video_frame;
+      frame_kind = PVV_video;
     }
   }
   else if(dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
@@ -554,8 +533,7 @@ static frame_kind decode_packet(av_t * av, stream_t * stream)
   
     if (ret >= 0) packet->size = 0;
   
-    //    av->subtitle_stream = stream;
-    frame_kind = subtitle_frame;
+    frame_kind = PVV_subtitle;
   }
   
   if(packet->size <= 0) {
@@ -567,28 +545,28 @@ static frame_kind decode_packet(av_t * av, stream_t * stream)
   }
   else if (ret == AVERROR_EOF) {
     stream->got_frame = 0;
-    frame_kind = end_of_file;
+    frame_kind = PVV_end_of_file;
   }
   else if (ret == AVERROR(EAGAIN)) {
-    frame_kind = undefined;
+    frame_kind = 0;
   }
   else {
     Log("Failed to decode %s frame : %s", av_get_media_type_string(dec->codec_type), av_err2str(ret));
-    frame_kind = error;
+    frame_kind = PVV_error;
   }
 
   return frame_kind;
 }
 
-static frame_kind read_stream_frame(av_t * av, stream_t * stream)
+static value read_stream_frame(av_t * av, stream_t * stream)
 {
   AVPacket * packet = &av->packet;
   int stream_index = stream->index;
-  frame_kind frame_kind = undefined;
+  value frame_kind = 0;
 
   caml_release_runtime_system();
 
-  for(; frame_kind == undefined;) {
+  for(; ! frame_kind;) {
     if( ! av->end_of_file) {
 
       if(packet->size <= 0) {
@@ -610,7 +588,7 @@ static frame_kind read_stream_frame(av_t * av, stream_t * stream)
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   return frame_kind;
 }
@@ -626,14 +604,15 @@ CAMLprim value ocaml_av_read_stream(value _stream) {
   if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index)) Raise(EXN_FAILURE, ocaml_av_error_msg);
   stream = av->streams[index];
   
-  frame_kind frame_kind = read_stream_frame(av, stream);
+  value frame_kind = read_stream_frame(av, stream);
 
-  if(frame_kind == end_of_file) {
-    ans = Val_int(END_OF_FILE_TAG);
+  if(frame_kind == PVV_end_of_file) {
+    ans = PVV_end_of_stream;
   }
   else {
-    ans = caml_alloc_small(1, MEDIA_TAG);
-    Field(ans, 0) = stream->frame;
+    ans = caml_alloc_tuple(2);
+    Field(ans, 0) = PVV_frame;
+    Field(ans, 1) = stream->frame;
   }
 
   CAMLreturn(ans);
@@ -642,7 +621,7 @@ CAMLprim value ocaml_av_read_stream(value _stream) {
 CAMLprim value ocaml_av_read_input(value _av)
 {
   CAMLparam1(_av);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, stream_frame);
   av_t * av = Av_val(_av);
 
   if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
@@ -651,11 +630,11 @@ CAMLprim value ocaml_av_read_input(value _av)
   stream_t ** streams = av->streams;
   unsigned int nb_streams = av->format_context->nb_streams;
   stream_t * stream = NULL;
-  frame_kind frame_kind = undefined;
+  value frame_kind = 0;
 
   caml_release_runtime_system();
 
-  for(; frame_kind == undefined;) {
+  for(; ! frame_kind;) {
     if( ! av->end_of_file) {
   
       if(packet->size <= 0) {
@@ -678,7 +657,7 @@ CAMLprim value ocaml_av_read_input(value _av)
         }
         else {
           if(NULL == (stream = open_stream_index(av, packet->stream_index))) {
-            frame_kind = error;
+            frame_kind = PVV_error;
             break;
           }
         }
@@ -692,34 +671,27 @@ CAMLprim value ocaml_av_read_input(value _av)
       }
 
       if(i == nb_streams) {
-        frame_kind = end_of_file;
+        frame_kind = PVV_end_of_file;
         break;
       }
     }
-  
     frame_kind = decode_packet(av, stream);
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
   
-  if(frame_kind == end_of_file) {
-    ans = Val_int(END_OF_FILE_TAG);
+  if(frame_kind == PVV_end_of_file) {
+    ans = PVV_end_of_file;
   }
   else {
-    int media_tag = AUDIO_MEDIA_TAG;
+    stream_frame = caml_alloc_tuple(2);
+    Field(stream_frame, 0) = Val_int(stream->index);
+    Field(stream_frame, 1) = stream->frame;
 
-    if(frame_kind == video_frame) {
-      media_tag = VIDEO_MEDIA_TAG;
-    }
-    else if(frame_kind == subtitle_frame) {
-      media_tag = SUBTITLE_MEDIA_TAG;
-    }
-    
-    ans = caml_alloc_small(2, media_tag);
-
-    Field(ans, 0) = Val_int(stream->index);
-    Field(ans, 1) = stream->frame;
+    ans = caml_alloc_tuple(2);
+    Field(ans, 0) = frame_kind;
+    Field(ans, 1) = stream_frame;
   }
   CAMLreturn(ans);
 }
@@ -737,7 +709,6 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _tim
   CAMLparam4(_stream, _time_format, _timestamp, _flags);
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
-  int time_format = Time_format_val(_time_format);
   int64_t timestamp = Int64_val(_timestamp);
 
   if( ! av->format_context) Raise(EXN_FAILURE, "Failed to seek closed input");
@@ -750,7 +721,7 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _tim
     den = (int64_t)av->format_context->streams[index]->time_base.num;
   }
 
-  int64_t second_fractions = second_fractions_of_time_format(time_format);
+  int64_t second_fractions = second_fractions_of_time_format(_time_format);
 
   timestamp = (timestamp * num) / (den * second_fractions);
 

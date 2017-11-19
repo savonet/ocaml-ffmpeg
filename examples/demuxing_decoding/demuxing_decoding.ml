@@ -28,18 +28,18 @@ let () =
 
   let rec decode() =
     match Av.read_input src with
-    | Av.Audio (idx, af) ->
+    | `audio (idx, af) ->
       if idx = audio_index then (
         FrameToS32Bytes.convert rbs af |> output_bytes audio_output_file);
       decode()
-    | Av.Video (idx, vf) ->
+    | `video (idx, vf) ->
       (*        Swscale.scale_frame vf |> output_video video_output_file;*)
       decode()
-    | Av.Subtitle (idx, sf) ->
+    | `subtitle (idx, sf) ->
       let _, _, lines = Subtitle.frame_to_lines sf in
       lines |> List.iter print_endline;
       decode()
-    | Av.End_of_file -> ()
+    | `end_of_file -> ()
     | exception Failure msg -> prerr_endline msg
   in
   decode();

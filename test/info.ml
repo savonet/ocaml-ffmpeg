@@ -5,7 +5,7 @@ open Printf
 let test() =
   Sys.argv |> Array.to_list |> List.tl |> List.iter(fun url ->
       let input = Av.open_input url in
-      Av.get_input_duration input Time_format.Millisecond |> printf"%s (%Ld ms) :\n" url;
+      Av.get_input_duration input |> printf"%s (%Ld s) :\n" url;
       Av.get_input_metadata input |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
       Av.get_audio_streams input |> List.iter(fun (idx, stm, cd) ->
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
@@ -16,7 +16,7 @@ let test() =
               "channels" (get_nb_channels cd)
               "bit rate" (get_bit_rate cd)
               "sample rate" (get_sample_rate cd)
-              "duration (ms)" (Av.get_duration stm Time_format.Millisecond)
+              "duration (ms)" (Av.get_duration ~format:`millisecond stm)
           ));
       Av.get_video_streams input |> List.iter(fun (idx, stm, cd) ->
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
@@ -28,14 +28,14 @@ let test() =
               "height" (get_height cd)
               "sample aspect ratio" sar_num sar_den
               "bit rate" (get_bit_rate cd)
-              "duration (ms)" (Av.get_duration stm Time_format.Millisecond)
+              "duration (ns)" (Av.get_duration ~format:`nanosecond stm)
           ));
       Av.get_subtitle_streams input |> List.iter(fun (idx, stm, cd) ->
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
           Avcodec.Subtitle.(
             printf"\tSubtitle stream %d : %s %s, %s %Ld\n"
               idx "codec" (get_id cd |> get_name)
-              "duration (ms)" (Av.get_duration stm Time_format.Millisecond)
+              "duration (µs)" (Av.get_duration ~format:`microsecond stm)
           ));
       printf"\n";
     );
