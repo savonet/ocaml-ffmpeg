@@ -55,9 +55,13 @@ let () =
 
       let c_oc = open_out "codec_id.h" in
       let ml_oc = open_out "codec_id.ml" in
+      let mli_oc = open_out "codec_id.mli" in
 
       let print_c line = output_string c_oc (line ^ "\n") in
-      let print_ml line = output_string ml_oc (line ^ "\n") in
+      let print_ml line =
+        output_string ml_oc (line ^ "\n");
+        output_string mli_oc (line ^ "\n");
+      in
 
 
       let codec_id_re = Str.regexp "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)" in
@@ -86,4 +90,5 @@ let () =
       close_in ic;
       close_out c_oc;
       close_out ml_oc;
+      close_out mli_oc;
     )
