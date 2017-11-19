@@ -35,52 +35,55 @@ let translate_enum_lines ic c_type_name ml_type_name prefix re end_re print_c pr
 
 
 let get_path filename =
-  let path = Array.fold_left(fun path param ->
+  Sys.argv |> Array.fold_left(fun path param ->
       if path = None && "-I" = String.sub param 0 2 then (
         let p = (String.sub param 2 (String.length param - 2)) ^ filename in
         if Sys.file_exists p then Some p
-        else None)
+        else (
+          print_endline("File " ^ filename ^ " not found");
+          None)
+      )
       else path
-    ) None Sys.argv in
-  match path with
-  | None -> prerr_endline("File " ^ filename ^ " not found"); exit 1
-  | Some path -> path
+    ) None
 
 
 let () =
-  let ic = open_in(get_path"/libavcodec/avcodec.h") in
+  match get_path"/libavcodec/avcodec.h" with
+  | None -> ()
+  | Some path -> (
+      let ic = open_in path in
 
-  let c_oc = open_out "codec_id.h" in
-  let ml_oc = open_out "codec_id.ml" in
+      let c_oc = open_out "codec_id.h" in
+      let ml_oc = open_out "codec_id.ml" in
 
-  let print_c line = output_string c_oc (line ^ "\n") in
-  let print_ml line = output_string ml_oc (line ^ "\n") in
-
-
-  let codec_id_re = Str.regexp "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)" in
-  let end_re = Str.regexp "[ \t]*AV_CODEC_ID_NONE" in
-
-  translate_enum_lines ic "" "" "" codec_id_re end_re (fun _->()) (fun _->());
+      let print_c line = output_string c_oc (line ^ "\n") in
+      let print_ml line = output_string ml_oc (line ^ "\n") in
 
 
-  let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_AUDIO" in
+      let codec_id_re = Str.regexp "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)" in
+      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_NONE" in
 
-  translate_enum_lines ic "VIDEO_CODEC_IDS" "video" "AV_CODEC_ID_"
-    codec_id_re end_re print_c print_ml;
-
-
-  let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE" in
-
-  translate_enum_lines ic "AUDIO_CODEC_IDS" "audio" "AV_CODEC_ID_"
-    codec_id_re end_re print_c print_ml;
+      translate_enum_lines ic "" "" "" codec_id_re end_re (fun _->()) (fun _->());
 
 
-  let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN" in
+      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_AUDIO" in
 
-  translate_enum_lines ic "SUBTITLE_CODEC_IDS" "subtitle" "AV_CODEC_ID_"
-    codec_id_re end_re print_c print_ml;
+      translate_enum_lines ic "VIDEO_CODEC_IDS" "video" "AV_CODEC_ID_"
+        codec_id_re end_re print_c print_ml;
 
-  close_in ic;
-  close_out c_oc;
-  close_out ml_oc;
 
+      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE" in
+
+      translate_enum_lines ic "AUDIO_CODEC_IDS" "audio" "AV_CODEC_ID_"
+        codec_id_re end_re print_c print_ml;
+
+
+      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN" in
+
+      translate_enum_lines ic "SUBTITLE_CODEC_IDS" "subtitle" "AV_CODEC_ID_"
+        codec_id_re end_re print_c print_ml;
+
+      close_in ic;
+      close_out c_oc;
+      close_out ml_oc;
+    )
