@@ -14,6 +14,7 @@
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
@@ -25,10 +26,8 @@
 </div>
 <h1>Module <a href="type_Avdevice.App_to_dev.html">Avdevice.App_to_dev</a></h1>
 
-<pre><span id="MODULEApp_to_dev"><span class="keyword">module</span> App_to_dev</span>: <code class="code">sig</code> <a href="Avdevice.App_to_dev.html">..</a> <code class="code">end</code></pre><div class="info module top">
-<div class="info-desc">
-<p>Application to device communication</p>
-</div>
+<pre><span class="keyword">module</span> App_to_dev: <code class="code">sig</code> <a href="Avdevice.App_to_dev.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Application to device communication<br>
 </div>
 <hr width="100%">
 
@@ -119,18 +118,12 @@
 </tr></table>
 
 <div class="info ">
-<div class="info-desc">
-<p>Application to device control messages</p>
-</div>
+Application to device control messages<br>
 </div>
 
 
 <pre><span id="VALcontrol_messages"><span class="keyword">val</span> control_messages</span> : <code class="type"><a href="Avdevice.App_to_dev.html#TYPEmessage">message</a> list -> 'a <a href="Avutil.html#TYPEcontainer">container</a> -> unit</code></pre><div class="info ">
-<div class="info-desc">
-<p><code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.</p>
-</div>
-<ul class="info-attributes">
-<li><b>Raises</b> <code>Failure</code> if the application to device control message failed.</li>
-</ul>
+<code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.<br>
+<b>Raises</b> <code>Failure</code> if the application to device control message failed.<br>
 </div>
 </body></html>

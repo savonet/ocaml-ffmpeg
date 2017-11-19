@@ -14,6 +14,7 @@
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
@@ -25,208 +26,27 @@
 &nbsp;</div>
 <h1>Module <a href="type_Avcodec.Subtitle.html">Avcodec.Subtitle</a></h1>
 
-<pre><span id="MODULESubtitle"><span class="keyword">module</span> Subtitle</span>: <code class="code">sig</code> <a href="Avcodec.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info module top">
-<div class="info-desc">
-<p>Subtitle codecs.</p>
-</div>
+<pre><span class="keyword">module</span> Subtitle: <code class="code">sig</code> <a href="Avcodec.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Subtitle codecs.<br>
 </div>
 <hr width="100%">
 
-<pre><code><span id="TYPEid"><span class="keyword">type</span> <code class="type"></code>id</span> = </code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_DVD_SUBTITLE"><span class="constructor">SC_DVD_SUBTITLE</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_DVB_SUBTITLE"><span class="constructor">SC_DVB_SUBTITLE</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_TEXT"><span class="constructor">SC_TEXT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_XSUB"><span class="constructor">SC_XSUB</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SSA"><span class="constructor">SC_SSA</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_MOV_TEXT"><span class="constructor">SC_MOV_TEXT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_HDMV_PGS_SUBTITLE"><span class="constructor">SC_HDMV_PGS_SUBTITLE</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_DVB_TELETEXT"><span class="constructor">SC_DVB_TELETEXT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SRT"><span class="constructor">SC_SRT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_MICRODVD"><span class="constructor">SC_MICRODVD</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_EIA_608"><span class="constructor">SC_EIA_608</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_JACOSUB"><span class="constructor">SC_JACOSUB</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SAMI"><span class="constructor">SC_SAMI</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_REALTEXT"><span class="constructor">SC_REALTEXT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_STL"><span class="constructor">SC_STL</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SUBVIEWER1"><span class="constructor">SC_SUBVIEWER1</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SUBVIEWER"><span class="constructor">SC_SUBVIEWER</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_SUBRIP"><span class="constructor">SC_SUBRIP</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_WEBVTT"><span class="constructor">SC_WEBVTT</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_MPL2"><span class="constructor">SC_MPL2</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_VPLAYER"><span class="constructor">SC_VPLAYER</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_PJS"><span class="constructor">SC_PJS</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_ASS"><span class="constructor">SC_ASS</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTid.SC_HDMV_TEXT_SUBTITLE"><span class="constructor">SC_HDMV_TEXT_SUBTITLE</span></span></code></td>
-
-</tr></table>
-
+<pre><span id="TYPEid"><span class="keyword">type</span> <code class="type"></code>id</span> = <code class="type"><a href="Codec_id.html#TYPEsubtitle">Codec_id.subtitle</a></code> </pre>
 <div class="info ">
-<div class="info-desc">
-<p>Subtitle codec ids</p>
-</div>
+Subtitle codec ids<br>
 </div>
 
 
 <pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Avcodec.Subtitle.html#TYPEid">id</a> -> string</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the name of the codec.</p>
-</div>
+Return the name of the codec.<br>
 </div>
 
 <pre><span id="VALfind_id"><span class="keyword">val</span> find_id</span> : <code class="type">string -> <a href="Avcodec.Subtitle.html#TYPEid">id</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the id of a codec from his name.</p>
-</div>
-<ul class="info-attributes">
-<li><b>Raises</b> <code>Failure</code> if the codec is not found or is not a subtitle codec.</li>
-</ul>
+Return the id of a codec from his name.<br>
+<b>Raises</b> <code>Failure</code> if the codec is not found or is not a subtitle codec.<br>
 </div>
 
 <pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Subtitle.html#TYPEid">id</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the id of the codec.</p>
-</div>
+Return the id of the codec.<br>
 </div>
 </body></html>

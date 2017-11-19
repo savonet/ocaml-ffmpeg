@@ -14,6 +14,7 @@
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
@@ -25,26 +26,18 @@
 &nbsp;</div>
 <h1>Module <a href="type_Avutil.Subtitle.html">Avutil.Subtitle</a></h1>
 
-<pre><span id="MODULESubtitle"><span class="keyword">module</span> Subtitle</span>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span class="keyword">module</span> Subtitle: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> int64</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the time base for subtitles.</p>
-</div>
+Return the time base for subtitles.<br>
 </div>
 
 <pre><span id="VALcreate_frame"><span class="keyword">val</span> create_frame</span> : <code class="type">float -> float -> string list -> <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a></code></pre><div class="info ">
-<div class="info-desc">
-<p><code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.</p>
-</div>
-<ul class="info-attributes">
-<li><b>Raises</b> <code>Failure</code> if the allocation failed.</li>
-</ul>
+<code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.<br>
+<b>Raises</b> <code>Failure</code> if the allocation failed.<br>
 </div>
 
 <pre><span id="VALframe_to_lines"><span class="keyword">val</span> frame_to_lines</span> : <code class="type"><a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a> -> float * float * string list</code></pre><div class="info ">
-<div class="info-desc">
-<p>Convert subtitle frame to lines. The two float are the start and the end dislpay time in seconds.</p>
-</div>
+Convert subtitle frame to lines. The two float are the start and the end dislpay time in seconds.<br>
 </div>
 </body></html>

@@ -13,6 +13,7 @@
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
@@ -23,47 +24,33 @@
 &nbsp;</div>
 <h1>Module <a href="type_Av.Format.html">Av.Format</a></h1>
 
-<pre><span id="MODULEFormat"><span class="keyword">module</span> Format</span>: <code class="code">sig</code> <a href="Av.Format.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span class="keyword">module</span> Format: <code class="code">sig</code> <a href="Av.Format.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALget_input_name"><span class="keyword">val</span> get_input_name</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the name of the input format</p>
-</div>
+Return the name of the input format<br>
 </div>
 
 <pre><span id="VALget_input_long_name"><span class="keyword">val</span> get_input_long_name</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the long name of the input format</p>
-</div>
+Return the long name of the input format<br>
 </div>
 
 <pre><span id="VALget_output_name"><span class="keyword">val</span> get_output_name</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the name of the output format</p>
-</div>
+Return the name of the output format<br>
 </div>
 
 <pre><span id="VALget_output_long_name"><span class="keyword">val</span> get_output_long_name</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, 'a) <a href="Avutil.html#TYPEformat">format</a> -> string</code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the long name of the output format</p>
-</div>
+Return the long name of the output format<br>
 </div>
 
 <pre><span id="VALget_audio_codec_id"><span class="keyword">val</span> get_audio_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Audio.html#TYPEid">Avcodec.Audio.id</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the audio codec id of the output audio format</p>
-</div>
+Return the audio codec id of the output audio format<br>
 </div>
 
 <pre><span id="VALget_video_codec_id"><span class="keyword">val</span> get_video_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Video.html#TYPEid">Avcodec.Video.id</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the video codec id of the output video format</p>
-</div>
+Return the video codec id of the output video format<br>
 </div>
 
 <pre><span id="VALget_subtitle_codec_id"><span class="keyword">val</span> get_subtitle_codec_id</span> : <code class="type">(<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEsubtitle">subtitle</a>) <a href="Avutil.html#TYPEformat">format</a> -> <a href="Avcodec.Subtitle.html#TYPEid">Avcodec.Subtitle.id</a></code></pre><div class="info ">
-<div class="info-desc">
-<p>Return the subtitle codec id of the output subtitle format</p>
-</div>
+Return the subtitle codec id of the output subtitle format<br>
 </div>
 </body></html>
