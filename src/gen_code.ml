@@ -3,7 +3,7 @@ external polymorphic_variant_string_to_c_value : string -> int64 = "polymorphic_
 
 
 let rec id_to_pv_value id values =
-  let id = String.lowercase_ascii id in
+  let id = String.lowercase id in
   let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
   let value = polymorphic_variant_string_to_c_value id in
 
