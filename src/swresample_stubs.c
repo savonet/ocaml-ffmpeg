@@ -327,30 +327,42 @@ static void alloc_out_planar_float_array(swr_t *swr, int out_nb_samples)
 static int convert_to_planar_float_array(swr_t *swr, uint8_t **in_data, int in_nb_samples, int out_nb_samples)
 {
   CAMLparam0();
-  CAMLlocal1(channel);
 
-  for(int i = 0; i < swr->out_nb_channels; i++) {
-    swr->out_data[i] = (uint8_t*)Field(swr->out_vector, i);
-  }
+  uint8_t **out_data;
+  double *pcm;
+  int out_linesize;
+  int i,j,ret;
+
+  ret = av_samples_alloc_array_and_samples(&out_data, &out_linesize, swr->out_nb_channels,
+                                           out_nb_samples, swr->out_sample_fmt, 0);
+
+  if (ret < 0) caml_raise_out_of_memory(); // TODO: proper exception?
 
   // Convert the samples.
-  int ret = swr_convert(swr->context,
-			swr->out_data,
-			out_nb_samples,
-			(const uint8_t **) in_data,
-			in_nb_samples);
+  caml_release_runtime_system();
+  ret = swr_convert(swr->context,
+		    out_data,
+		    out_nb_samples,
+                    (const uint8_t **) in_data,
+		    in_nb_samples);
+  caml_acquire_runtime_system();
 
-  if(ret > 0 && ret != out_nb_samples) {
-    size_t size = ret * Double_wosize;
-    size_t len = ret * av_get_bytes_per_sample(swr->out_sample_fmt);
+  if (ret < 0)
+    caml_failwith("Error while converting"); // TODO: proper exception.
 
-    for(int i = 0; i < swr->out_nb_channels; i++) {
-      channel = caml_alloc(size, Double_array_tag);
-      memcpy((void*)channel, (void*)Field(swr->out_vector, i), len);
-      Store_field(swr->out_vector, i, channel);
-    }
-    swr->out_size = ret;
+  swr->out_size = ret;
+
+  for (i = 0; i < swr->out_nb_channels; i++) {
+    Store_field(swr->out_vector, i, caml_alloc(ret * Double_wosize, Double_array_tag));
+    pcm = (double *)out_data[i];
+    for (j = 0; j < ret; j++)
+      Store_double_field(Field(swr->out_vector, i), j, pcm[j]);
   }
+
+  if (out_data)
+    av_freep(&out_data[0]);
+  av_freep(&out_data);
+
   CAMLreturnT(int, ret);
 }
 
