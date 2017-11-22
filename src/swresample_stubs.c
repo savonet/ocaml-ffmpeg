@@ -352,8 +352,10 @@ static int convert_to_planar_float_array(swr_t *swr, uint8_t **in_data, int in_n
 
   swr->out_size = ret;
 
+  if (ret != out_nb_samples)
+    alloc_out_planar_float_array(swr, ret);
+
   for (i = 0; i < swr->out_nb_channels; i++) {
-    Store_field(swr->out_vector, i, caml_alloc(ret * Double_wosize, Double_array_tag));
     pcm = (double *)out_data[i];
     for (j = 0; j < ret; j++)
       Store_double_field(Field(swr->out_vector, i), j, pcm[j]);
