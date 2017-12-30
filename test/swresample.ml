@@ -112,4 +112,6 @@ let test() =
         close_out audio_output_file;
 
       with _ -> print_endline("No audio stream in "^url)
-    )
+    );
+
+  Gc.full_major (); Gc.full_major (); 

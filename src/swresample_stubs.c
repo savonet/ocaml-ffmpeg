@@ -462,12 +462,11 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
   CAMLreturn(swr->out_vector);
 }
 
-static void swresample_set_context(swr_t * swr,
-				   int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
-				   int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
+static swr_t * swresample_set_context(swr_t * swr,
+                                      int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
+                                      int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
 {
-  if( ! swr->context && ! (swr->context = swr_alloc()))
-    Raise(EXN_FAILURE, "Could not allocate swresample context");
+  if( ! swr->context && ! (swr->context = swr_alloc())) Fail("Failed to allocate swresample context");
 
   SwrContext *ctx = swr->context;
 
@@ -505,18 +504,22 @@ static void swresample_set_context(swr_t * swr,
 
   // initialize the resampling context
   int ret = swr_init(ctx);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to initialize the resampling context : %s", av_err2str(ret));
+  if(ret < 0) Fail("Failed to initialize the resampling context : %s", av_err2str(ret));
+  return swr;
 }
 
 swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
 {
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
 
-  if( ! swr) Raise(EXN_FAILURE, "Failed to allocate Swresample context");
+  if( ! swr) Fail("Failed to allocate Swresample context");
 
-  swresample_set_context(swr,
-			 in_channel_layout, in_sample_fmt, in_sample_rate,
-			 out_channel_layout, out_sample_fmt, out_sample_rate);
+  if( ! swresample_set_context(swr,
+                               in_channel_layout, in_sample_fmt, in_sample_rate,
+                               out_channel_layout, out_sample_fmt, out_sample_rate)) {
+    free(swr);
+    return NULL;
+  }
 
   if(in_vector_kind != Frm) {
     swr->in.data = (uint8_t**)calloc(swr->in.nb_channels, sizeof(uint8_t*));
@@ -612,7 +615,7 @@ void swresample_free(swr_t *swr)
     free(swr->out.data);
   }
   
-  if(swr->out_vector) caml_remove_generational_global_root(&swr->out_vector);
+  caml_remove_generational_global_root(&swr->out_vector);
 
   free(swr);
 }
@@ -649,6 +652,7 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
 
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
                                   out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate);
+  if( ! swr) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
   Swr_val(ans) = swr;
