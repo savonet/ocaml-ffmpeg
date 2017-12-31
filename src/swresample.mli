@@ -19,20 +19,20 @@ module Make : functor (I : AudioData) (O : AudioData) -> sig
 
   type nonrec t = (I.t, O.t) t
 
-  val create : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
-  (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl] channel layout, [in_sf] sample format and [in_sr] sample rate as input format and [out_cl] channel layout, [out_sf] sample format and [out_sr] sample rate as output format.
-If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.
+  val create : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> ?reuse_output:bool -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
+  (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr ~reuse_output:ro out_cl ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl] channel layout, [in_sf] sample format and [in_sr] sample rate as input format and [out_cl] channel layout, [out_sf] sample format and [out_sr] sample rate as output format.
+If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used. If [ro] is set to true, the data returned by Swresample.convert is invalidated by a new call to this function.
 @raise Failure "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
 
-  val from_codec : audio Avcodec.t -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
+  val from_codec : audio Avcodec.t -> ?reuse_output:bool -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
   (** [Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format. *)
 
 
-  val to_codec : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> audio Avcodec.t -> t
+  val to_codec : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> ?reuse_output:bool -> audio Avcodec.t -> t
   (** [Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac] do the same as {!Swresample.create} with the [out_ac] audio codec properties as output format. *)
 
 
-  val from_codec_to_codec : audio Avcodec.t -> audio Avcodec.t -> t
+  val from_codec_to_codec : audio Avcodec.t -> ?reuse_output:bool -> audio Avcodec.t -> t
   (** [Swresample.from_codec_to_codec in_ac out_ac] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format and the [out_ac] audio codec properties as output format. *)
 
   val convert : t -> I.t -> O.t
