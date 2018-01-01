@@ -514,7 +514,7 @@ static swr_t * swresample_set_context(swr_t * swr,
   return swr;
 }
 
-swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, int reuse_output)
+swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
 {
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
 
@@ -547,7 +547,6 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
   caml_register_generational_global_root(&swr->out_vector);
 
   swr->out.bytes_per_samples = av_get_bytes_per_sample(out_sample_fmt);
-  swr->release_out_vector = ! reuse_output;
   
   switch(in_vector_kind) {
   case Frm :
@@ -644,7 +643,7 @@ static struct custom_operations swr_ops =
   };
 
 CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_layout, value _in_sample_fmt, value _in_sample_rate,
-				       value _out_vector_kind, value _out_channel_layout, value _out_sample_fmt, value _out_sample_rate, value _reuse_output)
+				       value _out_vector_kind, value _out_channel_layout, value _out_sample_fmt, value _out_sample_rate)
 {
   CAMLparam4(_in_channel_layout, _in_sample_fmt, _out_channel_layout, _out_sample_fmt);
   CAMLlocal1(ans);
@@ -657,10 +656,9 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
   int64_t out_channel_layout = ChannelLayout_val(_out_channel_layout);
   enum AVSampleFormat out_sample_fmt = SampleFormat_val(_out_sample_fmt);
   int out_sample_rate = Int_val(_out_sample_rate);
-  int reuse_output = Int_val(_reuse_output);
 
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
-                                  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate, reuse_output);
+                                  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate);
   if( ! swr) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
@@ -671,5 +669,12 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
 
 CAMLprim value ocaml_swresample_create_byte(value *argv, int argn)
 {
-  return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]);
+  return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+}
+
+CAMLprim value ocaml_swresample_reuse_output(value _swr, value _reuse_output)
+{
+  CAMLparam2(_swr, _reuse_output);
+  Swr_val(_swr)->release_out_vector = ! Bool_val(_reuse_output);
+  CAMLreturn(Val_unit);
 }

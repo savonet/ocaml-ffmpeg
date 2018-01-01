@@ -160,58 +160,56 @@ module Make (I : AudioData) (O : AudioData) = struct
   type nonrec t = (I.t, O.t) t
 
   external create : vector_kind -> CL.t -> SF.t -> int ->
-    vector_kind -> CL.t -> SF.t -> int -> bool ->
+    vector_kind -> CL.t -> SF.t -> int ->
     t = "ocaml_swresample_create_byte" "ocaml_swresample_create"
 
 
   let create in_channel_layout ?in_sample_format in_sample_rate
-        ?(reuse_output=false) out_channel_layout ?out_sample_format out_sample_rate =
+        out_channel_layout ?out_sample_format out_sample_rate =
       
     let in_sample_format = match in_sample_format with
       | _ when I.sf <> SF.SF_none -> I.sf
       | Some sf -> sf
       | _ -> raise(Failure "Swresample input sample format undefined")
     in
-    (* let release_out_vector = if reuse_output then 0 else 1    in *)
     let out_sample_format = match out_sample_format with
       | _ when O.sf <> SF.SF_none -> O.sf
       | Some sf -> sf
       | _ -> raise(Failure "Swresample output sample format undefined")
     in
     create I.vk in_channel_layout in_sample_format in_sample_rate
-      O.vk out_channel_layout out_sample_format out_sample_rate reuse_output
+      O.vk out_channel_layout out_sample_format out_sample_rate
 
 
-  let from_codec in_codec ?(reuse_output=false) out_channel_layout ?out_sample_format out_sample_rate =
+  let from_codec in_codec out_channel_layout ?out_sample_format out_sample_rate =
 
     create (Avcodec.Audio.get_channel_layout in_codec)
       ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
       (Avcodec.Audio.get_sample_rate in_codec)
-      ~reuse_output
       out_channel_layout
       ?out_sample_format:out_sample_format
       out_sample_rate
 
 
-  let to_codec in_channel_layout ?in_sample_format in_sample_rate ?(reuse_output=false) out_codec =
+  let to_codec in_channel_layout ?in_sample_format in_sample_rate out_codec =
 
     create in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
-      ~reuse_output
       (Avcodec.Audio.get_channel_layout out_codec)
       ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
       (Avcodec.Audio.get_sample_rate out_codec)
 
 
-  let from_codec_to_codec in_codec ?(reuse_output=false) out_codec =
+  let from_codec_to_codec in_codec out_codec =
 
     create (Avcodec.Audio.get_channel_layout in_codec)
       ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
       (Avcodec.Audio.get_sample_rate in_codec)
-      ~reuse_output
       (Avcodec.Audio.get_channel_layout out_codec)
       ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
       (Avcodec.Audio.get_sample_rate out_codec)
 
+
+  external reuse_output : t -> bool -> unit = "ocaml_swresample_reuse_output"
 
   external convert : t -> I.t -> O.t = "ocaml_swresample_convert"
 end
