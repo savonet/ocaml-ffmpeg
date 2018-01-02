@@ -2,36 +2,15 @@
 external polymorphic_variant_string_to_c_value : string -> int64 = "polymorphic_variant_string_to_c_value"
 
 
-let rec id_to_pv_value id values =
-  let id = String.lowercase id in
-  let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
-  let value = polymorphic_variant_string_to_c_value id in
-
-  if List.mem value values then
-    id_to_pv_value(id ^ "_") values
-  else (id, value)
+let print_define_polymorphic_variant_value oc pv =
+  let value = Int64.to_string(polymorphic_variant_string_to_c_value pv) in
+  output_string oc ("#define PVV_" ^ pv ^ " (" ^ value ^ ")\n")
 
 
-let translate_enum_lines ic c_type_name ml_type_name prefix re end_re print_c print_ml =
-  let rec loop values =
-    try
-      match input_line ic with
-      | line when Str.string_match end_re line 0 -> values
-      | line when Str.string_match re line 0 ->
-        let id = Str.matched_group 1 line in
-        let pv, value = id_to_pv_value id values in
-
-        print_c("  {(" ^ Int64.to_string value ^ "), " ^ prefix ^ id ^ "},");
-        print_ml("  | `" ^ pv);
-        loop (value::values)
-      | _ -> loop values
-    with End_of_file -> values
-  in
-  print_c("static const long " ^ c_type_name ^ "[][2] = {");
-  print_ml("type " ^ ml_type_name ^ " = [");
-  let values = loop [] in
-  print_c ("};\n#define " ^ c_type_name ^ "_LEN " ^ string_of_int(List.length values) ^ "\n");
-  print_ml "]\n"
+let rec find_line ic line_re = try
+    if Str.string_match line_re (input_line ic) 0 then true
+    else find_line ic line_re
+  with End_of_file -> false
 
 
 let get_path filename =
@@ -47,69 +26,98 @@ let get_path filename =
     ) None
 
 
-let print_define_polymorphic_variant_value oc pv =
-  let value = Int64.to_string(polymorphic_variant_string_to_c_value pv) in
-  output_string oc ("#define PVV_" ^ pv ^ " (" ^ value ^ ")\n")
+let rec id_to_pv_value id values =
+  (* let id = String.lowercase id in *)
+  let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
+  let value = polymorphic_variant_string_to_c_value id in
+
+  if List.mem value values then
+    id_to_pv_value(id ^ "_") values
+  else (id, value)
+
+
+let translate_enum_lines ic labels c_oc ml_oc mli_oc =
+
+  let start_pat, pat, end_pat, enum_prefix, c_type_name, ml_type_name = labels in
+
+  let start_re = Str.regexp start_pat in
+  let re = Str.regexp pat in
+  let end_re = Str.regexp end_pat in
+
+  let print_c line = output_string c_oc (line ^ "\n") in
+
+  let print_ml line =
+    output_string ml_oc (line ^ "\n");
+    output_string mli_oc (line ^ "\n");
+  in
+
+  let rec loop values = try
+      match input_line ic with
+      | line when end_pat <> "" && Str.string_match end_re line 0 -> values
+      | line when Str.string_match re line 0 ->
+        let id = Str.matched_group 1 line in
+        let pv, value = id_to_pv_value id values in
+
+        print_c("  {(" ^ Int64.to_string value ^ "), " ^ enum_prefix ^ id ^ "},");
+        print_ml("  | `" ^ pv);
+        loop (value::values)
+      | _ -> loop values
+    with End_of_file -> values
+  in
+
+  if start_pat = "" || find_line ic start_re then (
+    print_c("static const long " ^ c_type_name ^ "[][2] = {");
+    print_ml("type " ^ ml_type_name ^ " = [");
+    let values = loop [] in
+    print_c ("};\n#define " ^ c_type_name ^ "_LEN " ^ string_of_int(List.length values) ^ "\n");
+    print_ml "]\n";
+  )
+
+
+let translate_enums in_name out_name enums_labels =
+
+  match get_path in_name with
+  | None -> ()
+  | Some path ->
+      let ic = open_in path in
+
+      let c_oc = open_out (out_name^".h") in
+      let ml_oc = open_out (out_name^".ml") in
+      let mli_oc = open_out (out_name^".mli") in
+
+      List.iter(fun labels -> translate_enum_lines ic labels c_oc ml_oc mli_oc) enums_labels;
+
+      close_in ic;
+      close_out c_oc;
+      close_out ml_oc;
+      close_out mli_oc
 
 
 let () =
   let pvv_oc = open_out "polymorphic_variant_values.h" in
 
-  print_define_polymorphic_variant_value pvv_oc "frame";
-  print_define_polymorphic_variant_value pvv_oc "audio";
-  print_define_polymorphic_variant_value pvv_oc "video";
-  print_define_polymorphic_variant_value pvv_oc "subtitle";
-  print_define_polymorphic_variant_value pvv_oc "end_of_stream";
-  print_define_polymorphic_variant_value pvv_oc "end_of_file";
-  print_define_polymorphic_variant_value pvv_oc "error";
-  print_define_polymorphic_variant_value pvv_oc "second";
-  print_define_polymorphic_variant_value pvv_oc "millisecond";
-  print_define_polymorphic_variant_value pvv_oc "microsecond";
-  print_define_polymorphic_variant_value pvv_oc "nanosecond";
+  List.iter(print_define_polymorphic_variant_value pvv_oc)
+    ["frame"; "audio"; "video"; "subtitle"; "end_of_stream"; "end_of_file";
+     "error"; "second"; "millisecond"; "microsecond"; "nanosecond"];
 
   close_out pvv_oc;
 
-  match get_path"/libavcodec/avcodec.h" with
-  | None -> ()
-  | Some path -> (
-      let ic = open_in path in
+  (* translate_enums parameters : *)
+  (* in_name out_name (start_pat, pat, end_pat, enum_prefix, c_type_name, ml_type_name) *)
+  translate_enums "/libavcodec/avcodec.h" "codec_id" [
+    "[ \t]*AV_CODEC_ID_NONE", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_AUDIO", "AV_CODEC_ID_", "VIDEO_CODEC_IDS", "video";
+    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "AUDIO_CODEC_IDS", "audio";
+    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "SUBTITLE_CODEC_IDS", "subtitle";
+  ];
 
-      let c_oc = open_out "codec_id.h" in
-      let ml_oc = open_out "codec_id.ml" in
-      let mli_oc = open_out "codec_id.mli" in
+  translate_enums "/libavutil/pixfmt.h" "pix_fmt" [
+    "[ \t]*AV_PIX_FMT_NONE", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "PIXEL_FORMATS", "t";
+  ];
 
-      let print_c line = output_string c_oc (line ^ "\n") in
-      let print_ml line =
-        output_string ml_oc (line ^ "\n");
-        output_string mli_oc (line ^ "\n");
-      in
+  translate_enums "/libavutil/channel_layout.h" "ch_layout" [
+    "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "CHANNEL_LAYOUTS", "t";
+  ];
 
-
-      let codec_id_re = Str.regexp "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)" in
-      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_NONE" in
-
-      translate_enum_lines ic "" "" "" codec_id_re end_re (fun _->()) (fun _->());
-
-
-      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_AUDIO" in
-
-      translate_enum_lines ic "VIDEO_CODEC_IDS" "video" "AV_CODEC_ID_"
-        codec_id_re end_re print_c print_ml;
-
-
-      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE" in
-
-      translate_enum_lines ic "AUDIO_CODEC_IDS" "audio" "AV_CODEC_ID_"
-        codec_id_re end_re print_c print_ml;
-
-
-      let end_re = Str.regexp "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN" in
-
-      translate_enum_lines ic "SUBTITLE_CODEC_IDS" "subtitle" "AV_CODEC_ID_"
-        codec_id_re end_re print_c print_ml;
-
-      close_in ic;
-      close_out c_oc;
-      close_out ml_oc;
-      close_out mli_oc;
-    )
+  translate_enums "/libavutil/samplefmt.h" "sample_fmt" [
+    "[ \t]*AV_SAMPLE_FMT_NONE", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "SAMPLE_FORMATS", "t";
+  ];

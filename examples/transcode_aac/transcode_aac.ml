@@ -8,7 +8,7 @@ let () =
   let _, is, codec = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
 
   let os = Av.open_output Sys.argv.(2)
-           |> Av.new_audio_stream ~codec_id:`aac ~codec in
+           |> Av.new_audio_stream ~codec_id:`AAC ~codec in
 
   is |> Av.iter(fun frm -> Av.write os frm);
 

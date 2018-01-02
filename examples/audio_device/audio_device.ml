@@ -21,7 +21,7 @@ let () =
        else Avdevice.open_audio_output Sys.argv.(2)
     with Avutil.Failure _ ->
       Av.open_output Sys.argv.(2)
-      |> Av.new_audio_stream ~codec_id:`flac |> Av.get_output in
+      |> Av.new_audio_stream ~codec_id:`FLAC |> Av.get_output in
 
   Avdevice.Dev_to_app.(set_control_message_callback (function
       | Volume_level_changed v ->

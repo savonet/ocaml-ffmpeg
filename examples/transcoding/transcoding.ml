@@ -9,10 +9,10 @@ let () =
   let dst = Av.open_output Sys.argv.(2) in
 
   let oass = Av.get_audio_streams src |> List.fold_left(fun oss (i, _, codec) ->
-      (i, Av.new_audio_stream ~codec_id:`aac ~codec dst)::oss) [] in
+      (i, Av.new_audio_stream ~codec_id:`AAC ~codec dst)::oss) [] in
 
   let ovss = Av.get_video_streams src |> List.fold_left(fun oss (i, _, codec) ->
-      (i, Av.new_video_stream ~codec_id:`h264 ~codec dst)::oss) [] in
+      (i, Av.new_video_stream ~codec_id:`H264 ~codec dst)::oss) [] in
 
   let osss = Av.get_subtitle_streams src |> List.fold_left(fun oss (i, _, codec) ->
       (i, Av.new_subtitle_stream ~codec dst)::oss) [] in
