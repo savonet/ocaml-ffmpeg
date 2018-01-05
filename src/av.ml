@@ -133,7 +133,8 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
     | Some cl -> cl
     | None -> match codec with
       | Some cp -> Avcodec.Audio.get_channel_layout cp
-      | None -> Channel_layout.CL_stereo
+      (* | None -> Channel_layout.CL_stereo *)
+      | None -> `STEREO
   in
   let sf = match sample_format with
     | Some sf -> sf

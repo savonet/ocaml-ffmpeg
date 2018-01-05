@@ -16,7 +16,7 @@ let () =
 
   let _, is, ic = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
 
-  let rsp = FrameToS32Bytes.from_codec ic Channel_layout.CL_stereo 44100 in
+  let rsp = FrameToS32Bytes.from_codec ic `STEREO 44100 in
 
   is |> Av.iter (fun frame ->
       FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
@@ -25,7 +25,7 @@ let () =
   close_out audio_output_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
-    (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
+    (Sample_format.get_name `S32 ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
   Gc.full_major (); Gc.full_major ();

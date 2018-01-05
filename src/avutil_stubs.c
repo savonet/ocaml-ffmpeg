@@ -12,10 +12,13 @@
 #include "libavutil/avstring.h"
 
 #include "avutil_stubs.h"
+#include "pix_fmt.h"
+#include "ch_layout.h"
+#include "sample_fmt.h"
 
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
-
+/*
 static const enum AVPixelFormat PIXEL_FORMATS[] = {
   AV_PIX_FMT_YUV420P,
   AV_PIX_FMT_YUYV422,
@@ -47,7 +50,7 @@ value Val_pixelFormat(enum AVPixelFormat pf)
   Raise(EXN_FAILURE, "Invalid pixel format : %d", pf);
   return Val_int(0);
 }
-
+*/
 CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
@@ -80,7 +83,7 @@ CAMLprim value ocaml_avutil_time_base()
 }
 
 /**** Channel layout ****/
-
+/*
 #ifdef HAS_CHANNEL_LAYOUT
 static const uint64_t CHANNEL_LAYOUTS[] = {
   AV_CH_LAYOUT_MONO,
@@ -138,7 +141,7 @@ value Val_channelLayout(uint64_t cl)
   return Val_int(0);
 #endif
 }
-
+*/
 
 /**** Sample format ****/
 
@@ -156,7 +159,7 @@ static const enum AVSampleFormat SAMPLE_FORMATS[] = {
   AV_SAMPLE_FMT_DBLP
 };
 #define SAMPLE_FORMATS_LEN (sizeof(SAMPLE_FORMATS) / sizeof(enum AVSampleFormat))
-
+/*
 enum AVSampleFormat SampleFormat_val(value v)
 {
   return SAMPLE_FORMATS[Int_val(v)];
@@ -177,7 +180,7 @@ value Val_sampleFormat(enum AVSampleFormat sf)
   Raise(EXN_FAILURE, "Invalid sample format : %d", sf);
   return Val_int(0);
 }
-
+*/
 static const enum caml_ba_kind BIGARRAY_KINDS[SAMPLE_FORMATS_LEN] = {
   CAML_BA_KIND_MASK,
   CAML_BA_UINT8,

@@ -23,7 +23,8 @@ let () =
 
 
 module Pixel_format = struct
-  type t =
+  type t = Pix_fmt.t
+             (*
     | YUV420p
     | YUYV422
     | RGB24
@@ -36,7 +37,7 @@ module Pixel_format = struct
     | YUVJ444p
     | RGBA
     | BGRA
-
+*)
   external bits : t -> int = "ocaml_avutil_bits_per_pixel"
 
   let bits (*?(padding=true)*) p =
@@ -58,7 +59,8 @@ external time_base : unit -> int64 = "ocaml_avutil_time_base"
 
 
 module Channel_layout = struct
-  type t =
+  type t = Ch_layout.t
+             (*
     | CL_mono
     | CL_stereo
     | CL_2point1
@@ -87,10 +89,12 @@ module Channel_layout = struct
     | CL_octagonal
     (*  | CL_hexadecagonal*)
     | CL_stereo_downmix
+*)
 end
 
 module Sample_format = struct
-  type t =
+  type t = Sample_fmt.t
+             (*
     | SF_none
     | SF_U8
     | SF_S16
@@ -102,7 +106,7 @@ module Sample_format = struct
     | SF_S32P
     | SF_FLTP
     | SF_DBLP
-
+*)
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end
 

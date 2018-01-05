@@ -12,9 +12,9 @@ let () =
   let codec_id = Avcodec.Audio.find_id Sys.argv.(2) in
 
   let oas = Av.open_output Sys.argv.(1) |> Av.new_audio_stream ~codec_id
-              ~channel_layout:CL.CL_stereo ~sample_rate in
+              ~channel_layout:`STEREO ~sample_rate in
 
-  let rsp = Resampler.to_codec CL.CL_mono sample_rate (Av.get_codec oas) in
+  let rsp = Resampler.to_codec `MONO sample_rate (Av.get_codec oas) in
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 

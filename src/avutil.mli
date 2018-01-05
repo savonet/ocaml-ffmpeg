@@ -59,6 +59,8 @@ val time_base : unit -> int64
 module Channel_layout : sig
 
   (** Channel layout formats *)
+  type t = Ch_layout.t
+             (*
   type t =
     | CL_mono
     | CL_stereo
@@ -88,12 +90,15 @@ module Channel_layout : sig
     | CL_octagonal
     (*  | CL_hexadecagonal*)
     | CL_stereo_downmix
+*)
 end
 
 (** Formats for audio samples. *)
 module Sample_format : sig
 
   (** Audio sample formats *)
+  type t = Sample_fmt.t
+             (*
   type t =
     | SF_none
     | SF_U8
@@ -106,6 +111,7 @@ module Sample_format : sig
     | SF_S32P
     | SF_FLTP
     | SF_DBLP
+*)
 
   (** Return the name of the sample format. *)
   val get_name : t -> string
@@ -118,7 +124,8 @@ end
 module Pixel_format : sig
 
   (** Pixels formats. *)
-  type t =
+  type t = Pix_fmt.t
+             (*
     | YUV420p
     | YUYV422
     | RGB24
@@ -131,6 +138,7 @@ module Pixel_format : sig
     | YUVJ444p
     | RGBA
     | BGRA
+*)
 
   (** Return the number of bits of the pixel format. *)
   val bits : (*?padding:bool ->*) t -> int

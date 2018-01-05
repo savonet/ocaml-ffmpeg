@@ -34,21 +34,21 @@ let frate = float_of_int rate
 
 let test() =
   let dst1 = open_out_bin "test_swresample_out1.raw" in
-  let r = R.create CL_mono rate CL_stereo 44100 in
+  let r = R.create `MONO rate `STEREO 44100 in
 
   let dst2 = open_out_bin "test_swresample_out2.raw" in
 
-  let r0 = R0.create CL_mono rate CL_5point1 96000 in
-  let r1 = R1.create CL_5point1 ~in_sample_format:SF_S16 96000 CL_stereo 16000 in
-  let r2 = R2.create CL_stereo 16000 CL_surround 44100 in
-  let r3 = R3.create CL_surround 44100 CL_stereo 48000 in
-  let r4 = R4.create CL_stereo 48000 CL_stereo_downmix 31000 in
-  let r5 = R5.create CL_stereo_downmix 31000 CL_stereo 73347 in
-  let r6 = R6.create CL_stereo 73347 CL_stereo 44100 in
-  let r7 = R7.create CL_stereo 44100 CL_stereo 48000 in
-  let r8 = R8.create CL_stereo 48000 CL_stereo 96000 in
-  let r9 = R9.create CL_stereo 96000 CL_stereo 44100 in
-  let r10 = R10.create CL_stereo 44100 CL_mono 44100 in
+  let r0 = R0.create `MONO rate `_5POINT1 96000 in
+  let r1 = R1.create `_5POINT1 ~in_sample_format:`S16 96000 `STEREO 16000 in
+  let r2 = R2.create `STEREO 16000 `SURROUND 44100 in
+  let r3 = R3.create `SURROUND 44100 `STEREO 48000 in
+  let r4 = R4.create `STEREO 48000 `STEREO_DOWNMIX 31000 in
+  let r5 = R5.create `STEREO_DOWNMIX 31000 `STEREO 73347 in
+  let r6 = R6.create `STEREO 73347 `STEREO 44100 in
+  let r7 = R7.create `STEREO 44100 `STEREO 48000 in
+  let r8 = R8.create `STEREO 48000 `STEREO 96000 in
+  let r9 = R9.create `STEREO 96000 `STEREO 44100 in
+  let r10 = R10.create `STEREO 44100 `MONO 44100 in
 
   R0.reuse_output r0 true;
   R4.reuse_output r4 true;
@@ -104,7 +104,7 @@ let test() =
   Sys.argv |> Array.to_list |> List.tl |> List.iter(fun url ->
       try
         let idx, is, ic = Av.open_input url |> Av.find_best_audio_stream in
-        let rsp = Converter.from_codec ic Channel_layout.CL_stereo 44100 in
+        let rsp = Converter.from_codec ic `STEREO 44100 in
 
         let p = try String.rindex url '/' + 1 with Not_found -> 0 in
         let audio_output_filename = String.(sub url p (length url - p) ^ "." ^ string_of_int idx ^ ".s16le.raw") in

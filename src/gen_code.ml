@@ -38,17 +38,18 @@ let rec id_to_pv_value id values =
 
 let translate_enum_lines ic labels c_oc ml_oc mli_oc =
 
-  let start_pat, pat, end_pat, enum_prefix, c_type_name, ml_type_name = labels in
+  let start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name = labels in
 
   let start_re = Str.regexp start_pat in
   let re = Str.regexp pat in
   let end_re = Str.regexp end_pat in
 
-  let print_c line = output_string c_oc (line ^ "\n") in
+  let print_c words = output_string c_oc (String.concat "" words ^ "\n") in
 
-  let print_ml line =
-    output_string ml_oc (line ^ "\n");
-    output_string mli_oc (line ^ "\n");
+  let print_ml words =
+    let line = String.concat "" words ^ "\n" in
+    output_string ml_oc line;
+    output_string mli_oc line;
   in
 
   let rec loop values = try
@@ -58,19 +59,32 @@ let translate_enum_lines ic labels c_oc ml_oc mli_oc =
         let id = Str.matched_group 1 line in
         let pv, value = id_to_pv_value id values in
 
-        print_c("  {(" ^ Int64.to_string value ^ "), " ^ enum_prefix ^ id ^ "},");
-        print_ml("  | `" ^ pv);
+        print_c["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
+        print_ml["  | `"; pv];
+
         loop (value::values)
       | _ -> loop values
     with End_of_file -> values
   in
 
   if start_pat = "" || find_line ic start_re then (
-    print_c("static const long " ^ c_type_name ^ "[][2] = {");
-    print_ml("type " ^ ml_type_name ^ " = [");
+
+    let tab_name = enum_prefix ^ String.uppercase ml_type_name ^ "_TAB" in
+    let tab_len = tab_name ^ "_LEN" in
+
+    print_c["static const int64_t "; tab_name; "[][2] = {"];
+
+    print_ml["type "; ml_type_name; " = ["];
+
     let values = loop [] in
-    print_c ("};\n#define " ^ c_type_name ^ "_LEN " ^ string_of_int(List.length values) ^ "\n");
-    print_ml "]\n";
+
+    print_c["};\n\n#define "; tab_len; " "; string_of_int(List.length values)];
+
+    print_c[c_type_name;" ";c_fun_radix;"_val(value v){\nint i;\nfor(i=0;i<";tab_len;";i++){\nif(v==";tab_name;"[i][0])return ";tab_name;"[i][1];\n}\nreturn 0;\n}"];
+
+    print_c["value Val_";c_fun_radix;"(";c_type_name;" t){\nint i;\nfor(i=0;i<";tab_len;"; i++){\nif(t==";tab_name;"[i][1])return ";tab_name;"[i][0];\n}\nreturn ";tab_name;"[0][0];\n}"];
+
+    print_ml["]\n"];
   )
 
 
@@ -79,18 +93,18 @@ let translate_enums in_name out_name enums_labels =
   match get_path in_name with
   | None -> ()
   | Some path ->
-      let ic = open_in path in
+    let ic = open_in path in
 
-      let c_oc = open_out (out_name^".h") in
-      let ml_oc = open_out (out_name^".ml") in
-      let mli_oc = open_out (out_name^".mli") in
+    let c_oc = open_out (out_name^".h") in
+    let ml_oc = open_out (out_name^".ml") in
+    let mli_oc = open_out (out_name^".mli") in
 
-      List.iter(fun labels -> translate_enum_lines ic labels c_oc ml_oc mli_oc) enums_labels;
+    List.iter(fun labels -> translate_enum_lines ic labels c_oc ml_oc mli_oc) enums_labels;
 
-      close_in ic;
-      close_out c_oc;
-      close_out ml_oc;
-      close_out mli_oc
+    close_in ic;
+    close_out c_oc;
+    close_out ml_oc;
+    close_out mli_oc
 
 
 let () =
@@ -103,21 +117,17 @@ let () =
   close_out pvv_oc;
 
   (* translate_enums parameters : *)
-  (* in_name out_name (start_pat, pat, end_pat, enum_prefix, c_type_name, ml_type_name) *)
+  (* in_name out_name (start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name) *)
   translate_enums "/libavcodec/avcodec.h" "codec_id" [
-    "[ \t]*AV_CODEC_ID_NONE", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_AUDIO", "AV_CODEC_ID_", "VIDEO_CODEC_IDS", "video";
-    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "AUDIO_CODEC_IDS", "audio";
-    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "SUBTITLE_CODEC_IDS", "subtitle";
-  ];
+    "[ \t]*AV_CODEC_ID_NONE", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_AUDIO", "AV_CODEC_ID_", "enum AVCodecID", "VideoCodecID", "video";
+    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "enum AVCodecID", "AudioCodecID", "audio";
+    "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "enum AVCodecID", "SubtitleCodecID", "subtitle"];
 
   translate_enums "/libavutil/pixfmt.h" "pix_fmt" [
-    "[ \t]*AV_PIX_FMT_NONE", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "PIXEL_FORMATS", "t";
-  ];
+    "", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "enum AVPixelFormat", "PixelFormat", "t"];
 
   translate_enums "/libavutil/channel_layout.h" "ch_layout" [
-    "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "CHANNEL_LAYOUTS", "t";
-  ];
+    "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "uint64_t", "ChannelLayout", "t"];
 
   translate_enums "/libavutil/samplefmt.h" "sample_fmt" [
-    "[ \t]*AV_SAMPLE_FMT_NONE", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "SAMPLE_FORMATS", "t";
-  ];
+    "", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "enum AVSampleFormat", "SampleFormat", "t"];

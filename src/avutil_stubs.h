@@ -41,7 +41,7 @@ extern char ocaml_av_exn_msg[];
 
 int PixelFormat_val(value);
 
-value Val_pixelFormat(enum AVPixelFormat pf);
+value Val_PixelFormat(enum AVPixelFormat pf);
 
 
 /**** Time format ****/
@@ -53,7 +53,7 @@ int64_t second_fractions_of_time_format(value time_format);
 
 uint64_t ChannelLayout_val(value v);
 
-value Val_channelLayout(uint64_t cl);
+value Val_ChannelLayout(uint64_t cl);
 
 
 /**** Sample format ****/
@@ -64,7 +64,7 @@ enum AVSampleFormat SampleFormat_val(value v);
 
 enum AVSampleFormat AVSampleFormat_of_Sample_format(int i);
 
-value Val_sampleFormat(enum AVSampleFormat sf);
+value Val_SampleFormat(enum AVSampleFormat sf);
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 

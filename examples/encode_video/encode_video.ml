@@ -28,7 +28,7 @@ let () =
   let width = 352 in
   let height = 288 in
   let codec_name = Sys.argv.(2) in
-  let pixel_format = Pixel_format.YUV420p in
+  let pixel_format = `YUV420P in
 
   let dst = Av.open_output Sys.argv.(1) in
 

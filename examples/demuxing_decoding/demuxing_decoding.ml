@@ -19,7 +19,7 @@ let () =
   let src = Av.open_input input_filename in
   let (audio_index, audio_stream, audio_codec) = Av.find_best_audio_stream src in
 
-  let rbs = FrameToS32Bytes.from_codec audio_codec Channel_layout.CL_stereo 44100 in
+  let rbs = FrameToS32Bytes.from_codec audio_codec `STEREO 44100 in
 
   Av.get_input_metadata src |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
 
@@ -51,7 +51,7 @@ let () =
 
   Printf.printf "Demuxing succeeded.\n";
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
-    (Sample_format.get_name Sample_format.SF_S32 ^ if Sys.big_endian then "be" else "le")
+    (Sample_format.get_name `S32 ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
   Gc.full_major (); Gc.full_major ()

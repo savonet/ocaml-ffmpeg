@@ -13,22 +13,25 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
 
 /**** Audio codec ID ****/
 
-enum AVCodecID AudioCodecId_val(value v);
+enum AVCodecID AudioCodecID_val(value v);
+//long AudioCodecID_val(value v);
 
-value Val_audioCodecId(enum AVCodecID id);
+value Val_AudioCodecID(enum AVCodecID id);
 
 
 /**** Video codec ID ****/
 
-enum AVCodecID VideoCodecId_val(value v);
+enum AVCodecID VideoCodecID_val(value v);
+//long VideoCodecID_val(value v);
 
-value Val_videoCodecId(enum AVCodecID id);
+value Val_VideoCodecID(enum AVCodecID id);
 
 
 /**** Subtitle codec ID ****/
 
-enum AVCodecID SubtitleCodecId_val(value v);
+enum AVCodecID SubtitleCodecID_val(value v);
+//long SubtitleCodecID_val(value v);
 
-value Val_subtitleCodecId(enum AVCodecID id);
+value Val_SubtitleCodecID(enum AVCodecID id);
 
 #endif // _AVCODEC_STUBS_H_ 

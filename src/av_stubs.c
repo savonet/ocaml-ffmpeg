@@ -780,19 +780,19 @@ CAMLprim value ocaml_av_output_format_get_long_name(value _format)
 CAMLprim value ocaml_av_output_format_get_audio_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
-  CAMLreturn(Val_audioCodecId(OutputFormat_val(_output_format)->audio_codec));
+  CAMLreturn(Val_AudioCodecID(OutputFormat_val(_output_format)->audio_codec));
 }
 
 CAMLprim value ocaml_av_output_format_get_video_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
-  CAMLreturn(Val_videoCodecId(OutputFormat_val(_output_format)->video_codec));
+  CAMLreturn(Val_VideoCodecID(OutputFormat_val(_output_format)->video_codec));
 }
 
 CAMLprim value ocaml_av_output_format_get_subtitle_codec_id(value _output_format)
 {
   CAMLparam1(_output_format);
-  CAMLreturn(Val_subtitleCodecId(OutputFormat_val(_output_format)->subtitle_codec));
+  CAMLreturn(Val_SubtitleCodecID(OutputFormat_val(_output_format)->subtitle_codec));
 }
 
 
@@ -1007,7 +1007,7 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_id, value
   CAMLparam4(_av, _audio_codec_id, _channel_layout, _sample_fmt);
 
   stream_t * stream = new_audio_stream(Av_val(_av),
-                                       AudioCodecId_val(_audio_codec_id),
+                                       AudioCodecID_val(_audio_codec_id),
                                        ChannelLayout_val(_channel_layout),
                                        SampleFormat_val(_sample_fmt),
                                        Int_val(_bit_rate),
@@ -1047,7 +1047,7 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_id, value
   CAMLparam3(_av, _video_codec_id, _pix_fmt);
 
   stream_t * stream = new_video_stream(Av_val(_av),
-                                       VideoCodecId_val(_video_codec_id),
+                                       VideoCodecID_val(_video_codec_id),
                                        Int_val(_width),
                                        Int_val(_height),
                                        PixelFormat_val(_pix_fmt),
@@ -1088,7 +1088,7 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_id)
   CAMLparam2(_av, _subtitle_codec_id);
 
   stream_t * stream = new_subtitle_stream(Av_val(_av),
-                                          SubtitleCodecId_val(_subtitle_codec_id));
+                                          SubtitleCodecID_val(_subtitle_codec_id));
 
   if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
