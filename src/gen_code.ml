@@ -91,7 +91,7 @@ let translate_enum_lines ic labels c_oc ml_oc mli_oc =
 let translate_enums in_name out_name enums_labels =
 
   match get_path in_name with
-  | None -> ()
+  | None -> Printf.eprintf"WARNING : header file %s not found" in_name
   | Some path ->
     let ic = open_in path in
 
