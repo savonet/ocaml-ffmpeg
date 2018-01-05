@@ -14,7 +14,8 @@ let rec find_line ic line_re = try
 
 
 let get_path filename =
-  Sys.argv |> Array.fold_left(fun path param ->
+  ("-I/usr/include/i386-linux-gnu"::"-I/usr/include"::(Sys.argv |> Array.to_list))
+  |> List.fold_left(fun path param ->
       if path = None && "-I" = String.sub param 0 2 then (
         let p = (String.sub param 2 (String.length param - 2)) ^ filename in
         if Sys.file_exists p then Some p
