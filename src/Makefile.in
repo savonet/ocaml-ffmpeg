@@ -62,7 +62,7 @@ native-code-library: byte-code-library
 gen-code:
 	$(OCAMLOPT) -c gen_code_stubs.c
 	$(OCAMLOPT) str.cmxa gen_code_stubs.o gen_code.ml -o gen_code
-	./gen_code $(pkg-config --cflags --libs libavutil libavcodec libavformat libswscale) $(INCDIRS) $(CFLAGS) $(CPPFLAGS) $(CLIBS) $(LIBDIRS)
+	./gen_code $(pkg-config --cflags --libs libavutil libavcodec libavformat libswscale) $(INCDIRS) $(CFLAGS)
 
 install: libinstall
 

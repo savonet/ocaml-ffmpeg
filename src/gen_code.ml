@@ -14,21 +14,20 @@ let rec find_line ic line_re = try
 
 
 let get_path filename =
-  ("-I/usr/include/i386-linux-gnu"::"-I/usr/include"::(Sys.argv |> Array.to_list))
+  ("-I/usr/include"::"-I/usr/include/i386-linux-gnu"::(Sys.argv |> Array.to_list))
   |> List.fold_left(fun path param ->
       if path = None && "-I" = String.sub param 0 2 then (
         let p = (String.sub param 2 (String.length param - 2)) ^ filename in
         if Sys.file_exists p then Some p
         else (
-          print_endline("File " ^ filename ^ " not found");
-          None)
+          None
+        )
       )
       else path
     ) None
 
 
 let rec id_to_pv_value id values =
-  (* let id = String.lowercase id in *)
   let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
   let value = polymorphic_variant_string_to_c_value id in
 

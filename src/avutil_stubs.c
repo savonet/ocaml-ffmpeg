@@ -18,39 +18,7 @@
 
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
-/*
-static const enum AVPixelFormat PIXEL_FORMATS[] = {
-  AV_PIX_FMT_YUV420P,
-  AV_PIX_FMT_YUYV422,
-  AV_PIX_FMT_RGB24,
-  AV_PIX_FMT_BGR24,
-  AV_PIX_FMT_YUV422P,
-  AV_PIX_FMT_YUV444P,
-  AV_PIX_FMT_YUV410P,
-  AV_PIX_FMT_YUV411P,
-  AV_PIX_FMT_YUVJ422P,
-  AV_PIX_FMT_YUVJ444P,
-  AV_PIX_FMT_RGBA,
-  AV_PIX_FMT_BGRA
-};
-#define PIXEL_FORMATS_LEN (sizeof(PIXEL_FORMATS) / sizeof(enum AVPixelFormat))
 
-enum AVPixelFormat PixelFormat_val(value v)
-{
-  return PIXEL_FORMATS[Int_val(v)];
-}
-
-value Val_pixelFormat(enum AVPixelFormat pf)
-{
-  int i;
-  for (i = 0; i < PIXEL_FORMATS_LEN; i++) {
-    if (pf == PIXEL_FORMATS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Invalid pixel format : %d", pf);
-  return Val_int(0);
-}
-*/
 CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
@@ -83,65 +51,6 @@ CAMLprim value ocaml_avutil_time_base()
 }
 
 /**** Channel layout ****/
-/*
-#ifdef HAS_CHANNEL_LAYOUT
-static const uint64_t CHANNEL_LAYOUTS[] = {
-  AV_CH_LAYOUT_MONO,
-  AV_CH_LAYOUT_STEREO,
-  AV_CH_LAYOUT_2POINT1,
-  AV_CH_LAYOUT_2_1,
-  AV_CH_LAYOUT_SURROUND,
-  AV_CH_LAYOUT_3POINT1,
-  AV_CH_LAYOUT_4POINT0,
-  AV_CH_LAYOUT_4POINT1,
-  AV_CH_LAYOUT_2_2,
-  AV_CH_LAYOUT_QUAD,
-  AV_CH_LAYOUT_5POINT0,
-  AV_CH_LAYOUT_5POINT1,
-  AV_CH_LAYOUT_5POINT0_BACK,
-  AV_CH_LAYOUT_5POINT1_BACK,
-  AV_CH_LAYOUT_6POINT0,
-  AV_CH_LAYOUT_6POINT0_FRONT,
-  AV_CH_LAYOUT_HEXAGONAL,
-  AV_CH_LAYOUT_6POINT1,
-  AV_CH_LAYOUT_6POINT1_BACK,
-  AV_CH_LAYOUT_6POINT1_FRONT,
-  AV_CH_LAYOUT_7POINT0,
-  AV_CH_LAYOUT_7POINT0_FRONT,
-  AV_CH_LAYOUT_7POINT1,
-  AV_CH_LAYOUT_7POINT1_WIDE,
-  AV_CH_LAYOUT_7POINT1_WIDE_BACK,
-  AV_CH_LAYOUT_OCTAGONAL,
-  //  AV_CH_LAYOUT_HEXADECAGONAL,
-  AV_CH_LAYOUT_STEREO_DOWNMIX
-};
-#define CHANNEL_LAYOUTS_LEN (sizeof(CHANNEL_LAYOUTS) / sizeof(uint64_t))
-#endif
-
-uint64_t ChannelLayout_val(value v)
-{
-#ifndef HAS_CHANNEL_LAYOUT
-  caml_failwith("Not implemented.");
-#else
-  return CHANNEL_LAYOUTS[Int_val(v)];
-#endif
-}
-
-value Val_channelLayout(uint64_t cl)
-{
-#ifndef HAS_CHANNEL_LAYOUT
-  caml_failwith("Not implemented.");
-#else
-  int i;
-  for (i = 0; i < CHANNEL_LAYOUTS_LEN; i++) {
-    if (cl == CHANNEL_LAYOUTS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Invalid channel layout : %u", (unsigned int)cl);
-  return Val_int(0);
-#endif
-}
-*/
 
 /**** Sample format ****/
 
@@ -159,28 +68,7 @@ static const enum AVSampleFormat SAMPLE_FORMATS[] = {
   AV_SAMPLE_FMT_DBLP
 };
 #define SAMPLE_FORMATS_LEN (sizeof(SAMPLE_FORMATS) / sizeof(enum AVSampleFormat))
-/*
-enum AVSampleFormat SampleFormat_val(value v)
-{
-  return SAMPLE_FORMATS[Int_val(v)];
-}
 
-enum AVSampleFormat AVSampleFormat_of_Sample_format(int i)
-{
-  return SAMPLE_FORMATS[i];
-}
-
-value Val_sampleFormat(enum AVSampleFormat sf)
-{
-  int i;
-  for (i = 0; i < SAMPLE_FORMATS_LEN; i++) {
-    if (sf == SAMPLE_FORMATS[i])
-      return Val_int(i);
-  }
-  Raise(EXN_FAILURE, "Invalid sample format : %d", sf);
-  return Val_int(0);
-}
-*/
 static const enum caml_ba_kind BIGARRAY_KINDS[SAMPLE_FORMATS_LEN] = {
   CAML_BA_KIND_MASK,
   CAML_BA_UINT8,
