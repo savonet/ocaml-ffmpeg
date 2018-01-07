@@ -1,3 +1,4 @@
+
 (* Line *)
 type input
 type output
@@ -23,7 +24,7 @@ let () =
 
 
 module Pixel_format = struct
-  type t = Pix_fmt.t
+  type t = Pixel_format.t
 
   external bits : t -> int = "ocaml_avutil_bits_per_pixel"
 
@@ -46,11 +47,11 @@ external time_base : unit -> int64 = "ocaml_avutil_time_base"
 
 
 module Channel_layout = struct
-  type t = Ch_layout.t
+  type t = Channel_layout.t
 end
 
 module Sample_format = struct
-  type t = Sample_fmt.t
+  type t = Sample_format.t
 
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end

@@ -17,7 +17,7 @@
 #endif
 #include <libavcodec/avcodec.h>
 
-#include "polymorphic_variant_values.h"
+#include "polymorphic_variant_values_stubs.h"
 
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"

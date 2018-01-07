@@ -12,9 +12,9 @@
 #include "libavutil/avstring.h"
 
 #include "avutil_stubs.h"
-#include "pix_fmt.h"
-#include "ch_layout.h"
-#include "sample_fmt.h"
+#include "pixel_format_stubs.h"
+#include "channel_layout_stubs.h"
+#include "sample_format_stubs.h"
 
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];

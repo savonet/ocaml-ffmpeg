@@ -9,7 +9,7 @@
 #include "avutil_stubs.h"
 
 #include "avcodec_stubs.h"
-#include "codec_id.h"
+#include "codec_id_stubs.h"
 
 
 /***** AVCodecParameters *****/

@@ -74,6 +74,7 @@ let translate_enum_lines ic labels c_oc ml_oc mli_oc =
 
     print_c["static const int64_t "; tab_name; "[][2] = {"];
 
+
     print_ml["type "; ml_type_name; " = ["];
 
     let values = loop [] in
@@ -95,7 +96,7 @@ let translate_enums in_name out_name enums_labels =
   | Some path ->
     let ic = open_in path in
 
-    let c_oc = open_out (out_name^".h") in
+    let c_oc = open_out (out_name^"_stubs.h") in
     let ml_oc = open_out (out_name^".ml") in
     let mli_oc = open_out (out_name^".mli") in
 
@@ -108,7 +109,7 @@ let translate_enums in_name out_name enums_labels =
 
 
 let () =
-  let pvv_oc = open_out "polymorphic_variant_values.h" in
+  let pvv_oc = open_out "polymorphic_variant_values_stubs.h" in
 
   List.iter(print_define_polymorphic_variant_value pvv_oc)
     ["frame"; "audio"; "video"; "subtitle"; "end_of_stream"; "end_of_file";
@@ -123,11 +124,11 @@ let () =
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "enum AVCodecID", "AudioCodecID", "audio";
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "enum AVCodecID", "SubtitleCodecID", "subtitle"];
 
-  translate_enums "/libavutil/pixfmt.h" "pix_fmt" [
+  translate_enums "/libavutil/pixfmt.h" "pixel_format" [
     "", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "enum AVPixelFormat", "PixelFormat", "t"];
 
-  translate_enums "/libavutil/channel_layout.h" "ch_layout" [
+  translate_enums "/libavutil/channel_layout.h" "channel_layout" [
     "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "uint64_t", "ChannelLayout", "t"];
 
-  translate_enums "/libavutil/samplefmt.h" "sample_fmt" [
+  translate_enums "/libavutil/samplefmt.h" "sample_format" [
     "", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "enum AVSampleFormat", "SampleFormat", "t"];

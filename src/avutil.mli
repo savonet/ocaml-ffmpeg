@@ -59,14 +59,14 @@ val time_base : unit -> int64
 module Channel_layout : sig
 
   (** Channel layout formats *)
-  type t = Ch_layout.t
+  type t = Channel_layout.t
 end
 
 (** Formats for audio samples. *)
 module Sample_format : sig
 
   (** Audio sample formats *)
-  type t = Sample_fmt.t
+  type t = Sample_format.t
 
   (** Return the name of the sample format. *)
   val get_name : t -> string
@@ -79,9 +79,9 @@ end
 module Pixel_format : sig
 
   (** Pixels formats. *)
-  type t = Pix_fmt.t
+  type t = Pixel_format.t
 
-  (** Return the number of bits of the pixel format. *)
+(** Return the number of bits of the pixel format. *)
   val bits : (*?padding:bool ->*) t -> int
 end
 
