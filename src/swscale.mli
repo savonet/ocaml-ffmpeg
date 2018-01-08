@@ -1,5 +1,7 @@
 (** Video color conversion and scaling *)
 
+open Avutil
+    
 val version : unit -> int
 
 val configuration : unit -> string
@@ -21,3 +23,50 @@ type planes = (data * int) array
 
 val scale : t -> planes -> int -> int -> planes -> int -> unit
 (** [Swscale.scale ctx in_planes y h out_planes off] scale the [h] rows of [in_planes] strarting from the row [y] to the [off] row of the [out_planes] output. *)
+
+
+
+(**/**)
+type vector_kind = Str | Ba | Frm
+(**/**)
+
+
+(** Video data modules for Swscale module input and output parameterization. *)
+module type VideoData = sig
+  type t val vk : vector_kind
+end
+
+type ('i, 'o) t
+
+(** Functor building an implementation of the swscale structure with parameterized input an output video data types *)
+module Make : functor (I : VideoData) (O : VideoData) -> sig
+
+  type nonrec t = (I.t, O.t) t
+
+  val create : flag list -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
+  (** Swscale.create flags in_w in_h in_pf out_w out_h out_pf] do the same as {!Swscale.create}. *)
+
+  val reuse_output : t -> bool -> unit
+  (** [Swscale.reuse_output ro] enables or disables the reuse of {!Swscale.convert} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by {!Swscale.convert} is invalidated by a new call to this function. *)
+
+  val convert : t -> I.t -> O.t
+  (** [Swscale.convert ctx ivd] scale and convert the [ivd] input video data to the output video data according to the [ctx] scaler context format.
+@raise Failure if the conversion failed. *)
+end
+
+
+(** Byte string. *)
+module Bytes : sig
+  type t = bytes val vk : vector_kind
+end
+
+(** Unsigned 8 bit bigarray. *)
+module BigArray : sig
+  type t = data val vk : vector_kind
+end
+
+(** Video frame. *)
+module Frame : sig
+  type t = video frame val vk : vector_kind
+end
+
