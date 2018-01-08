@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="next" href="Channel_layout.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
+<link title="Avutil" rel="Chapter" href="Avutil.html">
+<link title="Swscale" rel="Chapter" href="Swscale.html">
+<link title="Codec_id" rel="Chapter" href="Codec_id.html">
+<link title="Avcodec" rel="Chapter" href="Avcodec.html">
+<link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample" rel="Chapter" href="Swresample.html">
+<link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Pixel_format</title>
+</head>
+<body>
+<div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Channel_layout.html" title="Channel_layout">Next</a>
+</div>
+<h1>Module <a href="type_Pixel_format.html">Pixel_format</a></h1>
+
+<pre><span class="keyword">module</span> Pixel_format: <code class="code">sig</code> <a href="Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Pixels formats<br>
+</div>
+<hr width="100%">
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type">[ `ABGR<br>       | `ARGB<br>       | `AYUV64BE<br>       | `AYUV64LE<br>       | `BAYER_BGGR16BE<br>       | `BAYER_BGGR16LE<br>       | `BAYER_BGGR8<br>       | `BAYER_GBRG16BE<br>       | `BAYER_GBRG16LE<br>       | `BAYER_GBRG8<br>       | `BAYER_GRBG16BE<br>       | `BAYER_GRBG16LE<br>       | `BAYER_GRBG8<br>       | `BAYER_RGGB16BE<br>       | `BAYER_RGGB16LE<br>       | `BAYER_RGGB8<br>       | `BGR0<br>       | `BGR24<br>       | `BGR4<br>       | `BGR444BE<br>       | `BGR444LE<br>       | `BGR48BE<br>       | `BGR48LE<br>       | `BGR4_BYTE<br>       | `BGR555BE<br>       | `BGR555LE<br>       | `BGR565BE<br>       | `BGR565LE<br>       | `BGR8<br>       | `BGRA<br>       | `BGRA64BE<br>       | `BGRA64LE<br>       | `CUDA<br>       | `D3D11<br>       | `D3D11VA_VLD<br>       | `DXVA2_VLD<br>       | `GBR24P<br>       | `GBRAP<br>       | `GBRAP10BE<br>       | `GBRAP10LE<br>       | `GBRAP12BE<br>       | `GBRAP12LE<br>       | `GBRAP16BE<br>       | `GBRAP16LE<br>       | `GBRAPF32BE<br>       | `GBRAPF32LE<br>       | `GBRP<br>       | `GBRP10BE<br>       | `GBRP10LE<br>       | `GBRP12BE<br>       | `GBRP12LE<br>       | `GBRP14BE<br>       | `GBRP14LE<br>       | `GBRP16BE<br>       | `GBRP16LE<br>       | `GBRP9BE<br>       | `GBRP9LE<br>       | `GBRPF32BE<br>       | `GBRPF32LE<br>       | `GRAY10BE<br>       | `GRAY10LE<br>       | `GRAY12BE<br>       | `GRAY12LE<br>       | `GRAY16BE<br>       | `GRAY16LE<br>       | `GRAY8<br>       | `GRAY8A<br>       | `GRAY9BE<br>       | `GRAY9LE<br>       | `MEDIACODEC<br>       | `MMAL<br>       | `MONOBLACK<br>       | `MONOWHITE<br>       | `NONE<br>       | `NV12<br>       | `NV16<br>       | `NV20BE<br>       | `NV20LE<br>       | `NV21<br>       | `P010BE<br>       | `P010LE<br>       | `P016BE<br>       | `P016LE<br>       | `PAL8<br>       | `QSV<br>       | `RGB0<br>       | `RGB24<br>       | `RGB4<br>       | `RGB444BE<br>       | `RGB444LE<br>       | `RGB48BE<br>       | `RGB48LE<br>       | `RGB4_BYTE<br>       | `RGB555BE<br>       | `RGB555LE<br>       | `RGB565BE<br>       | `RGB565LE<br>       | `RGB8<br>       | `RGBA<br>       | `RGBA64BE<br>       | `RGBA64LE<br>       | `UYVY422<br>       | `UYYVYY411<br>       | `VAAPI<br>       | `VAAPI_<br>       | `VAAPI_IDCT<br>       | `VAAPI_MOCO<br>       | `VAAPI_VLD<br>       | `VDA<br>       | `VDA_VLD<br>       | `VDPAU<br>       | `VDPAU_H264<br>       | `VDPAU_MPEG1<br>       | `VDPAU_MPEG2<br>       | `VDPAU_MPEG4<br>       | `VDPAU_VC1<br>       | `VDPAU_WMV3<br>       | `VIDEOTOOLBOX<br>       | `XVMC<br>       | `XVMC_<br>       | `XVMC_MPEG2_IDCT<br>       | `XVMC_MPEG2_MC<br>       | `XYZ12BE<br>       | `XYZ12LE<br>       | `Y400A<br>       | `YA16BE<br>       | `YA16LE<br>       | `YA8<br>       | `YUV410P<br>       | `YUV411P<br>       | `YUV420P<br>       | `YUV420P10BE<br>       | `YUV420P10LE<br>       | `YUV420P12BE<br>       | `YUV420P12LE<br>       | `YUV420P14BE<br>       | `YUV420P14LE<br>       | `YUV420P16BE<br>       | `YUV420P16LE<br>       | `YUV420P9BE<br>       | `YUV420P9LE<br>       | `YUV422P<br>       | `YUV422P10BE<br>       | `YUV422P10LE<br>       | `YUV422P12BE<br>       | `YUV422P12LE<br>       | `YUV422P14BE<br>       | `YUV422P14LE<br>       | `YUV422P16BE<br>       | `YUV422P16LE<br>       | `YUV422P9BE<br>       | `YUV422P9LE<br>       | `YUV440P<br>       | `YUV440P10BE<br>       | `YUV440P10LE<br>       | `YUV440P12BE<br>       | `YUV440P12LE<br>       | `YUV444P<br>       | `YUV444P10BE<br>       | `YUV444P10LE<br>       | `YUV444P12BE<br>       | `YUV444P12LE<br>       | `YUV444P14BE<br>       | `YUV444P14LE<br>       | `YUV444P16BE<br>       | `YUV444P16LE<br>       | `YUV444P9BE<br>       | `YUV444P9LE<br>       | `YUVA420P<br>       | `YUVA420P10BE<br>       | `YUVA420P10LE<br>       | `YUVA420P16BE<br>       | `YUVA420P16LE<br>       | `YUVA420P9BE<br>       | `YUVA420P9LE<br>       | `YUVA422P<br>       | `YUVA422P10BE<br>       | `YUVA422P10LE<br>       | `YUVA422P16BE<br>       | `YUVA422P16LE<br>       | `YUVA422P9BE<br>       | `YUVA422P9LE<br>       | `YUVA444P<br>       | `YUVA444P10BE<br>       | `YUVA444P10LE<br>       | `YUVA444P16BE<br>       | `YUVA444P16LE<br>       | `YUVA444P9BE<br>       | `YUVA444P9LE<br>       | `YUVJ411P<br>       | `YUVJ420P<br>       | `YUVJ422P<br>       | `YUVJ440P<br>       | `YUVJ444P<br>       | `YUYV422<br>       | `YVYU422<br>       | `_0BGR<br>       | `_0RGB ]</code> </pre>
+
+</body></html>
