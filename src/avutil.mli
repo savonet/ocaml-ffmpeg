@@ -58,14 +58,14 @@ val time_base : unit -> int64
 (** Formats for channels layouts. *)
 module Channel_layout : sig
 
-  (** Channel layout formats *)
+  (** Channel layout formats. *)
   type t = Channel_layout.t
 end
 
 (** Formats for audio samples. *)
 module Sample_format : sig
 
-  (** Audio sample formats *)
+  (** Audio sample formats. *)
   type t = Sample_format.t
 
   (** Return the name of the sample format. *)

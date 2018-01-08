@@ -89,7 +89,7 @@ let translate_enum_lines ic labels c_oc ml_oc mli_oc =
   )
 
 
-let translate_enums in_name out_name enums_labels =
+let translate_enums in_name out_name title enums_labels =
 
   match get_path in_name with
   | None -> Printf.eprintf"WARNING : header file %s not found\n" in_name
@@ -99,6 +99,8 @@ let translate_enums in_name out_name enums_labels =
     let c_oc = open_out (out_name^"_stubs.h") in
     let ml_oc = open_out (out_name^".ml") in
     let mli_oc = open_out (out_name^".mli") in
+
+    output_string mli_oc ("(** " ^ title ^ " *)\n\n");
 
     List.iter(fun labels -> translate_enum_lines ic labels c_oc ml_oc mli_oc) enums_labels;
 
@@ -119,16 +121,16 @@ let () =
 
   (* translate_enums parameters : *)
   (* in_name out_name (start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name) *)
-  translate_enums "/libavcodec/avcodec.h" "codec_id" [
+  translate_enums "/libavcodec/avcodec.h" "codec_id" "Audio, video and subtitle codec ids" [
     "[ \t]*AV_CODEC_ID_NONE", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_AUDIO", "AV_CODEC_ID_", "enum AVCodecID", "VideoCodecID", "video";
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "enum AVCodecID", "AudioCodecID", "audio";
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "enum AVCodecID", "SubtitleCodecID", "subtitle"];
 
-  translate_enums "/libavutil/pixfmt.h" "pixel_format" [
+  translate_enums "/libavutil/pixfmt.h" "pixel_format" "Pixels formats" [
     "", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "enum AVPixelFormat", "PixelFormat", "t"];
 
-  translate_enums "/libavutil/channel_layout.h" "channel_layout" [
+  translate_enums "/libavutil/channel_layout.h" "channel_layout" "Channel layout formats" [
     "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "uint64_t", "ChannelLayout", "t"];
 
-  translate_enums "/libavutil/samplefmt.h" "sample_format" [
+  translate_enums "/libavutil/samplefmt.h" "sample_format" "Audio sample formats" [
     "", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "enum AVSampleFormat", "SampleFormat", "t"];
