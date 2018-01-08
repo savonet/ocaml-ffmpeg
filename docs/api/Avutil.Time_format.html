@@ -12,6 +12,9 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
@@ -31,36 +34,7 @@ Formats for time.<br>
 </div>
 <hr width="100%">
 
-<pre><code><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = </code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTt.Second"><span class="constructor">Second</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTt.Millisecond"><span class="constructor">Millisecond</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTt.Microsecond"><span class="constructor">Microsecond</span></span></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTt.Nanosecond"><span class="constructor">Nanosecond</span></span></code></td>
-
-</tr></table>
-
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type">[ `microsecond | `millisecond | `nanosecond | `second ]</code> </pre>
 <div class="info ">
 Time formats.<br>
 </div>

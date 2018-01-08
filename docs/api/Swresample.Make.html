@@ -12,6 +12,9 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
@@ -69,6 +72,10 @@ If a sample format parameter is not provided, the sample format defined by the a
 
 <pre><span id="VALfrom_codec_to_codec"><span class="keyword">val</span> from_codec_to_codec</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
 <code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.<br>
+</div>
+
+<pre><span id="VALreuse_output"><span class="keyword">val</span> reuse_output</span> : <code class="type"><a href="Swresample.Make.html#TYPEt">t</a> -> bool -> unit</code></pre><div class="info ">
+<code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>. Reusing the output reduces the number of memory allocations. In this cas, the data returned by <code class="code">Swresample.convert</code> is invalidated by a new call to this function.<br>
 </div>
 
 <pre><span id="VALconvert"><span class="keyword">val</span> convert</span> : <code class="type"><a href="Swresample.Make.html#TYPEt">t</a> -> I.t -> O.t</code></pre><div class="info ">

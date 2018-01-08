@@ -13,6 +13,9 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
@@ -51,8 +54,8 @@ Format, input, output and streams reading and writing<br>
 <b>Raises</b> <code>Failure</code> if the opening failed.<br>
 </div>
 
-<pre><span id="VALget_input_duration"><span class="keyword">val</span> get_input_duration</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t</code></pre><div class="info ">
-<code class="code">Av.get_input_duration input fmt</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format.<br>
+<pre><span id="VALget_input_duration"><span class="keyword">val</span> get_input_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> Int64.t</code></pre><div class="info ">
+<code class="code">Av.get_input_duration ~format:fmt input</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format (in second by default).<br>
 </div>
 
 <pre><span id="VALget_input_metadata"><span class="keyword">val</span> get_input_metadata</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> (string * string) list</code></pre><div class="info ">
@@ -103,7 +106,7 @@ Return the index of the stream.<br>
 <b>Raises</b> <code>Failure</code> if the codec allocation failed.<br>
 </div>
 
-<pre><span id="VALget_duration"><span class="keyword">val</span> get_duration</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t</code></pre><div class="info ">
+<pre><span id="VALget_duration"><span class="keyword">val</span> get_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> (<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> Int64.t</code></pre><div class="info ">
 Same as <a href="Av.html#VALget_input_duration"><code class="code">Av.get_input_duration</code></a> for the input streams.<br>
 </div>
 
@@ -116,22 +119,7 @@ Same as <a href="Av.html#VALget_input_metadata"><code class="code">Av.get_input_
 <b>Raises</b> <code>Failure</code> if the selection failed.<br>
 </div>
 
-<pre><code><span id="TYPEresult"><span class="keyword">type</span> <code class="type">'media</code> result</span> = </code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTresult.Frame"><span class="constructor">Frame</span></span> <span class="keyword">of</span> <code class="type">'media <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTresult.End_of_stream"><span class="constructor">End_of_stream</span></span></code></td>
-
-</tr></table>
-
+<pre><span id="TYPEresult"><span class="keyword">type</span> <code class="type">'media</code> result</span> = <code class="type">[ `end_of_stream | `frame of 'media <a href="Avutil.html#TYPEframe">frame</a> ]</code> </pre>
 <div class="info ">
 Stream reading result.<br>
 </div>
@@ -187,36 +175,7 @@ Seek mode.<br>
 <b>Raises</b> <code>Failure</code> if the seeking failed.<br>
 </div>
 
-<pre><code><span id="TYPEmedia"><span class="keyword">type</span> <code class="type"></code>media</span> = </code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTmedia.Audio"><span class="constructor">Audio</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTmedia.Video"><span class="constructor">Video</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTmedia.Subtitle"><span class="constructor">Subtitle</span></span> <span class="keyword">of</span> <code class="type">int * <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a></code></code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code><span class="keyword">|</span></code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTmedia.End_of_file"><span class="constructor">End_of_file</span></span></code></td>
-
-</tr></table>
-
+<pre><span id="TYPEmedia"><span class="keyword">type</span> <code class="type"></code>media</span> = <code class="type">[ `audio of int * <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avutil.html#TYPEframe">frame</a><br>       | `end_of_file<br>       | `subtitle of int * <a href="Avutil.html#TYPEsubtitle">subtitle</a> <a href="Avutil.html#TYPEframe">frame</a><br>       | `video of int * <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> ]</code> </pre>
 
 
 <pre><span id="VALread_input"><span class="keyword">val</span> read_input</span> : <code class="type"><a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> <a href="Av.html#TYPEmedia">media</a></code></pre><div class="info ">

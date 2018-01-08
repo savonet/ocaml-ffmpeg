@@ -8,6 +8,9 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
@@ -35,7 +38,7 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;open_input_format&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Avutil</span>.format&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_input_duration&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Time_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int64</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?format:<span class="constructor">Avutil</span>.<span class="constructor">Time_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int64</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_input_metadata&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(string&nbsp;*&nbsp;string)&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>line,&nbsp;<span class="keywordsign">'</span>media)&nbsp;stream<br>
@@ -67,10 +70,10 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_index&nbsp;:&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_codec&nbsp;:&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>media)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;<span class="constructor">Avcodec</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_duration&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Time_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int64</span>.t<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?format:<span class="constructor">Avutil</span>.<span class="constructor">Time_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int64</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_metadata&nbsp;:&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(string&nbsp;*&nbsp;string)&nbsp;list<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;select&nbsp;:&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;result&nbsp;=&nbsp;<span class="constructor">Frame</span>&nbsp;<span class="keyword">of</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;<span class="constructor">Avutil</span>.frame&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">End_of_stream</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;result&nbsp;=&nbsp;[&nbsp;<span class="keywordsign">`</span>end_of_stream&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span>frame&nbsp;<span class="keyword">of</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;<span class="constructor">Avutil</span>.frame&nbsp;]<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;read&nbsp;:&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>media)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>media&nbsp;<span class="constructor">Av</span>.result<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;iter&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>media&nbsp;<span class="constructor">Avutil</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>media)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
@@ -83,10 +86,10 @@
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Avutil</span>.input,&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="constructor">Av</span>.stream&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Time_format</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Int64</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Av</span>.seek_flag&nbsp;array&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit<br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;media&nbsp;=<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Audio</span>&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Video</span>&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avutil</span>.frame<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">Subtitle</span>&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.subtitle&nbsp;<span class="constructor">Avutil</span>.frame<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="constructor">End_of_file</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<span class="keywordsign">`</span>audio&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span>end_of_file<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span>subtitle&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.subtitle&nbsp;<span class="constructor">Avutil</span>.frame<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">|</span>&nbsp;<span class="keywordsign">`</span>video&nbsp;<span class="keyword">of</span>&nbsp;int&nbsp;*&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avutil</span>.frame&nbsp;]<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;read_input&nbsp;:&nbsp;<span class="constructor">Avutil</span>.input&nbsp;<span class="constructor">Avutil</span>.container&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Av</span>.media<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;iter_input&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;?audio:(int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.audio&nbsp;<span class="constructor">Avutil</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit)&nbsp;<span class="keywordsign">-&gt;</span><br>

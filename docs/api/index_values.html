@@ -9,6 +9,9 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Pixel_format" rel="Chapter" href="Pixel_format.html">
+<link title="Channel_layout" rel="Chapter" href="Channel_layout.html">
+<link title="Sample_format" rel="Chapter" href="Sample_format.html">
 <link title="Avutil" rel="Chapter" href="Avutil.html">
 <link title="Swscale" rel="Chapter" href="Swscale.html">
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
@@ -230,7 +233,7 @@ Return the input container of the input stream.
 </td></tr>
 <tr><td><a href="Av.html#VALget_input_duration">get_input_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.get_input_duration input fmt</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format.
+<code class="code">Av.get_input_duration ~format:fmt input</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format (in second by default).
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_input_long_name">get_input_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
@@ -453,6 +456,11 @@ Open the video output device from his name.
 <tr><td><a href="Av.html#VALread_input">read_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 Reads the selected streams if any or all streams otherwise.
+</div>
+</td></tr>
+<tr><td><a href="Swresample.Make.html#VALreuse_output">reuse_output</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
+<td><div class="info">
+<code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>.
 </div>
 </td></tr>
 <tr><td align="left"><br>S</td></tr>
