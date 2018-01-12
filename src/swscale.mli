@@ -27,7 +27,7 @@ val scale : t -> planes -> int -> int -> planes -> int -> unit
 
 
 (**/**)
-type vector_kind = Str | Ba | Frm
+type vector_kind = Ba | Frm
 (**/**)
 
 
@@ -36,12 +36,12 @@ module type VideoData = sig
   type t val vk : vector_kind
 end
 
-type ('i, 'o) t
+type ('i, 'o) ctx
 
 (** Functor building an implementation of the swscale structure with parameterized input an output video data types *)
 module Make : functor (I : VideoData) (O : VideoData) -> sig
 
-  type nonrec t = (I.t, O.t) t
+  type t = (I.t, O.t) ctx
 
   val create : flag list -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
   (** Swscale.create flags in_w in_h in_pf out_w out_h out_pf] do the same as {!Swscale.create}. *)
@@ -55,14 +55,9 @@ module Make : functor (I : VideoData) (O : VideoData) -> sig
 end
 
 
-(** Byte string. *)
-module Bytes : sig
-  type t = bytes val vk : vector_kind
-end
-
 (** Unsigned 8 bit bigarray. *)
 module BigArray : sig
-  type t = data val vk : vector_kind
+  type t = planes val vk : vector_kind
 end
 
 (** Video frame. *)

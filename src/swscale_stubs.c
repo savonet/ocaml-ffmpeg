@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <libavutil/imgutils.h>
 #include <libswscale/swscale.h>
 
 #include "avutil_stubs.h"
@@ -160,3 +161,304 @@ CAMLprim value ocaml_swscale_scale_byte(value *argv, int argn)
   return ocaml_swscale_scale(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
 }
 
+
+/***** Contexts *****/
+
+typedef enum _vector_kind {Ba, Frm} vector_kind;
+
+struct video_t {
+  enum AVPixelFormat pixel_format;
+  int width;
+  int height;
+  uint8_t *slice[4];
+  int stride[4];
+  int nb_planes;
+  int owns_data;
+};
+
+typedef struct sws_t sws_t;
+
+struct sws_t {
+  struct SwsContext *context;
+  int  	srcSliceY;
+  int  	srcSliceH;
+  struct video_t in;
+  struct video_t out;
+  value out_vector;
+  int release_out_vector;
+
+  int (*get_in_pixels)(sws_t *, value *);
+  int (*convert)(sws_t *);
+};
+
+#define Sws_val(v) (*(sws_t**)Data_custom_val(v))
+
+/*
+  static int alloc_tables(struct video_t * video, int nb_planes)
+  {
+  video->slice = (uint8_t**)realloc(video->slice, nb_planes * sizeof(uint8_t*));
+  
+  if( ! video->slice) return -1;
+
+  memset(video->slice, 0, nb_planes * sizeof(uint8_t*));
+
+  video->stride = (uint8_t**)realloc(video->stride, nb_planes * sizeof(int));
+  
+  if( ! video->stride) return -1;
+
+  video->owns_data = 1;
+  video->nb_planes = nb_planes;
+
+  return nb_planes;
+  }
+*/
+static int get_in_pixels_frame(sws_t *sws, value *in_vector)
+{
+  AVFrame *frame = Frame_val(*in_vector);
+  int i;
+
+  for(i = 0; i < 4; i++) {
+    sws->in.slice[i] = frame->data[i];
+    sws->in.stride[i] = frame->linesize[i];
+  }
+
+  return 0;
+}
+
+static int get_in_pixels_ba(sws_t *sws, value *in_vector)
+{
+  CAMLparam0();
+  CAMLlocal1(v);
+  int i, nb_planes = Wosize_val(*in_vector);
+
+  for (i = 0; i < nb_planes && i < 4; i++) {
+    v = Field(*in_vector, i);
+    sws->in.slice[i] = Caml_ba_data_val(Field(v, 0));
+    sws->in.stride[i] = Int_val(Field(v, 1));
+  }
+  
+  CAMLreturnT(int, nb_planes);
+}
+
+
+static int alloc_out_frame(sws_t *sws)
+{
+  CAMLparam0();
+  CAMLlocal1(v);
+  int i, ret;
+
+  do {
+    AVFrame * frame = av_frame_alloc();
+    if( ! frame) {
+      ret = -1;
+      break;
+    }
+
+    frame->width  = sws->out.width;
+    frame->height = sws->out.height;
+    frame->format = sws->out.pixel_format;
+
+    // allocate the buffers for the frame data
+    ret = av_frame_get_buffer(frame, 32);
+    if (ret < 0) {
+      av_frame_free(&frame);
+      break;
+    }
+
+    for(i = 0; i < 4; i++) {
+      sws->out.slice[i] = frame->data[i];
+      sws->out.stride[i] = frame->linesize[i];
+    }
+
+    value_of_frame(frame, &v);
+    caml_modify_generational_global_root(&sws->out_vector, v);
+  } while(0);
+  
+  CAMLreturnT(int, ret);
+}
+
+static int convert_to_frame(sws_t *sws)
+{
+  // Allocate out data if needed
+  if (sws->release_out_vector) {
+    int ret = alloc_out_frame(sws);
+    if(ret < 0) return ret;
+  }
+
+  caml_release_runtime_system();
+  int ret = sws_scale(sws->context, (const uint8_t * const*)sws->in.slice, sws->in.stride,
+                      sws->srcSliceY, sws->srcSliceH,
+                      sws->out.slice, sws->out.stride);
+  caml_acquire_runtime_system();
+
+  return ret;
+}
+
+static int alloc_out_ba(sws_t *sws)
+{
+  CAMLparam0();
+  CAMLlocal1(v);
+  int linesizes[4];
+  int i, nb_planes, ret;
+
+  do {
+    ret = av_image_fill_linesizes(linesizes, sws->out.pixel_format, sws->out.width);
+    if(ret < 0) break;
+
+    for(nb_planes = 4; nb_planes > 0; nb_planes--) if(linesizes[nb_planes - 1] > 0) break;
+
+    caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(nb_planes));
+
+    for(i = 0; i < nb_planes; i++) {
+      // Some filters and swscale can read up to 16 bytes beyond the planes, 16 extra bytes must be allocated.
+      intnat out_size = linesizes[i] * sws->out.height + 16;
+
+      v = caml_alloc_tuple(2);
+      Store_field(v, 0, caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
+      Store_field(v, 1, Val_int(linesizes[i]));
+
+      sws->out.slice[i] = Caml_ba_data_val(Field(v, 0));
+      sws->out.stride[i] = linesizes[i];
+
+      Store_field(sws->out_vector, i, v);
+    }
+  } while(0);
+
+  CAMLreturnT(int, ret);
+}
+
+static int convert_to_ba(sws_t *sws)
+{
+  // Allocate out data if needed
+  if (sws->release_out_vector) {
+    int ret = alloc_out_ba(sws);
+    if(ret < 0) return ret;
+  }
+
+  caml_release_runtime_system();
+  int ret = sws_scale(sws->context, (const uint8_t **)sws->in.slice, sws->in.stride,
+                      sws->srcSliceY, sws->srcSliceH,
+                      sws->out.slice, sws->out.stride);
+  caml_acquire_runtime_system();
+
+  return ret;
+}
+
+CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
+{
+  CAMLparam2(_sws, _in_vector);
+  sws_t *sws = Sws_val(_sws);
+
+  // acquisition of the input pixels
+  int ret = sws->get_in_pixels(sws, &_in_vector);
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to get input pixels : %s", av_err2str(ret));
+
+  // Scale and convert input data to output data
+  ret = sws->convert(sws);
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert pixels : %s", av_err2str(ret));
+
+  CAMLreturn(sws->out_vector);
+}
+
+void swscale_free(sws_t *sws)
+{
+  if(sws->context) sws_freeContext(sws->context);
+
+  caml_remove_generational_global_root(&sws->out_vector);
+
+  free(sws);
+}
+
+static void finalize_swscale(value v)
+{
+  swscale_free(Sws_val(v));
+}
+
+static struct custom_operations sws_ops =
+  {
+    "ocaml_swscale_context",
+    finalize_swscale,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default
+  };
+
+CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value in_width_, value in_height_, value in_pixel_format_, value out_vector_kind_, value out_width_, value out_height_, value out_pixel_format_)
+{
+  CAMLparam1(flags_);
+  CAMLlocal1(ans);
+  vector_kind in_vector_kind = Int_val(in_vector_kind_);
+  vector_kind out_vector_kind = Int_val(out_vector_kind_);
+  struct SwsContext *ctx;
+  int flags = 0, i, ret = -1;
+
+  sws_t * sws = (sws_t*)calloc(1, sizeof(sws_t));
+
+  if( ! sws) Raise(EXN_FAILURE, "Failed to create Swscale context");
+
+  sws->in.width = Int_val(in_width_);
+  sws->in.height = Int_val(in_height_);
+  sws->in.pixel_format = PixelFormat_val(in_pixel_format_);
+  sws->srcSliceH = sws->in.height;
+  
+  sws->out.width = Int_val(out_width_);
+  sws->out.height = Int_val(out_height_);
+  sws->out.pixel_format = PixelFormat_val(out_pixel_format_);
+
+  for (i = 0; i < Wosize_val(flags_); i++)
+    flags |= Flag_val(Field(flags_, i));
+  
+  caml_release_runtime_system();
+  ctx = sws_getContext(sws->in.width, sws->in.height, sws->in.pixel_format,
+                       sws->out.width, sws->out.height, sws->out.pixel_format,
+                       flags, NULL, NULL, NULL);
+  caml_acquire_runtime_system();
+
+  if( ! ctx) {
+    free(sws);
+    Raise(EXN_FAILURE, "Failed to create Swscale context");
+  }
+  
+  if(in_vector_kind == Frm) {
+    sws->get_in_pixels = get_in_pixels_frame;
+  }
+  else {
+    sws->get_in_pixels = get_in_pixels_ba;
+  }
+
+  sws->out_vector = Val_unit;
+  caml_register_generational_global_root(&sws->out_vector);
+
+  if(out_vector_kind == Frm) {
+    sws->convert = convert_to_frame;
+    ret = alloc_out_frame(sws);
+  }
+  else {
+    sws->convert = convert_to_ba;
+    ret = alloc_out_ba(sws);
+  }
+
+  if(ret < 0) {
+    sws_freeContext(ctx);
+    free(sws);
+    Raise(EXN_FAILURE, "Failed to create Swscale context");
+  }
+
+  ans = caml_alloc_custom(&sws_ops, sizeof(sws_t*), 0, 1);
+  Sws_val(ans) = sws;
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_swscale_create_byte(value *argv, int argn)
+{
+  return ocaml_swscale_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]);
+}
+
+CAMLprim value ocaml_swscale_reuse_output(value _sws, value _reuse_output)
+{
+  CAMLparam2(_sws, _reuse_output);
+  Sws_val(_sws)->release_out_vector = ! Bool_val(_reuse_output);
+  CAMLreturn(Val_unit);
+}
