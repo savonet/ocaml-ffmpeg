@@ -228,6 +228,9 @@ static int alloc_out_frame(sws_t *sws)
   CAMLlocal1(v);
   int ret;
 
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
   do {
     AVFrame * frame = av_frame_alloc();
     if( ! frame) {
@@ -252,7 +255,7 @@ static int alloc_out_frame(sws_t *sws)
     value_of_frame(frame, &v);
     caml_modify_generational_global_root(&sws->out_vector, v);
   } while(0);
-  
+#endif
   CAMLreturnT(int, ret);
 }
 
@@ -297,12 +300,12 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
 
   // acquisition of the input pixels
   int ret = sws->get_in_pixels(sws, &_in_vector);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to get input pixels : %s", av_err2str(ret));
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to get input pixels");
 
   // Allocate out data if needed
   if (sws->release_out_vector) {
     ret = sws->alloc_out(sws);
-    if(ret < 0) Raise(EXN_FAILURE, "Failed to allocate out vector : %s", av_err2str(ret));
+    if(ret < 0) Raise(EXN_FAILURE, "Failed to allocate out vector");
   }
 
   // Scale and convert input data to output data
@@ -312,7 +315,7 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
                   sws->srcSliceY, sws->srcSliceH,
                   sws->out.slice, sws->out.stride);
   caml_acquire_runtime_system();
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert pixels : %s", av_err2str(ret));
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert pixels");
 
   CAMLreturn(sws->out_vector);
 }
