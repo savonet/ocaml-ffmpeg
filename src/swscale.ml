@@ -48,6 +48,36 @@ module Make (I : VideoData) (O : VideoData) = struct
     create (Array.of_list flags) I.vk in_width in_height in_pixel_format
       O.vk out_width out_height out_pixel_format
 
+  
+  let from_codec flags in_codec out_width out_height out_pixel_format =
+
+    create flags
+      (Avcodec.Video.get_width in_codec)
+      (Avcodec.Video.get_height in_codec)
+      (Avcodec.Video.get_pixel_format in_codec)
+      out_width out_height out_pixel_format
+
+
+  let to_codec flags in_width in_height in_pixel_format out_codec =
+
+    create flags
+      in_width in_height in_pixel_format
+      (Avcodec.Video.get_width out_codec)
+      (Avcodec.Video.get_height out_codec)
+      (Avcodec.Video.get_pixel_format out_codec)
+
+
+  let from_codec_to_codec flags in_codec out_codec =
+
+    create flags
+      (Avcodec.Video.get_width in_codec)
+      (Avcodec.Video.get_height in_codec)
+      (Avcodec.Video.get_pixel_format in_codec)
+      (Avcodec.Video.get_width out_codec)
+      (Avcodec.Video.get_height out_codec)
+      (Avcodec.Video.get_pixel_format out_codec)
+
+
   external reuse_output : t -> bool -> unit = "ocaml_swscale_reuse_output"
 
   external convert : t -> I.t -> O.t = "ocaml_swscale_convert"
