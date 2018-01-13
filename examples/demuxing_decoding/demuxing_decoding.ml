@@ -1,8 +1,8 @@
 open FFmpeg
 open Avutil
 module AudioConverter = Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
-(* module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.BigArray) *)
-module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.Frame)
+module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.BigArray)
+(* module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.Frame) *)
 
 let () =
   if Array.length Sys.argv < 4 then (
@@ -28,7 +28,8 @@ let () =
 
   let (video_index, video_stream, video_codec) = Av.find_best_video_stream src in
 
-  let v_ctx = VideoConverter.from_codec [] video_codec 352 288 `YUV420P in
+  (* let v_ctx = VideoConverter.from_codec video_codec 800 600 `YUV420P in *)
+  let v_ctx = VideoConverter.create [] 352 288 `YUV420P 800 600 `YUV420P in
   let video_output_file = open_out_bin video_output_filename in
 
   let rec decode() =

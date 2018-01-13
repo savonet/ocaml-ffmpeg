@@ -46,6 +46,7 @@ module Make : functor (I : VideoData) (O : VideoData) -> sig
   val create : flag list -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
   (** [Swscale.create flags in_w in_h in_pf out_w out_h out_pf] do the same as {!Swscale.create}. *)
 
+(*
   val from_codec : flag list -> video Avcodec.t -> int -> int -> pixel_format -> t
   (** [Swscale.from_codec flags in_vc out_w out_h out_pf] do the same as {!Swresample.create} with the [in_vc] video codec properties as input format. *)
 
@@ -54,7 +55,7 @@ module Make : functor (I : VideoData) (O : VideoData) -> sig
 
   val from_codec_to_codec : flag list -> video Avcodec.t -> video Avcodec.t -> t
   (** [Swscale.from_codec_to_codec flags in_vc out_vc] do the same as {!Swresample.create} with the [in_vc] video codec properties as input format and the [out_vc] video codec properties as output format. *)
-
+*)
   val reuse_output : t -> bool -> unit
   (** [Swscale.reuse_output ro] enables or disables the reuse of {!Swscale.convert} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by {!Swscale.convert} is invalidated by a new call to this function. *)
 
