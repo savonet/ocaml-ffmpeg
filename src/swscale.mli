@@ -39,7 +39,6 @@ end
 type ('i, 'o) ctx
 
 (** Functor building an implementation of the swscale structure with parameterized input an output video data types *)
-(* module Make : functor (I : VideoData) -> (O : VideoData) -> sig *)
 module Make (I : VideoData) (O : VideoData) : sig
 
   type t = (I.t, O.t) ctx
