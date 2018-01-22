@@ -1,6 +1,8 @@
 open FFmpeg
 open Avutil
-module FrameToS32Bytes = Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
+module AudioConverter = Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
+module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.BigArray)
+(* module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.Frame) *)
 
 let () =
   if Array.length Sys.argv < 4 then (
@@ -17,23 +19,28 @@ let () =
   let audio_output_filename = Sys.argv.(3) in
 
   let src = Av.open_input input_filename in
-  let (audio_index, audio_stream, audio_codec) = Av.find_best_audio_stream src in
-
-  let rbs = FrameToS32Bytes.from_codec audio_codec `STEREO 44100 in
-
   Av.get_input_metadata src |> List.iter(fun(k, v) -> print_endline(k^" : "^v));
 
-  let video_output_file = open_out_bin video_output_filename in
+  let (audio_index, audio_stream, audio_codec) = Av.find_best_audio_stream src in
+
+  let a_ctx = AudioConverter.from_codec audio_codec `STEREO 44100 in
   let audio_output_file = open_out_bin audio_output_filename in
+
+  let (video_index, video_stream, video_codec) = Av.find_best_video_stream src in
+
+  (* let v_ctx = VideoConverter.from_codec video_codec 800 600 `YUV420P in *)
+  let v_ctx = VideoConverter.create [] 352 288 `YUV420P 800 600 `YUV420P in
+  let video_output_file = open_out_bin video_output_filename in
 
   let rec decode() =
     match Av.read_input src with
     | `audio (idx, af) ->
       if idx = audio_index then (
-        FrameToS32Bytes.convert rbs af |> output_bytes audio_output_file);
+        AudioConverter.convert a_ctx af |> output_bytes audio_output_file);
       decode()
     | `video (idx, vf) ->
-      (*        Swscale.scale_frame vf |> output_video video_output_file;*)
+      if idx = video_index then (
+        VideoConverter.convert v_ctx vf |> ignore(*output_video video_output_file*));
       decode()
     | `subtitle (idx, sf) ->
       let _, _, lines = Subtitle.frame_to_lines sf in
