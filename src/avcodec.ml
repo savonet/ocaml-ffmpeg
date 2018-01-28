@@ -26,7 +26,7 @@ module Audio = struct
 
   external decode : audio context -> data -> int -> audio frame array = "ocaml_avcodec_decode"
 
-  external encode : audio context -> audio frame -> data = "ocaml_avcodec_audio_encode"
+  external encode : audio context -> audio frame -> data = "ocaml_avcodec_encode"
 end
 
 (** Video codecs. *)
@@ -51,7 +51,7 @@ module Video = struct
 
   external decode : video context -> data -> int -> video frame array = "ocaml_avcodec_decode"
 
-  external encode : video context -> video frame -> data = "ocaml_avcodec_video_encode"
+  external encode : video context -> video frame -> data = "ocaml_avcodec_encode"
 end
 
 (** Subtitle codecs. *)

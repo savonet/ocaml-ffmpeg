@@ -52,10 +52,9 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 typedef struct {
   AVCodecContext *codec_context;
   AVCodecParserContext *parser;
-
-  // input
   uint8_t *buf;
   size_t   buf_size;
+  // input
   uint8_t *remaining_data;
   size_t   remaining_data_size;
   // output
@@ -90,7 +89,7 @@ static struct custom_operations codec_context_ops =
     custom_deserialize_default
   };
 
-static int decode(codec_context_t *ctx, uint8_t *data, size_t data_size)
+static int decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size)
 {
   AVPacket packet;
   uint8_t *buf = ctx->buf;
@@ -190,7 +189,7 @@ CAMLprim value ocaml_avcodec_decode(value _ctx, value _data, value _size)
   int i, ret, size = Int_val(_size);
 
   caml_release_runtime_system();
-  ret = decode(ctx, data, size);
+  ret = decode_to_frame(ctx, data, size);
   caml_acquire_runtime_system();
 
   if(ret < 0) Raise(EXN_FAILURE, "Failed to decode data : %s", av_err2str(ret));
@@ -204,6 +203,69 @@ CAMLprim value ocaml_avcodec_decode(value _ctx, value _data, value _size)
 
   CAMLreturn(ans);
 }
+
+
+static int encode_frame(codec_context_t *ctx, AVFrame *frame)
+{
+  uint8_t * data = NULL;
+  size_t data_size = 0;
+  AVPacket packet;
+  av_init_packet(&packet);
+  packet.data = NULL;
+  packet.size = 0;
+
+  // send the frame for encoding
+  int ret = avcodec_send_frame(ctx->codec_context, frame);
+  if (ret < 0) return ret;
+
+  // read all the available output packets
+  while (ret >= 0) {
+    ret = avcodec_receive_packet(ctx->codec_context, &packet);
+    if (ret < 0) break;
+
+    data_size += packet.size;
+
+    if(data_size > ctx->buf_size) {
+      ctx->buf_size = data_size + 8192;
+      ctx->buf = (uint8_t *)realloc(ctx->buf, ctx->buf_size);
+
+      if( ! ctx->buf) {
+        ctx->buf_size = 0;
+        ret = AVERROR_INVALIDDATA;
+        break;
+      }
+    }
+
+    memcpy(data, packet.data, packet.size);
+    data += packet.size;
+  }
+  av_packet_unref(&packet);
+
+  if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) return ret;
+
+  return data_size;
+}
+
+CAMLprim value ocaml_avcodec_encode(value _ctx, value _frame)
+{
+  CAMLparam2(_ctx, _frame);
+  CAMLlocal2(val_frame, ans);
+  codec_context_t *ctx = CodecContext_val(_ctx);
+  AVFrame * frame = Frame_val(_frame);
+  intnat ret;
+
+  caml_release_runtime_system();
+  ret = encode_frame(ctx, frame);
+  caml_acquire_runtime_system();
+
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to encode data : %s", av_err2str(ret));
+
+  ans = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, ctx->buf, &ret);
+  memcpy(Caml_ba_data_val(ans), ctx->buf, ret);
+
+  CAMLreturn(ans);
+}
+
 
 
 /**** codec ****/
