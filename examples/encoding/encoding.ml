@@ -52,8 +52,9 @@ let () =
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
-  let audio = Array.init sample_rate
-      (fun t -> if t < sample_rate / 2 then sin(float_of_int t *. c) else 0.) in
+  let audio_on = Array.init 1804 (fun t -> sin(float_of_int t *. c)) in
+  let audio_off = Array.make 1804 0. in
+  let audio_on_off = [|audio_on; audio_off|] in
 
   let width = 352 in let height = 288 in let pixel_format = `YUV420P in
   let frame_rate = 25 in
@@ -71,7 +72,7 @@ let () =
   Av.set_metadata oas ["Media", "Subtitle"];
 *)
   let duration = 10 in
-  
+(*  
   for i = 0 to duration - 1 do
     audio |> Resampler.convert rsp |> Av.write oas;
     (*
@@ -80,10 +81,11 @@ let () =
     |> Av.write oss;
 *)
   done;
-
+*)
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
     video_on_off.(b) width height i frame |> Av.write ovs;
+    audio_on_off.(b) |> Resampler.convert rsp |> Av.write oas;
   done;
 
   Av.close dst;

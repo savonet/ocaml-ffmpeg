@@ -114,8 +114,8 @@ let () =
   let pvv_oc = open_out "polymorphic_variant_values_stubs.h" in
 
   List.iter(print_define_polymorphic_variant_value pvv_oc)
-    ["frame"; "audio"; "video"; "subtitle"; "end_of_stream"; "end_of_file";
-     "error"; "second"; "millisecond"; "microsecond"; "nanosecond"];
+    ["frame"; "audio"; "video"; "subtitle"; "end_of_stream"; "end_of_file"; "error";
+     "second"; "millisecond"; "microsecond"; "nanosecond"];
 
   close_out pvv_oc;
 

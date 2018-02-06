@@ -154,10 +154,10 @@ module DblPlanarFrame = struct
 end
 
 
-type ('i, 'o) t
+type ('i, 'o) ctx
 
 module Make (I : AudioData) (O : AudioData) = struct
-  type nonrec t = (I.t, O.t) t
+  type t = (I.t, O.t) ctx
 
   external create : vector_kind -> CL.t -> SF.t -> int ->
     vector_kind -> CL.t -> SF.t -> int ->

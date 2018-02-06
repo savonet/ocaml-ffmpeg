@@ -23,6 +23,9 @@ let () =
   Callback.register_exception "ffmpeg_exn_failure" (Failure "");
 
 
+type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+
 module Pixel_format = struct
   type t = Pixel_format.t
 

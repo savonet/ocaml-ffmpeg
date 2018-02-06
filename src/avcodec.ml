@@ -1,8 +1,8 @@
 open Avutil
 
 type 'a t
-type 'a context
-type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+type ('line, 'media) context
+type use = [ `decoder | `encoder]
 
 (** Audio codecs. *)
 module Audio = struct
@@ -22,11 +22,17 @@ module Audio = struct
   external get_bit_rate : audio t -> int = "ocaml_avcodec_parameters_get_bit_rate"
   external get_sample_rate : audio t -> int = "ocaml_avcodec_parameters_get_sample_rate"
 
-  external create_context : id -> Avutil.Channel_layout.t -> Avutil.Sample_format.t -> ?bit_rate:int -> int -> audio context = "ocaml_avcodec_audio_create_context"
+  
+  external create_context : id -> bool -> int option -> int option -> (_, audio)context = "ocaml_avcodec_create_context"
 
-  external decode : audio context -> data -> int -> audio frame array = "ocaml_avcodec_decode"
+  let create_decoder_context id = create_context id true None None
+  let create_encoder_context ?bit_rate id = create_context id false bit_rate None
 
-  external encode : audio context -> audio frame -> data = "ocaml_avcodec_encode"
+  external decode : (input, audio)context -> bytes -> int -> audio frame array = "ocaml_avcodec_decode"
+  external decode_data : (input, audio)context -> data -> int -> audio frame array = "ocaml_avcodec_decode_data"
+
+  external encode : (output, audio)context -> audio frame -> bytes = "ocaml_avcodec_encode"
+  external encode_to_data : (output, audio)context -> audio frame -> data = "ocaml_avcodec_encode_to_data"
 end
 
 (** Video codecs. *)
@@ -47,11 +53,17 @@ module Video = struct
   external get_pixel_format : video t -> Avutil.Pixel_format.t = "ocaml_avcodec_parameters_get_pixel_format"
   external get_bit_rate : video t -> int = "ocaml_avcodec_parameters_get_bit_rate"
 
-  external create_context : id -> int -> int -> Avutil.Pixel_format.t -> video context = "ocaml_avcodec_video_create_context"
+  
+  external create_context : id -> bool -> int option -> int option -> (_, video)context = "ocaml_avcodec_create_context"
 
-  external decode : video context -> data -> int -> video frame array = "ocaml_avcodec_decode"
+  let create_decoder_context id = create_context id true None None
+  let create_encoder_context ?bit_rate ?(frame_rate=25) id = create_context id false bit_rate (Some frame_rate)
 
-  external encode : video context -> video frame -> data = "ocaml_avcodec_encode"
+  external decode : (input, video)context -> bytes -> int -> video frame array = "ocaml_avcodec_decode"
+  external decode_data : (input, video)context -> data -> int -> video frame array = "ocaml_avcodec_decode_data"
+
+  external encode : (output, video)context -> video frame -> bytes = "ocaml_avcodec_encode"
+  external encode_to_data : (output, video)context -> video frame -> data = "ocaml_avcodec_encode_to_data"
 end
 
 (** Subtitle codecs. *)

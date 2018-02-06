@@ -3,8 +3,8 @@
 open Avutil
 
 type 'a t
-type 'a context
-type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+type ('line, 'media) context
+type use = [ `decoder | `encoder]
 
 (* type 'media result = [ `frame of 'media frame | `end_of_stream | `end_of_stream ] *)
 
@@ -43,11 +43,15 @@ module Audio : sig
   (** Returns the sample rate set for the codec. *)
   val get_sample_rate : audio t -> int
 
-  val create_context : id -> Avutil.Channel_layout.t -> Avutil.Sample_format.t -> ?bit_rate:int -> int -> audio context
+  val create_decoder_context : id -> (input, audio)context
 
-  val decode : audio context -> data -> int -> audio frame array
+  val create_encoder_context : ?bit_rate:int -> id -> (output, audio)context
 
-  val encode : audio context -> audio frame -> data
+  val decode : (input, audio)context -> bytes -> int -> audio frame array
+  val decode_data : (input, audio)context -> data -> int -> audio frame array
+
+  val encode : (output, audio)context -> audio frame -> bytes
+  val encode_to_data : (output, audio)context -> audio frame -> data
 end
 
 (** Video codecs. *)
@@ -84,11 +88,14 @@ module Video : sig
   (** Returns the bit rate set for the codec. *)
   val get_bit_rate : video t -> int
 
-  val create_context : id -> int -> int -> Avutil.Pixel_format.t -> video context
+  val create_decoder_context : id -> (input, video)context
+  val create_encoder_context : ?bit_rate:int -> ?frame_rate:int -> id -> (output, video)context
+  
+  val decode : (input, video)context -> bytes -> int -> video frame array
+  val decode_data : (input, video)context -> data -> int -> video frame array
 
-  val decode : video context -> data -> int -> video frame array
-
-  val encode : video context -> video frame -> data
+  val encode : (output, video)context -> video frame -> bytes
+  val encode_to_data : (output, video)context -> video frame -> data
 end
 
 (** Subtitle codecs. *)

@@ -34,6 +34,9 @@ type 'media frame
 exception Failure of string
 
 
+type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+
 (** {9 Timestamp} *)
 
 (** Formats for time. *)

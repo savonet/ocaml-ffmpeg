@@ -37,6 +37,16 @@
 extern char ocaml_av_error_msg[];
 extern char ocaml_av_exn_msg[];
 
+
+#define List_add(list, cons, val) {             \
+    (cons) = caml_alloc(2, 0);                  \
+    Store_field((cons), 0, (val));              \
+    Store_field((cons), 1, (list));             \
+    (list) = (cons);                            \
+  }
+
+
+
 /**** Pixel format ****/
 
 int PixelFormat_val(value);

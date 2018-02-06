@@ -50,6 +50,7 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 /***** AVCodecContext *****/
 
 typedef struct {
+  AVCodec *codec;
   AVCodecContext *codec_context;
   AVCodecParserContext *parser;
   uint8_t *buf;
@@ -58,15 +59,19 @@ typedef struct {
   uint8_t *remaining_data;
   size_t   remaining_data_size;
   // output
+  int bit_rate;
+  int frame_rate;
   AVFrame ** frames;
   int frames_capacity;
+  AVPacket ** packets;
+  int packets_capacity;
 } codec_context_t;
 
 #define CodecContext_val(v) (*(codec_context_t**)Data_custom_val(v))
 
-static void finalize_codec_context(value v)
+static void free_codec_context(codec_context_t *ctx)
 {
-  codec_context_t *ctx = CodecContext_val(v);
+  if( ! ctx) return;
 
   if(ctx->codec_context) avcodec_free_context(&ctx->codec_context);
 
@@ -76,7 +81,19 @@ static void finalize_codec_context(value v)
 
   if(ctx->frames) free(ctx->frames);
 
+  if(ctx->packets) {
+    int i;
+    for(i = 0; ctx->packets[i]; i++) av_packet_free(&ctx->packets[i]);
+
+    free(ctx->packets);
+  }
+  
   free(ctx);
+}
+
+static void finalize_codec_context(value v)
+{
+  free_codec_context(CodecContext_val(v));
 }
 
 static struct custom_operations codec_context_ops =
@@ -89,10 +106,113 @@ static struct custom_operations codec_context_ops =
     custom_deserialize_default
   };
 
-static int decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size)
+static codec_context_t * avcodec_create_codec_context(enum AVCodecID codec_id, int decoder)
 {
+  av_register_all();
+
+  codec_context_t * ctx = (codec_context_t*)calloc(1, sizeof(codec_context_t));
+  if ( ! ctx) Fail("Failed to allocate codec context");
+
+  if(decoder) {
+    ctx->codec = avcodec_find_decoder(codec_id);
+
+    if(ctx->codec) ctx->codec_context = avcodec_alloc_context3(ctx->codec);
+
+    if( ! ctx->codec_context) {
+      free_codec_context(ctx);
+      Fail("Failed to allocate codec context");
+    }
+
+    // Open the codec
+    int ret = avcodec_open2(ctx->codec_context, NULL, NULL);
+    if(ret < 0) {
+      free_codec_context(ctx);
+      Fail("Failed to open codec : %s", av_err2str(ret));
+    }
+
+    ctx->parser = av_parser_init(codec_id);
+    if ( ! ctx->parser) {
+      free_codec_context(ctx);
+      Fail("Failed to init codec parser");
+    }
+  }
+  else {
+    ctx->codec = avcodec_find_encoder(codec_id);
+
+    if( ! ctx->codec) {
+      free_codec_context(ctx);
+      Fail("Failed to find codec");
+    }
+    // in case of encoding, the AVCodecContext will be created with the properties of the first sended frame
+  }
+
+  return ctx;
+}
+
+CAMLprim value ocaml_avcodec_create_context(value _codec_id, value _decoder, value _bit_rate, value _frame_rate) {
+  CAMLparam3(_codec_id, _bit_rate, _frame_rate);
+  CAMLlocal1(ans);
+
+  caml_release_runtime_system();
+  codec_context_t * ctx = avcodec_create_codec_context(AudioCodecID_val(_codec_id), Int_val(_decoder));
+  caml_acquire_runtime_system();
+
+  if( ! ctx) Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+  ans = caml_alloc_custom(&codec_context_ops, sizeof(codec_context_t*), 0, 1);
+  CodecContext_val(ans) = ctx;
+
+  ctx->bit_rate = Is_block(_bit_rate) ? Int_val(Field(_bit_rate, 0)) : 0;
+  ctx->frame_rate = Is_block(_frame_rate) ? Int_val(Field(_frame_rate, 0)) : 0;
+
+  CAMLreturn(ans);
+}
+
+
+static AVCodecContext * avcodec_open_codec(AVCodec *codec, AVFrame *frame, int bit_rate, int frame_rate)
+{
+  if(codec->type != AVMEDIA_TYPE_AUDIO && codec->type != AVMEDIA_TYPE_VIDEO) Fail("Failed to open unsupported codec type");
+
+  AVCodecContext *ctx = avcodec_alloc_context3(codec);
+  if( ! ctx) {
+    Fail("Failed to allocate codec context");
+  }
+
+  if(codec->type == AVMEDIA_TYPE_AUDIO) {
+    ctx->channel_layout = frame->channel_layout;
+    ctx->channels = frame->channels;
+    ctx->sample_fmt = (enum AVSampleFormat)frame->format;
+    ctx->sample_rate = frame->sample_rate;
+    ctx->time_base = (AVRational){1, frame->sample_rate};
+  }
+  else {
+    ctx->width = frame->width;
+    ctx->height = frame->height;
+    ctx->pix_fmt = (enum AVPixelFormat)frame->format;
+    ctx->framerate = (AVRational){frame_rate, 1};
+    ctx->time_base = (AVRational){1, frame_rate};
+  }
+
+  ctx->bit_rate = bit_rate;
+
+  // Open the codec
+  int ret = avcodec_open2(ctx, NULL, NULL);
+  if(ret < 0) {
+    avcodec_free_context(&ctx);
+    Fail("Failed to open codec : %s", av_err2str(ret));
+  }
+
+  printf("ctx->frame_size = %d, frame->nb_samples = %d\n", ctx->frame_size, frame->nb_samples);
+  return ctx;
+}
+
+static value decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size)
+{
+  CAMLparam0();
+  CAMLlocal2(val_frame, ans);
   AVPacket packet;
   uint8_t *buf = ctx->buf;
+  int i, ret = 0, nb_frames = 0;
   size_t needed_size = ctx->remaining_data_size + data_size + AV_INPUT_BUFFER_PADDING_SIZE;
 
   if(needed_size > ctx->buf_size) {
@@ -121,8 +241,9 @@ static int decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size
 
   ctx->remaining_data = buf;
   ctx->remaining_data_size += data_size;
-  int ret = 0, nb_frames = 0;
   
+  caml_release_runtime_system();
+
   av_init_packet(&packet);
   packet.data = NULL;
   packet.size = 0;
@@ -172,31 +293,17 @@ static int decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size
     } while (1);
   }
 
-  if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
-    while(nb_frames > 0) av_frame_free(&ctx->frames[--nb_frames]);
-    return ret;
-  }
-
-  return nb_frames;
-}
-
-CAMLprim value ocaml_avcodec_decode(value _ctx, value _data, value _size)
-{
-  CAMLparam2(_ctx, _data);
-  CAMLlocal2(val_frame, ans);
-  codec_context_t *ctx = CodecContext_val(_ctx);
-  uint8_t *data = Caml_ba_data_val(_data);
-  int i, ret, size = Int_val(_size);
-
-  caml_release_runtime_system();
-  ret = decode_to_frame(ctx, data, size);
   caml_acquire_runtime_system();
 
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to decode data : %s", av_err2str(ret));
+  if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) {
+    while(nb_frames > 0) av_frame_free(&ctx->frames[--nb_frames]);
 
-  ans = caml_alloc_tuple(ret);
+    Raise(EXN_FAILURE, "Failed to decode data : %s", av_err2str(ret));
+  }
 
-  for(i = 0; i < ret; i++) {
+  ans = caml_alloc_tuple(nb_frames);
+
+  for(i = 0; i < nb_frames; i++) {
     value_of_frame(ctx->frames[i], &val_frame);
     Store_field(ans, i, val_frame);
   }
@@ -204,15 +311,29 @@ CAMLprim value ocaml_avcodec_decode(value _ctx, value _data, value _size)
   CAMLreturn(ans);
 }
 
-
-static int encode_frame(codec_context_t *ctx, AVFrame *frame)
+CAMLprim value ocaml_avcodec_decode(value _ctx, value _data, value _size)
 {
-  uint8_t * data = NULL;
-  size_t data_size = 0;
-  AVPacket packet;
-  av_init_packet(&packet);
-  packet.data = NULL;
-  packet.size = 0;
+  CAMLparam2(_ctx, _data);
+  CAMLreturn(decode_to_frame(CodecContext_val(_ctx), (uint8_t*)String_val(_data), Int_val(_size)));
+}
+
+CAMLprim value ocaml_avcodec_decode_data(value _ctx, value _data, value _size)
+{
+  CAMLparam2(_ctx, _data);
+  CAMLreturn(decode_to_frame(CodecContext_val(_ctx), Caml_ba_data_val(_data), Int_val(_size)));
+}
+
+
+static int encode_frame(codec_context_t *ctx, AVFrame *frame, intnat *data_size)
+{
+  int i, nb_packets = 0;
+
+  if(!ctx->codec_context
+     && ! (ctx->codec_context = avcodec_open_codec(ctx->codec, frame, ctx->bit_rate, ctx->frame_rate))) {
+    Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+
+  caml_release_runtime_system();
 
   // send the frame for encoding
   int ret = avcodec_send_frame(ctx->codec_context, frame);
@@ -220,49 +341,81 @@ static int encode_frame(codec_context_t *ctx, AVFrame *frame)
 
   // read all the available output packets
   while (ret >= 0) {
-    ret = avcodec_receive_packet(ctx->codec_context, &packet);
-    if (ret < 0) break;
+    if(nb_packets >= ctx->packets_capacity) {
+      AVPacket **packets = (AVPacket **)calloc(ctx->packets_capacity + 33, sizeof(AVPacket *));
 
-    data_size += packet.size;
+      if( ! packets) return AVERROR_INVALIDDATA;
 
-    if(data_size > ctx->buf_size) {
-      ctx->buf_size = data_size + 8192;
-      ctx->buf = (uint8_t *)realloc(ctx->buf, ctx->buf_size);
-
-      if( ! ctx->buf) {
-        ctx->buf_size = 0;
-        ret = AVERROR_INVALIDDATA;
-        break;
+      if(ctx->packets) {
+        for(i = 0; ctx->packets[i]; i++) packets[i] = ctx->packets[i];
+        free(ctx->packets);
       }
+      ctx->packets = packets;
+      ctx->packets_capacity += 32;
     }
 
-    memcpy(data, packet.data, packet.size);
-    data += packet.size;
+    if( ! ctx->packets[nb_packets]) {
+      ctx->packets[nb_packets] = av_packet_alloc();
+
+      if( ! ctx->packets[nb_packets]) return AVERROR_INVALIDDATA;
+    }
+    ret = avcodec_receive_packet(ctx->codec_context, ctx->packets[nb_packets]);
+    if (ret < 0) break;
+
+    *data_size += ctx->packets[nb_packets]->size;
+    nb_packets++;
   }
-  av_packet_unref(&packet);
 
-  if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) return ret;
+  caml_acquire_runtime_system();
 
-  return data_size;
+  if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) Raise(EXN_FAILURE, "Failed to encode data : %s", av_err2str(ret));
+
+  return nb_packets;
 }
 
 CAMLprim value ocaml_avcodec_encode(value _ctx, value _frame)
 {
   CAMLparam2(_ctx, _frame);
-  CAMLlocal2(val_frame, ans);
+  CAMLlocal1(ans);
   codec_context_t *ctx = CodecContext_val(_ctx);
-  AVFrame * frame = Frame_val(_frame);
-  intnat ret;
+  intnat data_size = 0;
+  int i, ret = 0;
 
-  caml_release_runtime_system();
-  ret = encode_frame(ctx, frame);
-  caml_acquire_runtime_system();
+  ret = encode_frame(ctx, Frame_val(_frame), &data_size);
 
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to encode data : %s", av_err2str(ret));
+  ans = caml_alloc_string(data_size);
+  
+  uint8_t * data = (uint8_t*)String_val(ans);
 
-  ans = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, ctx->buf, &ret);
-  memcpy(Caml_ba_data_val(ans), ctx->buf, ret);
+  for(i = 0; i < ret; i++) {
+    memcpy(data, ctx->packets[i]->data, ctx->packets[i]->size);
+    data += ctx->packets[i]->size;
+    av_packet_unref(ctx->packets[i]);
+  }
+  
+  CAMLreturn(ans);
+}
 
+CAMLprim value ocaml_avcodec_encode_to_data(value _ctx, value _frame)
+{
+  CAMLparam2(_ctx, _frame);
+  CAMLlocal1(ans);
+  codec_context_t *ctx = CodecContext_val(_ctx);
+  intnat data_size = 0;
+  int i, ret = 0;
+
+  ret = encode_frame(ctx, Frame_val(_frame), &data_size);
+
+  ans = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &data_size);
+  
+  uint8_t * data = Caml_ba_data_val(ans);
+
+  for(i = 0; i < ret; i++) {
+    memcpy(data, ctx->packets[i]->data, ctx->packets[i]->size);
+    data += ctx->packets[i]->size;
+    av_packet_unref(ctx->packets[i]);
+  }
+  
   CAMLreturn(ans);
 }
 
@@ -359,60 +512,6 @@ CAMLprim value ocaml_avcodec_parameters_audio_copy(value _codec_id, value _chann
   dst->channels = av_get_channel_layout_nb_channels(dst->channel_layout);
   dst->format = SampleFormat_val(_sample_format);
   dst->sample_rate = Int_val(_sample_rate);
-
-  CAMLreturn(ans);
-}
-
-
-static AVCodecContext * avcodec_audio_create_context(enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate)
-{
-  av_register_all();
-
-  AVCodec *codec = avcodec_find_decoder(codec_id);
-  if( ! codec) Fail("Failed to create audio codec");
-  
-  AVCodecContext *codec_context = avcodec_alloc_context3(codec);
-  if( ! codec_context) Fail("Failed to allocate audio codec context");
-
-  codec_context->channel_layout = channel_layout;
-  codec_context->channels = av_get_channel_layout_nb_channels(channel_layout);
-  codec_context->sample_fmt = sample_fmt;
-  codec_context->sample_rate = sample_rate;
-  codec_context->time_base = (AVRational){1, codec_context->sample_rate};
-
-  if(bit_rate > 0) codec_context->bit_rate = bit_rate;
-
-  // Open the decoder
-  int ret = avcodec_open2(codec_context, codec, NULL);
-  if(ret < 0) {
-    avcodec_free_context(&codec_context);
-    Fail("Failed to open codec : %s", av_err2str(ret));
-  }
-  return codec_context;
-}
-
-CAMLprim value ocaml_avcodec_audio_create_context(value _codec_id, value _channel_layout, value _sample_format, value _bit_rate, value _sample_rate) {
-  CAMLparam4(_codec_id, _channel_layout, _sample_format, _bit_rate);
-  CAMLlocal1(ans);
-  int bit_rate = _bit_rate == Int_val(0) ? -1 : Int_val(Field(_bit_rate, 0));
-
-  codec_context_t * ctx = (codec_context_t*)calloc(1, sizeof(codec_context_t));
-  if ( ! ctx) Raise(EXN_FAILURE, "Failed to allocate codec context");
-
-  ans = caml_alloc_custom(&codec_context_ops, sizeof(codec_context_t*), 0, 1);
-  CodecContext_val(ans) = ctx;
-  
-  caml_release_runtime_system();
-  ctx->codec_context = avcodec_audio_create_context(AudioCodecID_val(_codec_id),
-                                                    ChannelLayout_val(_channel_layout),
-                                                    SampleFormat_val(_sample_format),
-                                                    bit_rate,
-                                                    Int_val(_sample_rate));
-  caml_acquire_runtime_system();
-  if( ! ctx->codec_context) Raise(EXN_FAILURE, ocaml_av_error_msg);
-
-  ctx->parser = av_parser_init(ctx->codec_context->codec->id);
-  if ( ! ctx->parser) Raise(EXN_FAILURE, "Failed to init codec parser");
 
   CAMLreturn(ans);
 }
