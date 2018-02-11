@@ -25,10 +25,8 @@ let () =
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
     exit 1);
 
-  let width = 352 in
-  let height = 288 in
+  let width = 352 in let height = 288 in let pixel_format = `YUV420P in
   let codec_name = Sys.argv.(2) in
-  let pixel_format = `YUV420P in
 
   let dst = Av.open_output Sys.argv.(1) in
 
@@ -36,7 +34,7 @@ let () =
 
   let frame = Video.create_frame width height pixel_format in
 
-  for i = 0 to 24 do
+  for i = 0 to 240 do
     fill_yuv_image width height i frame |> Av.write ovs;
   done;
 

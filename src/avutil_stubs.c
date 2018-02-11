@@ -138,7 +138,6 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
 {
   CAMLparam1(_format);
   CAMLlocal1(ans);
-
 #ifndef HAS_FRAME
   caml_failwith("Not implemented.");
 #else
@@ -150,7 +149,7 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
   frame->height = Int_val(_h);
 
   int ret = av_frame_get_buffer(frame, 32);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer");
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer : %s", av_err2str(ret));
 
   value_of_frame(frame, &ans);
 #endif
@@ -199,6 +198,203 @@ CAMLprim value ocaml_avutil_video_frame_set(value _frame, value _line, value _x,
 #endif
   CAMLreturn(Val_unit);
 }
+
+CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
+{
+  CAMLparam1(_frame);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int line = Int_val(_line);
+
+  if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to get linesize from video frame : line (%d) out of boundaries", line);
+#endif
+  CAMLreturn(Val_int(frame->linesize[line]));
+}
+
+CAMLprim value ocaml_avutil_video_frame_planar_set(value _frame, value _line, value _p, value _v)
+{
+  CAMLparam1(_frame);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int line = Int_val(_line);
+  int p = Int_val(_p);
+
+  if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to set to video frame : line (%d) out of boundaries", line);
+  if(p < 0 || p >= frame->buf[line]->size) Raise(EXN_FAILURE, "Failed to set to video frame plane : p (%d) out of 0-%d boundaries", p, frame->buf[line]->size);
+
+  frame->data[line][p] = Int_val(_v);
+#endif
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avutil_video_frame_to_bigarray_planes(value _frame)
+{
+  CAMLparam1(_frame);
+  CAMLlocal3(ans, data, plane);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int i, nb_planes;
+
+  for(nb_planes = 0; frame->buf[nb_planes]; nb_planes++);
+
+  ans = caml_alloc_tuple(nb_planes);
+
+  for(i = 0; i < nb_planes; i++) {
+    AVBufferRef* buffer = frame->buf[i];
+    intnat out_size = buffer->size;
+
+    data = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
+    plane = caml_alloc_tuple(2);
+
+    Store_field(plane, 0, data);
+    Store_field(plane, 1, Val_int(frame->linesize[i]));
+
+    memcpy(Caml_ba_data_val(data), buffer->data, buffer->size);
+
+    Store_field(ans, i, plane);
+  }
+#endif
+  CAMLreturn(ans);
+}
+
+
+CAMLprim value ocaml_avutil_video_bigarray_planes_to_frame(value _planes, value _frame)
+{
+  CAMLparam2(_planes, _frame);
+  CAMLlocal2(data, plane);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  int i, nb_planes = Wosize_val(_planes);
+  AVFrame *frame = Frame_val(_frame);
+
+  int ret = av_frame_make_writable(frame);
+  if (ret < 0) Raise(EXN_FAILURE, "Failed to make frame writable : %s", av_err2str(ret));
+
+  for(i = 0; i < nb_planes && frame->buf[i]; i++) {
+    AVBufferRef* buffer = frame->buf[i];
+    plane = Field(_planes, i);
+    data = Field(plane, 0);
+    int src_linesize = Int_val(Field(plane, 1));
+
+    if(src_linesize != frame->linesize[i]) Raise(EXN_FAILURE, "Failed to copy planes to frame : incompatible linesize");
+
+    size_t size = buffer->size;
+
+    if(Caml_ba_array_val(data)->dim[0] < size) size = Caml_ba_array_val(data)->dim[0];
+
+    memcpy(buffer->data, Caml_ba_data_val(data), size);
+  }
+#endif
+  CAMLreturn(Val_unit);
+}
+
+
+
+CAMLprim value ocaml_avutil_video_frame_to_bytes_planes(value _frame)
+{
+  CAMLparam1(_frame);
+  CAMLlocal3(ans, data, plane);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int i, nb_planes;
+
+  for(nb_planes = 0; frame->buf[nb_planes]; nb_planes++);
+
+  ans = caml_alloc_tuple(nb_planes);
+
+  for(i = 0; i < nb_planes; i++) {
+    AVBufferRef* buffer = frame->buf[i];
+
+    data = caml_alloc_string(buffer->size);
+    plane = caml_alloc_tuple(2);
+
+    Store_field(plane, 0, data);
+    Store_field(plane, 1, Val_int(frame->linesize[i]));
+
+    memcpy(String_val(data), buffer->data, buffer->size);
+
+    Store_field(ans, i, plane);
+  }
+#endif
+  CAMLreturn(ans);
+}
+
+
+CAMLprim value ocaml_avutil_video_bytes_planes_to_frame(value _planes, value _frame)
+{
+  CAMLparam2(_planes, _frame);
+  CAMLlocal2(data, plane);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  int i, nb_planes = Wosize_val(_planes);
+  AVFrame *frame = Frame_val(_frame);
+
+  int ret = av_frame_make_writable(frame);
+  if (ret < 0) Raise(EXN_FAILURE, "Failed to make frame writable : %s", av_err2str(ret));
+
+  for(i = 0; i < nb_planes && frame->buf[i]; i++) {
+    AVBufferRef* buffer = frame->buf[i];
+    plane = Field(_planes, i);
+    data = Field(plane, 0);
+    int src_linesize = Int_val(Field(plane, 1));
+
+    if(src_linesize != frame->linesize[i]) Raise(EXN_FAILURE, "Failed to copy planes to frame : incompatible linesize");
+
+    int data_size = caml_string_length(data);
+    size_t size = buffer->size < data_size ? buffer->size : data_size;
+
+    memcpy(buffer->data, (uint8_t*)String_val(data), size);
+  }
+#endif
+  CAMLreturn(Val_unit);
+}
+
+
+
+
+CAMLprim value ocaml_avutil_video_get_frame_planes(value _frame)
+{
+  CAMLparam1(_frame);
+  CAMLlocal3(ans, data, plane);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int i, nb_planes;
+
+  for(nb_planes = 0; frame->buf[nb_planes]; nb_planes++);
+
+  ans = caml_alloc_tuple(nb_planes);
+
+  for(i = 0; i < nb_planes; i++) {
+    AVBufferRef* buffer = av_frame_get_plane_buffer(frame, i);
+    if( ! buffer) Raise(EXN_FAILURE, "Failed to get frame plane buffer");
+
+    intnat out_size = buffer->size;
+
+    data = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, buffer->data, &out_size);
+    plane = caml_alloc_tuple(3);
+
+    Store_field(plane, 0, data);
+    Store_field(plane, 1, Val_int(frame->linesize[i]));
+    Store_field(plane, 2, _frame);
+
+    Store_field(ans, i, plane);
+  }
+#endif
+  CAMLreturn(ans);
+}
+
 
 /***** AVSubtitle *****/
 

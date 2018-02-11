@@ -45,20 +45,22 @@ LDFLAGS = @LDFLAGS@
 CLIBS = $(ACLIBS:-l%=%)
 LIBDIRS = $(LDFLAGS:-L%=%)
 CC = @CC@
-CFLAGS = @CFLAGS@ -Wall -DCAML_NAME_SPACE
+CFLAGS = @CFLAGS@ -Wall -DCAML_NAME_SPACE -O3
 CPPFLAGS = @CPPFLAGS@
 INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
+OCAMLNCFLAGS = -O3 -ffast-math -unsafe -inline 100 -noassert
 PRE_TARGETS = gen-code
 
 all: $(OCAMLBEST)
+#all: profiling-native-code-library
 
 byte: byte-code-library
 
 opt: native-code-library
 
-native-code-library: byte-code-library
+#profiling-native-code-library: byte-code-library
 
 gen-code:
 	$(OCAMLOPT) -c gen_code_stubs.c

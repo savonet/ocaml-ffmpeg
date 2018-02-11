@@ -81,11 +81,16 @@ module Pixel_format : sig
   (** Pixels formats. *)
   type t = Pixel_format.t
 
-(** Return the number of bits of the pixel format. *)
+  (** Return the number of bits of the pixel format. *)
   val bits : (*?padding:bool ->*) t -> int
 end
 
 module Video : sig
+  type bba = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+  type bigarray_planes = (bba * int) array
+  type bytes_planes = (bytes * int) array
+  (* type plane *)
+  type plane = bba * int * video frame
 
   val create_frame : int -> int -> Pixel_format.t -> video frame
   (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width, [h] height and [pf] pixel format. @raise Failure if the allocation failed. *)
@@ -95,6 +100,26 @@ module Video : sig
 
   val frame_set : video frame -> int -> int -> int -> int -> unit
   (** [Avutil.Video.frame_set p x y] set the [p] plane data of the [x] [y] pixel. @raise Failure if [p], [x] or [y] are out of boundaries. *)
+
+  val frame_get_linesize : video frame -> int -> int
+
+  val frame_planar_set : video frame -> int -> int -> int -> unit
+
+  val frame_to_bigarray_planes : video frame -> bigarray_planes
+
+  val bigarray_planes_to_frame : bigarray_planes -> video frame -> unit
+
+  val frame_to_bytes_planes : video frame -> bytes_planes
+
+  val bytes_planes_to_frame : bytes_planes -> video frame -> unit
+
+  val get_frame_planes : video frame -> plane array
+
+  val frame_plane_get_linesize : plane -> int
+
+  val frame_plane_get : plane -> int -> int
+
+  val frame_plane_set : plane -> int -> int -> unit
 end
 
 
