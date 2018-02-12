@@ -1,8 +1,7 @@
 open FFmpeg
 open Avutil
 
-let fill_yuv_image width height pixel_format frame nb_img write =
-  print_string "Unsafe_wrap              : ";
+let fill_image width height pixel_format frame nb_img write =
 
   let planes = Video.get_frame_planes frame in
 
@@ -29,4 +28,6 @@ let fill_yuv_image width height pixel_format frame nb_img write =
     done;
 
     write frame;
-  done
+  done;
+  "Unsafe_wrap.fill_image"
+

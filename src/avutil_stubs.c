@@ -213,6 +213,25 @@ CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
   CAMLreturn(Val_int(frame->linesize[line]));
 }
 
+CAMLprim value ocaml_avutil_video_frame_planar_get(value _frame, value _line, value _p)
+{
+  CAMLparam1(_frame);
+  CAMLlocal1(ans);
+#ifndef HAS_FRAME
+  caml_failwith("Not implemented.");
+#else
+  AVFrame *frame = Frame_val(_frame);
+  int line = Int_val(_line);
+  int p = Int_val(_p);
+
+  if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to set to video frame : line (%d) out of boundaries", line);
+  if(p < 0 || p >= frame->buf[line]->size) Raise(EXN_FAILURE, "Failed to set to video frame plane : p (%d) out of 0-%d boundaries", p, frame->buf[line]->size);
+
+  ans = Val_int(frame->data[line][p]);
+#endif
+  CAMLreturn(ans);
+}
+
 CAMLprim value ocaml_avutil_video_frame_planar_set(value _frame, value _line, value _p, value _v)
 {
   CAMLparam1(_frame);

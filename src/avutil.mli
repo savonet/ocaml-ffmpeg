@@ -103,6 +103,8 @@ module Video : sig
 
   val frame_get_linesize : video frame -> int -> int
 
+
+  val frame_planar_get : video frame -> int -> int -> int
   val frame_planar_set : video frame -> int -> int -> int -> unit
 
   val frame_to_bigarray_planes : video frame -> bigarray_planes

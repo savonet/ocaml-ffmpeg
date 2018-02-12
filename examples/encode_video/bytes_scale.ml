@@ -2,8 +2,7 @@ open FFmpeg
 open Avutil
 module VideoConverter = Swscale.Make (Swscale.Bytes) (Swscale.Frame)
 
-let fill_yuv_image width height pixel_format frame nb_img write =
-  print_string "Bytes_scale              : ";
+let fill_image width height pixel_format frame nb_img write =
 
   let v_ctx = VideoConverter.create [] width height pixel_format width height pixel_format in
   let planes = Video.frame_to_bytes_planes frame in
@@ -32,4 +31,6 @@ let fill_yuv_image width height pixel_format frame nb_img write =
 
     VideoConverter.convert v_ctx planes
     |> write;
-  done
+  done;
+  "Bytes_scale.fill_image"
+

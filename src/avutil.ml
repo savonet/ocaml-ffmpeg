@@ -73,8 +73,11 @@ module Video = struct
 
   external frame_get_linesize : video frame -> int -> int = "ocaml_avutil_video_frame_get_linesize"[@@noalloc]
 
+  external frame_planar_get : video frame -> int -> int -> int = "ocaml_avutil_video_frame_planar_get"[@@noalloc]
+
   external frame_planar_set : video frame -> int -> int -> int -> unit = "ocaml_avutil_video_frame_planar_set"[@@noalloc]
 
+  
   external frame_to_bigarray_planes : video frame -> bigarray_planes = "ocaml_avutil_video_frame_to_bigarray_planes"
 
   external bigarray_planes_to_frame : bigarray_planes -> video frame -> unit = "ocaml_avutil_video_bigarray_planes_to_frame"[@@noalloc]

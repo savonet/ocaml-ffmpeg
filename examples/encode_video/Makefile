@@ -3,7 +3,7 @@ SOURCES = set.ml planar_set.ml bigarray_copy.ml bytes_copy.ml bigarray_scale.ml 
 RESULT = encode_video
 LIBS = bigarray ffmpeg
 
-INCDIRS = -p ../../src
+INCDIRS = ../../src
 THREADS = yes
 CFLAGS = -O3
 OCAMLFLAGS = -O3 -ffast-math -unsafe -inline 100 -noassert

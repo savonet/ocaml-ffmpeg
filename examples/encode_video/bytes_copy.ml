@@ -1,8 +1,7 @@
 open FFmpeg
 open Avutil
 
-let fill_yuv_image width height pixel_format frame nb_img write =
-  print_string "Bytes_copy               : ";
+let fill_image width height pixel_format frame nb_img write =
 
   let planes = Video.frame_to_bytes_planes frame in
 
@@ -30,4 +29,22 @@ let fill_yuv_image width height pixel_format frame nb_img write =
 
     Video.bytes_planes_to_frame planes frame;
     write frame;
-  done
+  done;
+  "Bytes_copy.fill_image"
+
+let get_image width height pixel_format frame nb_img _ =
+
+  let r = ref 0 in
+
+  for frame_index = 0 to nb_img do
+    let planes = Video.frame_to_bytes_planes frame in
+    let data_y, linesize_y = planes.(0) in
+    for y = 0 to height - 1 do
+      let off = y * linesize_y in
+      for x = 0 to width - 1 do
+        r := !r + int_of_char(Bytes.unsafe_get data_y (x + off));
+      done;
+    done;
+  done;
+  "Bytes_copy.get_image "^(string_of_int !r)
+
