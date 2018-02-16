@@ -5,10 +5,9 @@ module VideoConverter = Swscale.Make (Swscale.Bytes) (Swscale.Frame)
 let fill_image width height pixel_format frame nb_img write =
 
   let v_ctx = VideoConverter.create [] width height pixel_format width height pixel_format in
-  let planes = Video.frame_to_bytes_planes frame in
+  let planes = Video.copy_frame_to_bytes_planes frame in
 
   for frame_index = 0 to nb_img do
-    (* Y *)
     let data_y, linesize_y = planes.(0) in
     for y = 0 to height - 1 do
       let off = y * linesize_y in
@@ -17,7 +16,6 @@ let fill_image width height pixel_format frame nb_img write =
       done;
     done;
 
-    (* Cb and Cr *)
     let data_cb, _ = planes.(1) in
     let data_cr, linesize = planes.(2) in
 

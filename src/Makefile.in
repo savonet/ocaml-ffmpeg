@@ -50,7 +50,7 @@ CPPFLAGS = @CPPFLAGS@
 INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
-OCAMLNCFLAGS = -O3 -ffast-math -unsafe -inline 100 -noassert
+OCAMLNCFLAGS = -O3 -unsafe -inline 100 -noassert
 PRE_TARGETS = gen-code
 
 all: $(OCAMLBEST)

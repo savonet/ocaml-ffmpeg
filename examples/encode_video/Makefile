@@ -6,7 +6,7 @@ LIBS = bigarray ffmpeg
 INCDIRS = ../../src
 THREADS = yes
 CFLAGS = -O3
-OCAMLFLAGS = -O3 -ffast-math -unsafe -inline 100 -noassert
+OCAMLFLAGS = -O3 -unsafe -inline 100 -noassert
 
 all: native-code
 #all: profiling-native-code

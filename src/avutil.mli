@@ -107,21 +107,23 @@ module Video : sig
   val frame_planar_get : video frame -> int -> int -> int
   val frame_planar_set : video frame -> int -> int -> int -> unit
 
-  val frame_to_bigarray_planes : video frame -> bigarray_planes
+  val copy_frame_to_bigarray_planes : video frame -> bigarray_planes
 
-  val bigarray_planes_to_frame : bigarray_planes -> video frame -> unit
+  val copy_bigarray_planes_to_frame : bigarray_planes -> video frame -> unit
 
-  val frame_to_bytes_planes : video frame -> bytes_planes
+  val copy_frame_to_bytes_planes : video frame -> bytes_planes
 
-  val bytes_planes_to_frame : bytes_planes -> video frame -> unit
+  val copy_bytes_planes_to_frame : bytes_planes -> video frame -> unit
 
   val get_frame_planes : video frame -> plane array
 
   val frame_plane_get_linesize : plane -> int
 
-  val frame_plane_get : plane -> int -> int
+  val frame_plane_get : plane -> int -> int[@@inline]
 
-  val frame_plane_set : plane -> int -> int -> unit
+  val frame_plane_set : plane -> int -> int -> unit[@@inline]
+
+  val frame_visit : make_writable:bool -> (bigarray_planes -> unit) -> video frame -> unit
 end
 
 

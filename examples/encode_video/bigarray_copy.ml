@@ -1,12 +1,11 @@
 open FFmpeg
 open Avutil
-
+    
 let fill_image width height pixel_format frame nb_img write =
 
-  let planes = Video.frame_to_bigarray_planes frame in
+  let planes = Video.copy_frame_to_bigarray_planes frame in
 
   for frame_index = 0 to nb_img do
-    (* Y *)
     let data_y, linesize_y = planes.(0) in
     for y = 0 to height - 1 do
       let off = y * linesize_y in
@@ -15,7 +14,6 @@ let fill_image width height pixel_format frame nb_img write =
       done;
     done;
 
-    (* Cb and Cr *)
     let data_cb, _ = planes.(1) in
     let data_cr, linesize = planes.(2) in
 
@@ -27,7 +25,7 @@ let fill_image width height pixel_format frame nb_img write =
       done;
     done;
 
-    Video.bigarray_planes_to_frame planes frame;
+    Video.copy_bigarray_planes_to_frame planes frame;
     write frame;
   done;
   "Bigarray_copy.fill_image"
@@ -37,7 +35,7 @@ let get_image width height pixel_format frame nb_img _ =
   let r = ref 0 in
 
   for frame_index = 0 to nb_img do
-    let planes = Video.frame_to_bigarray_planes frame in
+    let planes = Video.copy_frame_to_bigarray_planes frame in
     let data_y, linesize_y = planes.(0) in
 
     for y = 0 to height - 1 do
