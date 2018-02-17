@@ -34,7 +34,7 @@ module BigArray = struct type t = planes let vk = Ba end
 
 module Frame = struct type t = video frame let vk = Frm end
 
-module Bytes = struct type t = (bytes * int) array let vk = Str end
+module Bytes = struct type t = (string * int) array let vk = Str end
 
 type ('i, 'o) ctx
 

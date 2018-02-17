@@ -77,5 +77,5 @@ end
 
 (** Bytes array. *)
 module Bytes : sig
-  type t = (bytes * int) array val vk : vector_kind
+  type t = (string * int) array val vk : vector_kind
 end
