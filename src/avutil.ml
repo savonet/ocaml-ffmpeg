@@ -58,47 +58,21 @@ end
 
 
 module Video = struct
-  type bba = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
-  type bigarray_planes = (bba * int) array
-  type bytes_planes = (bytes * int) array
-  type plane = bba * int * video frame
+  type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+  type planes = (data * int) array
 
   external create_frame : int -> int -> Pixel_format.t -> video frame = "ocaml_avutil_video_create_frame"
 
-  external frame_get : video frame -> int -> int -> int -> int = "ocaml_avutil_video_frame_get"[@@noalloc]
+  external frame_get_linesize : video frame -> int -> int = "ocaml_avutil_video_frame_get_linesize"
 
-  external frame_set : video frame -> int -> int -> int -> int -> unit = "ocaml_avutil_video_frame_set"[@@noalloc]
+  external copy_frame_to_planes : video frame -> planes = "ocaml_avutil_video_copy_frame_to_bigarray_planes"
 
-
-  external frame_get_linesize : video frame -> int -> int = "ocaml_avutil_video_frame_get_linesize"[@@noalloc]
-
-  external frame_planar_get : video frame -> (int [@untagged]) -> (int [@untagged]) -> (int [@untagged]) = "ocaml_avutil_video_frame_planar_get_byte" "ocaml_avutil_video_frame_planar_get"[@@noalloc]
-
-  external frame_planar_set : video frame -> (int [@untagged]) -> (int [@untagged]) -> (int [@untagged]) -> unit = "ocaml_avutil_video_frame_planar_set_byte" "ocaml_avutil_video_frame_planar_set"[@@noalloc]
+  external copy_planes_to_frame : video frame -> planes -> unit = "ocaml_avutil_video_copy_bigarray_planes_to_frame"
 
   
-  external copy_frame_to_bigarray_planes : video frame -> bigarray_planes = "ocaml_avutil_video_copy_frame_to_bigarray_planes"
+  external get_frame_planes : video frame -> bool -> planes = "ocaml_avutil_video_get_frame_bigarray_planes"
 
-  external copy_bigarray_planes_to_frame : bigarray_planes -> video frame -> unit = "ocaml_avutil_video_copy_bigarray_planes_to_frame"[@@noalloc]
-
-  
-  external copy_frame_to_bytes_planes : video frame -> bytes_planes = "ocaml_avutil_video_copy_frame_to_bytes_planes"
-
-  external copy_bytes_planes_to_frame : bytes_planes -> video frame -> unit = "ocaml_avutil_video_copy_bytes_planes_to_frame"[@@noalloc]
-
-  
-  external get_frame_planes : video frame -> plane array = "ocaml_avutil_video_get_frame_planes"
-
-  let frame_plane_get_linesize (_, linesize, _) = linesize
-
-  let frame_plane_get (ba, _, _) i = Bigarray.Array1.unsafe_get ba i [@@inline]
-
-  let frame_plane_set (ba, _, _) i v = Bigarray.Array1.unsafe_set ba i v [@@inline]
-
-  
-  external get_frame_bigarray_planes : video frame -> bool -> bigarray_planes = "ocaml_avutil_video_get_frame_bigarray_planes"
-
-  let frame_visit ~make_writable visit frame = visit(get_frame_bigarray_planes frame make_writable)
+  let frame_visit ~make_writable visit frame = visit(get_frame_planes frame make_writable); frame
 end
 
 module Subtitle = struct
