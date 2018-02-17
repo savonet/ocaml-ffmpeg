@@ -159,15 +159,17 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 {
   CAMLparam1(_frame);
-#ifndef HAS_FRAME
-  caml_failwith("Not implemented.");
-#else
+#ifdef HAS_FRAME
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
 
   if(line < 0 || line >= AV_NUM_DATA_POINTERS || ! frame->data[line]) Raise(EXN_FAILURE, "Failed to get linesize from video frame : line (%d) out of boundaries", line);
-#endif
+
   CAMLreturn(Val_int(frame->linesize[line]));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
 }
 
 CAMLprim value ocaml_avutil_video_copy_frame_to_bigarray_planes(value _frame)
