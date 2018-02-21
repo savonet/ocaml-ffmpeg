@@ -61,7 +61,6 @@ end
 
 
 module Video = struct
-  type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
   type planes = (data * int) array
 
   external create_frame : int -> int -> Pixel_format.t -> video frame = "ocaml_avutil_video_create_frame"

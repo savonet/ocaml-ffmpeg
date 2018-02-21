@@ -89,7 +89,6 @@ module Pixel_format : sig
 end
 
 module Video : sig
-  type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
   type planes = (data * int) array
 
   val create_frame : int -> int -> Pixel_format.t -> video frame

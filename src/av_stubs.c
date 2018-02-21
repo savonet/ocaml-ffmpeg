@@ -1136,9 +1136,9 @@ static int write_frame(av_t * av, int stream_index, AVCodecContext * enc_ctx, AV
 
     ret = av_interleaved_write_frame(av->format_context, &packet);
     if(ret < 0) Log("Failed to write frame : %s", av_err2str(ret));
-  }
-  av_packet_unref(&packet);
 
+    av_packet_unref(&packet);
+  }
   return ret;
 }
 
