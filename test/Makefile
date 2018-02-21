@@ -4,6 +4,7 @@ LIBS = bigarray ffmpeg
 
 INCDIRS = ../src
 THREADS = yes
+TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
 all: dc
 

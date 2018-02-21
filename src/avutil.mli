@@ -84,20 +84,28 @@ module Pixel_format : sig
   (** Pixels formats. *)
   type t = Pixel_format.t
 
-(** Return the number of bits of the pixel format. *)
+  (** Return the number of bits of the pixel format. *)
   val bits : (*?padding:bool ->*) t -> int
 end
 
 module Video : sig
+  type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+  type planes = (data * int) array
 
   val create_frame : int -> int -> Pixel_format.t -> video frame
   (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width, [h] height and [pf] pixel format. @raise Failure if the allocation failed. *)
 
-  val frame_get : video frame -> int -> int -> int -> int
-  (** [Avutil.Video.frame_get p x y] return the [p] plane data of the [x] [y] pixel. @raise Failure if [p], [x] or [y] are out of boundaries. *)
+  val frame_get_linesize : video frame -> int -> int
+  (** [Avutil.Video.frame_get_linesize vf n] return the line size of the [n] plane of the [vf] video frame. @raise Failure if [n] is out of boundaries. *)
 
-  val frame_set : video frame -> int -> int -> int -> int -> unit
-  (** [Avutil.Video.frame_set p x y] set the [p] plane data of the [x] [y] pixel. @raise Failure if [p], [x] or [y] are out of boundaries. *)
+  val copy_frame_to_planes : video frame -> planes
+  (** [Avutil.Video.copy_frame_to_planes vf] copy the video frame [vf] data to fresh arrays. *)
+
+  val copy_planes_to_frame : video frame -> planes -> unit
+  (** [Avutil.Video.copy_planes_to_frame vf planes] copy the [planes] to the video frame [vf]. @raise Failure if the make frame writable operation failed or if the planes lines sizes and the frame lines sizes are different. *)
+
+  val frame_visit : make_writable:bool -> (planes -> unit) -> video frame -> video frame
+  (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Failure if the make frame writable operation failed. *)
 end
 
 

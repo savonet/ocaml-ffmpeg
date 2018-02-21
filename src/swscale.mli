@@ -26,7 +26,7 @@ val scale : t -> planes -> int -> int -> planes -> int -> unit
 
 
 (**/**)
-type vector_kind = Ba | Frm
+type vector_kind = Ba | Frm | Str
 (**/**)
 
 
@@ -74,3 +74,7 @@ module Frame : sig
   type t = video frame val vk : vector_kind
 end
 
+(** Bytes array. *)
+module Bytes : sig
+  type t = (string * int) array val vk : vector_kind
+end

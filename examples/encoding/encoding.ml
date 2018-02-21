@@ -2,35 +2,43 @@ open FFmpeg
 open Avutil
 module Resampler = Swresample.Make (Swresample.FloatArray) (Swresample.Frame)
 
-let fill_image_y width height frame_index frame =
+let fill_image_y width height frame_index planes =
   (* Y *)
+  let data, linesize = planes.(0) in
   for y = 0 to height - 1 do
+    let off = y * linesize in
     for x = 0 to width - 1 do
-      Video.frame_set frame 0 x y (x + y + frame_index * 3)
+      data.{x + off} <- x + y + frame_index * 3;
     done;
   done
 
-let fill_image_on width height frame_index frame =
-  fill_image_y width height frame_index frame;
+let fill_image_on width height frame_index planes =
+  fill_image_y width height frame_index planes;
   (* Cb and Cr *)
-  for y = 0 to (height / 2) - 1 do
-    for x = 0 to (width / 2) - 1 do
-      Video.frame_set frame 1 x y (128 + y + frame_index * 2);
-      Video.frame_set frame 2 x y (64 + x + frame_index * 5);
-    done;
-  done;
-  frame
+  let data_cb, _ = planes.(1) in
+  let data_cr, linesize = planes.(2) in
 
-let fill_image_off width height frame_index frame =
-  fill_image_y width height frame_index frame;
-  (* Cb and Cr *)
   for y = 0 to (height / 2) - 1 do
-    for x = 0 to (width / 2) - 1 do
-      Video.frame_set frame 1 x y 128;
-      Video.frame_set frame 2 x y 128;
+    let off = y * linesize in
+    for x = 0 to width / 2 - 1 do
+      data_cb.{x + off} <- 128 + y + frame_index * 2;
+      data_cr.{x + off} <- 64 + x + frame_index * 5;
     done;
-  done;
-  frame
+  done
+
+let fill_image_off width height frame_index planes =
+  fill_image_y width height frame_index planes;
+  (* Cb and Cr *)
+  let data_cb, _ = planes.(1) in
+  let data_cr, linesize = planes.(2) in
+
+  for y = 0 to (height / 2) - 1 do
+    let off = y * linesize in
+    for x = 0 to width / 2 - 1 do
+      data_cb.{x + off} <- 128;
+      data_cr.{x + off} <- 128;
+    done;
+  done
 
 let () =
   if Array.length Sys.argv < 5 then (
@@ -65,6 +73,7 @@ let () =
   Av.set_metadata ovs ["Media", "Video"];
 
   let frame = Video.create_frame width height pixel_format in
+  let planes = Video.copy_frame_to_planes frame in
 
   let video_on_off = [|fill_image_on; fill_image_off|] in
 (*
@@ -74,17 +83,16 @@ let () =
   let duration = 10 in
 (*  
   for i = 0 to duration - 1 do
-    audio |> Resampler.convert rsp |> Av.write oas;
-    (*
     let s = float_of_int i in
     Subtitle_frame.from_lines s (s +. 0.5) [string_of_int i]
     |> Av.write oss;
-*)
   done;
 *)
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
-    video_on_off.(b) width height i frame |> Av.write ovs;
+    video_on_off.(b) width height i planes;
+    Video.copy_planes_to_frame frame planes;
+    Av.write ovs frame;
     audio_on_off.(b) |> Resampler.convert rsp |> Av.write oas;
   done;
 
