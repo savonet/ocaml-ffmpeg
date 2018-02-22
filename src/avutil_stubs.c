@@ -7,9 +7,11 @@
 #include <caml/bigarray.h>
 #include <caml/threads.h>
 
+#include <assert.h>
+
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
-#include "libavutil/avstring.h"
+#include <libavutil/avstring.h>
 
 #include "avutil_stubs.h"
 #include "pixel_format_stubs.h"
@@ -19,17 +21,41 @@
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
-CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
+CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
   enum AVPixelFormat p = PixelFormat_val(pixel);
-  int ans;
 
-  ans = av_get_bits_per_pixel(av_pix_fmt_desc_get(p));
-
-  CAMLreturn(Val_int(ans));
+  CAMLreturn(Val_int(av_get_bits_per_pixel(av_pix_fmt_desc_get(p))));
 }
 
+CAMLprim value ocaml_avutil_pixelformat_planes(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(Val_int(av_pix_fmt_count_planes(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(caml_copy_string(av_get_pix_fmt_name(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
+{
+  CAMLparam1(name);
+  enum AVPixelFormat p;
+
+  p = av_get_pix_fmt(String_val(name));
+  if (p != AV_PIX_FMT_NONE)
+      CAMLreturn(Val_PixelFormat(p));
+
+  Raise(EXN_FAILURE, "Invalid format name");
+}
 
 /**** Time format ****/
 int64_t second_fractions_of_time_format(value time_format)
