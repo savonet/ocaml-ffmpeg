@@ -95,12 +95,6 @@ module Video : sig
   val frame_get_linesize : video frame -> int -> int
   (** [Avutil.Video.frame_get_linesize vf n] return the line size of the [n] plane of the [vf] video frame. @raise Failure if [n] is out of boundaries. *)
 
-  val copy_frame_to_planes : video frame -> planes
-  (** [Avutil.Video.copy_frame_to_planes vf] copy the video frame [vf] data to fresh arrays. *)
-
-  val copy_planes_to_frame : video frame -> planes -> unit
-  (** [Avutil.Video.copy_planes_to_frame vf planes] copy the [planes] to the video frame [vf]. @raise Failure if the make frame writable operation failed or if the planes lines sizes and the frame lines sizes are different. *)
-
   val frame_visit : make_writable:bool -> (planes -> unit) -> video frame -> video frame
   (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Failure if the make frame writable operation failed. *)
 end

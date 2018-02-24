@@ -65,11 +65,6 @@ module Video = struct
 
   external frame_get_linesize : video frame -> int -> int = "ocaml_avutil_video_frame_get_linesize"
 
-  external copy_frame_to_planes : video frame -> planes = "ocaml_avutil_video_copy_frame_to_bigarray_planes"
-
-  external copy_planes_to_frame : video frame -> planes -> unit = "ocaml_avutil_video_copy_bigarray_planes_to_frame"
-
-  
   external get_frame_planes : video frame -> bool -> planes = "ocaml_avutil_video_get_frame_bigarray_planes"
 
   let frame_visit ~make_writable visit frame = visit(get_frame_planes frame make_writable); frame
