@@ -7,9 +7,11 @@
 #include <caml/bigarray.h>
 #include <caml/threads.h>
 
+#include <assert.h>
+
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
-#include "libavutil/avstring.h"
+#include <libavutil/avstring.h>
 
 #include "avutil_stubs.h"
 #include "pixel_format_stubs.h"
@@ -19,17 +21,41 @@
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
-CAMLprim value ocaml_avutil_bits_per_pixel(value pixel)
+CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)
 {
   CAMLparam1(pixel);
   enum AVPixelFormat p = PixelFormat_val(pixel);
-  int ans;
 
-  ans = av_get_bits_per_pixel(av_pix_fmt_desc_get(p));
-
-  CAMLreturn(Val_int(ans));
+  CAMLreturn(Val_int(av_get_bits_per_pixel(av_pix_fmt_desc_get(p))));
 }
 
+CAMLprim value ocaml_avutil_pixelformat_planes(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(Val_int(av_pix_fmt_count_planes(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(caml_copy_string(av_get_pix_fmt_name(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
+{
+  CAMLparam1(name);
+  enum AVPixelFormat p;
+
+  p = av_get_pix_fmt(String_val(name));
+  if (p != AV_PIX_FMT_NONE)
+      CAMLreturn(Val_PixelFormat(p));
+
+  Raise(EXN_FAILURE, "Invalid format name");
+}
 
 /**** Time format ****/
 int64_t second_fractions_of_time_format(value time_format)
@@ -172,71 +198,6 @@ CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 #endif
 }
 
-CAMLprim value ocaml_avutil_video_copy_frame_to_bigarray_planes(value _frame)
-{
-  CAMLparam1(_frame);
-  CAMLlocal3(ans, data, plane);
-#ifndef HAS_FRAME
-  caml_failwith("Not implemented.");
-#else
-  AVFrame *frame = Frame_val(_frame);
-  int i, nb_planes;
-
-  for(nb_planes = 0; frame->buf[nb_planes]; nb_planes++);
-
-  ans = caml_alloc_tuple(nb_planes);
-
-  for(i = 0; i < nb_planes; i++) {
-    AVBufferRef* buffer = frame->buf[i];
-    intnat out_size = buffer->size;
-
-    data = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
-
-    memcpy(Caml_ba_data_val(data), buffer->data, buffer->size);
-
-    plane = caml_alloc_tuple(2);
-
-    Store_field(plane, 0, data);
-    Store_field(plane, 1, Val_int(frame->linesize[i]));
-    Store_field(ans, i, plane);
-  }
-#endif
-  CAMLreturn(ans);
-}
-
-
-CAMLprim value ocaml_avutil_video_copy_bigarray_planes_to_frame(value _frame, value _planes)
-{
-  CAMLparam2(_planes, _frame);
-  CAMLlocal2(data, plane);
-#ifndef HAS_FRAME
-  caml_failwith("Not implemented.");
-#else
-  int i, nb_planes = Wosize_val(_planes);
-  AVFrame *frame = Frame_val(_frame);
-
-  int ret = av_frame_make_writable(frame);
-  if (ret < 0) Raise(EXN_FAILURE, "Failed to make frame writable : %s", av_err2str(ret));
-
-  for(i = 0; i < nb_planes && frame->buf[i]; i++) {
-    AVBufferRef* buffer = frame->buf[i];
-    plane = Field(_planes, i);
-    data = Field(plane, 0);
-    int src_linesize = Int_val(Field(plane, 1));
-
-    if(src_linesize != frame->linesize[i]) Raise(EXN_FAILURE, "Failed to copy planes to frame : incompatible linesize");
-
-    size_t size = buffer->size;
-
-    if(Caml_ba_array_val(data)->dim[0] < size) size = Caml_ba_array_val(data)->dim[0];
-
-    memcpy(buffer->data, Caml_ba_data_val(data), size);
-  }
-#endif
-  CAMLreturn(Val_unit);
-}
-
-
 CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value _make_writable)
 {
   CAMLparam1(_frame);
@@ -245,25 +206,23 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
   caml_failwith("Not implemented.");
 #else
   AVFrame *frame = Frame_val(_frame);
-  int i, nb_planes;
+  int i;
 
   if(Bool_val(_make_writable)) {
     int ret = av_frame_make_writable(frame);
     if (ret < 0) Raise(EXN_FAILURE, "Failed to make frame writable : %s", av_err2str(ret));
   }
-  
-  for(nb_planes = 0; frame->buf[nb_planes]; nb_planes++);
 
+  int nb_planes = av_pix_fmt_count_planes((enum AVPixelFormat)frame->format);
+  if(nb_planes < 0) Raise(EXN_FAILURE, "Failed to get frame planes count : %s", av_err2str(nb_planes));
+  
   ans = caml_alloc_tuple(nb_planes);
 
   for(i = 0; i < nb_planes; i++) {
-    AVBufferRef* buffer = av_frame_get_plane_buffer(frame, i);
-    if( ! buffer) Raise(EXN_FAILURE, "Failed to get frame plane buffer");
-
-    intnat out_size = buffer->size;
+    intnat out_size = frame->linesize[i] * frame->height;
     plane = caml_alloc_tuple(2);
 
-    Store_field(plane, 0, caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, buffer->data, &out_size));
+    Store_field(plane, 0, caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, frame->data[i], &out_size));
     Store_field(plane, 1, Val_int(frame->linesize[i]));
     Store_field(ans, i, plane);
   }

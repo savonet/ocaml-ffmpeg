@@ -24,9 +24,9 @@
 
 #define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
 
-#define Fail(...) {                             \
-    Log(__VA_ARGS__);                           \
-    return NULL;                                \
+#define Fail(...) {                                             \
+    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__);  \
+    return NULL;                                                \
   }
 
 #define Raise(exn, ...) {                                               \

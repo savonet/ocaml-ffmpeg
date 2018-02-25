@@ -73,8 +73,6 @@ let () =
   Av.set_metadata ovs ["Media", "Video"];
 
   let frame = Video.create_frame width height pixel_format in
-  let planes = Video.copy_frame_to_planes frame in
-
   let video_on_off = [|fill_image_on; fill_image_off|] in
 (*
   let oss = Av.new_subtitle_stream ~codec_name:Sys.argv.(4) dst in
@@ -90,10 +88,8 @@ let () =
 *)
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
-    video_on_off.(b) width height i planes;
-    Video.copy_planes_to_frame frame planes;
-    Av.write ovs frame;
-    audio_on_off.(b) |> Resampler.convert rsp |> Av.write oas;
+    Video.frame_visit ~make_writable:true (video_on_off.(b) width height i) frame
+    |> Av.write ovs;
   done;
 
   Av.close dst;
