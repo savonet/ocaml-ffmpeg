@@ -35,15 +35,6 @@ module Pixel_format = struct
     let n = bits p in
     (* TODO: when padding is true we should add the padding *)
     n
-
-  let planes fmt =
-      planes fmt
-
-  let to_string fmt =
-      to_string fmt
-
-  let of_string str =
-      of_string str
 end
 
 module Time_format = struct
