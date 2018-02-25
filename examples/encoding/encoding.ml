@@ -60,9 +60,8 @@ let () =
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
-  let audio_on = Array.init 1804 (fun t -> sin(float_of_int t *. c)) in
-  let audio_off = Array.make 1804 0. in
-  let audio_on_off = [|audio_on; audio_off|] in
+  let audio_on_off = [|Array.init 1804 (fun t -> sin(float_of_int t *. c));
+                       Array.make 1804 0.|] in
 
   let width = 352 in let height = 288 in let pixel_format = `YUV420P in
   let frame_rate = 25 in
@@ -88,6 +87,9 @@ let () =
 *)
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
+
+    audio_on_off.(b) |> Resampler.convert rsp |> Av.write oas;
+
     Video.frame_visit ~make_writable:true (video_on_off.(b) width height i) frame
     |> Av.write ovs;
   done;
