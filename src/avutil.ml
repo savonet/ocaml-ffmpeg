@@ -26,7 +26,10 @@ let () =
 module Pixel_format = struct
   type t = Pixel_format.t
 
-  external bits : t -> int = "ocaml_avutil_bits_per_pixel"
+  external bits : t -> int = "ocaml_avutil_pixelformat_bits_per_pixel"
+  external planes : t -> int = "ocaml_avutil_pixelformat_planes"
+  external to_string : t -> string = "ocaml_avutil_pixelformat_to_string"
+  external of_string : string -> t = "ocaml_avutil_pixelformat_of_string"
 
   let bits (*?(padding=true)*) p =
     let n = bits p in

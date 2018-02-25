@@ -83,6 +83,15 @@ module Pixel_format : sig
 
   (** Return the number of bits of the pixel format. *)
   val bits : (*?padding:bool ->*) t -> int
+
+  (** Return the number of planes of the pixel format. *)
+  val planes : t -> int
+
+  (** [Pixel_format.to_string f] Return a string representation of the pixel format [f]. *)
+  val to_string : t -> string
+
+  (** [Pixel_format.of_string s] Convert the string [s] into a [Pixel_format.t]. @raise Failure if [s] is not a valid format. *)
+  val of_string : string -> t
 end
 
 module Video : sig
