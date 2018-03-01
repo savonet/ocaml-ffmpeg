@@ -51,7 +51,9 @@ module Audio : sig
   val decode_data : (input, audio)context -> data -> int -> audio frame array
 
   val encode : (output, audio)context -> audio frame -> bytes
+  val flush : (output, audio)context -> bytes
   val encode_to_data : (output, audio)context -> audio frame -> data
+  val flush_to_data : (output, audio)context -> data
 end
 
 (** Video codecs. *)

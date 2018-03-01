@@ -48,13 +48,11 @@ CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel)
 CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
 {
   CAMLparam1(name);
-  enum AVPixelFormat p;
+  enum AVPixelFormat p = av_get_pix_fmt(String_val(name));
 
-  p = av_get_pix_fmt(String_val(name));
-  if (p != AV_PIX_FMT_NONE)
-      CAMLreturn(Val_PixelFormat(p));
+  if (p == AV_PIX_FMT_NONE) Raise(EXN_FAILURE, "Invalid format name");
 
-  Raise(EXN_FAILURE, "Invalid format name");
+  CAMLreturn(Val_PixelFormat(p));
 }
 
 /**** Time format ****/

@@ -31,8 +31,13 @@ module Audio = struct
   external decode : (input, audio)context -> bytes -> int -> audio frame array = "ocaml_avcodec_decode"
   external decode_data : (input, audio)context -> data -> int -> audio frame array = "ocaml_avcodec_decode_data"
 
-  external encode : (output, audio)context -> audio frame -> bytes = "ocaml_avcodec_encode"
-  external encode_to_data : (output, audio)context -> audio frame -> data = "ocaml_avcodec_encode_to_data"
+  external _encode : (output, audio)context -> audio frame option -> bytes = "ocaml_avcodec_encode"
+  let encode ctx frame = _encode ctx (Some frame)
+  let flush ctx = _encode ctx None
+
+  external _encode_to_data : (output, audio)context -> audio frame option -> data = "ocaml_avcodec_encode_to_data"
+  let encode_to_data ctx frame = _encode_to_data ctx (Some frame)
+  let flush_to_data ctx = _encode_to_data ctx None
 end
 
 (** Video codecs. *)

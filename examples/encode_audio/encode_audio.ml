@@ -27,6 +27,8 @@ let () =
     |> output_bytes out_file;
   done;
 
+  Avcodec.Audio.flush ctx |> output_bytes out_file;
+
   close_out out_file;
 
   Gc.full_major (); Gc.full_major ()

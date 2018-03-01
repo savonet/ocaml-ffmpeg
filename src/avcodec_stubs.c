@@ -8,6 +8,7 @@
 #include <caml/threads.h>
 
 #include <libavformat/avformat.h>
+#include <libavutil/audio_fifo.h>
 #include "avutil_stubs.h"
 
 #include "avcodec_stubs.h"
@@ -64,7 +65,11 @@ typedef struct {
   AVFrame ** frames;
   int frames_capacity;
   AVPacket ** packets;
+  int nb_packets;
   int packets_capacity;
+  AVAudioFifo *audio_fifo;
+  AVFrame *enc_frame;
+  int64_t pts;
 } codec_context_t;
 
 #define CodecContext_val(v) (*(codec_context_t**)Data_custom_val(v))
@@ -88,6 +93,14 @@ static void free_codec_context(codec_context_t *ctx)
     free(ctx->packets);
   }
   
+  if(ctx->audio_fifo) {
+    av_audio_fifo_free(ctx->audio_fifo);
+  }
+
+  if(ctx->enc_frame) {
+    av_frame_free(&ctx->enc_frame);
+  }
+
   free(ctx);
 }
 
@@ -169,41 +182,58 @@ CAMLprim value ocaml_avcodec_create_context(value _codec_id, value _decoder, val
 }
 
 
-static AVCodecContext * avcodec_open_codec(AVCodec *codec, AVFrame *frame, int bit_rate, int frame_rate)
+static AVCodecContext * avcodec_open_codec(codec_context_t *ctx, AVFrame *frame)
 {
+  if( ! frame) Fail("Failed to open codec without frame");
+  
+  AVCodec *codec = ctx->codec;
+  
   if(codec->type != AVMEDIA_TYPE_AUDIO && codec->type != AVMEDIA_TYPE_VIDEO) Fail("Failed to open unsupported codec type");
 
-  AVCodecContext *ctx = avcodec_alloc_context3(codec);
-  if( ! ctx) {
-    Fail("Failed to allocate codec context");
-  }
+  ctx->codec_context = avcodec_alloc_context3(codec);
+  if( ! ctx->codec_context) Fail("Failed to allocate codec context");
 
   if(codec->type == AVMEDIA_TYPE_AUDIO) {
-    ctx->channel_layout = frame->channel_layout;
-    ctx->channels = frame->channels;
-    ctx->sample_fmt = (enum AVSampleFormat)frame->format;
-    ctx->sample_rate = frame->sample_rate;
-    ctx->time_base = (AVRational){1, frame->sample_rate};
+    ctx->codec_context->channel_layout = frame->channel_layout;
+    ctx->codec_context->channels = frame->channels;
+    ctx->codec_context->sample_fmt = (enum AVSampleFormat)frame->format;
+    ctx->codec_context->sample_rate = frame->sample_rate;
+    ctx->codec_context->time_base = (AVRational){1, frame->sample_rate};
   }
   else {
-    ctx->width = frame->width;
-    ctx->height = frame->height;
-    ctx->pix_fmt = (enum AVPixelFormat)frame->format;
-    ctx->framerate = (AVRational){frame_rate, 1};
-    ctx->time_base = (AVRational){1, frame_rate};
+    ctx->codec_context->width = frame->width;
+    ctx->codec_context->height = frame->height;
+    ctx->codec_context->pix_fmt = (enum AVPixelFormat)frame->format;
+    ctx->codec_context->framerate = (AVRational){ctx->frame_rate, 1};
+    ctx->codec_context->time_base = (AVRational){1, ctx->frame_rate};
   }
 
-  ctx->bit_rate = bit_rate;
+  ctx->codec_context->bit_rate = ctx->bit_rate;
 
   // Open the codec
-  int ret = avcodec_open2(ctx, NULL, NULL);
-  if(ret < 0) {
-    avcodec_free_context(&ctx);
-    Fail("Failed to open codec : %s", av_err2str(ret));
-  }
+  int ret = avcodec_open2(ctx->codec_context, NULL, NULL);
+  if(ret < 0) Fail("Failed to open codec : %s", av_err2str(ret));
 
-  printf("ctx->frame_size = %d, frame->nb_samples = %d\n", ctx->frame_size, frame->nb_samples);
-  return ctx;
+  if (ctx->codec_context->frame_size > 0
+      || ! (ctx->codec_context->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
+
+    // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
+    ctx->enc_frame = av_frame_alloc();
+    if( ! ctx->enc_frame) Fail("Failed to allocate encoder frame");
+
+    ctx->enc_frame->nb_samples     = ctx->codec_context->frame_size;
+    ctx->enc_frame->channel_layout = ctx->codec_context->channel_layout;
+    ctx->enc_frame->format         = ctx->codec_context->sample_fmt;
+    ctx->enc_frame->sample_rate    = ctx->codec_context->sample_rate;
+
+    int ret = av_frame_get_buffer(ctx->enc_frame, 0);
+    if (ret < 0) Fail("Failed to allocate encoder frame samples : %s)", av_err2str(ret));
+
+    // Create the FIFO buffer based on the specified output sample format.
+    ctx->audio_fifo = av_audio_fifo_alloc(ctx->codec_context->sample_fmt, ctx->codec_context->channels, 1);
+    if( ! ctx->audio_fifo) Fail("Failed to allocate audio FIFO");
+  }
+  return ctx->codec_context;
 }
 
 static value decode_to_frame(codec_context_t *ctx, uint8_t *data, size_t data_size)
@@ -324,27 +354,25 @@ CAMLprim value ocaml_avcodec_decode_data(value _ctx, value _data, value _size)
 }
 
 
-static int encode_frame(codec_context_t *ctx, AVFrame *frame, intnat *data_size)
+static int encode_frame_to_packets(codec_context_t *ctx, AVFrame *frame, int *nb_packets, intnat *data_size)
 {
-  int i, nb_packets = 0;
-
-  if(!ctx->codec_context
-     && ! (ctx->codec_context = avcodec_open_codec(ctx->codec, frame, ctx->bit_rate, ctx->frame_rate))) {
-    Raise(EXN_FAILURE, ocaml_av_error_msg);
-  }
-
-  caml_release_runtime_system();
+  int i, index_packet = *nb_packets;
 
   // send the frame for encoding
   int ret = avcodec_send_frame(ctx->codec_context, frame);
-  if (ret < 0) return ret;
+  if(ret < 0) {
+    Log("Failed to encode frame : %s", av_err2str(ret));
+    return ret;
+  }
 
   // read all the available output packets
   while (ret >= 0) {
-    if(nb_packets >= ctx->packets_capacity) {
+    if(index_packet >= ctx->packets_capacity) {
       AVPacket **packets = (AVPacket **)calloc(ctx->packets_capacity + 33, sizeof(AVPacket *));
-
-      if( ! packets) return AVERROR_INVALIDDATA;
+      if( ! packets) {
+        Log("Failed to allocate packets array");
+        return AVERROR_INVALIDDATA;
+      }
 
       if(ctx->packets) {
         for(i = 0; ctx->packets[i]; i++) packets[i] = ctx->packets[i];
@@ -354,23 +382,96 @@ static int encode_frame(codec_context_t *ctx, AVFrame *frame, intnat *data_size)
       ctx->packets_capacity += 32;
     }
 
-    if( ! ctx->packets[nb_packets]) {
-      ctx->packets[nb_packets] = av_packet_alloc();
+    if( ! ctx->packets[index_packet]) {
+      ctx->packets[index_packet] = av_packet_alloc();
 
-      if( ! ctx->packets[nb_packets]) return AVERROR_INVALIDDATA;
+      if( ! ctx->packets[index_packet]) {
+        Log("Failed to allocate packet");
+        return AVERROR_INVALIDDATA;
+      }
     }
-    ret = avcodec_receive_packet(ctx->codec_context, ctx->packets[nb_packets]);
-    if (ret < 0) break;
+    ret = avcodec_receive_packet(ctx->codec_context, ctx->packets[index_packet]);
+    if(ret < 0) {
+      Log("Failed to receive packet from frame : %s", av_err2str(ret));
+      return ret;
+    }
 
-    *data_size += ctx->packets[nb_packets]->size;
-    nb_packets++;
+    *data_size += ctx->packets[index_packet]->size;
+    index_packet++;
   }
 
-  caml_acquire_runtime_system();
+  *nb_packets = index_packet;
 
-  if(ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) Raise(EXN_FAILURE, "Failed to encode data : %s", av_err2str(ret));
+  return ret;
+}
 
-  return nb_packets;
+
+static AVPacket ** encode_frame(codec_context_t *ctx, AVFrame *frame, int * nb_packets, intnat *data_size)
+{
+  int ret;
+  AVCodecContext * enc_ctx = ctx->codec_context;
+
+  if(!ctx->codec_context && !(enc_ctx = avcodec_open_codec(ctx, frame))) return NULL;
+
+  if(ctx->codec->type == AVMEDIA_TYPE_VIDEO) {
+    if(frame) {
+      frame->pts = ctx->pts++;
+    }
+    ret = encode_frame_to_packets(ctx, frame, nb_packets, data_size);
+  }
+  else if(ctx->audio_fifo == NULL) {
+
+    if(frame) {
+      frame->pts = ctx->pts;
+      ctx->pts += frame->nb_samples;
+    }
+  
+    ret = encode_frame_to_packets(ctx, frame, nb_packets, data_size);
+  }
+  else {
+    AVAudioFifo *fifo = ctx->audio_fifo;
+    AVFrame * output_frame = ctx->enc_frame;
+  
+    int fifo_size = av_audio_fifo_size(fifo);
+    int frame_size = fifo_size;
+
+    if(frame != NULL) {
+      frame_size = enc_ctx->frame_size;
+      fifo_size += frame->nb_samples;
+    
+      ret = av_audio_fifo_realloc(fifo, fifo_size);
+      if (ret < 0) Fail("Failed to reallocate audio FIFO");
+
+      // Store the new samples in the FIFO buffer.
+      ret = av_audio_fifo_write(fifo, (void **)(const uint8_t**)frame->extended_data, frame->nb_samples);
+      if (ret < frame->nb_samples) Fail("Failed to write data to audio FIFO");
+    }
+
+    for(; fifo_size >= frame_size || frame == NULL; fifo_size = av_audio_fifo_size(fifo)) {
+
+      if(fifo_size > 0) {
+        ret = av_frame_make_writable(output_frame);
+        if (ret < 0) Fail("Failed to make output frame writable : %s", av_err2str(ret));
+
+        int read_size = av_audio_fifo_read(fifo, (void **)output_frame->data, frame_size);
+        if (read_size < frame_size) Fail("Failed to read data from audio FIFO");
+
+        output_frame->nb_samples = frame_size;
+        output_frame->pts = ctx->pts;
+        ctx->pts += frame_size;
+      }
+      else {
+        output_frame = NULL;
+      }
+
+      ret = encode_frame_to_packets(ctx, frame, nb_packets, data_size);
+      if (ret < 0 && ret != AVERROR(EAGAIN)) break;
+    }
+  }
+
+  if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) return NULL;
+
+  return ctx->packets;
 }
 
 CAMLprim value ocaml_avcodec_encode(value _ctx, value _frame)
@@ -378,19 +479,24 @@ CAMLprim value ocaml_avcodec_encode(value _ctx, value _frame)
   CAMLparam2(_ctx, _frame);
   CAMLlocal1(ans);
   codec_context_t *ctx = CodecContext_val(_ctx);
+  AVFrame *frame = Is_block(_frame) ? Frame_val(Field(_frame, 0)) : NULL;
   intnat data_size = 0;
-  int i, ret = 0;
+  int i, nb_packets = 0;
 
-  ret = encode_frame(ctx, Frame_val(_frame), &data_size);
+  caml_release_runtime_system();
+  AVPacket ** packets = encode_frame(ctx, frame, &nb_packets, &data_size);
+  caml_acquire_runtime_system();
+
+  if( ! packets) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   ans = caml_alloc_string(data_size);
-  
+
   uint8_t * data = (uint8_t*)String_val(ans);
 
-  for(i = 0; i < ret; i++) {
-    memcpy(data, ctx->packets[i]->data, ctx->packets[i]->size);
-    data += ctx->packets[i]->size;
-    av_packet_unref(ctx->packets[i]);
+  for(i = 0; i < nb_packets; i++) {
+    memcpy(data, packets[i]->data, packets[i]->size);
+    data += packets[i]->size;
+    av_packet_unref(packets[i]);
   }
   
   CAMLreturn(ans);
@@ -401,19 +507,24 @@ CAMLprim value ocaml_avcodec_encode_to_data(value _ctx, value _frame)
   CAMLparam2(_ctx, _frame);
   CAMLlocal1(ans);
   codec_context_t *ctx = CodecContext_val(_ctx);
+  AVFrame *frame = Is_block(_frame) ? Frame_val(Field(_frame, 0)) : NULL;
   intnat data_size = 0;
-  int i, ret = 0;
+  int i, nb_packets = 0;
 
-  ret = encode_frame(ctx, Frame_val(_frame), &data_size);
+  caml_release_runtime_system();
+  AVPacket ** packets = encode_frame(ctx, frame, &nb_packets, &data_size);
+  caml_acquire_runtime_system();
+
+  if( ! packets) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   ans = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &data_size);
   
   uint8_t * data = Caml_ba_data_val(ans);
 
-  for(i = 0; i < ret; i++) {
-    memcpy(data, ctx->packets[i]->data, ctx->packets[i]->size);
-    data += ctx->packets[i]->size;
-    av_packet_unref(ctx->packets[i]);
+  for(i = 0; i < nb_packets; i++) {
+    memcpy(data, packets[i]->data, packets[i]->size);
+    data += packets[i]->size;
+    av_packet_unref(packets[i]);
   }
   
   CAMLreturn(ans);
