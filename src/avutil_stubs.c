@@ -136,7 +136,7 @@ static void finalize_frame(value v)
 {
 #ifdef HAS_FRAME
   struct AVFrame *frame = Frame_val(v);
-  av_frame_free(&frame);
+  if(frame) av_frame_free(&frame);
 #endif
 }
 

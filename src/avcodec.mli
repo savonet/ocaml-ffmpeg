@@ -3,10 +3,27 @@
 open Avutil
 
 type 'a t
-type ('line, 'media) context
-type use = [ `decoder | `encoder]
+type 'media decoder
+type 'media encoder
+(* type use = [ `decoder | `encoder] *)
 
-(* type 'media result = [ `frame of 'media frame | `end_of_stream | `end_of_stream ] *)
+
+(** Packet. *)
+module Packet : sig
+  (** Packet type *)
+  type 'a t
+  type 'a parser
+
+  val get_size : 'a t -> int
+
+  val get_stream_index : 'a t -> int
+  val set_stream_index : 'a t -> int -> unit
+
+  val to_bytes : 'a t -> bytes
+
+  val parse_data : 'a parser -> data -> int -> 'a t array
+  val parse_bytes : 'a parser -> bytes -> int -> 'a t array
+end
 
 
 (** Audio codecs. *)
@@ -43,17 +60,17 @@ module Audio : sig
   (** Returns the sample rate set for the codec. *)
   val get_sample_rate : audio t -> int
 
-  val create_decoder_context : id -> (input, audio)context
+  val create_parser : id -> audio Packet.parser
+  (** [Avcodec.Audio.create_parser id] create an audio packet parser.
+      @raise Failure if the parser creation failed. *)
 
-  val create_encoder_context : ?bit_rate:int -> id -> (output, audio)context
+  val create_decoder : id -> audio decoder
+  (** [Avcodec.Audio.create_decoder id] create an audio decoder.
+      @raise Failure if the decoder creation failed. *)
 
-  val decode : (input, audio)context -> bytes -> int -> audio frame array
-  val decode_data : (input, audio)context -> data -> int -> audio frame array
-
-  val encode : (output, audio)context -> audio frame -> bytes
-  val flush : (output, audio)context -> bytes
-  val encode_to_data : (output, audio)context -> audio frame -> data
-  val flush_to_data : (output, audio)context -> data
+  val create_encoder : ?bit_rate:int -> id -> audio encoder
+  (** [Avcodec.Audio.create_encoder ~bit_rate:bit_rate id] create an audio encoder.
+      @raise Failure if the encoder creation failed. *)
 end
 
 (** Video codecs. *)
@@ -90,14 +107,18 @@ module Video : sig
   (** Returns the bit rate set for the codec. *)
   val get_bit_rate : video t -> int
 
-  val create_decoder_context : id -> (input, video)context
-  val create_encoder_context : ?bit_rate:int -> ?frame_rate:int -> id -> (output, video)context
-  
-  val decode : (input, video)context -> bytes -> int -> video frame array
-  val decode_data : (input, video)context -> data -> int -> video frame array
 
-  val encode : (output, video)context -> video frame -> bytes
-  val encode_to_data : (output, video)context -> video frame -> data
+  val create_parser : id -> video Packet.parser
+  (** [Avcodec.Video.create_parser id] create an video packet parser.
+      @raise Failure if the parser creation failed. *)
+
+  val create_decoder : id -> video decoder
+  (** [Avcodec.Video.create_decoder id] create a video decoder.
+      @raise Failure if the decoder creation failed. *)
+
+  val create_encoder : ?bit_rate:int -> ?frame_rate:int -> id -> video encoder
+  (** [Avcodec.Video.create_encoder ~bit_rate:bit_rate id] create a video encoder.
+      @raise Failure if the encoder creation failed. *)
 end
 
 (** Subtitle codecs. *)
@@ -105,7 +126,7 @@ module Subtitle : sig
   (** Subtitle codec ids *)
   type id = Codec_id.subtitle
 
-(** Return the name of the codec. *)
+  (** Return the name of the codec. *)
   val get_name : id -> string
 
   val find_id : string -> id
@@ -115,3 +136,19 @@ module Subtitle : sig
   (** Return the id of the codec. *)
   val get_id : subtitle t -> id
 end
+
+val decode : 'media decoder -> 'media Packet.t -> 'media frame array
+(** [Avcodec.decode decoder packet] decode the [packet] to frames according to the [decoder] configuration.
+    @raise Failure if the decoding failed. *)
+
+val flush_decoder : 'media decoder -> 'media frame array
+(** [Avcodec.flush_decoder decoder] decode the buffered packets in the [decoder] to frames.
+    @raise Failure if the decoding failed. *)
+
+val encode : 'media encoder -> 'media frame -> 'media Packet.t array
+(** [Avcodec.encode encoder frame] encode the [frame] to packets according to the [encoder] configuration.
+    @raise Failure if the encoding failed. *)
+
+val flush_encoder : 'media encoder -> 'media Packet.t array
+(** [Avcodec.flush_encoder encoder] encode the buffered frames in the [encoder] to packets.
+    @raise Failure if the encoding failed. *)

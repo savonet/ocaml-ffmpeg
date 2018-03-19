@@ -9,7 +9,7 @@ TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 all: dc
 
 test: all
-	./audio_decoding ../encode_audio/A4.ogg A4
+	./audio_decoding ../decode_audio/A4.ogg A4
 	./audio_decoding ../encoding/out.mkv out
 
 include OCamlMakefile

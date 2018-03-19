@@ -9,6 +9,6 @@ TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 all: nc
 
 test: all
-	./transcode_aac ../encode_audio/A4.ogg A4.mp4
+	./transcode_aac ../decode_audio/A4.ogg A4.mp4
 
 include OCamlMakefile

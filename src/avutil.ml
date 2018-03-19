@@ -25,6 +25,8 @@ let () =
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
+let create_data len = Bigarray.Array1.create Bigarray.int8_unsigned Bigarray.c_layout len
+
 
 module Pixel_format = struct
   type t = Pixel_format.t

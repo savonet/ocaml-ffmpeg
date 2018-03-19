@@ -143,7 +143,7 @@ val get_output : (output, _)stream -> output container
 
 
 val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> output container -> (output, audio)stream
-(** [Av.new_audio_stream ~codec_id:ci ~sample_format:sf ~sample_rate:sr ~codec:c dst] add a new audio stream to the [dst] media file. Parameters passed unitarily ([ci], [sf], [sr]...) take precedence over those of the [c] codec. This must be set before starting writing streams. @raise Failure if a writing already taken place or if the stream allocation failed. *)
+(** [Av.new_audio_stream ~codec_id:ci ~channel_layout:cl ~sample_format:sf ~sample_rate:sr ~codec:c dst] add a new audio stream to the [dst] media file. Parameters passed unitarily ([ci], [cl], [sf], [sr]...) take precedence over those of the [c] codec. This must be set before starting writing streams. @raise Failure if a writing already taken place or if the stream allocation failed. *)
 
 
 val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> output container -> (output, video)stream
