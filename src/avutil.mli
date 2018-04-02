@@ -46,10 +46,10 @@ module Time_format : sig
 
   (** Time formats. *)
   type t = [
-    | `second
-    | `millisecond
-    | `microsecond
-    | `nanosecond
+    | `Second
+    | `Millisecond
+    | `Microsecond
+    | `Nanosecond
   ]
 end
 

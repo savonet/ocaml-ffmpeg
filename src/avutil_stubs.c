@@ -59,10 +59,10 @@ CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
 int64_t second_fractions_of_time_format(value time_format)
 {
   switch(time_format) {
-  case PVV_second : return 1;
-  case PVV_millisecond : return 1000;
-  case PVV_microsecond : return 1000000;
-  case PVV_nanosecond : return 1000000000;
+  case PVV_Second : return 1;
+  case PVV_Millisecond : return 1000;
+  case PVV_Microsecond : return 1000000;
+  case PVV_Nanosecond : return 1000000000;
   default : break;
   }
   return 1;

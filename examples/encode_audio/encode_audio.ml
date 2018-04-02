@@ -16,8 +16,8 @@ let () =
   let encoder = Audio.create_encoder codec_id in
   let out_sample_format = Audio.find_best_sample_format codec_id in
 
-  let rsp = Resampler.create `MONO sample_rate
-      `STEREO ~out_sample_format sample_rate in
+  let rsp = Resampler.create `Mono sample_rate
+      `Stereo ~out_sample_format sample_rate in
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
@@ -26,12 +26,10 @@ let () =
   for i = 0 to 200 do
     Array.init frame_size (fun t -> sin(float_of_int(t + (i * frame_size)) *. c))
     |> Resampler.convert rsp
-    |> Avcodec.encode encoder
-    |> Array.iter(Packet.to_bytes %> output_bytes out_file)
+    |> Avcodec.encode encoder(Packet.to_bytes %> output_bytes out_file)
   done;
 
-  Avcodec.flush_encoder encoder
-  |> Array.iter(Packet.to_bytes %> output_bytes out_file);
+  Avcodec.flush_encoder encoder(Packet.to_bytes %> output_bytes out_file);
 
   close_out out_file;
 

@@ -20,7 +20,7 @@ external open_input : string -> input container = "ocaml_av_open_input"
 external open_input_format : (input, _)format -> input container = "ocaml_av_open_input_format"
 
 external _get_duration : input container -> int -> Time_format.t -> Int64.t = "ocaml_av_get_duration"
-let get_input_duration ?(format=`second) i = _get_duration i (-1) format
+let get_input_duration ?(format=`Second) i = _get_duration i (-1) format
 
 external _get_metadata : input container -> int -> (string * string) list = "ocaml_av_get_metadata"
 let get_input_metadata i = List.rev(_get_metadata i (-1))
@@ -61,20 +61,20 @@ let find_best_subtitle_stream c = find_best_stream c MT_subtitle
 let get_input s = s.container
 let get_index s = s.index
 
-let get_duration ?(format=`second) s = _get_duration s.container s.index format
+let get_duration ?(format=`Second) s = _get_duration s.container s.index format
 let get_metadata s = List.rev(_get_metadata s.container s.index)
 
 external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
-type 'a result = [`frame of 'a frame | `end_of_stream]
+type 'a result = [`Frame of 'a frame | `End_of_stream]
 
 
 external read : (input, 'm)stream -> 'm result = "ocaml_av_read_stream"
 
 let iter f s =
   let rec iter() = match read s with
-    | `frame frame -> f frame; iter()
-    | `end_of_stream -> ()
+    | `Frame frame -> f frame; iter()
+    | `End_of_stream -> ()
   in
   iter()
 
@@ -84,10 +84,10 @@ type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag
 external seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
 
 type media = [
-  | `audio of int * audio frame
-  | `video of int * video frame
-  | `subtitle of int * subtitle frame
-  | `end_of_file
+  | `Audio of int * audio frame
+  | `Video of int * video frame
+  | `Subtitle of int * subtitle frame
+  | `End_of_file
 ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -96,10 +96,10 @@ external read_input : input container -> media = "ocaml_av_read_input"
 (** Reads iteratively the selected streams if any or all streams otherwise. *)
 let iter_input ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _->())) src =
   let rec iter() = match read_input src with
-    | `audio(index, frame) -> audio index frame; iter()
-    | `video(index, frame) -> video index frame; iter()
-    | `subtitle(index, frame) -> subtitle index frame; iter()
-    | `end_of_file -> ()
+    | `Audio(index, frame) -> audio index frame; iter()
+    | `Video(index, frame) -> video index frame; iter()
+    | `Subtitle(index, frame) -> subtitle index frame; iter()
+    | `End_of_file -> ()
   in
   iter()
 
@@ -133,7 +133,7 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
     | Some cl -> cl
     | None -> match codec with
       | Some cp -> Avcodec.Audio.get_channel_layout cp
-      | None -> `STEREO
+      | None -> `Stereo
   in
   let sf = match sample_format with
     | Some sf -> sf

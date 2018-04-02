@@ -521,10 +521,10 @@ static value decode_packet(av_t * av, stream_t * stream)
     }
   
     if(dec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      frame_kind = PVV_audio;
+      frame_kind = PVV_Audio;
     }
     else {
-      frame_kind = PVV_video;
+      frame_kind = PVV_Video;
     }
   }
   else if(dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
@@ -533,7 +533,7 @@ static value decode_packet(av_t * av, stream_t * stream)
   
     if (ret >= 0) packet->size = 0;
   
-    frame_kind = PVV_subtitle;
+    frame_kind = PVV_Subtitle;
   }
   
   if(packet->size <= 0) {
@@ -545,14 +545,14 @@ static value decode_packet(av_t * av, stream_t * stream)
   }
   else if (ret == AVERROR_EOF) {
     stream->got_frame = 0;
-    frame_kind = PVV_end_of_file;
+    frame_kind = PVV_End_of_file;
   }
   else if (ret == AVERROR(EAGAIN)) {
     frame_kind = 0;
   }
   else {
     Log("Failed to decode %s frame : %s", av_get_media_type_string(dec->codec_type), av_err2str(ret));
-    frame_kind = PVV_error;
+    frame_kind = PVV_Error;
   }
 
   return frame_kind;
@@ -588,7 +588,7 @@ static value read_stream_frame(av_t * av, stream_t * stream)
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   return frame_kind;
 }
@@ -606,12 +606,12 @@ CAMLprim value ocaml_av_read_stream(value _stream) {
   
   value frame_kind = read_stream_frame(av, stream);
 
-  if(frame_kind == PVV_end_of_file) {
-    ans = PVV_end_of_stream;
+  if(frame_kind == PVV_End_of_file) {
+    ans = PVV_End_of_stream;
   }
   else {
     ans = caml_alloc_tuple(2);
-    Field(ans, 0) = PVV_frame;
+    Field(ans, 0) = PVV_Frame;
     Field(ans, 1) = stream->frame;
   }
 
@@ -657,7 +657,7 @@ CAMLprim value ocaml_av_read_input(value _av)
         }
         else {
           if(NULL == (stream = open_stream_index(av, packet->stream_index))) {
-            frame_kind = PVV_error;
+            frame_kind = PVV_Error;
             break;
           }
         }
@@ -671,7 +671,7 @@ CAMLprim value ocaml_av_read_input(value _av)
       }
 
       if(i == nb_streams) {
-        frame_kind = PVV_end_of_file;
+        frame_kind = PVV_End_of_file;
         break;
       }
     }
@@ -679,10 +679,10 @@ CAMLprim value ocaml_av_read_input(value _av)
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
   
-  if(frame_kind == PVV_end_of_file) {
-    ans = PVV_end_of_file;
+  if(frame_kind == PVV_End_of_file) {
+    ans = PVV_End_of_file;
   }
   else {
     stream_frame = caml_alloc_tuple(2);

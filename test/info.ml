@@ -16,7 +16,7 @@ let test() =
               "channels" (get_nb_channels cd)
               "bit rate" (get_bit_rate cd)
               "sample rate" (get_sample_rate cd)
-              "duration (ms)" (Av.get_duration ~format:`millisecond stm)
+              "duration (ms)" (Av.get_duration ~format:`Millisecond stm)
           ));
       Av.get_video_streams input |> List.iter(fun (idx, stm, cd) ->
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
@@ -28,14 +28,14 @@ let test() =
               "height" (get_height cd)
               "sample aspect ratio" sar_num sar_den
               "bit rate" (get_bit_rate cd)
-              "duration (ns)" (Av.get_duration ~format:`nanosecond stm)
+              "duration (ns)" (Av.get_duration ~format:`Nanosecond stm)
           ));
       Av.get_subtitle_streams input |> List.iter(fun (idx, stm, cd) ->
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
           Avcodec.Subtitle.(
             printf"\tSubtitle stream %d : %s %s, %s %Ld\n"
               idx "codec" (get_id cd |> get_name)
-              "duration (µs)" (Av.get_duration ~format:`microsecond stm)
+              "duration (µs)" (Av.get_duration ~format:`Microsecond stm)
           ));
       printf"\n";
     );

@@ -21,7 +21,7 @@ let () =
        else Avdevice.open_audio_output Sys.argv.(2)
     with Avutil.Failure _ ->
       Av.open_output Sys.argv.(2)
-      |> Av.new_audio_stream ~codec_id:`FLAC |> Av.get_output in
+      |> Av.new_audio_stream ~codec_id:`Flac |> Av.get_output in
 
   Avdevice.Dev_to_app.(set_control_message_callback (function
       | Volume_level_changed v ->
@@ -33,8 +33,8 @@ let () =
 
   let rec run n =
     if n > 0 then match Av.read ias with
-      | `frame frame -> Av.write_audio dst frame; run(n - 1)
-      | `end_of_stream -> ()
+      | `Frame frame -> Av.write_audio dst frame; run(n - 1)
+      | `End_of_stream -> ()
   in
   run 500;
 

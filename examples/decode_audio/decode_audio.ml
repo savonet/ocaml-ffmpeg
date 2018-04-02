@@ -11,32 +11,23 @@ let () =
 
   let in_codec_id = Audio.find_id Sys.argv.(2) in
 
-  let decoder = Audio.create_decoder in_codec_id in
   let parser = Audio.create_parser in_codec_id in
+  let decoder = Audio.create_decoder in_codec_id in
 
-  let in_file = open_in_bin Sys.argv.(1) in
-  let in_buf = Bytes.create 20480 in
+  let in_fd = Unix.openfile Sys.argv.(1) [O_RDONLY] 0 in
 
   let out_codec_id = Audio.find_id Sys.argv.(4) in
 
   let out_file = Av.open_output Sys.argv.(3) in
   let out_stream = Av.new_audio_stream ~codec_id:out_codec_id out_file in
 
-  let rec read_audio() =
-    let len = input in_file in_buf 0 (Bytes.length in_buf) in
+  Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
+  |> Bigarray.array1_of_genarray
+  |> Packet.parse_data parser @@ Avcodec.decode decoder @@ Av.write out_stream;
 
-    if len > 0 then
-      Packet.parse_bytes parser in_buf len
-      |> Array.iter(fun pkt ->
-          Avcodec.decode decoder pkt
-          |> Array.iter(Av.write out_stream))
-    else ()
-  in
-  read_audio();
-
-  Avcodec.flush_decoder decoder |> Array.iter(Av.write out_stream);
-
-  close_in in_file;
+  Avcodec.flush_decoder decoder @@ Av.write out_stream;
+  
+  Unix.close in_fd;
   Av.close out_file;
 
   Gc.full_major (); Gc.full_major ();

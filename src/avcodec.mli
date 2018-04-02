@@ -5,24 +5,34 @@ open Avutil
 type 'a t
 type 'media decoder
 type 'media encoder
-(* type use = [ `decoder | `encoder] *)
 
 
 (** Packet. *)
 module Packet : sig
   (** Packet type *)
   type 'a t
+
+  (** Parser type *)
   type 'a parser
 
+  (** Return the size of the packet. *)
   val get_size : 'a t -> int
 
+  (** Return the stream index of the packet. *)
   val get_stream_index : 'a t -> int
+
+  (** Set the stream index of the packet. *)
   val set_stream_index : 'a t -> int -> unit
 
+  (** Return a fresh bytes array containing a copy of packet datas. *)
   val to_bytes : 'a t -> bytes
 
-  val parse_data : 'a parser -> data -> int -> 'a t array
-  val parse_bytes : 'a parser -> bytes -> int -> 'a t array
+  val parse_data : 'a parser -> ('a t -> unit) -> data -> unit
+  (** [Avcodec.Packet.parse_data parser f data] applies function [f] to the parsed packets frome the [data] array according to the [parser] configuration.
+    @raise Failure if the parsing failed. *)
+
+  val parse_bytes : 'a parser -> ('a t -> unit) -> bytes -> int -> unit
+  (** Same as {!Avcodec.Packet.parse_data} with bytes array. *)
 end
 
 
@@ -137,18 +147,19 @@ module Subtitle : sig
   val get_id : subtitle t -> id
 end
 
-val decode : 'media decoder -> 'media Packet.t -> 'media frame array
-(** [Avcodec.decode decoder packet] decode the [packet] to frames according to the [decoder] configuration.
+
+val decode : 'media decoder -> ('media frame -> unit) -> 'media Packet.t -> unit
+(** [Avcodec.decode decoder f packet] applies function [f] to the decoded frames frome the [packet] according to the [decoder] configuration.
     @raise Failure if the decoding failed. *)
 
-val flush_decoder : 'media decoder -> 'media frame array
-(** [Avcodec.flush_decoder decoder] decode the buffered packets in the [decoder] to frames.
+val flush_decoder : 'media decoder -> ('media frame -> unit) -> unit
+(** [Avcodec.flush_decoder decoder f] applies function [f] to the decoded frames frome the buffered packets in the [decoder].
     @raise Failure if the decoding failed. *)
 
-val encode : 'media encoder -> 'media frame -> 'media Packet.t array
-(** [Avcodec.encode encoder frame] encode the [frame] to packets according to the [encoder] configuration.
+val encode : 'media encoder -> ('media Packet.t -> unit) -> 'media frame -> unit
+(** [Avcodec.encode encoder f frame] applies function [f] to the encoded packets from the [frame] according to the [encoder] configuration.
     @raise Failure if the encoding failed. *)
 
-val flush_encoder : 'media encoder -> 'media Packet.t array
-(** [Avcodec.flush_encoder encoder] encode the buffered frames in the [encoder] to packets.
+val flush_encoder : 'media encoder -> ('media Packet.t -> unit) -> unit
+(** [Avcodec.flush_encoder encoder] applies function [f] to the encoded packets from the buffered frames in the [encoder].
     @raise Failure if the encoding failed. *)

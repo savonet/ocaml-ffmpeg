@@ -86,7 +86,7 @@ val select : (input, _)stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Failure if the selection failed. *)
 
 (** Stream reading result. *)
-type 'media result = [ `frame of 'media frame | `end_of_stream ]
+type 'media result = [ `Frame of 'media frame | `End_of_stream ]
 
 val read : (input, 'media)stream -> 'media result
 (** [Av.read stream] read the input [stream]. Return the next frame of the [stream] or [End_of_stream] if the end of the stream is reached. @raise Failure if the reading failed. *)
@@ -102,10 +102,10 @@ val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> un
 
 
 type media = [
-  | `audio of int * audio frame
-  | `video of int * video frame
-  | `subtitle of int * subtitle frame
-  | `end_of_file
+  | `Audio of int * audio frame
+  | `Video of int * video frame
+  | `Subtitle of int * subtitle frame
+  | `End_of_file
 ]
 
 val read_input : input container -> media

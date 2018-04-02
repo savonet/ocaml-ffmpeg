@@ -29,6 +29,7 @@ let get_path filename =
 
 let rec id_to_pv_value id values =
   let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
+  let id = String.(uppercase(sub id 0 1) ^ lowercase(sub id 1 (length id - 1))) in
   let value = polymorphic_variant_string_to_c_value id in
 
   if List.mem value values then
@@ -114,8 +115,9 @@ let () =
   let pvv_oc = open_out "polymorphic_variant_values_stubs.h" in
 
   List.iter(print_define_polymorphic_variant_value pvv_oc)
-    ["frame"; "audio"; "video"; "subtitle"; "end_of_stream"; "end_of_file"; "error";
-     "second"; "millisecond"; "microsecond"; "nanosecond"];
+    ["Frame"; "Audio"; "Video"; "Subtitle";
+     "Ok"; "Again"; "End_of_stream"; "End_of_file"; "Error";
+     "Second"; "Millisecond"; "Microsecond"; "Nanosecond"];
 
   close_out pvv_oc;
 

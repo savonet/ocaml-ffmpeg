@@ -44,10 +44,10 @@ end
 
 module Time_format = struct
   type t = [
-    | `second
-    | `millisecond
-    | `microsecond
-    | `nanosecond
+    | `Second
+    | `Millisecond
+    | `Microsecond
+    | `Nanosecond
   ]
 end
 

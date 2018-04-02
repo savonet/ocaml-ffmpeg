@@ -18,7 +18,7 @@ module type AudioData = sig
 end
 
 module Bytes = struct
-  type t = bytes let vk = Str let sf = `NONE
+  type t = bytes let vk = Str let sf = `None
 end
 
 module U8Bytes = struct
@@ -34,39 +34,39 @@ module S32Bytes = struct
 end
 
 module FltBytes = struct
-  type t = bytes let vk = Str let sf = `FLT
+  type t = bytes let vk = Str let sf = `Flt
 end
 
 module DblBytes = struct
-  type t = bytes let vk = Str let sf = `DBL
+  type t = bytes let vk = Str let sf = `Dbl
 end
 
 module U8PlanarBytes = struct
-  type t = bytes array let vk = P_Str let sf = `U8P
+  type t = bytes array let vk = P_Str let sf = `U8p
 end
 
 module S16PlanarBytes = struct
-  type t = bytes array let vk = P_Str let sf = `S16P
+  type t = bytes array let vk = P_Str let sf = `S16p
 end
 
 module S32PlanarBytes = struct
-  type t = bytes array let vk = P_Str let sf = `S32P
+  type t = bytes array let vk = P_Str let sf = `S32p
 end
 
 module FltPlanarBytes = struct
-  type t = bytes array let vk = P_Str let sf = `FLTP
+  type t = bytes array let vk = P_Str let sf = `Fltp
 end
 
 module DblPlanarBytes = struct
-  type t = bytes array let vk = P_Str let sf = `DBLP
+  type t = bytes array let vk = P_Str let sf = `Dblp
 end
 
 module FloatArray = struct
-  type t = float array let vk = Fa let sf = `DBL
+  type t = float array let vk = Fa let sf = `Dbl
 end
 
 module PlanarFloatArray = struct
-  type t = float array array let vk = P_Fa let sf = `DBLP
+  type t = float array array let vk = P_Fa let sf = `Dblp
 end
 
 module U8BigArray = struct
@@ -82,35 +82,35 @@ module S32BigArray = struct
 end
 
 module FltBigArray = struct
-  type t = f32ba let vk = Ba let sf = `FLT
+  type t = f32ba let vk = Ba let sf = `Flt
 end
 
 module DblBigArray = struct
-  type t = f64ba let vk = Ba let sf = `DBL
+  type t = f64ba let vk = Ba let sf = `Dbl
 end
 
 module U8PlanarBigArray = struct
-  type t = u8ba array let vk = P_Ba let sf = `U8P
+  type t = u8ba array let vk = P_Ba let sf = `U8p
 end
 
 module S16PlanarBigArray = struct
-  type t = s16ba array let vk = P_Ba let sf = `S16P
+  type t = s16ba array let vk = P_Ba let sf = `S16p
 end
 
 module S32PlanarBigArray = struct
-  type t = s32ba array let vk = P_Ba let sf = `S32P
+  type t = s32ba array let vk = P_Ba let sf = `S32p
 end
 
 module FltPlanarBigArray = struct
-  type t = f32ba array let vk = P_Ba let sf = `FLTP
+  type t = f32ba array let vk = P_Ba let sf = `Fltp
 end
 
 module DblPlanarBigArray = struct
-  type t = f64ba array let vk = P_Ba let sf = `DBLP
+  type t = f64ba array let vk = P_Ba let sf = `Dblp
 end
 
 module Frame = struct
-  type t = audio frame let vk = Frm let sf = `NONE
+  type t = audio frame let vk = Frm let sf = `None
 end
 
 module U8Frame = struct
@@ -126,31 +126,31 @@ module S32Frame = struct
 end
 
 module FltFrame = struct
-  type t = audio frame let vk = Frm let sf = `FLT
+  type t = audio frame let vk = Frm let sf = `Flt
 end
 
 module DblFrame = struct
-  type t = audio frame let vk = Frm let sf = `DBL
+  type t = audio frame let vk = Frm let sf = `Dbl
 end
 
 module U8PlanarFrame = struct
-  type t = audio frame let vk = Frm let sf = `U8P
+  type t = audio frame let vk = Frm let sf = `U8p
 end
 
 module S16PlanarFrame = struct
-  type t = audio frame let vk = Frm let sf = `S16P
+  type t = audio frame let vk = Frm let sf = `S16p
 end
 
 module S32PlanarFrame = struct
-  type t = audio frame let vk = Frm let sf = `S32P
+  type t = audio frame let vk = Frm let sf = `S32p
 end
 
 module FltPlanarFrame = struct
-  type t = audio frame let vk = Frm let sf = `FLTP
+  type t = audio frame let vk = Frm let sf = `Fltp
 end
 
 module DblPlanarFrame = struct
-  type t = audio frame let vk = Frm let sf = `DBLP
+  type t = audio frame let vk = Frm let sf = `Dblp
 end
 
 
@@ -168,12 +168,12 @@ module Make (I : AudioData) (O : AudioData) = struct
         out_channel_layout ?out_sample_format out_sample_rate =
       
     let in_sample_format = match in_sample_format with
-      | _ when I.sf <> `NONE -> I.sf
+      | _ when I.sf <> `None -> I.sf
       | Some sf -> sf
       | _ -> raise(Failure "Swresample input sample format undefined")
     in
     let out_sample_format = match out_sample_format with
-      | _ when O.sf <> `NONE -> O.sf
+      | _ when O.sf <> `None -> O.sf
       | Some sf -> sf
       | _ -> raise(Failure "Swresample output sample format undefined")
     in

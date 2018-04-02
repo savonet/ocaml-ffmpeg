@@ -23,30 +23,30 @@ let () =
 
   let (audio_index, audio_stream, audio_codec) = Av.find_best_audio_stream src in
 
-  let a_ctx = AudioConverter.from_codec audio_codec `STEREO 44100 in
+  let a_ctx = AudioConverter.from_codec audio_codec `Stereo 44100 in
   let audio_output_file = open_out_bin audio_output_filename in
 
   let (video_index, video_stream, video_codec) = Av.find_best_video_stream src in
 
-  (* let v_ctx = VideoConverter.from_codec video_codec 800 600 `YUV420P in *)
-  let v_ctx = VideoConverter.create [] 352 288 `YUV420P 800 600 `YUV420P in
+  (* let v_ctx = VideoConverter.from_codec video_codec 800 600 `Yuv420p in *)
+  let v_ctx = VideoConverter.create [] 352 288 `Yuv420p 800 600 `Yuv420p in
   let video_output_file = open_out_bin video_output_filename in
 
   let rec decode() =
     match Av.read_input src with
-    | `audio (idx, af) ->
+    | `Audio (idx, af) ->
       if idx = audio_index then (
         AudioConverter.convert a_ctx af |> output_bytes audio_output_file);
       decode()
-    | `video (idx, vf) ->
+    | `Video (idx, vf) ->
       if idx = video_index then (
         VideoConverter.convert v_ctx vf |> ignore(*output_video video_output_file*));
       decode()
-    | `subtitle (idx, sf) ->
+    | `Subtitle (idx, sf) ->
       let _, _, lines = Subtitle.frame_to_lines sf in
       lines |> List.iter print_endline;
       decode()
-    | `end_of_file -> ()
+    | `End_of_file -> ()
     | exception Failure msg -> prerr_endline msg
   in
   decode();
