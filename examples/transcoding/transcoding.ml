@@ -17,7 +17,7 @@ let () =
   let osss = Av.get_subtitle_streams src |> List.fold_left(fun oss (i, _, codec) ->
       (i, Av.new_subtitle_stream ~codec dst)::oss) [] in
 
-  src |> Av.iter_input
+  src |> Av.iter_input_frame
     ~audio:(fun i frm -> Av.write(List.assoc i oass) frm)
     ~video:(fun i frm -> Av.write(List.assoc i ovss) frm)
     ~subtitle:(fun i frm -> Av.write(List.assoc i osss) frm);

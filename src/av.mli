@@ -85,14 +85,58 @@ val get_metadata : (input, _)stream -> (string * string) list
 val select : (input, _)stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Failure if the selection failed. *)
 
-(** Stream reading result. *)
-type 'media result = [ `Frame of 'media frame | `End_of_stream ]
+(** Stream packet reading result. *)
+type 'media stream_packet_result = [ `Packet of 'media Avcodec.Packet.t | `End_of_file ]
 
-val read : (input, 'media)stream -> 'media result
-(** [Av.read stream] read the input [stream]. Return the next frame of the [stream] or [End_of_stream] if the end of the stream is reached. @raise Failure if the reading failed. *)
+val read_stream_packet : (input, 'media)stream -> 'media stream_packet_result
+(** [Av.read_stream_packet stream] read the input [stream]. Return the next packet of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
 
-val iter : ('media frame -> unit) -> (input, 'media)stream -> unit
-(** [Av.iter f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Failure if the reading failed. *)
+val iter_stream_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media)stream -> unit
+(** [Av.iter_stream_packet f is] applies function [f] in turn to all the packets of the input stream [is]. @raise Failure if the reading failed. *)
+
+(** Stream frame reading result. *)
+type 'media stream_frame_result = [ `Frame of 'media frame | `End_of_file ]
+
+val read_stream_frame : (input, 'media)stream -> 'media stream_frame_result
+(** [Av.read_stream_frame stream] read the input [stream]. Return the next frame of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
+
+val iter_stream_frame : ('media frame -> unit) -> (input, 'media)stream -> unit
+(** [Av.iter_stream_frame f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Failure if the reading failed. *)
+
+
+type input_packet_result = [
+  | `Audio of int * audio Avcodec.Packet.t
+  | `Video of int * video Avcodec.Packet.t
+  | `Subtitle of int * subtitle Avcodec.Packet.t
+  | `End_of_file
+]
+
+val read_input_packet : input container -> input_packet_result
+(** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and packet of the input or [End_of_file] if the end of the input is reached. @raise Failure if the reading failed. *)
+
+val iter_input_packet : ?audio:(int -> audio Avcodec.Packet.t -> unit) ->
+  ?video:(int -> video Avcodec.Packet.t -> unit) ->
+  ?subtitle:(int -> subtitle Avcodec.Packet.t -> unit) ->
+  input container -> unit
+(** [Av.iter_input_packet ~audio:af ~video:vf ~subtitle:sf src] reads iteratively the selected streams if any or all streams of the [src] input otherwise. It applies function [af] to the audio packets, [vf] to the video packets and [sf] to the subtitle packets with the index of the related stream as first parameter. @raise Failure if the reading failed. *)
+
+
+type input_frame_result = [
+  | `Audio of int * audio frame
+  | `Video of int * video frame
+  | `Subtitle of int * subtitle frame
+  | `End_of_file
+]
+
+val read_input_frame : input container -> input_frame_result
+(** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and frame of the input or [End_of_file] if the end of the input is reached. @raise Failure if the reading failed. *)
+
+val iter_input_frame : ?audio:(int -> audio frame -> unit) ->
+  ?video:(int -> video frame -> unit) ->
+  ?subtitle:(int -> subtitle frame -> unit) ->
+  input container -> unit
+(** [Av.iter_input_frame ~audio:af ~video:vf ~subtitle:sf src] reads iteratively the selected streams if any or all streams of the [src] input otherwise. It applies function [af] to the audio frames, [vf] to the video frames and [sf] to the subtitle frames with the index of the related stream as first parameter. @raise Failure if the reading failed. *)
+
 
 (** Seek mode. *)
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
@@ -100,22 +144,8 @@ type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag
 val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
 (** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t] in the [fmt] time format according to the method indicated by the [flags]. @raise Failure if the seeking failed. *)
 
-
-type media = [
-  | `Audio of int * audio frame
-  | `Video of int * video frame
-  | `Subtitle of int * subtitle frame
-  | `End_of_file
-]
-
-val read_input : input container -> media
-(** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and frame of the input or [End_of_file] if the end of the input is reached. @raise Failure if the reading failed. *)
-
-val iter_input : ?audio:(int -> audio frame -> unit) ->
-  ?video:(int -> video frame -> unit) ->
-  ?subtitle:(int -> subtitle frame -> unit) ->
-  input container -> unit
-(** [Av.iter_input ~audio:af ~video:vf ~subtitle:sf src] reads iteratively the selected streams if any or all streams of the [src] input otherwise. It applies function [af] to the audio frames, [vf] to the video frames and [sf] to the subtitle frames with the index of the related stream as first parameter. @raise Failure if the reading failed. *)
+val reuse_output : input container -> bool -> unit
+  (** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet}, {!Av.iter_packet}, {!Av.read}, {!Av.iter}, {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input} and {!Av.iter_input} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by a reading function is invalidated by a new call to this function. *)
 
 
 (** {5 Output} *)

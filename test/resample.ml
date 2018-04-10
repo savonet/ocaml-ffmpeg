@@ -112,7 +112,7 @@ let test() =
 
         print_endline("Convert " ^ url ^ " to " ^ audio_output_filename);
 
-        is |> Av.iter (fun frame ->
+        is |> Av.iter_stream_frame (fun frame ->
             Converter.convert rsp frame
             |> output_planar_float_to_s16le audio_output_file);
 

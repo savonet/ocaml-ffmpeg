@@ -17,6 +17,9 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
 
 void value_of_packet(AVPacket *packet, value * pvalue);
 
+AVPacket * alloc_packet_value(value * pvalue);
+
+
 /**** Audio codec ID ****/
 
 enum AVCodecID AudioCodecID_val(value v);

@@ -66,15 +66,66 @@ let get_metadata s = List.rev(_get_metadata s.container s.index)
 
 external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
-type 'a result = [`Frame of 'a frame | `End_of_stream]
+
+type 'a stream_packet_result = [`Packet of 'a Avcodec.Packet.t | `End_of_file]
+
+external read_stream_packet : (input, 'm)stream -> 'm stream_packet_result = "ocaml_av_read_stream_packet"
+
+let rec iter_stream_packet f stream =
+  match read_stream_packet stream with
+  | `Packet packet -> f packet; iter_stream_packet f stream
+  | `End_of_file -> ()
 
 
-external read : (input, 'm)stream -> 'm result = "ocaml_av_read_stream"
+type 'a stream_frame_result = [`Frame of 'a frame | `End_of_file]
 
-let iter f s =
-  let rec iter() = match read s with
-    | `Frame frame -> f frame; iter()
-    | `End_of_stream -> ()
+
+external read_stream_frame : (input, 'm)stream -> 'm stream_frame_result = "ocaml_av_read_stream_frame"
+
+let rec iter_stream_frame f s =
+  match read_stream_frame s with
+    | `Frame frame -> f frame; iter_stream_frame f s
+    | `End_of_file -> ()
+
+
+type input_packet_result = [
+  | `Audio of int * audio Avcodec.Packet.t
+  | `Video of int * video Avcodec.Packet.t
+  | `Subtitle of int * subtitle Avcodec.Packet.t
+  | `End_of_file
+]
+
+(** Reads the selected streams if any or all streams otherwise. *)
+external read_input_packet : input container -> input_packet_result = "ocaml_av_read_input_packet"
+
+(** Reads iteratively the selected streams if any or all streams otherwise. *)
+let iter_input_packet ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _->())) src =
+  let rec iter() = match read_input_packet src with
+    | `Audio(index, packet) -> audio index packet; iter()
+    | `Video(index, packet) -> video index packet; iter()
+    | `Subtitle(index, packet) -> subtitle index packet; iter()
+    | `End_of_file -> ()
+  in
+  iter()
+
+
+type input_frame_result = [
+  | `Audio of int * audio frame
+  | `Video of int * video frame
+  | `Subtitle of int * subtitle frame
+  | `End_of_file
+]
+
+(** Reads the selected streams if any or all streams otherwise. *)
+external read_input_frame : input container -> input_frame_result = "ocaml_av_read_input_frame"
+
+(** Reads iteratively the selected streams if any or all streams otherwise. *)
+let iter_input_frame ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _->())) src =
+  let rec iter() = match read_input_frame src with
+    | `Audio(index, frame) -> audio index frame; iter()
+    | `Video(index, frame) -> video index frame; iter()
+    | `Subtitle(index, frame) -> subtitle index frame; iter()
+    | `End_of_file -> ()
   in
   iter()
 
@@ -83,25 +134,7 @@ type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag
 
 external seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
 
-type media = [
-  | `Audio of int * audio frame
-  | `Video of int * video frame
-  | `Subtitle of int * subtitle frame
-  | `End_of_file
-]
-
-(** Reads the selected streams if any or all streams otherwise. *)
-external read_input : input container -> media = "ocaml_av_read_input"
-
-(** Reads iteratively the selected streams if any or all streams otherwise. *)
-let iter_input ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(fun _ _->())) src =
-  let rec iter() = match read_input src with
-    | `Audio(index, frame) -> audio index frame; iter()
-    | `Video(index, frame) -> video index frame; iter()
-    | `Subtitle(index, frame) -> subtitle index frame; iter()
-    | `End_of_file -> ()
-  in
-  iter()
+external reuse_output : input container -> bool -> unit = "ocaml_av_reuse_output"
 
 
 (* Output *)

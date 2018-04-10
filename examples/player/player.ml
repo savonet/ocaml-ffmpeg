@@ -27,7 +27,7 @@ let () =
       ((fun _ frame -> Av.write_video dst frame), (fun() -> Av.close dst))
     with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
-  Av.iter_input ~audio ~video src;
+  Av.iter_input_frame ~audio ~video src;
 
   Av.close src;
   close_audio();

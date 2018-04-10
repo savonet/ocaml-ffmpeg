@@ -118,6 +118,21 @@ void value_of_packet(AVPacket *packet, value * pvalue)
   Packet_val((*pvalue)) = packet;
 }
 
+AVPacket * alloc_packet_value(value * pvalue)
+{
+  AVPacket *packet = av_packet_alloc();
+  if( ! packet) Fail("Failed to allocate packet");
+
+  av_init_packet(packet);
+  packet->data = NULL;
+  packet->size = 0;
+  
+  value_of_packet(packet, pvalue);
+
+  return packet;
+}
+
+
 CAMLprim value ocaml_avcodec_get_packet_size(value _packet)
 {
   CAMLparam1(_packet);
@@ -234,22 +249,23 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data, value _ofs
   CAMLlocal3(val_packet, tuple, ans);
   parser_t *parser = Parser_val(_parser);
   uint8_t *data = Caml_ba_data_val(_data) + Int_val(_ofs);
-  size_t len = Int_val(_len);
+  size_t init_len = Int_val(_len);
+  size_t len = init_len;
   int ret = 0;
   
-  caml_release_runtime_system();
-
   AVPacket *packet = av_packet_alloc();
+  if( ! packet) Raise(EXN_FAILURE, "Failed to allocate packet");
 
-  if(packet) {
+  caml_release_runtime_system();
+  do {
     ret = av_parser_parse2(parser->context, parser->codec_context,
                            &packet->data, &packet->size,
                            data, len, AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-  }
+    data += ret;
+    len -= ret;
+  } while(packet->size == 0 && ret > 0);
 
   caml_acquire_runtime_system();
-
-  if( ! packet) Raise(EXN_FAILURE, "Failed to allocate packet");
 
   if (ret < 0) {
     av_packet_free(&packet);
@@ -262,12 +278,15 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data, value _ofs
     tuple = caml_alloc_tuple(2);
 
     Store_field(tuple, 0, val_packet);
-    Store_field(tuple, 1, Val_int(ret));
+    Store_field(tuple, 1, Val_int(init_len - len));
 
     ans = caml_alloc(1, 0);
     Store_field(ans, 0, tuple);
   }
-  else ans = Val_int(0);
+  else {
+    av_packet_free(&packet);
+    ans = Val_int(0);
+  }
   
   CAMLreturn(ans);
 }

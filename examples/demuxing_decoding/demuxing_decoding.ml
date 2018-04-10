@@ -33,7 +33,7 @@ let () =
   let video_output_file = open_out_bin video_output_filename in
 
   let rec decode() =
-    match Av.read_input src with
+    match Av.read_input_frame src with
     | `Audio (idx, af) ->
       if idx = audio_index then (
         AudioConverter.convert a_ctx af |> output_bytes audio_output_file);

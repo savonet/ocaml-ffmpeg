@@ -34,26 +34,15 @@ module Packet = struct
 
   external parse_packet : parser_t -> data -> int -> int -> ('m t * int)option = "ocaml_avcodec_parse_packet"
 
-  let rec buf_loop ctx f buf ofs len pkt_size =
-    if len > pkt_size then (
+  let rec buf_loop ctx f buf ofs len =
       match parse_packet ctx.parser buf ofs len with
       | Some(pkt, l) -> f pkt;
-        buf_loop ctx f buf (ofs + l) (len - l) (l + 16)
+        buf_loop ctx f buf (ofs + l) (len - l)
       | None -> ofs
-    ) else ofs
-
 
   let parse_data ctx f data =
 
     let remainder_len = Ba.dim ctx.remainder in
-
-    let data = if remainder_len = 0 then (
-        let data_len = Ba.dim data in
-        let ofs = buf_loop ctx f data 0 (data_len - input_buffer_padding_size) 0 in
-        Ba.sub data ofs (data_len - ofs)
-      )
-      else data in
-
     let data_len = Ba.dim data in
     let actual_len = remainder_len + data_len in
     let needed_len = actual_len + input_buffer_padding_size in
@@ -70,7 +59,7 @@ module Packet = struct
     if needed_len <> buf_len then
       Ba.fill(Ba.sub buf actual_len input_buffer_padding_size) 0;
 
-    let parsed_len = buf_loop ctx f buf 0 actual_len (-1) in
+    let parsed_len = buf_loop ctx f buf 0 actual_len in
 
     ctx.buf <- buf;
     ctx.remainder <- Ba.sub buf parsed_len (actual_len - parsed_len)
@@ -83,7 +72,6 @@ module Packet = struct
       data.{i} <- int_of_char(Bytes.get bytes i)
     done;
     parse_data ctx f data
-
 end
 
 external create_decoder : int -> bool -> int option -> int option -> _ decoder = "ocaml_avcodec_create_context"

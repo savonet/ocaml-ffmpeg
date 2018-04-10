@@ -16,10 +16,8 @@ let () =
 
   let in_fd = Unix.openfile Sys.argv.(1) [O_RDONLY] 0 in
 
-  let out_codec_id = Audio.find_id Sys.argv.(4) in
-
   let out_file = Av.open_output Sys.argv.(3) in
-  let out_stream = Av.new_audio_stream ~codec_id:out_codec_id out_file in
+  let out_stream = Av.new_audio_stream ~codec_name:Sys.argv.(4) out_file in
 
   Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
   |> Bigarray.array1_of_genarray

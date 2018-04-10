@@ -22,10 +22,10 @@
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
 
-#define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
+#define Log(format, ...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, (format), __VA_ARGS__)
 
-#define Fail(...) {                                             \
-    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__);  \
+#define Fail(...) {                                      \
+    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__); \
     return NULL;                                                \
   }
 
@@ -84,6 +84,8 @@ enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 void value_of_frame(AVFrame *frame, value * pvalue);
 
+AVFrame * alloc_frame_value(value * pvalue);
+
 
 /***** AVSubtitle *****/
 
@@ -93,6 +95,8 @@ void value_of_frame(AVFrame *frame, value * pvalue);
 #define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
 
 void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);
+
+AVSubtitle * alloc_subtitle_value(value * pvalue);
 
 int subtitle_header_default(AVCodecContext *avctx);
 
