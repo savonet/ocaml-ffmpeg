@@ -88,20 +88,20 @@ val select : (input, _)stream -> unit
 (** Stream packet reading result. *)
 type 'media stream_packet_result = [ `Packet of 'media Avcodec.Packet.t | `End_of_file ]
 
-val read_stream_packet : (input, 'media)stream -> 'media stream_packet_result
-(** [Av.read_stream_packet stream] read the input [stream]. Return the next packet of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
+val read_packet : (input, 'media)stream -> 'media stream_packet_result
+(** [Av.read_packet stream] read the input [stream]. Return the next packet of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
 
-val iter_stream_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media)stream -> unit
-(** [Av.iter_stream_packet f is] applies function [f] in turn to all the packets of the input stream [is]. @raise Failure if the reading failed. *)
+val iter_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media)stream -> unit
+(** [Av.iter_packet f is] applies function [f] in turn to all the packets of the input stream [is]. @raise Failure if the reading failed. *)
 
 (** Stream frame reading result. *)
 type 'media stream_frame_result = [ `Frame of 'media frame | `End_of_file ]
 
-val read_stream_frame : (input, 'media)stream -> 'media stream_frame_result
-(** [Av.read_stream_frame stream] read the input [stream]. Return the next frame of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
+val read_frame : (input, 'media)stream -> 'media stream_frame_result
+(** [Av.read_frame stream] read the input [stream]. Return the next frame of the [stream] or [End_of_file] if the end of the stream is reached. @raise Failure if the reading failed. *)
 
-val iter_stream_frame : ('media frame -> unit) -> (input, 'media)stream -> unit
-(** [Av.iter_stream_frame f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Failure if the reading failed. *)
+val iter_frame : ('media frame -> unit) -> (input, 'media)stream -> unit
+(** [Av.iter_frame f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Failure if the reading failed. *)
 
 
 type input_packet_result = [
@@ -184,14 +184,18 @@ val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string ->
 (** Same as {!Av.new_audio_stream} for subtitle stream. *)
 
 
-val write : (output, 'media)stream -> 'media frame -> unit
-(** [Av.write os frm] write the [frm] frame to the [os] output stream. @raise Failure if the writing failed. *)
+val write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit
+(** [Av.write_packet os pkt] write the [pkt] packet to the [os] output stream. @raise Failure if the writing failed. *)
 
-val write_audio : output container -> audio frame -> unit
-(** [Av.write dst frm] write the [frm] audio frame to the [dst] output audio container. @raise Failure if the output format is not defined or if the output media type is not compatible with the frame or if the writing failed. *)
 
-val write_video : output container -> video frame -> unit
-(** Same as {!Av.write_audio} for output video container. *)
+val write_frame : (output, 'media)stream -> 'media frame -> unit
+(** [Av.write_frame os frm] write the [frm] frame to the [os] output stream. @raise Failure if the writing failed. *)
+
+val write_audio_frame : output container -> audio frame -> unit
+(** [Av.write_audio_frame dst frm] write the [frm] audio frame to the [dst] output audio container. @raise Failure if the output format is not defined or if the output media type is not compatible with the frame or if the writing failed. *)
+
+val write_video_frame : output container -> video frame -> unit
+(** Same as {!Av.write_audio_frame} for output video container. *)
 
 
 val close : _ container -> unit

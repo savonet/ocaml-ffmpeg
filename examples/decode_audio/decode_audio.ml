@@ -21,9 +21,9 @@ let () =
 
   Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
   |> Bigarray.array1_of_genarray
-  |> Packet.parse_data parser @@ Avcodec.decode decoder @@ Av.write out_stream;
+  |> Packet.parse_data parser @@ Avcodec.decode decoder @@ Av.write_frame out_stream;
 
-  Avcodec.flush_decoder decoder @@ Av.write out_stream;
+  Avcodec.flush_decoder decoder @@ Av.write_frame out_stream;
   
   Unix.close in_fd;
   Av.close out_file;

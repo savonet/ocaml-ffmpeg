@@ -18,7 +18,7 @@ let () =
 
   let rsp = FrameToS32Bytes.from_codec ic `Stereo 44100 in
 
-  is |> Av.iter_stream_frame (fun frame ->
+  is |> Av.iter_frame (fun frame ->
       FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
 
   Av.get_input is |> Av.close;

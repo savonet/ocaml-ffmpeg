@@ -69,22 +69,22 @@ external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
 type 'a stream_packet_result = [`Packet of 'a Avcodec.Packet.t | `End_of_file]
 
-external read_stream_packet : (input, 'm)stream -> 'm stream_packet_result = "ocaml_av_read_stream_packet"
+external read_packet : (input, 'm)stream -> 'm stream_packet_result = "ocaml_av_read_stream_packet"
 
-let rec iter_stream_packet f stream =
-  match read_stream_packet stream with
-  | `Packet packet -> f packet; iter_stream_packet f stream
+let rec iter_packet f stream =
+  match read_packet stream with
+  | `Packet packet -> f packet; iter_packet f stream
   | `End_of_file -> ()
 
 
 type 'a stream_frame_result = [`Frame of 'a frame | `End_of_file]
 
 
-external read_stream_frame : (input, 'm)stream -> 'm stream_frame_result = "ocaml_av_read_stream_frame"
+external read_frame : (input, 'm)stream -> 'm stream_frame_result = "ocaml_av_read_stream_frame"
 
-let rec iter_stream_frame f s =
-  match read_stream_frame s with
-    | `Frame frame -> f frame; iter_stream_frame f s
+let rec iter_frame f s =
+  match read_frame s with
+    | `Frame frame -> f frame; iter_frame f s
     | `End_of_file -> ()
 
 
@@ -243,10 +243,12 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec o =
   mk_stream o (new_subtitle_stream o ci)
 
 
-external write : (output, 'media)stream -> 'media frame -> unit = "ocaml_av_write_stream"
+external write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit = "ocaml_av_write_stream_packet"
 
-external write_audio : output container -> audio frame -> unit = "ocaml_av_write_audio"
-external write_video : output container -> video frame -> unit = "ocaml_av_write_video"
+external write_frame : (output, 'media)stream -> 'media frame -> unit = "ocaml_av_write_stream_frame"
+
+external write_audio_frame : output container -> audio frame -> unit = "ocaml_av_write_audio_frame"
+external write_video_frame : output container -> video frame -> unit = "ocaml_av_write_video_frame"
 
 
 external close : _ container -> unit = "ocaml_av_close"

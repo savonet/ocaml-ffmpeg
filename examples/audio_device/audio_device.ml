@@ -32,8 +32,8 @@ let () =
    with Avutil.Failure msg -> prerr_endline msg);
 
   let rec run n =
-    if n > 0 then match Av.read_stream_frame ias with
-      | `Frame frame -> Av.write_audio dst frame; run(n - 1)
+    if n > 0 then match Av.read_frame ias with
+      | `Frame frame -> Av.write_audio_frame dst frame; run(n - 1)
       | `End_of_file -> ()
   in
   run 500;

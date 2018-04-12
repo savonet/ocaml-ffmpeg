@@ -11,6 +11,7 @@ all: dc
 test: all
 	./audio_device
 	./audio_device http://37.187.70.49:80/canalb
-	./audio_device http://80.82.229.202/jetfm.mp3 jetfm.flac
+	./audio_device http://stream0.wfmu.org/freeform-128k wfmu.flac
+
 
 include OCamlMakefile

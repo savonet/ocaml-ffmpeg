@@ -10,7 +10,7 @@ let () =
   let os = Av.open_output Sys.argv.(2)
            |> Av.new_audio_stream ~codec_id:`Aac ~codec in
 
-  is |> Av.iter_stream_frame(fun frm -> Av.write os frm);
+  is |> Av.iter_frame(fun frm -> Av.write_frame os frm);
 
   Av.get_input is |> Av.close;
   Av.get_output os |> Av.close;

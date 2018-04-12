@@ -41,7 +41,7 @@ let () =
 
   for i = 0 to 240 do
     Video.frame_visit ~make_writable:true (fill_yuv_image width height i) frame
-    |> Av.write ovs;
+    |> Av.write_frame ovs;
   done;
 
   Av.close dst;

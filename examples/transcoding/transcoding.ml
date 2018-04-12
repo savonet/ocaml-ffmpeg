@@ -18,9 +18,9 @@ let () =
       (i, Av.new_subtitle_stream ~codec dst)::oss) [] in
 
   src |> Av.iter_input_frame
-    ~audio:(fun i frm -> Av.write(List.assoc i oass) frm)
-    ~video:(fun i frm -> Av.write(List.assoc i ovss) frm)
-    ~subtitle:(fun i frm -> Av.write(List.assoc i osss) frm);
+    ~audio:(fun i frm -> Av.write_frame(List.assoc i oass) frm)
+    ~video:(fun i frm -> Av.write_frame(List.assoc i ovss) frm)
+    ~subtitle:(fun i frm -> Av.write_frame(List.assoc i osss) frm);
 
   Av.close src;
   Av.close dst;

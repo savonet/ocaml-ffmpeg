@@ -88,10 +88,10 @@ let () =
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
 
-    audio_on_off.(b) |> Resampler.convert rsp |> Av.write oas;
+    audio_on_off.(b) |> Resampler.convert rsp |> Av.write_frame oas;
 
     Video.frame_visit ~make_writable:true (video_on_off.(b) width height i) frame
-    |> Av.write ovs;
+    |> Av.write_frame ovs;
   done;
 
   Av.close dst;

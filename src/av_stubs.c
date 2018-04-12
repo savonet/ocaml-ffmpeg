@@ -1195,6 +1195,31 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_id)
   CAMLreturn(Val_int(stream->index));
 }
 
+CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet)
+{
+  CAMLparam2(_stream, _packet);
+  av_t * av = StreamAv_val(_stream);
+  int stream_index = StreamIndex_val(_stream);
+  struct AVPacket *packet = Packet_val(_packet);
+  
+  if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
+
+  caml_release_runtime_system();
+  AVCodecContext * enc_ctx = av->streams[stream_index]->codec_context;
+  AVStream * avstream = av->format_context->streams[stream_index];
+
+  packet->stream_index = stream_index;
+  packet->pos = -1;
+  av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
+
+  int ret = av_interleaved_write_frame(av->format_context, packet);
+  caml_acquire_runtime_system();
+
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to write packet : %s", av_err2str(ret));
+    
+  CAMLreturn(Val_unit);
+}
+
 static int write_frame(av_t * av, int stream_index, AVCodecContext * enc_ctx, AVFrame * frame)
 {
   AVStream * avstream = av->format_context->streams[stream_index];
@@ -1469,7 +1494,7 @@ static stream_t * write_subtitle_frame(av_t * av, int stream_index, AVSubtitle *
   return stream;
 }
 
-CAMLprim value ocaml_av_write_stream(value _stream, value _frame)
+CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame)
 {
   CAMLparam2(_stream, _frame);
   av_t * av = StreamAv_val(_stream);
@@ -1496,7 +1521,7 @@ CAMLprim value ocaml_av_write_stream(value _stream, value _frame)
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_write_audio(value _av, value _frame) {
+CAMLprim value ocaml_av_write_audio_frame(value _av, value _frame) {
   CAMLparam2(_av, _frame);
   av_t * av = Av_val(_av);
   AVFrame * frame = Frame_val(_frame);
@@ -1527,7 +1552,7 @@ CAMLprim value ocaml_av_write_audio(value _av, value _frame) {
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_write_video(value _av, value _frame) {
+CAMLprim value ocaml_av_write_video_frame(value _av, value _frame) {
   CAMLparam2(_av, _frame);
   av_t * av = Av_val(_av);
   AVFrame * frame = Frame_val(_frame);
