@@ -28,6 +28,21 @@ type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1
 let create_data len = Bigarray.Array1.create Bigarray.int8_unsigned Bigarray.c_layout len
 
 
+type rational = {num : int; den : int}
+
+external time_base : unit -> rational = "ocaml_avutil_time_base"
+
+
+module Time_format = struct
+  type t = [
+    | `Second
+    | `Millisecond
+    | `Microsecond
+    | `Nanosecond
+  ]
+end
+
+
 module Pixel_format = struct
   type t = Pixel_format.t
 
@@ -41,18 +56,6 @@ module Pixel_format = struct
     (* TODO: when padding is true we should add the padding *)
     n
 end
-
-module Time_format = struct
-  type t = [
-    | `Second
-    | `Millisecond
-    | `Microsecond
-    | `Nanosecond
-  ]
-end
-
-external time_base : unit -> int64 = "ocaml_avutil_time_base"
-
 
 module Channel_layout = struct
   type t = Channel_layout.t
@@ -78,21 +81,29 @@ module Video = struct
 end
 
 module Subtitle = struct
-  external time_base : unit -> int64 = "ocaml_avutil_subtitle_time_base"
+  let time_base() = {num = 1; den = 100}
 
   external create_frame : int64 -> int64 -> string array -> subtitle frame = "ocaml_avutil_subtitle_create_frame"
 
   let create_frame start_time end_time lines =
-    let time_base = Int64.to_float(time_base()) in
-    create_frame (Int64.of_float(start_time *. time_base))
-      (Int64.of_float(end_time *. time_base))
+    let num_time_base = float_of_int((time_base()).num) in
+    let den_time_base = float_of_int((time_base()).den) in
+
+    create_frame (Int64.of_float(start_time *. den_time_base /. num_time_base))
+      (Int64.of_float(end_time *. den_time_base /. num_time_base))
       (Array.of_list lines)
 
 
   external frame_to_lines : subtitle frame -> (int64 * int64 * string array) = "ocaml_avutil_subtitle_to_lines"
 
   let frame_to_lines t =
-    let s, e, lines = frame_to_lines t in let time_base = Int64.to_float(time_base()) in
-    Int64.(to_float s /. time_base, to_float e /. time_base, Array.to_list lines)
+    let num_time_base = float_of_int((time_base()).num) in
+    let den_time_base = float_of_int((time_base()).den) in
+
+    let s, e, lines = frame_to_lines t in
+
+    Int64.(to_float s *. num_time_base /. den_time_base,
+           to_float e *. num_time_base /. den_time_base,
+           Array.to_list lines)
 
 end

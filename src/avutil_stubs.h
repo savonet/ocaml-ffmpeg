@@ -22,10 +22,10 @@
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
 
-#define Log(format, ...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, (format), __VA_ARGS__)
+#define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
 
-#define Fail(...) {                                      \
-    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__); \
+#define Fail(...) {                                             \
+    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__);  \
     return NULL;                                                \
   }
 
@@ -34,7 +34,7 @@
     caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
   }
 
-extern char ocaml_av_error_msg[];
+  extern char ocaml_av_error_msg[];
 extern char ocaml_av_exn_msg[];
 
 
@@ -46,12 +46,10 @@ extern char ocaml_av_exn_msg[];
   }
 
 
+/**** AVRational ****/
+#define rational_of_value(v) ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
 
-/**** Pixel format ****/
-
-int PixelFormat_val(value);
-
-value Val_PixelFormat(enum AVPixelFormat pf);
+void value_of_rational(AVRational * r, value * pv);
 
 
 /**** Time format ****/
@@ -78,6 +76,13 @@ value Val_SampleFormat(enum AVSampleFormat sf);
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 
+/**** Pixel format ****/
+
+int PixelFormat_val(value);
+
+value Val_PixelFormat(enum AVPixelFormat pf);
+
+
 /***** AVFrame *****/
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
@@ -88,10 +93,6 @@ AVFrame * alloc_frame_value(value * pvalue);
 
 
 /***** AVSubtitle *****/
-
-#define SUBTITLE_TIME_BASE 100
-#define SUBTITLE_TIME_BASE_Q (AVRational){1, SUBTITLE_TIME_BASE}
-
 #define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
 
 void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);

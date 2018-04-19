@@ -110,7 +110,7 @@ module Video : sig
   val get_height : video t -> int
 
   (** Returns the sample aspect ratio set for the codec. *)
-  val get_sample_aspect_ratio : video t -> (int * int)
+  val get_sample_aspect_ratio : video t -> Avutil.rational
 
   (** Returns the pixel format set for the codec. *)
   val get_pixel_format : video t -> Avutil.Pixel_format.t

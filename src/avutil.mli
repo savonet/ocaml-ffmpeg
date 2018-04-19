@@ -39,6 +39,8 @@ type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1
 val create_data : int -> data
 
 
+type rational = {num : int; den : int}
+
 (** {9 Timestamp} *)
 
 (** Formats for time. *)
@@ -54,7 +56,7 @@ module Time_format : sig
 end
 
 (** Return the time base of FFmpeg. *)
-val time_base : unit -> int64
+val time_base : unit -> rational
 
 
 
@@ -117,7 +119,7 @@ end
 
 module Subtitle : sig
 
-  val time_base : unit -> int64
+  val time_base : unit -> rational
   (** Return the time base for subtitles. *)
 
   val create_frame : float -> float -> string list -> subtitle frame

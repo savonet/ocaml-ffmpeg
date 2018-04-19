@@ -53,7 +53,7 @@ val get_audio_streams : input container -> (int * (input, audio)stream * audio A
 
 val get_video_streams : input container -> (int * (input, video)stream * video Avcodec.t) list
 (** Same as {!Av.get_audio_streams} for the video streams. *)
-    
+
 val get_subtitle_streams : input container -> (int * (input, subtitle)stream * subtitle Avcodec.t) list
 (** Same as {!Av.get_audio_streams} for the subtitle streams. *)
 
@@ -75,6 +75,12 @@ val get_index : (_, _)stream -> int
 
 val get_codec : (_, 'media)stream -> 'media Avcodec.t
 (** [Av.get_codec stream] return the codec of the [stream]. @raise Failure if the codec allocation failed. *)
+
+val get_time_base : (_, _)stream -> Avutil.rational
+(** [Av.get_time_base stream] return the time base of the [stream]. *)
+
+val set_time_base : (_, _)stream -> Avutil.rational -> unit
+(** [Av.set_time_base stream time_base] set the [stream] time base to [time_base]. *)
 
 val get_duration : ?format:Time_format.t -> (input, _)stream -> Int64.t
 (** Same as {!Av.get_input_duration} for the input streams. *)
@@ -145,7 +151,7 @@ val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> un
 (** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t] in the [fmt] time format according to the method indicated by the [flags]. @raise Failure if the seeking failed. *)
 
 val reuse_output : input container -> bool -> unit
-  (** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet}, {!Av.iter_packet}, {!Av.read}, {!Av.iter}, {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input} and {!Av.iter_input} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by a reading function is invalidated by a new call to this function. *)
+(** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet}, {!Av.iter_packet}, {!Av.read}, {!Av.iter}, {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input} and {!Av.iter_input} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by a reading function is invalidated by a new call to this function. *)
 
 
 (** {5 Output} *)
@@ -172,15 +178,15 @@ val get_output : (output, _)stream -> output container
 (** Return the output container of the output stream. *)
 
 
-val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> output container -> (output, audio)stream
-(** [Av.new_audio_stream ~codec_id:ci ~channel_layout:cl ~sample_format:sf ~sample_rate:sr ~codec:c dst] add a new audio stream to the [dst] media file. Parameters passed unitarily ([ci], [cl], [sf], [sr]...) take precedence over those of the [c] codec. This must be set before starting writing streams. @raise Failure if a writing already taken place or if the stream allocation failed. *)
+val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, audio)stream -> output container -> (output, audio)stream
+(** [Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst] add a new audio stream to the [dst] media file. Parameters [ci], [cn], [cl], [sf], [br], [sr] passed unitarily take precedence over those of the [c] codec. The [c] codec and [tb] time base parameters take precedence over those of the [s] stream. This must be set before starting writing streams. @raise Failure if a writing already taken place or if the stream allocation failed. *)
 
 
-val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> output container -> (output, video)stream
+val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, video)stream -> output container -> (output, video)stream
 (** Same as {!Av.new_audio_stream} for video stream. *)
 
 
-val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> output container -> (output, subtitle)stream
+val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, subtitle)stream -> output container -> (output, subtitle)stream
 (** Same as {!Av.new_audio_stream} for subtitle stream. *)
 
 

@@ -21,39 +21,14 @@
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
-CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)
-{
-  CAMLparam1(pixel);
-  enum AVPixelFormat p = PixelFormat_val(pixel);
 
-  CAMLreturn(Val_int(av_get_bits_per_pixel(av_pix_fmt_desc_get(p))));
+/**** Rational ****/
+void value_of_rational(AVRational * rational, value * pvalue) {
+  *pvalue = caml_alloc_tuple(2);
+  Field(*pvalue, 0) = Val_int(rational->num);
+  Field(*pvalue, 1) = Val_int(rational->den);
 }
 
-CAMLprim value ocaml_avutil_pixelformat_planes(value pixel)
-{
-  CAMLparam1(pixel);
-  enum AVPixelFormat p = PixelFormat_val(pixel);
-
-  CAMLreturn(Val_int(av_pix_fmt_count_planes(p)));
-}
-
-CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel)
-{
-  CAMLparam1(pixel);
-  enum AVPixelFormat p = PixelFormat_val(pixel);
-
-  CAMLreturn(caml_copy_string(av_get_pix_fmt_name(p)));
-}
-
-CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
-{
-  CAMLparam1(name);
-  enum AVPixelFormat p = av_get_pix_fmt(String_val(name));
-
-  if (p == AV_PIX_FMT_NONE) Raise(EXN_FAILURE, "Invalid format name");
-
-  CAMLreturn(Val_PixelFormat(p));
-}
 
 /**** Time format ****/
 int64_t second_fractions_of_time_format(value time_format)
@@ -71,7 +46,11 @@ int64_t second_fractions_of_time_format(value time_format)
 CAMLprim value ocaml_avutil_time_base()
 {
   CAMLparam0();
-  CAMLreturn(caml_copy_int64(AV_TIME_BASE));
+  CAMLlocal1(ans);
+
+  value_of_rational(&AV_TIME_BASE_Q, &ans);
+
+  CAMLreturn(ans);
 }
 
 /**** Channel layout ****/
@@ -127,6 +106,42 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
   ans = caml_copy_string(name);
 
   CAMLreturn(ans);
+}
+
+
+/***** AVPixelFormat *****/
+CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(Val_int(av_get_bits_per_pixel(av_pix_fmt_desc_get(p))));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_planes(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(Val_int(av_pix_fmt_count_planes(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel)
+{
+  CAMLparam1(pixel);
+  enum AVPixelFormat p = PixelFormat_val(pixel);
+
+  CAMLreturn(caml_copy_string(av_get_pix_fmt_name(p)));
+}
+
+CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
+{
+  CAMLparam1(name);
+  enum AVPixelFormat p = av_get_pix_fmt(String_val(name));
+
+  if (p == AV_PIX_FMT_NONE) Raise(EXN_FAILURE, "Invalid format name");
+
+  CAMLreturn(Val_PixelFormat(p));
 }
 
 
@@ -275,12 +290,6 @@ AVSubtitle * alloc_subtitle_value(value * pvalue)
   value_of_subtitle(subtitle, pvalue);
 
   return subtitle;
-}
-
-CAMLprim value ocaml_avutil_subtitle_time_base()
-{
-  CAMLparam0();
-  CAMLreturn(caml_copy_int64(SUBTITLE_TIME_BASE));
 }
 
 int subtitle_header_default(AVCodecContext *codec_context)

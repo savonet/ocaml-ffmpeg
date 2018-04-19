@@ -123,10 +123,6 @@ AVPacket * alloc_packet_value(value * pvalue)
   AVPacket *packet = av_packet_alloc();
   if( ! packet) Fail("Failed to allocate packet");
 
-  av_init_packet(packet);
-  packet->data = NULL;
-  packet->size = 0;
-  
   value_of_packet(packet, pvalue);
 
   return packet;
@@ -560,8 +556,8 @@ static int send_frame(codec_context_t *ctx, AVFrame *frame)
   }
   else {
     if(frame != NULL) {
-    AVAudioFifo *fifo = ctx->audio_fifo;
-    int fifo_size = av_audio_fifo_size(fifo);
+      AVAudioFifo *fifo = ctx->audio_fifo;
+      int fifo_size = av_audio_fifo_size(fifo);
 
       fifo_size += frame->nb_samples;
     
@@ -788,9 +784,7 @@ CAMLprim value ocaml_avcodec_parameters_get_sample_aspect_ratio(value _cp) {
   CAMLparam1(_cp);
   CAMLlocal1(ans);
 
-  ans = caml_alloc_tuple(2);
-  Field(ans, 0) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.num);
-  Field(ans, 1) = Val_int(CodecParameters_val(_cp)->sample_aspect_ratio.den);
+  value_of_rational(&CodecParameters_val(_cp)->sample_aspect_ratio, &ans);
 
   CAMLreturn(ans);
 }

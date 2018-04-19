@@ -123,7 +123,7 @@ module Video = struct
   external get_id : video t -> id = "ocaml_avcodec_parameters_get_video_codec_id"
   external get_width : video t -> int = "ocaml_avcodec_parameters_get_width"
   external get_height : video t -> int = "ocaml_avcodec_parameters_get_height"
-  external get_sample_aspect_ratio : video t -> int * int = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
+  external get_sample_aspect_ratio : video t -> Avutil.rational = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
   external get_pixel_format : video t -> Avutil.Pixel_format.t = "ocaml_avcodec_parameters_get_pixel_format"
   external get_bit_rate : video t -> int = "ocaml_avcodec_parameters_get_bit_rate"
 

@@ -13,6 +13,7 @@ test: all
 	$(MAKE) -C decode_audio $@
 	$(MAKE) -C audio_decoding $@
 	$(MAKE) -C audio_device $@
+	$(MAKE) -C remuxing $@
 	$(MAKE) -C transcode_aac $@
 	$(MAKE) -C transcoding $@
 	$(MAKE) -C demuxing_decoding $@
