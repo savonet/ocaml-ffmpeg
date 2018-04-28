@@ -330,13 +330,13 @@ CAMLprim value ocaml_av_open_input(value _url)
 {
   CAMLparam1(_url);
   CAMLlocal1(ans);
-  char * url = caml_strdup(String_val(_url));
+  char * url = strndup(String_val(_url), caml_string_length(_url));
 
   // open input url
   caml_release_runtime_system();
   av_t *av = open_input(url, NULL);
 
-  caml_stat_free(url);
+  free(url);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -955,13 +955,13 @@ CAMLprim value ocaml_av_open_output(value _filename)
 {
   CAMLparam1(_filename);
   CAMLlocal1(ans);
-  char * filename = caml_strdup(String_val(_filename));
+  char * filename = strndup(String_val(_filename), caml_string_length(_filename));
 
   // open output file
   caml_release_runtime_system();
   av_t *av = open_output(NULL, NULL, filename);
 
-  caml_stat_free(filename);
+  free(filename);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -995,13 +995,13 @@ CAMLprim value ocaml_av_open_output_format_name(value _format_name)
 {
   CAMLparam1(_format_name);
   CAMLlocal1(ans);
-  char * format_name = caml_strdup(String_val(_format_name));
+  char * format_name = strndup(String_val(_format_name), caml_string_length(_format_name));
 
   // open output file
   caml_release_runtime_system();
   av_t *av = open_output(NULL, format_name, NULL);
 
-  caml_stat_free(format_name);
+  free(format_name);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
