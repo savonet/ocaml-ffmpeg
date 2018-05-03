@@ -34,6 +34,13 @@ type 'media frame
 exception Failure of string
 
 
+type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
+
+val create_data : int -> data
+
+
+type rational = {num : int; den : int}
+
 (** {9 Timestamp} *)
 
 (** Formats for time. *)
@@ -41,15 +48,15 @@ module Time_format : sig
 
   (** Time formats. *)
   type t = [
-    | `second
-    | `millisecond
-    | `microsecond
-    | `nanosecond
+    | `Second
+    | `Millisecond
+    | `Microsecond
+    | `Nanosecond
   ]
 end
 
 (** Return the time base of FFmpeg. *)
-val time_base : unit -> int64
+val time_base : unit -> rational
 
 
 
@@ -95,7 +102,6 @@ module Pixel_format : sig
 end
 
 module Video : sig
-  type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
   type planes = (data * int) array
 
   val create_frame : int -> int -> Pixel_format.t -> video frame
@@ -113,7 +119,7 @@ end
 
 module Subtitle : sig
 
-  val time_base : unit -> int64
+  val time_base : unit -> rational
   (** Return the time base for subtitles. *)
 
   val create_frame : float -> float -> string list -> subtitle frame

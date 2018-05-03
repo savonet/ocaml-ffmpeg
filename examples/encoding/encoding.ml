@@ -52,18 +52,18 @@ let () =
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in
 
   let oas = Av.new_audio_stream ~codec_name:Sys.argv.(2)
-      ~channel_layout:`STEREO ~sample_rate dst in
+      ~channel_layout:`Stereo ~sample_rate dst in
 
   Av.set_metadata oas ["Media", "Audio"];
 
-  let rsp = Resampler.to_codec `MONO sample_rate (Av.get_codec oas) in
+  let rsp = Resampler.to_codec `Mono sample_rate (Av.get_codec oas) in
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
-  let audio = Array.init sample_rate
-      (fun t -> if t < sample_rate / 2 then sin(float_of_int t *. c) else 0.) in
+  let audio_on_off = [|Array.init 1804 (fun t -> sin(float_of_int t *. c));
+                       Array.make 1804 0.|] in
 
-  let width = 352 in let height = 288 in let pixel_format = `YUV420P in
+  let width = 352 in let height = 288 in let pixel_format = `Yuv420p in
   let frame_rate = 25 in
 
   let ovs = Av.new_video_stream ~codec_name:Sys.argv.(3)
@@ -78,20 +78,20 @@ let () =
   Av.set_metadata oas ["Media", "Subtitle"];
 *)
   let duration = 10 in
-
+(*  
   for i = 0 to duration - 1 do
-    audio |> Resampler.convert rsp |> Av.write oas;
-    (*
     let s = float_of_int i in
     Subtitle_frame.from_lines s (s +. 0.5) [string_of_int i]
     |> Av.write oss;
-*)
   done;
-
+*)
   for i = 0 to frame_rate * duration - 1 do
     let b = (i mod frame_rate) / 13 in
+
+    audio_on_off.(b) |> Resampler.convert rsp |> Av.write_frame oas;
+
     Video.frame_visit ~make_writable:true (video_on_off.(b) width height i) frame
-    |> Av.write ovs;
+    |> Av.write_frame ovs;
   done;
 
   Av.close dst;

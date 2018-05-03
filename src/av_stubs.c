@@ -22,6 +22,9 @@
 #include "avcodec_stubs.h"
 #include "av_stubs.h"
 
+#include <libavutil/timestamp.h>
+#include <libavformat/avformat.h>
+
 /**** Context ****/
 
 typedef struct {
@@ -29,7 +32,8 @@ typedef struct {
   AVCodecContext *codec_context;
 
   // input
-  value frame;
+  value packet_value;
+  value frame_value;
   int got_frame;
 
   // output
@@ -44,11 +48,11 @@ typedef struct {
 typedef struct av_t {
   AVFormatContext *format_context;
   stream_t ** streams;
-  AVPacket packet;
   value control_message_callback;
   int is_input;
 
   // input
+  value packet_value;
   int end_of_file;
   int selected_streams;
   stream_t * best_audio_stream;
@@ -57,6 +61,7 @@ typedef struct av_t {
 
   // output
   int header_written;
+  int release_out;
 } av_t;
 
 #define Av_val(v) (*(av_t**)Data_custom_val(v))
@@ -88,7 +93,9 @@ static void free_stream(stream_t * stream)
   
   if(stream->codec_context) avcodec_free_context(&stream->codec_context);
 
-  if(stream->frame) caml_remove_generational_global_root(&stream->frame);
+  if(stream->packet_value) caml_remove_generational_global_root(&stream->packet_value);
+
+  if(stream->frame_value) caml_remove_generational_global_root(&stream->frame_value);
 
   if(stream->swr_ctx) {
     swr_free(&stream->swr_ctx);
@@ -143,8 +150,6 @@ static void close_av(av_t * av)
     av->best_audio_stream = NULL;
     av->best_video_stream = NULL;
     av->best_subtitle_stream = NULL;
-
-    av_packet_unref(&av->packet);
   }
 }
 
@@ -154,6 +159,8 @@ static void free_av(av_t * av)
 
   close_av(av);
   
+  if(av->packet_value) caml_remove_generational_global_root(&av->packet_value);
+
   if(av->control_message_callback) {
     caml_remove_generational_global_root(&av->control_message_callback);
   }
@@ -212,6 +219,27 @@ CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
   value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar, &ans);
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_stream_time_base(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal1(ans);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  value_of_rational(&av->format_context->streams[index]->time_base, &ans);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_set_stream_time_base(value _stream, value _time_base) {
+  CAMLparam2(_stream, _time_base);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  av->format_context->streams[index]->time_base = rational_of_value(_time_base);
+
+  CAMLreturn(Val_unit);
 }
 
 value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx) {
@@ -273,6 +301,7 @@ static av_t * open_input(char *url, AVInputFormat *format)
   if ( ! av) Fail("Failed to allocate input context");
 
   av->is_input = 1;
+  av->release_out = 1;
   
   av_register_all();
 
@@ -301,13 +330,13 @@ CAMLprim value ocaml_av_open_input(value _url)
 {
   CAMLparam1(_url);
   CAMLlocal1(ans);
-  char * url = caml_strdup(String_val(_url));
+  char * url = strndup(String_val(_url), caml_string_length(_url));
 
   // open input url
   caml_release_runtime_system();
   av_t *av = open_input(url, NULL);
 
-  caml_stat_free(url);
+  free(url);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -395,6 +424,32 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_av_reuse_output(value _av, value _reuse_output)
+{
+  CAMLparam2(_av, _reuse_output);
+  Av_val(_av)->release_out = ! Bool_val(_reuse_output);
+  CAMLreturn(Val_unit);
+}
+
+static void check_packet_value(value * packet_value)
+{
+  // Allocate the packet if needed
+  if( ! *packet_value) {
+    if( ! alloc_packet_value(packet_value)) Raise(EXN_FAILURE, "Failed to allocate packet value");
+    caml_register_generational_global_root(packet_value);
+  }
+}
+
+static value get_packet_value(av_t * av) {
+  check_packet_value(&av->packet_value);
+  return av->packet_value;
+}
+
+static value get_stream_packet_value(stream_t * stream) {
+  check_packet_value(&stream->packet_value);
+  return stream->packet_value;
+}
+
 static stream_t** allocate_input_context(av_t *av)
 {
   if( ! av->format_context) Fail("Failed to read closed input");
@@ -403,12 +458,18 @@ static stream_t** allocate_input_context(av_t *av)
   av->streams = (stream_t**)calloc(av->format_context->nb_streams, sizeof(stream_t*));
   if( ! av->streams) Fail("Failed to allocate streams array");
 
-  // initialize packet, set data to NULL, let the demuxer fill it
-  av_init_packet(&av->packet);
-  av->packet.data = NULL;
-  av->packet.size = 0;
-
   return av->streams;
+}
+
+static value * allocate_type_frame(enum AVMediaType type, value * pvalue)
+{
+  if(type == AVMEDIA_TYPE_SUBTITLE) {
+    if( ! alloc_subtitle_value(pvalue)) return NULL;
+  }
+  else {
+    if( ! alloc_frame_value(pvalue)) return NULL;
+  }
+  return pvalue;
 }
 
 static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
@@ -428,19 +489,8 @@ static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
   if( ! stream->codec_context) Fail("Failed to allocate stream %d codec context", index);
 
   // Allocate the frame
-  if(type == AVMEDIA_TYPE_SUBTITLE) {
-    AVSubtitle * subtitle = (AVSubtitle*)calloc(1, sizeof(AVSubtitle));
-    if( ! subtitle) Fail("Failed to allocate stream subtitle context");
-
-    value_of_subtitle(subtitle, &stream->frame);
-  }
-  else {
-    AVFrame * frame = av_frame_alloc();
-    if( ! frame) Fail("Failed to allocate frame");
-
-    value_of_frame(frame, &stream->frame);
-  }
-  caml_register_generational_global_root(&stream->frame);
+  if( ! allocate_type_frame(type, &stream->frame_value)) return NULL;
+  caml_register_generational_global_root(&stream->frame_value);
 
   return stream;
 }
@@ -500,9 +550,8 @@ CAMLprim value ocaml_av_select_stream(value _stream)
 }
 
 
-static value decode_packet(av_t * av, stream_t * stream)
+static value decode_packet(av_t * av, stream_t * stream, AVPacket * packet, AVFrame * frame)
 {
-  AVPacket * packet = &av->packet;
   AVCodecContext * dec = stream->codec_context;
   value frame_kind = 0;
   int ret = AVERROR_INVALIDDATA;
@@ -517,23 +566,23 @@ static value decode_packet(av_t * av, stream_t * stream)
       if (ret >= 0) packet->size = 0;
   
       // decode frame
-      ret = avcodec_receive_frame(dec, Frame_val(stream->frame));
+      ret = avcodec_receive_frame(dec, frame);
     }
   
     if(dec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      frame_kind = PVV_audio;
+      frame_kind = PVV_Audio;
     }
     else {
-      frame_kind = PVV_video;
+      frame_kind = PVV_Video;
     }
   }
   else if(dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
   
-    ret = avcodec_decode_subtitle2(dec, Subtitle_val(stream->frame), &stream->got_frame, packet);
+    ret = avcodec_decode_subtitle2(dec, (AVSubtitle *)frame, &stream->got_frame, packet);
   
     if (ret >= 0) packet->size = 0;
   
-    frame_kind = PVV_subtitle;
+    frame_kind = PVV_Subtitle;
   }
   
   if(packet->size <= 0) {
@@ -545,89 +594,178 @@ static value decode_packet(av_t * av, stream_t * stream)
   }
   else if (ret == AVERROR_EOF) {
     stream->got_frame = 0;
-    frame_kind = PVV_end_of_file;
+    frame_kind = PVV_End_of_file;
   }
   else if (ret == AVERROR(EAGAIN)) {
     frame_kind = 0;
   }
   else {
     Log("Failed to decode %s frame : %s", av_get_media_type_string(dec->codec_type), av_err2str(ret));
-    frame_kind = PVV_error;
+    frame_kind = PVV_Error;
   }
 
   return frame_kind;
 }
 
-static value read_stream_frame(av_t * av, stream_t * stream)
+static void read_packet(av_t * av, AVPacket * packet, int stream_index, stream_t ** selected_streams)
 {
-  AVPacket * packet = &av->packet;
-  int stream_index = stream->index;
+  for(;;) {
+    // read frames from the file
+    int ret = av_read_frame(av->format_context, packet);
+
+    if(ret < 0) {
+      packet->data = NULL;
+      packet->size = 0;
+      av->end_of_file = 1;
+      break;
+    }
+
+    if(packet->stream_index == stream_index
+       || (stream_index < 0
+           && ( ! selected_streams
+                || selected_streams[packet->stream_index]))) break;
+
+    av_packet_unref(packet);
+  }
+}
+
+
+CAMLprim value ocaml_av_read_stream_packet(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal2(ans, packet_value);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index))
+    Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+  if(av->release_out) {
+    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+  else {
+    packet_value = get_stream_packet_value(av->streams[index]);
+  }
+  AVPacket * packet = Packet_val(packet_value);
+
+  caml_release_runtime_system();
+  read_packet(av, packet, index, NULL);
+  caml_acquire_runtime_system();
+
+  if(av->end_of_file) {
+    ans = PVV_End_of_file;
+  }
+  else {
+    ans = caml_alloc_tuple(2);
+    Field(ans, 0) = PVV_Packet;
+    Field(ans, 1) = packet_value;
+  }
+  CAMLreturn(ans);
+}
+
+
+CAMLprim value ocaml_av_read_stream_frame(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal2(ans, frame_value);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index))
+    Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+  stream_t * stream = av->streams[index];
+  AVPacket * packet = Packet_val(get_stream_packet_value(stream));
   value frame_kind = 0;
+
+  if(av->release_out) {
+    if( ! allocate_type_frame(stream->codec_context->codec_type, &frame_value))
+      Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+  else {
+    frame_value = stream->frame_value;
+  }
+  AVFrame * frame = Frame_val(frame_value);
 
   caml_release_runtime_system();
 
   for(; ! frame_kind;) {
-    if( ! av->end_of_file) {
-
-      if(packet->size <= 0) {
-        // read frames from the file
-        int ret = av_read_frame(av->format_context, packet);
-
-        if(ret < 0) {
-          packet->data = NULL;
-          packet->size = 0;
-          av->end_of_file = 1;
-        }
-        else if (packet->stream_index != stream_index) {
-          av_packet_unref(packet);
-          continue;
-        }
-      }
+    if( ! av->end_of_file && packet->size <= 0) {
+      read_packet(av, packet, index, NULL);
     }
-    frame_kind = decode_packet(av, stream);
+    frame_kind = decode_packet(av, stream, packet, frame);
   }
-
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
-  return frame_kind;
-}
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
-
-CAMLprim value ocaml_av_read_stream(value _stream) {
-  CAMLparam1(_stream);
-  CAMLlocal1(ans);
-  av_t * av = StreamAv_val(_stream);
-  int index = StreamIndex_val(_stream);
-  stream_t * stream = NULL;
-
-  if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index)) Raise(EXN_FAILURE, ocaml_av_error_msg);
-  stream = av->streams[index];
-  
-  value frame_kind = read_stream_frame(av, stream);
-
-  if(frame_kind == PVV_end_of_file) {
-    ans = PVV_end_of_stream;
+  if(frame_kind == PVV_End_of_file) {
+    ans = PVV_End_of_file;
   }
   else {
     ans = caml_alloc_tuple(2);
-    Field(ans, 0) = PVV_frame;
-    Field(ans, 1) = stream->frame;
+    Field(ans, 0) = PVV_Frame;
+    Field(ans, 1) = frame_value;
   }
 
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_read_input(value _av)
+
+CAMLprim value ocaml_av_read_input_packet(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal3(ans, stream_packet, packet_value);
+  av_t * av = Av_val(_av);
+  stream_t ** selected_streams = av->selected_streams ? av->streams : NULL;
+
+  if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+  if(av->release_out) {
+    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+  else {
+    packet_value = get_packet_value(av);
+  }
+  AVPacket * packet = Packet_val(packet_value);
+
+  caml_release_runtime_system();
+  read_packet(av, packet, -1, selected_streams);
+  caml_acquire_runtime_system();
+
+  if(av->end_of_file) {
+    ans = PVV_End_of_file;
+  }
+  else {
+    int index = packet->stream_index;
+
+    if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index))
+      Raise(EXN_FAILURE, ocaml_av_error_msg);
+
+    stream_packet = caml_alloc_tuple(2);
+    Field(stream_packet, 0) = Val_int(index);
+    Field(stream_packet, 1) = packet_value;
+
+    ans = caml_alloc_tuple(2);
+    switch(av->streams[index]->codec_context->codec_type) {
+    case AVMEDIA_TYPE_AUDIO : Field(ans, 0) = PVV_Audio; break;
+    case AVMEDIA_TYPE_VIDEO : Field(ans, 0) = PVV_Video; break;
+    default : Field(ans, 0) = PVV_Subtitle; break;
+    }
+    Field(ans, 1) = stream_packet;
+  }
+  CAMLreturn(ans);
+}
+
+
+CAMLprim value ocaml_av_read_input_frame(value _av)
 {
   CAMLparam1(_av);
-  CAMLlocal2(ans, stream_frame);
+  CAMLlocal3(ans, stream_frame, frame_value);
   av_t * av = Av_val(_av);
 
   if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
-  AVPacket * packet = &av->packet;
+  AVPacket * packet = Packet_val(get_packet_value(av));
   stream_t ** streams = av->streams;
+  stream_t ** selected_streams = av->selected_streams ? av->streams : NULL;
   unsigned int nb_streams = av->format_context->nb_streams;
   stream_t * stream = NULL;
   value frame_kind = 0;
@@ -638,28 +776,14 @@ CAMLprim value ocaml_av_read_input(value _av)
     if( ! av->end_of_file) {
   
       if(packet->size <= 0) {
-        // read frames from the file
-        int ret = av_read_frame(av->format_context, packet);
-
-        if(ret < 0) {
-          packet->data = NULL;
-          packet->size = 0;
-          av->end_of_file = 1;
-          continue;
-        }
+        read_packet(av, packet, -1, selected_streams);
+        if(av->end_of_file) continue;
       }
   
       if((stream = streams[packet->stream_index]) == NULL) {
-  
-        if(av->selected_streams) {
-          av_packet_unref(packet);
-          continue;
-        }
-        else {
-          if(NULL == (stream = open_stream_index(av, packet->stream_index))) {
-            frame_kind = PVV_error;
-            break;
-          }
+        if(NULL == (stream = open_stream_index(av, packet->stream_index))) {
+          frame_kind = PVV_Error;
+          break;
         }
       }
     }
@@ -671,27 +795,33 @@ CAMLprim value ocaml_av_read_input(value _av)
       }
 
       if(i == nb_streams) {
-        frame_kind = PVV_end_of_file;
+        frame_kind = PVV_End_of_file;
         break;
       }
     }
-    frame_kind = decode_packet(av, stream);
+    frame_kind = decode_packet(av, stream, packet, Frame_val(stream->frame_value));
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
   
-  if(frame_kind == PVV_end_of_file) {
-    ans = PVV_end_of_file;
+  if(frame_kind == PVV_End_of_file) {
+    ans = PVV_End_of_file;
   }
   else {
     stream_frame = caml_alloc_tuple(2);
     Field(stream_frame, 0) = Val_int(stream->index);
-    Field(stream_frame, 1) = stream->frame;
+    Field(stream_frame, 1) = stream->frame_value;
 
     ans = caml_alloc_tuple(2);
     Field(ans, 0) = frame_kind;
     Field(ans, 1) = stream_frame;
+
+    if(av->release_out) {
+      if( ! allocate_type_frame(stream->codec_context->codec_type, &frame_value))
+        Raise(EXN_FAILURE, ocaml_av_error_msg);
+      caml_modify_generational_global_root(&stream->frame_value, frame_value);
+    }
   }
   CAMLreturn(ans);
 }
@@ -799,7 +929,7 @@ CAMLprim value ocaml_av_output_format_get_subtitle_codec_id(value _output_format
 static av_t * open_output(AVOutputFormat *format, const char *format_name, const char *file_name)
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
-  if ( ! av) Fail("Failed to allocate %s output context", file_name);
+  if ( ! av) Fail("Failed to allocate output context");
 
   av_register_all();
 
@@ -807,7 +937,7 @@ static av_t * open_output(AVOutputFormat *format, const char *format_name, const
   
   if ( ! av->format_context) {
     free_av(av);
-    Fail("Failed to allocate %s format context", file_name);
+    Fail("Failed to allocate format context");
   }
 
   // open the output file, if needed
@@ -815,7 +945,7 @@ static av_t * open_output(AVOutputFormat *format, const char *format_name, const
     int ret = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
     if (ret < 0) {
       free_av(av);
-      Fail("Failed to open '%s': %s\n", file_name, av_err2str(ret));
+      Fail("Failed to open output file : %s\n", av_err2str(ret));
     }
   }
   return av;
@@ -825,13 +955,13 @@ CAMLprim value ocaml_av_open_output(value _filename)
 {
   CAMLparam1(_filename);
   CAMLlocal1(ans);
-  char * filename = caml_strdup(String_val(_filename));
+  char * filename = strndup(String_val(_filename), caml_string_length(_filename));
 
   // open output file
   caml_release_runtime_system();
   av_t *av = open_output(NULL, NULL, filename);
 
-  caml_stat_free(filename);
+  free(filename);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -865,13 +995,13 @@ CAMLprim value ocaml_av_open_output_format_name(value _format_name)
 {
   CAMLparam1(_format_name);
   CAMLlocal1(ans);
-  char * format_name = caml_strdup(String_val(_format_name));
+  char * format_name = strndup(String_val(_format_name), caml_string_length(_format_name));
 
   // open output file
   caml_release_runtime_system();
   av_t *av = open_output(NULL, format_name, NULL);
 
-  caml_stat_free(format_name);
+  free(format_name);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -962,7 +1092,7 @@ static stream_t * init_stream_encoder(av_t *av, stream_t *stream)
   return stream;
 }
 
-static stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate)
+static stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate, AVRational time_base)
 {
   stream_t * stream = new_stream(av, codec_id);
   if( ! stream) return NULL;
@@ -974,7 +1104,7 @@ static stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t c
   enc_ctx->channel_layout = channel_layout;
   enc_ctx->channels = av_get_channel_layout_nb_channels(channel_layout);
   enc_ctx->sample_fmt = sample_fmt;
-  enc_ctx->time_base = (AVRational){1, sample_rate};
+  enc_ctx->time_base = time_base;
 
   stream = init_stream_encoder(av, stream);
   if( ! stream) return NULL;
@@ -1002,16 +1132,17 @@ static stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t c
   return stream;
 }
 
-CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_id, value _channel_layout, value _sample_fmt, value _bit_rate, value _sample_rate)
+CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_id, value _channel_layout, value _sample_fmt, value _bit_rate, value _sample_rate, value _time_base)
 {
-  CAMLparam4(_av, _audio_codec_id, _channel_layout, _sample_fmt);
+  CAMLparam5(_av, _audio_codec_id, _channel_layout, _sample_fmt, _time_base);
 
   stream_t * stream = new_audio_stream(Av_val(_av),
                                        AudioCodecID_val(_audio_codec_id),
                                        ChannelLayout_val(_channel_layout),
                                        SampleFormat_val(_sample_fmt),
                                        Int_val(_bit_rate),
-                                       Int_val(_sample_rate));
+                                       Int_val(_sample_rate),
+                                       rational_of_value(_time_base));
 
   if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
                                        
@@ -1020,11 +1151,11 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_id, value
 
 CAMLprim value ocaml_av_new_audio_stream_byte(value *argv, int argn)
 {
-  return ocaml_av_new_audio_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5]);
+  return ocaml_av_new_audio_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
 }
 
 
-static stream_t * new_video_stream(av_t *av, enum AVCodecID codec_id, int width, int height, enum AVPixelFormat pix_fmt, int bit_rate, int frame_rate)
+static stream_t * new_video_stream(av_t *av, enum AVCodecID codec_id, int width, int height, enum AVPixelFormat pix_fmt, int bit_rate, int frame_rate, AVRational time_base)
 {
   stream_t * stream = new_stream(av, codec_id);
   if( ! stream) return NULL;
@@ -1035,24 +1166,26 @@ static stream_t * new_video_stream(av_t *av, enum AVCodecID codec_id, int width,
   enc_ctx->width = width;
   enc_ctx->height = height;
   enc_ctx->pix_fmt = pix_fmt;
-  enc_ctx->time_base = (AVRational){1, frame_rate};
+  enc_ctx->time_base = time_base;
   enc_ctx->framerate = (AVRational){frame_rate, 1};
  
   stream = init_stream_encoder(av, stream);
   return stream;
 }
 
-CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_id, value _width, value _height, value _pix_fmt, value _bit_rate, value _frame_rate)
+CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_id, value _width, value _height, value _pix_fmt, value _bit_rate, value _frame_rate, value _time_base)
 {
-  CAMLparam3(_av, _video_codec_id, _pix_fmt);
+  CAMLparam4(_av, _video_codec_id, _pix_fmt, _time_base);
 
-  stream_t * stream = new_video_stream(Av_val(_av),
+  stream_t * stream = new_video_stream(
+                                       Av_val(_av),
                                        VideoCodecID_val(_video_codec_id),
                                        Int_val(_width),
                                        Int_val(_height),
                                        PixelFormat_val(_pix_fmt),
                                        Int_val(_bit_rate),
-                                       Int_val(_frame_rate));
+                                       Int_val(_frame_rate),
+                                       rational_of_value(_time_base));
 
   if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
@@ -1061,38 +1194,71 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_id, value
 
 CAMLprim value ocaml_av_new_video_stream_byte(value *argv, int argn)
 {
-  return ocaml_av_new_video_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+  return ocaml_av_new_video_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
 }
 
 
-static stream_t * new_subtitle_stream(av_t *av, enum AVCodecID codec_id)
+static stream_t * new_subtitle_stream(av_t *av, enum AVCodecID codec_id, AVRational time_base)
 {
   stream_t * stream = new_stream(av, codec_id);
   if( ! stream) return NULL;
-  /*
-    stream->codec_context->subtitle_header = av_asprintf(" ");
-    if ( ! stream->codec_context->subtitle_header) Fail("Failed to create new subtitle stream");
-    stream->codec_context->subtitle_header_size = strlen(stream->codec_context->subtitle_header);
-  */
+
   int ret = subtitle_header_default(stream->codec_context);
   if (ret < 0) Fail("Failed to create new subtitle stream : %s", av_err2str(ret));
 
-  stream->codec_context->time_base = SUBTITLE_TIME_BASE_Q;
+  stream->codec_context->time_base = time_base;
 
   stream = init_stream_encoder(av, stream);
   return stream;
 }
 
-CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_id)
+CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_id, value _time_base)
 {
-  CAMLparam2(_av, _subtitle_codec_id);
+  CAMLparam3(_av, _subtitle_codec_id, _time_base);
 
   stream_t * stream = new_subtitle_stream(Av_val(_av),
-                                          SubtitleCodecID_val(_subtitle_codec_id));
+                                          SubtitleCodecID_val(_subtitle_codec_id),
+                                          rational_of_value(_time_base));
 
   if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   CAMLreturn(Val_int(stream->index));
+}
+
+CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet)
+{
+  CAMLparam2(_stream, _packet);
+  av_t * av = StreamAv_val(_stream);
+  int ret, stream_index = StreamIndex_val(_stream);
+  AVPacket *packet = Packet_val(_packet);
+
+  if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
+
+  if( ! av->header_written) {
+    // write output file header
+    ret = avformat_write_header(av->format_context, NULL);
+    if(ret < 0) Raise(EXN_FAILURE, "Failed to write header : %s", av_err2str(ret));
+
+    av->header_written = 1;
+  }
+
+  caml_release_runtime_system();
+
+  AVCodecContext * enc_ctx = av->streams[stream_index]->codec_context;
+  AVStream * avstream = av->format_context->streams[stream_index];
+
+  packet->stream_index = stream_index;
+  packet->pos = -1;
+
+  // The stream time base can be modified by avformat_write_header so the rescale is needed
+  av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
+
+  ret = av_interleaved_write_frame(av->format_context, packet);
+  caml_acquire_runtime_system();
+
+  if(ret < 0) Raise(EXN_FAILURE, "Failed to write packet : %s", av_err2str(ret));
+    
+  CAMLreturn(Val_unit);
 }
 
 static int write_frame(av_t * av, int stream_index, AVCodecContext * enc_ctx, AVFrame * frame)
@@ -1136,9 +1302,9 @@ static int write_frame(av_t * av, int stream_index, AVCodecContext * enc_ctx, AV
 
     ret = av_interleaved_write_frame(av->format_context, &packet);
     if(ret < 0) Log("Failed to write frame : %s", av_err2str(ret));
-  }
-  av_packet_unref(&packet);
 
+    av_packet_unref(&packet);
+  }
   return ret;
 }
 
@@ -1197,7 +1363,7 @@ static AVFrame * resample_audio_frame(stream_t * stream, AVFrame * frame)
   return stream->sw_frame;
 }
 
-static AVPacket * write_audio_frame(av_t * av, int stream_index, AVFrame * frame)
+static stream_t * write_audio_frame(av_t * av, int stream_index, AVFrame * frame)
 {
   int ret;
   stream_t * stream = av->streams[stream_index];
@@ -1262,11 +1428,11 @@ static AVPacket * write_audio_frame(av_t * av, int stream_index, AVFrame * frame
 
       ret = write_frame(av, stream_index, enc_ctx, output_frame);
     
-      if (ret == AVERROR_EOF) return &av->packet;
+      if (ret == AVERROR_EOF) return stream;
       if (ret < 0 && ret != AVERROR(EAGAIN)) return NULL;
     }
   }
-  return &av->packet;
+  return stream;
 }
 
 static AVFrame * scale_video_frame(stream_t * stream, AVFrame * frame)
@@ -1306,7 +1472,7 @@ static AVFrame * scale_video_frame(stream_t * stream, AVFrame * frame)
   return stream->sw_frame;
 }
 
-static AVPacket * write_video_frame(av_t * av, int stream_index, AVFrame * frame)
+static stream_t * write_video_frame(av_t * av, int stream_index, AVFrame * frame)
 {
   stream_t * stream = av->streams[stream_index];
   
@@ -1329,10 +1495,10 @@ static AVPacket * write_video_frame(av_t * av, int stream_index, AVFrame * frame
   int ret = write_frame(av, stream_index, enc_ctx, frame);
   if (ret < 0 && ret != AVERROR(EAGAIN) && ret != AVERROR_EOF) return NULL;
 
-  return &av->packet;
+  return stream;
 }
 
-static AVPacket * write_subtitle_frame(av_t * av, int stream_index, AVSubtitle * subtitle)
+static stream_t * write_subtitle_frame(av_t * av, int stream_index, AVSubtitle * subtitle)
 {
   stream_t * stream = av->streams[stream_index];
   AVStream * avstream = av->format_context->streams[stream->index];
@@ -1366,37 +1532,37 @@ static AVPacket * write_subtitle_frame(av_t * av, int stream_index, AVSubtitle *
 
   if(ret < 0) Fail("Failed to write subtitle packet : %s", av_err2str(ret));
 
-  return &av->packet;
+  return stream;
 }
 
-CAMLprim value ocaml_av_write_stream(value _stream, value _frame)
+CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame)
 {
   CAMLparam2(_stream, _frame);
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
-  AVPacket * packet = NULL;
-
+  stream_t * stream = NULL;
+  
   if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
 
   enum AVMediaType type = av->streams[index]->codec_context->codec_type;
 
   caml_release_runtime_system();
   if(type == AVMEDIA_TYPE_AUDIO) {
-    packet = write_audio_frame(av, index, Frame_val(_frame));
+    stream = write_audio_frame(av, index, Frame_val(_frame));
   }
   else if(type == AVMEDIA_TYPE_VIDEO) {
-    packet = write_video_frame(av, index, Frame_val(_frame));
+    stream = write_video_frame(av, index, Frame_val(_frame));
   }
   else if(type == AVMEDIA_TYPE_SUBTITLE) {
-    packet = write_subtitle_frame(av, index, Subtitle_val(_frame));
+    stream = write_subtitle_frame(av, index, Subtitle_val(_frame));
   }
   caml_acquire_runtime_system();
 
-  if( ! packet) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_write_audio(value _av, value _frame) {
+CAMLprim value ocaml_av_write_audio_frame(value _av, value _frame) {
   CAMLparam2(_av, _frame);
   av_t * av = Av_val(_av);
   AVFrame * frame = Frame_val(_frame);
@@ -1413,21 +1579,22 @@ CAMLprim value ocaml_av_write_audio(value _av, value _frame) {
     }
       
     stream_t * stream = new_audio_stream(av, codec_id, frame->channel_layout,
-                                         sample_format, 192000, frame->sample_rate);
+                                         sample_format, 192000, frame->sample_rate,
+                                         (AVRational){1, frame->sample_rate});
     if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
   }
 
   if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
 
   caml_release_runtime_system();
-  AVPacket * packet = write_audio_frame(av, 0, Frame_val(_frame));
+  stream_t * stream = write_audio_frame(av, 0, Frame_val(_frame));
   caml_acquire_runtime_system();
-  if( ! packet) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_write_video(value _av, value _frame) {
+CAMLprim value ocaml_av_write_video_frame(value _av, value _frame) {
   CAMLparam2(_av, _frame);
   av_t * av = Av_val(_av);
   AVFrame * frame = Frame_val(_frame);
@@ -1445,16 +1612,17 @@ CAMLprim value ocaml_av_write_video(value _av, value _frame) {
       
     stream_t * stream = new_video_stream(av, av->format_context->oformat->video_codec,
                                          frame->width, frame->height, pix_format,
-                                         frame->width * frame->height * 4, 25);
+                                         frame->width * frame->height * 4, 25,
+                                         (AVRational){1, 25});
     if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
   }
 
   if( ! av->streams) Raise(EXN_FAILURE, "Failed to write in closed output");
 
   caml_release_runtime_system();
-  AVPacket * packet = write_video_frame(av, 0, Frame_val(_frame));
+  stream_t * stream = write_video_frame(av, 0, Frame_val(_frame));
   caml_acquire_runtime_system();
-  if( ! packet) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }
@@ -1464,24 +1632,25 @@ CAMLprim value ocaml_av_close(value _av)
 {
   CAMLparam1(_av);
   av_t * av = Av_val(_av);
-  AVPacket * packet = &av->packet;
-
+  stream_t no_stream;
+  stream_t * stream = &no_stream;
+  
   caml_release_runtime_system();
 
   if( ! av->is_input && av->streams) {
     // flush encoders of the output file
     unsigned int i;
-    for(i = 0; i < av->format_context->nb_streams && packet; i++) {
+    for(i = 0; i < av->format_context->nb_streams && stream; i++) {
 
       AVCodecContext * enc_ctx = av->streams[i]->codec_context;
 
       if( ! enc_ctx) continue;
   
       if(enc_ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
-        packet = write_audio_frame(av, i, NULL);
+        stream = write_audio_frame(av, i, NULL);
       }
       else if(enc_ctx->codec_type == AVMEDIA_TYPE_VIDEO) {
-        packet = write_video_frame(av, i, NULL);
+        stream = write_video_frame(av, i, NULL);
       }
     }
 
@@ -1492,7 +1661,7 @@ CAMLprim value ocaml_av_close(value _av)
 
   caml_acquire_runtime_system();
 
-  if( ! packet) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }

@@ -16,9 +16,9 @@ let () =
 
   let _, is, ic = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
 
-  let rsp = FrameToS32Bytes.from_codec ic `STEREO 44100 in
+  let rsp = FrameToS32Bytes.from_codec ic `Stereo 44100 in
 
-  is |> Av.iter (fun frame ->
+  is |> Av.iter_frame (fun frame ->
       FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
 
   Av.get_input is |> Av.close;

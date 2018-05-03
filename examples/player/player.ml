@@ -14,7 +14,7 @@ let () =
 
       Av.select input_stream;
 
-      ((fun _ frame -> Av.write_audio dst frame), (fun() -> Av.close dst))
+      ((fun _ frame -> Av.write_audio_frame dst frame), (fun() -> Av.close dst))
     with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
   let video, close_video = try
@@ -24,10 +24,10 @@ let () =
 
       Av.select input_stream;
 
-      ((fun _ frame -> Av.write_video dst frame), (fun() -> Av.close dst))
+      ((fun _ frame -> Av.write_video_frame dst frame), (fun() -> Av.close dst))
     with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
-  Av.iter_input ~audio ~video src;
+  Av.iter_input_frame ~audio ~video src;
 
   Av.close src;
   close_audio();

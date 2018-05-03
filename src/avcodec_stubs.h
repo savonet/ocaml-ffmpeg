@@ -11,6 +11,15 @@
 void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
 
 
+/***** Packet *****/
+
+#define Packet_val(v) (*(struct AVPacket**)Data_custom_val(v))
+
+void value_of_packet(AVPacket *packet, value * pvalue);
+
+AVPacket * alloc_packet_value(value * pvalue);
+
+
 /**** Audio codec ID ****/
 
 enum AVCodecID AudioCodecID_val(value v);

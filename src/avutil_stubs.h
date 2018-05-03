@@ -34,14 +34,22 @@
     caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
   }
 
-extern char ocaml_av_error_msg[];
+  extern char ocaml_av_error_msg[];
 extern char ocaml_av_exn_msg[];
 
-/**** Pixel format ****/
 
-int PixelFormat_val(value);
+#define List_add(list, cons, val) {             \
+    (cons) = caml_alloc(2, 0);                  \
+    Store_field((cons), 0, (val));              \
+    Store_field((cons), 1, (list));             \
+    (list) = (cons);                            \
+  }
 
-value Val_PixelFormat(enum AVPixelFormat pf);
+
+/**** AVRational ****/
+#define rational_of_value(v) ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
+
+void value_of_rational(AVRational * r, value * pv);
 
 
 /**** Time format ****/
@@ -68,21 +76,28 @@ value Val_SampleFormat(enum AVSampleFormat sf);
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
 
+/**** Pixel format ****/
+
+int PixelFormat_val(value);
+
+value Val_PixelFormat(enum AVPixelFormat pf);
+
+
 /***** AVFrame *****/
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
 
 void value_of_frame(AVFrame *frame, value * pvalue);
 
+AVFrame * alloc_frame_value(value * pvalue);
+
 
 /***** AVSubtitle *****/
-
-#define SUBTITLE_TIME_BASE 100
-#define SUBTITLE_TIME_BASE_Q (AVRational){1, SUBTITLE_TIME_BASE}
-
 #define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
 
 void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);
+
+AVSubtitle * alloc_subtitle_value(value * pvalue);
 
 int subtitle_header_default(AVCodecContext *avctx);
 

@@ -12,12 +12,12 @@ module type AudioData = sig
   type t val vk : vector_kind val sf : Avutil.Sample_format.t
 end
 
-type ('i, 'o) t
+type ('i, 'o) ctx
 
 (** Functor building an implementation of the swresample structure with parameterized input an output audio data types *)
-module Make : functor (I : AudioData) (O : AudioData) -> sig
+module Make (I : AudioData) (O : AudioData) : sig
 
-  type nonrec t = (I.t, O.t) t
+  type t = (I.t, O.t) ctx
 
   val create : Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
   (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl] channel layout, [in_sf] sample format and [in_sr] sample rate as input format and [out_cl] channel layout, [out_sf] sample format and [out_sr] sample rate as output format.
@@ -43,7 +43,7 @@ If a sample format parameter is not provided, the sample format defined by the a
 @raise Failure if the conversion failed. *)
 end
 
-
+    
 (** Byte string with undefined sample format for interleaved channels. The sample format must be passed to the create function. *)
 module Bytes : sig
   type t = bytes val vk : vector_kind val sf : Sample_format.t
