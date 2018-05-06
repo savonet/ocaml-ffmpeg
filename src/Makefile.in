@@ -30,7 +30,7 @@ ifeq "@HAS_AV@" "yes"
 ifeq "@HAS_SWRESAMPLE@" "yes"
 	SOURCES += avcodec_stubs.h avcodec_stubs.c codec_id.mli codec_id.ml avcodec.mli avcodec.ml
 	SOURCES += av_stubs.c av.mli av.ml
-	SOURCES += swresample_stubs.c swresample.mli swresample.ml
+	SOURCES += swresample_options.mli swresample_options.ml swresample_stubs.c swresample.mli swresample.ml
 ifeq "@HAS_AVDEVICE@" "yes"
 	SOURCES +=  avdevice_stubs.c avdevice.mli avdevice.ml
 endif

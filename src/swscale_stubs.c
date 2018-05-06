@@ -393,7 +393,7 @@ void swscale_free(sws_t *sws)
     for(i = 0; sws->out.slice[i]; i++) free(sws->out.slice[i]);
   }
 
-  caml_remove_generational_global_root(&sws->out_vector);
+  if(sws->out_vector) caml_remove_generational_global_root(&sws->out_vector);
 
   free(sws);
 }

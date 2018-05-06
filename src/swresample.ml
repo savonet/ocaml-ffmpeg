@@ -1,4 +1,5 @@
 open Avutil
+open Swresample_options
 
 module SF = Avutil.Sample_format
 module CL = Avutil.Channel_layout
@@ -154,19 +155,23 @@ module DblPlanarFrame = struct
 end
 
 
+type options = [dither_type | engine | filter_type]
+
 type ('i, 'o) ctx
 
 module Make (I : AudioData) (O : AudioData) = struct
   type t = (I.t, O.t) ctx
 
   external create : vector_kind -> CL.t -> SF.t -> int ->
-    vector_kind -> CL.t -> SF.t -> int ->
+    vector_kind -> CL.t -> SF.t -> int -> options array ->
     t = "ocaml_swresample_create_byte" "ocaml_swresample_create"
 
 
-  let create in_channel_layout ?in_sample_format in_sample_rate
+  let create ?options in_channel_layout ?in_sample_format in_sample_rate
         out_channel_layout ?out_sample_format out_sample_rate =
-      
+
+    let opts = match options with Some os -> Array.of_list os | None -> [||]
+    in
     let in_sample_format = match in_sample_format with
       | _ when I.sf <> `None -> I.sf
       | Some sf -> sf
@@ -178,12 +183,12 @@ module Make (I : AudioData) (O : AudioData) = struct
       | _ -> raise(Failure "Swresample output sample format undefined")
     in
     create I.vk in_channel_layout in_sample_format in_sample_rate
-      O.vk out_channel_layout out_sample_format out_sample_rate
+      O.vk out_channel_layout out_sample_format out_sample_rate opts
 
 
-  let from_codec in_codec out_channel_layout ?out_sample_format out_sample_rate =
+  let from_codec ?options in_codec out_channel_layout ?out_sample_format out_sample_rate =
 
-    create (Avcodec.Audio.get_channel_layout in_codec)
+    create ?options (Avcodec.Audio.get_channel_layout in_codec)
       ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
       (Avcodec.Audio.get_sample_rate in_codec)
       out_channel_layout
@@ -191,17 +196,17 @@ module Make (I : AudioData) (O : AudioData) = struct
       out_sample_rate
 
 
-  let to_codec in_channel_layout ?in_sample_format in_sample_rate out_codec =
+  let to_codec ?options in_channel_layout ?in_sample_format in_sample_rate out_codec =
 
-    create in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
+    create ?options in_channel_layout ?in_sample_format:in_sample_format in_sample_rate
       (Avcodec.Audio.get_channel_layout out_codec)
       ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
       (Avcodec.Audio.get_sample_rate out_codec)
 
 
-  let from_codec_to_codec in_codec out_codec =
+  let from_codec_to_codec ?options in_codec out_codec =
 
-    create (Avcodec.Audio.get_channel_layout in_codec)
+    create ?options (Avcodec.Audio.get_channel_layout in_codec)
       ~in_sample_format:(Avcodec.Audio.get_sample_format in_codec)
       (Avcodec.Audio.get_sample_rate in_codec)
       (Avcodec.Audio.get_channel_layout out_codec)

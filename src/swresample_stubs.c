@@ -20,9 +20,9 @@
 
 #include "avutil_stubs.h"
 #include "swresample_stubs.h"
+#include "swresample_options_stubs.h"
 
 /***** Contexts *****/
-
 struct audio_t {
   uint8_t **data;
   int nb_samples;
@@ -48,7 +48,6 @@ struct swr_t {
 };
 
 #define Swr_val(v) (*(swr_t**)Data_custom_val(v))
-
 
 static int alloc_data(struct audio_t * audio, int nb_samples)
 {
@@ -451,7 +450,7 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
 
   // Optionnaly release the output vector
   if(swr->release_out_vector && swr->out.is_planar) {
-      caml_modify_generational_global_root(&swr->out_vector, caml_alloc(swr->out.nb_channels, 0));
+    caml_modify_generational_global_root(&swr->out_vector, caml_alloc(swr->out.nb_channels, 0));
   }
 
   // acquisition of the input samples and the input number of samples per channel
@@ -468,9 +467,59 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
   CAMLreturn(swr->out_vector);
 }
 
-static swr_t * swresample_set_context(swr_t * swr,
-                                      int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
-                                      int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
+
+void swresample_free(swr_t *swr)
+{
+  int i;
+  
+  if(swr->context) swr_free(&swr->context);
+
+  if(swr->in.data && swr->get_in_samples != get_in_samples_frame) {
+
+    if(swr->in.owns_data) {
+      for(i = 0; i < swr->in.nb_channels && swr->in.data[i]; i++) {
+        av_freep(&swr->in.data[i]);
+      }
+    }
+    free(swr->in.data);
+  }
+
+  if(swr->out.data && swr->convert != convert_to_frame) {
+
+    if(swr->out.owns_data) {
+      for(i = 0; i < swr->out.nb_channels && swr->out.data[i]; i++) {
+        av_freep(&swr->out.data[i]);
+      }
+    }
+    free(swr->out.data);
+  }
+  
+  if(swr->out_vector) caml_remove_generational_global_root(&swr->out_vector);
+
+  free(swr);
+}
+
+static void finalize_swresample(value v)
+{
+  swresample_free(Swr_val(v));
+}
+
+static struct custom_operations swr_ops =
+  {
+    "ocaml_swresample_context",
+    finalize_swresample,
+    custom_compare_default,
+    custom_hash_default,
+    custom_serialize_default,
+    custom_deserialize_default
+  };
+
+#define NB_OPTIONS_TYPES 3
+
+
+static SwrContext * swresample_set_context(swr_t * swr,
+                                           int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
+                                           int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[])
 {
   if( ! swr->context && ! (swr->context = swr_alloc())) Fail("Failed to allocate swresample context");
 
@@ -508,22 +557,53 @@ static swr_t * swresample_set_context(swr_t * swr,
     swr->out_sample_rate = out_sample_rate;
   }
 
+  int i, ret;
+
+  for (i = 0; options[i]; i++) {
+    int64_t val = DitherType_val(options[i]);
+
+    if(val != VALUE_NOT_FOUND) {
+      ret = av_opt_set_int(ctx, "dither_method", val, 0);
+    }
+    else {
+      val = Engine_val(options[i]);
+
+      if(val != VALUE_NOT_FOUND) {
+        ret = av_opt_set_int(ctx, "resampler", val, 0);
+      }
+      else {
+        val = FilterType_val(options[i]);
+
+        if(val != VALUE_NOT_FOUND) {
+          ret = av_opt_set_int(ctx, "filter_type", val, 0);
+        }
+      }
+    }
+
+    if(ret != 0) Fail("Failed to set option : %s", av_err2str(ret));
+  }
+
   // initialize the resampling context
-  int ret = swr_init(ctx);
+  ret = swr_init(ctx);
   if(ret < 0) Fail("Failed to initialize the resampling context : %s", av_err2str(ret));
-  return swr;
+
+  return ctx;
 }
 
-swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate)
+swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[])
 {
+  caml_release_runtime_system();
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
-
   if( ! swr) Fail("Failed to allocate Swresample context");
+  
+  SwrContext *ctx = swresample_set_context(swr,
+                                           in_channel_layout, in_sample_fmt, in_sample_rate,
+                                           out_channel_layout, out_sample_fmt, out_sample_rate,
+                                           options);
+  caml_acquire_runtime_system();
 
-  if( ! swresample_set_context(swr,
-                               in_channel_layout, in_sample_fmt, in_sample_rate,
-                               out_channel_layout, out_sample_fmt, out_sample_rate)) {
-    free(swr);
+  if( ! ctx) {
+    swresample_free(swr);
     return NULL;
   }
 
@@ -548,7 +628,7 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
 
   swr->out.bytes_per_samples = av_get_bytes_per_sample(out_sample_fmt);
   swr->release_out_vector = 1;
-  
+
   switch(in_vector_kind) {
   case Frm :
     swr->get_in_samples = get_in_samples_frame;
@@ -597,56 +677,10 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
   return swr;
 }
 
-void swresample_free(swr_t *swr)
-{
-  int i;
-  
-  if(swr->context) swr_free(&swr->context);
-
-  if(swr->in.data && swr->get_in_samples != get_in_samples_frame) {
-
-    if(swr->in.owns_data) {
-      for(i = 0; i < swr->in.nb_channels && swr->in.data[i]; i++) {
-        av_freep(&swr->in.data[i]);
-      }
-    }
-    free(swr->in.data);
-  }
-
-  if(swr->out.data && swr->convert != convert_to_frame) {
-
-    if(swr->out.owns_data) {
-      for(i = 0; i < swr->out.nb_channels && swr->out.data[i]; i++) {
-        av_freep(&swr->out.data[i]);
-      }
-    }
-    free(swr->out.data);
-  }
-  
-  caml_remove_generational_global_root(&swr->out_vector);
-
-  free(swr);
-}
-
-static void finalize_swresample(value v)
-{
-  swresample_free(Swr_val(v));
-}
-
-static struct custom_operations swr_ops =
-  {
-    "ocaml_swresample_context",
-    finalize_swresample,
-    custom_compare_default,
-    custom_hash_default,
-    custom_serialize_default,
-    custom_deserialize_default
-  };
-
 CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_layout, value _in_sample_fmt, value _in_sample_rate,
-				       value _out_vector_kind, value _out_channel_layout, value _out_sample_fmt, value _out_sample_rate)
+				       value _out_vector_kind, value _out_channel_layout, value _out_sample_fmt, value _out_sample_rate, value _options)
 {
-  CAMLparam4(_in_channel_layout, _in_sample_fmt, _out_channel_layout, _out_sample_fmt);
+  CAMLparam5(_in_channel_layout, _in_sample_fmt, _out_channel_layout, _out_sample_fmt, _options);
   CAMLlocal1(ans);
 
   vector_kind in_vector_kind = Int_val(_in_vector_kind);
@@ -657,9 +691,17 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
   int64_t out_channel_layout = ChannelLayout_val(_out_channel_layout);
   enum AVSampleFormat out_sample_fmt = SampleFormat_val(_out_sample_fmt);
   int out_sample_rate = Int_val(_out_sample_rate);
+  value options[NB_OPTIONS_TYPES + 1];
+  int i;
+
+  for (i = 0; i < Wosize_val(_options) && i < NB_OPTIONS_TYPES; i++)
+    options[i] = Field(_options, i);
+
+  options[i] = 0;
 
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
-                                  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate);
+                                  out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate,
+                                  options);
   if( ! swr) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
@@ -670,7 +712,7 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
 
 CAMLprim value ocaml_swresample_create_byte(value *argv, int argn)
 {
-  return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
+  return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7], argv[8]);
 }
 
 CAMLprim value ocaml_swresample_reuse_output(value _swr, value _reuse_output)
