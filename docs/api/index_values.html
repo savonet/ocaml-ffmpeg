@@ -17,6 +17,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Index of values</title>
 </head>
@@ -25,473 +26,731 @@
 &nbsp;</div>
 <h1>Index of values</h1>
 <table>
-<tr><td align="left"><br>B</td></tr>
+<tr><td align="left"><div>B</div></td></tr>
 <tr><td><a href="Avutil.Pixel_format.html#VALbits">bits</a> [<a href="Avutil.Pixel_format.html">Avutil.Pixel_format</a>]</td>
 <td><div class="info">
-Return the number of bits of the pixel format.
+<p>Return the number of bits of the pixel format.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>C</td></tr>
+<tr><td align="left"><div>C</div></td></tr>
 <tr><td><a href="Av.html#VALclose">close</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Close an input or output container.
+<p>Close an input or output container.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swscale.html#VALconfiguration">configuration</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td></td></tr>
 <tr><td><a href="Avdevice.App_to_dev.html#VALcontrol_messages">control_messages</a> [<a href="Avdevice.App_to_dev.html">Avdevice.App_to_dev</a>]</td>
 <td><div class="info">
-<code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.
+<p><code class="code">Avdevice.App_to_dev.control_messages msg_list device</code> send the <code class="code">msg_list</code> list of control message to the <code class="code">device</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALconvert">convert</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.
+<p><code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Swscale.Make.html#VALconvert">convert</a> [<a href="Swscale.Make.html">Swscale.Make</a>]</td>
+<td><div class="info">
+<p><code class="code">Swscale.convert ctx ivd</code> scale and convert the <code class="code">ivd</code> input video data to the output video data according to the <code class="code">ctx</code> scaler context format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALcreate">create</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.
+<p><code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Swscale.Make.html#VALcreate">create</a> [<a href="Swscale.Make.html">Swscale.Make</a>]</td>
+<td><div class="info">
+<p><code class="code">Swscale.create flags in_w in_h in_pf out_w out_h out_pf</code> do the same as <code class="code">Swscale.create</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swscale.html#VALcreate">create</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td><div class="info">
-<code class="code">Swscale.create flags in_w in_h in_pf out_w out_h out_pf</code> create a Swscale.t scale context with the <code class="code">flags</code> flag list defining the conversion type, the <code class="code">in_w</code> width, <code class="code">in_h</code> height and <code class="code">in_pf</code> pixel format for input format and <code class="code">out_w</code> width, <code class="code">out_h</code> height and <code class="code">out_pf</code> pixel format for output format.
+<p><code class="code">Swscale.create flags in_w in_h in_pf out_w out_h out_pf</code> create a Swscale.t scale context with the <code class="code">flags</code> flag list defining the conversion type, the <code class="code">in_w</code> width, <code class="code">in_h</code> height and <code class="code">in_pf</code> pixel format for input format and <code class="code">out_w</code> width, <code class="code">out_h</code> height and <code class="code">out_pf</code> pixel format for output format.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avutil.html#VALcreate_data">create_data</a> [<a href="Avutil.html">Avutil</a>]</td>
+<td></td></tr>
+<tr><td><a href="Avcodec.Video.html#VALcreate_decoder">create_decoder</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Video.create_decoder id</code> create a video decoder.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALcreate_decoder">create_decoder</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Audio.create_decoder id</code> create an audio decoder.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALcreate_encoder">create_encoder</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Video.create_encoder ~bit_rate:bit_rate id</code> create a video encoder.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALcreate_encoder">create_encoder</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Audio.create_encoder ~bit_rate:bit_rate id</code> create an audio encoder.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Subtitle.html#VALcreate_frame">create_frame</a> [<a href="Avutil.Subtitle.html">Avutil.Subtitle</a>]</td>
 <td><div class="info">
-<code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.
+<p><code class="code">Avutil.Subtitle.create_frame start end lines</code> create a subtitle frame from <code class="code">lines</code> which is displayed at <code class="code">start</code> time and hidden at <code class="code">end</code> time in seconds.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Video.html#VALcreate_frame">create_frame</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
 <td><div class="info">
-<code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.
+<p><code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>F</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALcreate_parser">create_parser</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Video.create_parser id</code> create an video packet parser.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALcreate_parser">create_parser</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Audio.create_parser id</code> create an audio packet parser.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>D</div></td></tr>
+<tr><td><a href="Avcodec.html#VALdecode">decode</a> [<a href="Avcodec.html">Avcodec</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.decode decoder f packet</code> applies function <code class="code">f</code> to the decoded frames frome the <code class="code">packet</code> according to the <code class="code">decoder</code> configuration.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>E</div></td></tr>
+<tr><td><a href="Avcodec.html#VALencode">encode</a> [<a href="Avcodec.html">Avcodec</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.encode encoder f frame</code> applies function <code class="code">f</code> to the encoded packets from the <code class="code">frame</code> according to the <code class="code">encoder</code> configuration.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>F</div></td></tr>
 <tr><td><a href="Av.html#VALfind_best_audio_stream">find_best_audio_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the best audio stream of the input.
+<p>Return the best audio stream of the input.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALfind_best_pixel_format">find_best_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Return the best pixel format of a codec.
+<p>Return the best pixel format of a codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALfind_best_sample_format">find_best_sample_format</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the best sample format of a codec.
+<p>Return the best sample format of a codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALfind_best_subtitle_stream">find_best_subtitle_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the subtitle streams.
+<p>Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the subtitle streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALfind_best_video_stream">find_best_video_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the video streams.
+<p>Same as <a href="Av.html#VALfind_best_audio_stream"><code class="code">Av.find_best_audio_stream</code></a> for the video streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Subtitle.html#VALfind_id">find_id</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
 <td><div class="info">
-Return the id of a codec from his name.
+<p>Return the id of a codec from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALfind_id">find_id</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Return the id of a codec from his name.
+<p>Return the id of a codec from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALfind_id">find_id</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the id of a codec from his name.
+<p>Return the id of a codec from his name.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Avutil.Video.html#VALframe_get">frame_get</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
+<tr><td><a href="Avcodec.html#VALflush_decoder">flush_decoder</a> [<a href="Avcodec.html">Avcodec</a>]</td>
 <td><div class="info">
-<code class="code">Avutil.Video.frame_get p x y</code> return the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.
+<p><code class="code">Avcodec.flush_decoder decoder f</code> applies function <code class="code">f</code> to the decoded frames frome the buffered packets in the <code class="code">decoder</code>.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Avutil.Video.html#VALframe_set">frame_set</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
+<tr><td><a href="Avcodec.html#VALflush_encoder">flush_encoder</a> [<a href="Avcodec.html">Avcodec</a>]</td>
 <td><div class="info">
-<code class="code">Avutil.Video.frame_set p x y</code> set the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.
+<p><code class="code">Avcodec.flush_encoder encoder</code> applies function <code class="code">f</code> to the encoded packets from the buffered frames in the <code class="code">encoder</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avutil.Video.html#VALframe_get_linesize">frame_get_linesize</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avutil.Video.frame_get_linesize vf n</code> return the line size of the <code class="code">n</code> plane of the <code class="code">vf</code> video frame.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Subtitle.html#VALframe_to_lines">frame_to_lines</a> [<a href="Avutil.Subtitle.html">Avutil.Subtitle</a>]</td>
 <td><div class="info">
-Convert subtitle frame to lines.
+<p>Convert subtitle frame to lines.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avutil.Video.html#VALframe_visit">frame_visit</a> [<a href="Avutil.Video.html">Avutil.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avutil.Video.frame_visit ~make_writable:wrt f vf</code> call the <code class="code">f</code> function with planes wrapping the <code class="code">vf</code> video frame data.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALfrom_codec">from_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.
+<p><code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALfrom_codec_to_codec">from_codec_to_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.
+<p><code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>G</td></tr>
+<tr><td align="left"><div>G</div></td></tr>
 <tr><td><a href="Av.Format.html#VALget_audio_codec_id">get_audio_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the audio codec id of the output audio format
+<p>Return the audio codec id of the output audio format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_audio_input_formats">get_audio_input_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio input devices formats.
+<p>Return the audio input devices formats.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_audio_output_formats">get_audio_output_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the audio output devices formats.
+<p>Return the audio output devices formats.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_audio_streams">get_audio_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the audio stream list of the input.
+<p>Return the audio stream list of the input.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_bit_rate">get_bit_rate</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Returns the bit rate set for the codec.
+<p>Returns the bit rate set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_bit_rate">get_bit_rate</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Returns the bit rate set for the codec.
+<p>Returns the bit rate set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_channel_layout">get_channel_layout</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the channel layout set for the codec.
+<p>Return the channel layout set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_codec">get_codec</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.get_codec stream</code> return the codec of the <code class="code">stream</code>.
+<p><code class="code">Av.get_codec stream</code> return the codec of the <code class="code">stream</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_default_audio_input_format">get_default_audio_input_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the default audio input device format.
+<p>Return the default audio input device format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_default_audio_output_format">get_default_audio_output_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the default audio output device format.
+<p>Return the default audio output device format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_default_video_input_format">get_default_video_input_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the default video input device format.
+<p>Return the default video input device format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_default_video_output_format">get_default_video_output_format</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the default video output device format.
+<p>Return the default video output device format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_duration">get_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALget_input_duration"><code class="code">Av.get_input_duration</code></a> for the input streams.
+<p>Same as <a href="Av.html#VALget_input_duration"><code class="code">Av.get_input_duration</code></a> for the input streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_height">get_height</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Returns the height set for the codec.
+<p>Returns the height set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Subtitle.html#VALget_id">get_id</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
 <td><div class="info">
-Return the id of the codec.
+<p>Return the id of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_id">get_id</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Return the id of the codec.
+<p>Return the id of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_id">get_id</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the id of the codec.
+<p>Return the id of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_index">get_index</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the index of the stream.
+<p>Return the index of the stream.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_input">get_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the input container of the input stream.
+<p>Return the input container of the input stream.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_input_duration">get_input_duration</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.get_input_duration ~format:fmt input</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format (in second by default).
+<p><code class="code">Av.get_input_duration ~format:fmt input</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format (in second by default).</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_input_long_name">get_input_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the long name of the input format
+<p>Return the long name of the input format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_input_metadata">get_input_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the input tag (key, vlue) list.
+<p>Return the input tag (key, vlue) list.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_input_name">get_input_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the name of the input format
+<p>Return the name of the input format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_metadata">get_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALget_input_metadata"><code class="code">Av.get_input_metadata</code></a> for the input streams.
+<p>Same as <a href="Av.html#VALget_input_metadata"><code class="code">Av.get_input_metadata</code></a> for the input streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Subtitle.html#VALget_name">get_name</a> [<a href="Avcodec.Subtitle.html">Avcodec.Subtitle</a>]</td>
 <td><div class="info">
-Return the name of the codec.
+<p>Return the name of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_name">get_name</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Return the name of the codec.
+<p>Return the name of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_name">get_name</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Return the name of the codec.
+<p>Return the name of the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avutil.Sample_format.html#VALget_name">get_name</a> [<a href="Avutil.Sample_format.html">Avutil.Sample_format</a>]</td>
 <td><div class="info">
-Return the name of the sample format.
+<p>Return the name of the sample format.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_nb_channels">get_nb_channels</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Returns the number of channels set for the codec.
+<p>Returns the number of channels set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_output">get_output</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Return the output container of the output stream.
+<p>Return the output container of the output stream.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_output_long_name">get_output_long_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the long name of the output format
+<p>Return the long name of the output format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_output_name">get_output_name</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the name of the output format
+<p>Return the name of the output format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_pixel_format">get_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Returns the pixel format set for the codec.
+<p>Returns the pixel format set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_sample_aspect_ratio">get_sample_aspect_ratio</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Returns the sample aspect ratio set for the codec.
+<p>Returns the sample aspect ratio set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_sample_format">get_sample_format</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Returns the sample format set for the codec.
+<p>Returns the sample format set for the codec.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALget_sample_rate">get_sample_rate</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-Returns the sample rate set for the codec.
+<p>Returns the sample rate set for the codec.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Packet.html#VALget_size">get_size</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
+<td><div class="info">
+<p>Return the size of the packet.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Packet.html#VALget_stream_index">get_stream_index</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
+<td><div class="info">
+<p>Return the stream index of the packet.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_subtitle_codec_id">get_subtitle_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the subtitle codec id of the output subtitle format
+<p>Return the subtitle codec id of the output subtitle format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_subtitle_streams">get_subtitle_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the subtitle streams.
+<p>Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the subtitle streams.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALget_time_base">get_time_base</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.get_time_base stream</code> return the time base of the <code class="code">stream</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.Format.html#VALget_video_codec_id">get_video_codec_id</a> [<a href="Av.Format.html">Av.Format</a>]</td>
 <td><div class="info">
-Return the video codec id of the output video format
+<p>Return the video codec id of the output video format</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_video_input_formats">get_video_input_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video input devices formats.
+<p>Return the video input devices formats.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALget_video_output_formats">get_video_output_formats</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Return the video output devices formats.
+<p>Return the video output devices formats.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALget_video_streams">get_video_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the video streams.
+<p>Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the video streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Video.html#VALget_width">get_width</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-Returns the width set for the codec.
+<p>Returns the width set for the codec.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>I</td></tr>
-<tr><td><a href="Av.html#VALiter">iter</a> [<a href="Av.html">Av</a>]</td>
+<tr><td align="left"><div>I</div></td></tr>
+<tr><td><a href="Av.html#VALiter_frame">iter_frame</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.iter f is</code> applies function <code class="code">f</code> in turn to all the frames of the input stream <code class="code">is</code>.
+<p><code class="code">Av.iter_frame f is</code> applies function <code class="code">f</code> in turn to all the frames of the input stream <code class="code">is</code>.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Av.html#VALiter_input">iter_input</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Av.html#VALiter_input_frame">iter_input_frame</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.iter_input ~audio:af ~video:vf ~subtitle:sf src</code> reads iteratively the selected streams if any or all streams of the <code class="code">src</code> input otherwise.
+<p><code class="code">Av.iter_input_frame ~audio:af ~video:vf ~subtitle:sf src</code> reads iteratively the selected streams if any or all streams of the <code class="code">src</code> input otherwise.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>L</td></tr>
+<tr><td><a href="Av.html#VALiter_input_packet">iter_input_packet</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.iter_input_packet ~audio:af ~video:vf ~subtitle:sf src</code> reads iteratively the selected streams if any or all streams of the <code class="code">src</code> input otherwise.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALiter_packet">iter_packet</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.iter_packet f is</code> applies function <code class="code">f</code> in turn to all the packets of the input stream <code class="code">is</code>.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>L</div></td></tr>
 <tr><td><a href="Swscale.html#VALlicense">license</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td></td></tr>
-<tr><td align="left"><br>N</td></tr>
+<tr><td align="left"><div>N</div></td></tr>
 <tr><td><a href="Av.html#VALnew_audio_stream">new_audio_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.new_audio_stream ~codec_id:ci ~sample_format:sf ~sample_rate:sr ~codec:c dst</code> add a new audio stream to the <code class="code">dst</code> media file.
+<p><code class="code">Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst</code> add a new audio stream to the <code class="code">dst</code> media file.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALnew_subtitle_stream">new_subtitle_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for subtitle stream.
+<p>Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for subtitle stream.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALnew_video_stream">new_video_stream</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for video stream.
+<p>Same as <a href="Av.html#VALnew_audio_stream"><code class="code">Av.new_audio_stream</code></a> for video stream.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>O</td></tr>
+<tr><td align="left"><div>O</div></td></tr>
+<tr><td><a href="Avutil.Pixel_format.html#VALof_string">of_string</a> [<a href="Avutil.Pixel_format.html">Avutil.Pixel_format</a>]</td>
+<td><div class="info">
+<p><code class="code">Pixel_format.of_string s</code> Convert the string <code class="code">s</code> into a <code class="code">Pixel_format.t</code>.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Avdevice.html#VALopen_audio_input">open_audio_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the audio input device from his name.
+<p>Open the audio input device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_audio_output">open_audio_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the audio output device from his name.
+<p>Open the audio output device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_default_audio_input">open_default_audio_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the default audio input device from his name.
+<p>Open the default audio input device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_default_audio_output">open_default_audio_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the default audio output device from his name.
+<p>Open the default audio output device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_default_video_input">open_default_video_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the default video input device from his name.
+<p>Open the default video input device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_default_video_output">open_default_video_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the default video output device from his name.
+<p>Open the default video output device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_input">open_input</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.open_input url</code> open the input <code class="code">url</code> (a file name or http URL).
+<p><code class="code">Av.open_input url</code> open the input <code class="code">url</code> (a file name or http URL).</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_input_format">open_input_format</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.open_input_format format</code> open the input <code class="code">format</code>.
+<p><code class="code">Av.open_input_format format</code> open the input <code class="code">format</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output">open_output</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.open_output filename</code> open the output file named <code class="code">filename</code>.
+<p><code class="code">Av.open_output filename</code> open the output file named <code class="code">filename</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output_format">open_output_format</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.open_output_format format</code> open the output <code class="code">format</code>.
+<p><code class="code">Av.open_output_format format</code> open the output <code class="code">format</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALopen_output_format_name">open_output_format_name</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.open_output_format_name name</code> open the output format of name <code class="code">name</code>.
+<p><code class="code">Av.open_output_format_name name</code> open the output format of name <code class="code">name</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_video_input">open_video_input</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the video input device from his name.
+<p>Open the video input device from his name.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.html#VALopen_video_output">open_video_output</a> [<a href="Avdevice.html">Avdevice</a>]</td>
 <td><div class="info">
-Open the video output device from his name.
+<p>Open the video output device from his name.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>R</td></tr>
-<tr><td><a href="Av.html#VALread">read</a> [<a href="Av.html">Av</a>]</td>
+<tr><td align="left"><div>P</div></td></tr>
+<tr><td><a href="Avcodec.Packet.html#VALparse_bytes">parse_bytes</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
 <td><div class="info">
-<code class="code">Av.read stream</code> read the input <code class="code">stream</code>.
+<p>Same as <a href="Avcodec.Packet.html#VALparse_data"><code class="code">Avcodec.Packet.parse_data</code></a> with bytes array.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Av.html#VALread_input">read_input</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Avcodec.Packet.html#VALparse_data">parse_data</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
 <td><div class="info">
-Reads the selected streams if any or all streams otherwise.
+<p><code class="code">Avcodec.Packet.parse_data parser f data</code> applies function <code class="code">f</code> to the parsed packets frome the <code class="code">data</code> array according to the <code class="code">parser</code> configuration.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avutil.Pixel_format.html#VALplanes">planes</a> [<a href="Avutil.Pixel_format.html">Avutil.Pixel_format</a>]</td>
+<td><div class="info">
+<p>Return the number of planes of the pixel format.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>R</div></td></tr>
+<tr><td><a href="Av.html#VALread_frame">read_frame</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.read_frame stream</code> read the input <code class="code">stream</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALread_input_frame">read_input_frame</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p>Reads the selected streams if any or all streams otherwise.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALread_input_packet">read_input_packet</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p>Reads the selected streams if any or all streams otherwise.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALread_packet">read_packet</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.read_packet stream</code> read the input <code class="code">stream</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALreuse_output">reuse_output</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>.
+<p><code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>S</td></tr>
+<tr><td><a href="Av.html#VALreuse_output">reuse_output</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.reuse_output ro</code> enables or disables the reuse of <a href="Av.html#VALread_packet"><code class="code">Av.read_packet</code></a>, <a href="Av.html#VALiter_packet"><code class="code">Av.iter_packet</code></a>, <a href="Av.html#VALread_frame"><code class="code">Av.read_frame</code></a>, <a href="Av.html#VALiter_frame"><code class="code">Av.iter_frame</code></a>, <a href="Av.html#VALread_input_packet"><code class="code">Av.read_input_packet</code></a>, <a href="Av.html#VALiter_input_packet"><code class="code">Av.iter_input_packet</code></a>, <a href="Av.html#VALread_input_frame"><code class="code">Av.read_input_frame</code></a> and <a href="Av.html#VALiter_input_frame"><code class="code">Av.iter_input_frame</code></a> output according to the value of <code class="code">ro</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Swscale.Make.html#VALreuse_output">reuse_output</a> [<a href="Swscale.Make.html">Swscale.Make</a>]</td>
+<td><div class="info">
+<p><code class="code">Swscale.reuse_output ro</code> enables or disables the reuse of <code class="code">Swscale.convert</code> output according to the value of <code class="code">ro</code>.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>S</div></td></tr>
 <tr><td><a href="Swscale.html#VALscale">scale</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td><div class="info">
-<code class="code">Swscale.scale ctx in_planes y h out_planes off</code> scale the <code class="code">h</code> rows of <code class="code">in_planes</code> strarting from the row <code class="code">y</code> to the <code class="code">off</code> row of the <code class="code">out_planes</code> output.
+<p><code class="code">Swscale.scale ctx in_planes y h out_planes off</code> scale the <code class="code">h</code> rows of <code class="code">in_planes</code> strarting from the row <code class="code">y</code> to the <code class="code">off</code> row of the <code class="code">out_planes</code> output.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALseek">seek</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.seek is fmt t flags</code> seek in the input stream <code class="code">is</code> at the position <code class="code">t</code> in the <code class="code">fmt</code> time format according to the method indicated by the <code class="code">flags</code>.
+<p><code class="code">Av.seek is fmt t flags</code> seek in the input stream <code class="code">is</code> at the position <code class="code">t</code> in the <code class="code">fmt</code> time format according to the method indicated by the <code class="code">flags</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALselect">select</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.select stream</code> select the input <code class="code">stream</code> for reading.
+<p><code class="code">Av.select stream</code> select the input <code class="code">stream</code> for reading.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avdevice.Dev_to_app.html#VALset_control_message_callback">set_control_message_callback</a> [<a href="Avdevice.Dev_to_app.html">Avdevice.Dev_to_app</a>]</td>
 <td><div class="info">
-<code class="code">Avdevice.Dev_to_app.set_control_message_callback callback device</code> set the <code class="code">callback</code> for <code class="code">device</code> message reception.
+<p><code class="code">Avdevice.Dev_to_app.set_control_message_callback callback device</code> set the <code class="code">callback</code> for <code class="code">device</code> message reception.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALset_metadata">set_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALset_output_metadata"><code class="code">Av.set_output_metadata</code></a> for the output streams.
+<p>Same as <a href="Av.html#VALset_output_metadata"><code class="code">Av.set_output_metadata</code></a> for the output streams.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Av.html#VALset_output_metadata">set_output_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.set_output_metadata dst tags</code> set the metadata of the <code class="code">dst</code> output with the <code class="code">tags</code> tag list.
+<p><code class="code">Av.set_output_metadata dst tags</code> set the metadata of the <code class="code">dst</code> output with the <code class="code">tags</code> tag list.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Packet.html#VALset_stream_index">set_stream_index</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
+<td><div class="info">
+<p>Set the stream index of the packet.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALset_time_base">set_time_base</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p><code class="code">Av.set_time_base stream time_base</code> set the <code class="code">stream</code> time base to <code class="code">time_base</code>.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.AudioData.html#VALsf">sf</a> [<a href="Swresample.AudioData.html">Swresample.AudioData</a>]</td>
@@ -564,23 +823,38 @@ Same as <a href="Av.html#VALset_output_metadata"><code class="code">Av.set_outpu
 <td></td></tr>
 <tr><td><a href="Swresample.Bytes.html#VALsf">sf</a> [<a href="Swresample.Bytes.html">Swresample.Bytes</a>]</td>
 <td></td></tr>
-<tr><td align="left"><br>T</td></tr>
+<tr><td align="left"><div>T</div></td></tr>
 <tr><td><a href="Avutil.Subtitle.html#VALtime_base">time_base</a> [<a href="Avutil.Subtitle.html">Avutil.Subtitle</a>]</td>
 <td><div class="info">
-Return the time base for subtitles.
+<p>Return the time base for subtitles.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Avutil.html#VALtime_base">time_base</a> [<a href="Avutil.html">Avutil</a>]</td>
 <td><div class="info">
-Return the time base of FFmpeg.
+<p>Return the time base of FFmpeg.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Packet.html#VALto_bytes">to_bytes</a> [<a href="Avcodec.Packet.html">Avcodec.Packet</a>]</td>
+<td><div class="info">
+<p>Return a fresh bytes array containing a copy of packet datas.</p>
+
 </div>
 </td></tr>
 <tr><td><a href="Swresample.Make.html#VALto_codec">to_codec</a> [<a href="Swresample.Make.html">Swresample.Make</a>]</td>
 <td><div class="info">
-<code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.
+<p><code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.</p>
+
 </div>
 </td></tr>
-<tr><td align="left"><br>V</td></tr>
+<tr><td><a href="Avutil.Pixel_format.html#VALto_string">to_string</a> [<a href="Avutil.Pixel_format.html">Avutil.Pixel_format</a>]</td>
+<td><div class="info">
+<p><code class="code">Pixel_format.to_string f</code> Return a string representation of the pixel format <code class="code">f</code>.</p>
+
+</div>
+</td></tr>
+<tr><td align="left"><div>V</div></td></tr>
 <tr><td><a href="Swscale.html#VALversion">version</a> [<a href="Swscale.html">Swscale</a>]</td>
 <td></td></tr>
 <tr><td><a href="Swresample.AudioData.html#VALvk">vk</a> [<a href="Swresample.AudioData.html">Swresample.AudioData</a>]</td>
@@ -653,20 +927,37 @@ Return the time base of FFmpeg.
 <td></td></tr>
 <tr><td><a href="Swresample.Bytes.html#VALvk">vk</a> [<a href="Swresample.Bytes.html">Swresample.Bytes</a>]</td>
 <td></td></tr>
-<tr><td align="left"><br>W</td></tr>
-<tr><td><a href="Av.html#VALwrite">write</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Swscale.VideoData.html#VALvk">vk</a> [<a href="Swscale.VideoData.html">Swscale.VideoData</a>]</td>
+<td></td></tr>
+<tr><td><a href="Swscale.Bytes.html#VALvk">vk</a> [<a href="Swscale.Bytes.html">Swscale.Bytes</a>]</td>
+<td></td></tr>
+<tr><td><a href="Swscale.Frame.html#VALvk">vk</a> [<a href="Swscale.Frame.html">Swscale.Frame</a>]</td>
+<td></td></tr>
+<tr><td><a href="Swscale.BigArray.html#VALvk">vk</a> [<a href="Swscale.BigArray.html">Swscale.BigArray</a>]</td>
+<td></td></tr>
+<tr><td align="left"><div>W</div></td></tr>
+<tr><td><a href="Av.html#VALwrite_audio_frame">write_audio_frame</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.write os frm</code> write the <code class="code">frm</code> frame to the <code class="code">os</code> output stream.
+<p><code class="code">Av.write_audio_frame dst frm</code> write the <code class="code">frm</code> audio frame to the <code class="code">dst</code> output audio container.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Av.html#VALwrite_audio">write_audio</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Av.html#VALwrite_frame">write_frame</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-<code class="code">Av.write dst frm</code> write the <code class="code">frm</code> audio frame to the <code class="code">dst</code> output audio container.
+<p><code class="code">Av.write_frame os frm</code> write the <code class="code">frm</code> frame to the <code class="code">os</code> output stream.</p>
+
 </div>
 </td></tr>
-<tr><td><a href="Av.html#VALwrite_video">write_video</a> [<a href="Av.html">Av</a>]</td>
+<tr><td><a href="Av.html#VALwrite_packet">write_packet</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
-Same as <a href="Av.html#VALwrite_audio"><code class="code">Av.write_audio</code></a> for output video container.
+<p><code class="code">Av.write_packet os pkt</code> write the <code class="code">pkt</code> packet to the <code class="code">os</code> output stream.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Av.html#VALwrite_video_frame">write_video_frame</a> [<a href="Av.html">Av</a>]</td>
+<td><div class="info">
+<p>Same as <a href="Av.html#VALwrite_audio_frame"><code class="code">Av.write_audio_frame</code></a> for output video container.</p>
+
 </div>
 </td></tr>
 </table>

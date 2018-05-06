@@ -21,6 +21,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil.Pixel_format</title>
 </head>
@@ -31,18 +32,45 @@
 </div>
 <h1>Module <a href="type_Avutil.Pixel_format.html">Avutil.Pixel_format</a></h1>
 
-<pre><span class="keyword">module</span> Pixel_format: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Formats for pixels.<br>
+<pre><span id="MODULEPixel_format"><span class="keyword">module</span> Pixel_format</span>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Formats for pixels.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Pixel_format.html#TYPEt">Pixel_format.t</a></code> </pre>
 <div class="info ">
-Pixels formats.<br>
+<div class="info-desc">
+<p>Pixels formats.</p>
+</div>
 </div>
 
 
 <pre><span id="VALbits"><span class="keyword">val</span> bits</span> : <code class="type"><a href="Avutil.Pixel_format.html#TYPEt">t</a> -> int</code></pre><div class="info ">
-Return the number of bits of the pixel format.<br>
+<div class="info-desc">
+<p>Return the number of bits of the pixel format.</p>
+</div>
+</div>
+
+<pre><span id="VALplanes"><span class="keyword">val</span> planes</span> : <code class="type"><a href="Avutil.Pixel_format.html#TYPEt">t</a> -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p>Return the number of planes of the pixel format.</p>
+</div>
+</div>
+
+<pre><span id="VALto_string"><span class="keyword">val</span> to_string</span> : <code class="type"><a href="Avutil.Pixel_format.html#TYPEt">t</a> -> string</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Pixel_format.to_string f</code> Return a string representation of the pixel format <code class="code">f</code>.</p>
+</div>
+</div>
+
+<pre><span id="VALof_string"><span class="keyword">val</span> of_string</span> : <code class="type">string -> <a href="Avutil.Pixel_format.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Pixel_format.of_string s</code> Convert the string <code class="code">s</code> into a <code class="code">Pixel_format.t</code>.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if <code class="code">s</code> is not a valid format.</li>
+</ul>
 </div>
 </body></html>

@@ -16,6 +16,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avcodec.Video</title>
 </head>
@@ -28,7 +29,12 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_id&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avcodec</span>.<span class="constructor">Video</span>.id<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_width&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_height&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_sample_aspect_ratio&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int&nbsp;*&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_sample_aspect_ratio&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.rational<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_pixel_format&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Pixel_format</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_bit_rate&nbsp;:&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create_parser&nbsp;:&nbsp;<span class="constructor">Avcodec</span>.<span class="constructor">Video</span>.id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.<span class="constructor">Packet</span>.<span class="keyword">parser</span><br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create_decoder&nbsp;:&nbsp;<span class="constructor">Avcodec</span>.<span class="constructor">Video</span>.id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.decoder<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;create_encoder&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;?bit_rate:int&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;?frame_rate:int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avcodec</span>.<span class="constructor">Video</span>.id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.video&nbsp;<span class="constructor">Avcodec</span>.encoder<br>
 <span class="keyword">end</span></code></body></html>

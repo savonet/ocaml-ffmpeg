@@ -21,6 +21,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil.Video</title>
 </head>
@@ -31,20 +32,35 @@
 </div>
 <h1>Module <a href="type_Avutil.Video.html">Avutil.Video</a></h1>
 
-<pre><span class="keyword">module</span> Video: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULEVideo"><span class="keyword">module</span> Video</span>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><hr width="100%">
+
+<pre><span id="TYPEplanes"><span class="keyword">type</span> <code class="type"></code>planes</span> = <code class="type">(<a href="Avutil.html#TYPEdata">data</a> * int) array</code> </pre>
+
 
 <pre><span id="VALcreate_frame"><span class="keyword">val</span> create_frame</span> : <code class="type">int -> int -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a></code></pre><div class="info ">
-<code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.<br>
-<b>Raises</b> <code>Failure</code> if the allocation failed.<br>
+<div class="info-desc">
+<p><code class="code">Avutil.Video.create_frame w h pf</code> create a video frame with <code class="code">w</code> width, <code class="code">h</code> height and <code class="code">pf</code> pixel format.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the allocation failed.</li>
+</ul>
 </div>
 
-<pre><span id="VALframe_get"><span class="keyword">val</span> frame_get</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> int -> int -> int -> int</code></pre><div class="info ">
-<code class="code">Avutil.Video.frame_get p x y</code> return the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.<br>
-<b>Raises</b> <code>Failure</code> if <code class="code">p</code>, <code class="code">x</code> or <code class="code">y</code> are out of boundaries.<br>
+<pre><span id="VALframe_get_linesize"><span class="keyword">val</span> frame_get_linesize</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> int -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avutil.Video.frame_get_linesize vf n</code> return the line size of the <code class="code">n</code> plane of the <code class="code">vf</code> video frame.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if <code class="code">n</code> is out of boundaries.</li>
+</ul>
 </div>
 
-<pre><span id="VALframe_set"><span class="keyword">val</span> frame_set</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> int -> int -> int -> int -> unit</code></pre><div class="info ">
-<code class="code">Avutil.Video.frame_set p x y</code> set the <code class="code">p</code> plane data of the <code class="code">x</code> <code class="code">y</code> pixel.<br>
-<b>Raises</b> <code>Failure</code> if <code class="code">p</code>, <code class="code">x</code> or <code class="code">y</code> are out of boundaries.<br>
+<pre><span id="VALframe_visit"><span class="keyword">val</span> frame_visit</span> : <code class="type">make_writable:bool -><br>       (<a href="Avutil.Video.html#TYPEplanes">planes</a> -> unit) -><br>       <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avutil.html#TYPEframe">frame</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avutil.Video.frame_visit ~make_writable:wrt f vf</code> call the <code class="code">f</code> function with planes wrapping the <code class="code">vf</code> video frame data. The make_writable:<code class="code">wrt</code> parameter must be set to true if the <code class="code">f</code> function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the <code class="code">f</code> function and the frame is not sent to an encoder. The same frame is returned for convenience.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the make frame writable operation failed.</li>
+</ul>
 </div>
 </body></html>

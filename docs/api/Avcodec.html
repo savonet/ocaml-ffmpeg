@@ -21,6 +21,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avcodec</title>
 </head>
@@ -31,23 +32,75 @@
 </div>
 <h1>Module <a href="type_Avcodec.html">Avcodec</a></h1>
 
-<pre><span class="keyword">module</span> Avcodec: <code class="code">sig</code> <a href="Avcodec.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Audio, video and subtitle encoder and decoder<br>
+<pre><span id="MODULEAvcodec"><span class="keyword">module</span> Avcodec</span>: <code class="code">sig</code> <a href="Avcodec.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Audio, video and subtitle encoder and decoder</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">'a</code> t</span> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Avcodec.Audio.html">Audio</a>: <code class="code">sig</code> <a href="Avcodec.Audio.html">..</a> <code class="code">end</code></pre><div class="info">
-Audio codecs.
+<pre><span id="TYPEdecoder"><span class="keyword">type</span> <code class="type">'media</code> decoder</span> </pre>
+
+
+<pre><span id="TYPEencoder"><span class="keyword">type</span> <code class="type">'media</code> encoder</span> </pre>
+
+
+<pre><span id="MODULEPacket"><span class="keyword">module</span> <a href="Avcodec.Packet.html">Packet</a></span>: <code class="code">sig</code> <a href="Avcodec.Packet.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Packet.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avcodec.Video.html">Video</a>: <code class="code">sig</code> <a href="Avcodec.Video.html">..</a> <code class="code">end</code></pre><div class="info">
-Video codecs.
+<pre><span id="MODULEAudio"><span class="keyword">module</span> <a href="Avcodec.Audio.html">Audio</a></span>: <code class="code">sig</code> <a href="Avcodec.Audio.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Audio codecs.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avcodec.Subtitle.html">Subtitle</a>: <code class="code">sig</code> <a href="Avcodec.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info">
-Subtitle codecs.
+<pre><span id="MODULEVideo"><span class="keyword">module</span> <a href="Avcodec.Video.html">Video</a></span>: <code class="code">sig</code> <a href="Avcodec.Video.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Video codecs.</p>
+
+</div>
+
+<pre><span id="MODULESubtitle"><span class="keyword">module</span> <a href="Avcodec.Subtitle.html">Subtitle</a></span>: <code class="code">sig</code> <a href="Avcodec.Subtitle.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Subtitle codecs.</p>
+
+</div>
+
+<pre><span id="VALdecode"><span class="keyword">val</span> decode</span> : <code class="type">'media <a href="Avcodec.html#TYPEdecoder">decoder</a> -><br>       ('media <a href="Avutil.html#TYPEframe">frame</a> -> unit) -> 'media <a href="Avcodec.Packet.html#TYPEt">Packet.t</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.decode decoder f packet</code> applies function <code class="code">f</code> to the decoded frames frome the <code class="code">packet</code> according to the <code class="code">decoder</code> configuration.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the decoding failed.</li>
+</ul>
+</div>
+
+<pre><span id="VALflush_decoder"><span class="keyword">val</span> flush_decoder</span> : <code class="type">'media <a href="Avcodec.html#TYPEdecoder">decoder</a> -> ('media <a href="Avutil.html#TYPEframe">frame</a> -> unit) -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.flush_decoder decoder f</code> applies function <code class="code">f</code> to the decoded frames frome the buffered packets in the <code class="code">decoder</code>.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the decoding failed.</li>
+</ul>
+</div>
+
+<pre><span id="VALencode"><span class="keyword">val</span> encode</span> : <code class="type">'media <a href="Avcodec.html#TYPEencoder">encoder</a> -><br>       ('media <a href="Avcodec.Packet.html#TYPEt">Packet.t</a> -> unit) -> 'media <a href="Avutil.html#TYPEframe">frame</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.encode encoder f frame</code> applies function <code class="code">f</code> to the encoded packets from the <code class="code">frame</code> according to the <code class="code">encoder</code> configuration.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the encoding failed.</li>
+</ul>
+</div>
+
+<pre><span id="VALflush_encoder"><span class="keyword">val</span> flush_encoder</span> : <code class="type">'media <a href="Avcodec.html#TYPEencoder">encoder</a> -> ('media <a href="Avcodec.Packet.html#TYPEt">Packet.t</a> -> unit) -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.flush_encoder encoder</code> applies function <code class="code">f</code> to the encoded packets from the buffered frames in the <code class="code">encoder</code>.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the encoding failed.</li>
+</ul>
 </div>
 </body></html>

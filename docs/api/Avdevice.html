@@ -20,6 +20,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avdevice</title>
 </head>
@@ -29,88 +30,140 @@
 &nbsp;</div>
 <h1>Module <a href="type_Avdevice.html">Avdevice</a></h1>
 
-<pre><span class="keyword">module</span> Avdevice: <code class="code">sig</code> <a href="Avdevice.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Special devices access<br>
+<pre><span id="MODULEAvdevice"><span class="keyword">module</span> Avdevice</span>: <code class="code">sig</code> <a href="Avdevice.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Special devices access</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="VALget_audio_input_formats"><span class="keyword">val</span> get_audio_input_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the audio input devices formats.<br>
+<div class="info-desc">
+<p>Return the audio input devices formats.</p>
+</div>
 </div>
 
 <pre><span id="VALget_default_audio_input_format"><span class="keyword">val</span> get_default_audio_input_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the default audio input device format.<br>
+<div class="info-desc">
+<p>Return the default audio input device format.</p>
+</div>
 </div>
 
 <pre><span id="VALget_video_input_formats"><span class="keyword">val</span> get_video_input_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the video input devices formats.<br>
+<div class="info-desc">
+<p>Return the video input devices formats.</p>
+</div>
 </div>
 
 <pre><span id="VALget_default_video_input_format"><span class="keyword">val</span> get_default_video_input_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEinput">input</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the default video input device format.<br>
+<div class="info-desc">
+<p>Return the default video input device format.</p>
+</div>
 </div>
 
 <pre><span id="VALget_audio_output_formats"><span class="keyword">val</span> get_audio_output_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the audio output devices formats.<br>
+<div class="info-desc">
+<p>Return the audio output devices formats.</p>
+</div>
 </div>
 
 <pre><span id="VALget_default_audio_output_format"><span class="keyword">val</span> get_default_audio_output_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEaudio">audio</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the default audio output device format.<br>
+<div class="info-desc">
+<p>Return the default audio output device format.</p>
+</div>
 </div>
 
 <pre><span id="VALget_video_output_formats"><span class="keyword">val</span> get_video_output_formats</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a> list</code></pre><div class="info ">
-Return the video output devices formats.<br>
+<div class="info-desc">
+<p>Return the video output devices formats.</p>
+</div>
 </div>
 
 <pre><span id="VALget_default_video_output_format"><span class="keyword">val</span> get_default_video_output_format</span> : <code class="type">unit -> (<a href="Avutil.html#TYPEoutput">output</a>, <a href="Avutil.html#TYPEvideo">video</a>) <a href="Avutil.html#TYPEformat">format</a></code></pre><div class="info ">
-Return the default video output device format.<br>
+<div class="info-desc">
+<p>Return the default video output device format.</p>
+</div>
 </div>
 
 <pre><span id="VALopen_audio_input"><span class="keyword">val</span> open_audio_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the audio input device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the audio input device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_default_audio_input"><span class="keyword">val</span> open_default_audio_input</span> : <code class="type">unit -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the default audio input device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the default audio input device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_video_input"><span class="keyword">val</span> open_video_input</span> : <code class="type">string -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the video input device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the video input device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_default_video_input"><span class="keyword">val</span> open_default_video_input</span> : <code class="type">unit -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the default video input device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the default video input device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_audio_output"><span class="keyword">val</span> open_audio_output</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the audio output device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the audio output device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_default_audio_output"><span class="keyword">val</span> open_default_audio_output</span> : <code class="type">unit -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the default audio output device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the default audio output device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_video_output"><span class="keyword">val</span> open_video_output</span> : <code class="type">string -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the video output device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the video output device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
 <pre><span id="VALopen_default_video_output"><span class="keyword">val</span> open_default_video_output</span> : <code class="type">unit -> <a href="Avutil.html#TYPEoutput">output</a> <a href="Avutil.html#TYPEcontainer">container</a></code></pre><div class="info ">
-Open the default video output device from his name.<br>
-<b>Raises</b> <code>Failure</code> if the device is not found.<br>
+<div class="info-desc">
+<p>Open the default video output device from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the device is not found.</li>
+</ul>
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avdevice.App_to_dev.html">App_to_dev</a>: <code class="code">sig</code> <a href="Avdevice.App_to_dev.html">..</a> <code class="code">end</code></pre><div class="info">
-Application to device communication
+<pre><span id="MODULEApp_to_dev"><span class="keyword">module</span> <a href="Avdevice.App_to_dev.html">App_to_dev</a></span>: <code class="code">sig</code> <a href="Avdevice.App_to_dev.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Application to device communication</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avdevice.Dev_to_app.html">Dev_to_app</a>: <code class="code">sig</code> <a href="Avdevice.Dev_to_app.html">..</a> <code class="code">end</code></pre><div class="info">
-Device to application communication
+<pre><span id="MODULEDev_to_app"><span class="keyword">module</span> <a href="Avdevice.Dev_to_app.html">Dev_to_app</a></span>: <code class="code">sig</code> <a href="Avdevice.Dev_to_app.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Device to application communication</p>
+
 </div>
 </body></html>

@@ -21,6 +21,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avcodec.Video</title>
 </head>
@@ -31,52 +32,105 @@
 </div>
 <h1>Module <a href="type_Avcodec.Video.html">Avcodec.Video</a></h1>
 
-<pre><span class="keyword">module</span> Video: <code class="code">sig</code> <a href="Avcodec.Video.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Video codecs.<br>
+<pre><span id="MODULEVideo"><span class="keyword">module</span> Video</span>: <code class="code">sig</code> <a href="Avcodec.Video.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Video codecs.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEid"><span class="keyword">type</span> <code class="type"></code>id</span> = <code class="type"><a href="Codec_id.html#TYPEvideo">Codec_id.video</a></code> </pre>
 <div class="info ">
-Video codec ids<br>
+<div class="info-desc">
+<p>Video codec ids</p>
+</div>
 </div>
 
 
 <pre><span id="VALget_name"><span class="keyword">val</span> get_name</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> string</code></pre><div class="info ">
-Return the name of the codec.<br>
+<div class="info-desc">
+<p>Return the name of the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALfind_id"><span class="keyword">val</span> find_id</span> : <code class="type">string -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
-Return the id of a codec from his name.<br>
-<b>Raises</b> <code>Failure</code> if the codec is not found or is not a video codec.<br>
+<div class="info-desc">
+<p>Return the id of a codec from his name.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the codec is not found or is not a video codec.</li>
+</ul>
 </div>
 
 <pre><span id="VALfind_best_pixel_format"><span class="keyword">val</span> find_best_pixel_format</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a></code></pre><div class="info ">
-Return the best pixel format of a codec.<br>
-<b>Raises</b> <code>Failure</code> if the codec has no best pixel format.<br>
+<div class="info-desc">
+<p>Return the best pixel format of a codec.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the codec has no best pixel format.</li>
+</ul>
 </div>
 
 <pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
-Return the id of the codec.<br>
+<div class="info-desc">
+<p>Return the id of the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_width"><span class="keyword">val</span> get_width</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the width set for the codec.<br>
+<div class="info-desc">
+<p>Returns the width set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_height"><span class="keyword">val</span> get_height</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the height set for the codec.<br>
+<div class="info-desc">
+<p>Returns the height set for the codec.</p>
+</div>
 </div>
 
-<pre><span id="VALget_sample_aspect_ratio"><span class="keyword">val</span> get_sample_aspect_ratio</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int * int</code></pre><div class="info ">
-Returns the sample aspect ratio set for the codec.<br>
+<pre><span id="VALget_sample_aspect_ratio"><span class="keyword">val</span> get_sample_aspect_ratio</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.html#TYPErational">rational</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Returns the sample aspect ratio set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_pixel_format"><span class="keyword">val</span> get_pixel_format</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a></code></pre><div class="info ">
-Returns the pixel format set for the codec.<br>
+<div class="info-desc">
+<p>Returns the pixel format set for the codec.</p>
+</div>
 </div>
 
 <pre><span id="VALget_bit_rate"><span class="keyword">val</span> get_bit_rate</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> int</code></pre><div class="info ">
-Returns the bit rate set for the codec.<br>
+<div class="info-desc">
+<p>Returns the bit rate set for the codec.</p>
+</div>
+</div>
+
+<pre><span id="VALcreate_parser"><span class="keyword">val</span> create_parser</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.Packet.html#TYPEparser">Avcodec.Packet.parser</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Video.create_parser id</code> create an video packet parser.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the parser creation failed.</li>
+</ul>
+</div>
+
+<pre><span id="VALcreate_decoder"><span class="keyword">val</span> create_decoder</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEdecoder">Avcodec.decoder</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Video.create_decoder id</code> create a video decoder.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the decoder creation failed.</li>
+</ul>
+</div>
+
+<pre><span id="VALcreate_encoder"><span class="keyword">val</span> create_encoder</span> : <code class="type">?bit_rate:int -><br>       ?frame_rate:int -> <a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEencoder">Avcodec.encoder</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Video.create_encoder ~bit_rate:bit_rate id</code> create a video encoder.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the encoder creation failed.</li>
+</ul>
 </div>
 </body></html>

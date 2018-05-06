@@ -20,6 +20,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Swresample.Make</title>
 </head>
@@ -29,8 +30,10 @@
 </div>
 <h1>Functor <a href="type_Swresample.Make.html">Swresample.Make</a></h1>
 
-<pre><span class="keyword">module</span> Make: <div class="sig_block"><code class="code">functor (</code><code class="code">I</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><div class="sig_block"><code class="code">functor (</code><code class="code">O</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Swresample.Make.html">..</a> <code class="code">end</code></div></div></pre><div class="info module top">
-Functor building an implementation of the swresample structure with parameterized input an output audio data types<br>
+<pre><span id="MODULEMake"><span class="keyword">module</span> Make</span>: <div class="sig_block"><code class="code">functor (</code><code class="code">I</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><div class="sig_block"><code class="code">functor (</code><code class="code">O</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Swresample.Make.html">..</a> <code class="code">end</code></div></div></pre><div class="info module top">
+<div class="info-desc">
+<p>Functor building an implementation of the swresample structure with parameterized input an output audio data types</p>
+</div>
 </div>
 <table border="0" cellpadding="3" width="100%">
 <tr>
@@ -53,33 +56,49 @@ Functor building an implementation of the swresample structure with parameterize
 </table>
 <hr width="100%">
 
-<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type">(I.t, O.t) <a href="Swresample.html#TYPEt">Swresample.t</a></code> </pre>
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type">(I.t, O.t) <a href="Swresample.html#TYPEctx">Swresample.ctx</a></code> </pre>
 
 
-<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type"><a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-<code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.
-If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.<br>
-<b>Raises</b> <code>Failure</code> "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame.<br>
+<pre><span id="VALcreate"><span class="keyword">val</span> create</span> : <code class="type">?options:<a href="Swresample.html#TYPEoptions">Swresample.options</a> list -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr</code> create a Swresample.t with <code class="code">in_cl</code> channel layout, <code class="code">in_sf</code> sample format and <code class="code">in_sr</code> sample rate as input format and <code class="code">out_cl</code> channel layout, <code class="code">out_sf</code> sample format and <code class="code">out_sr</code> sample rate as output format.
+If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame.</li>
+</ul>
 </div>
 
-<pre><span id="VALfrom_codec"><span class="keyword">val</span> from_codec</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-<code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.<br>
+<pre><span id="VALfrom_codec"><span class="keyword">val</span> from_codec</span> : <code class="type">?options:<a href="Swresample.html#TYPEoptions">Swresample.options</a> list -><br>       <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?out_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> int -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format.</p>
+</div>
 </div>
 
-<pre><span id="VALto_codec"><span class="keyword">val</span> to_codec</span> : <code class="type"><a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-<code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.<br>
+<pre><span id="VALto_codec"><span class="keyword">val</span> to_codec</span> : <code class="type">?options:<a href="Swresample.html#TYPEoptions">Swresample.options</a> list -><br>       <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -><br>       ?in_sample_format:<a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -><br>       int -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">out_ac</code> audio codec properties as output format.</p>
+</div>
 </div>
 
-<pre><span id="VALfrom_codec_to_codec"><span class="keyword">val</span> from_codec_to_codec</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
-<code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.<br>
+<pre><span id="VALfrom_codec_to_codec"><span class="keyword">val</span> from_codec_to_codec</span> : <code class="type">?options:<a href="Swresample.html#TYPEoptions">Swresample.options</a> list -><br>       <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Swresample.Make.html#TYPEt">t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Swresample.from_codec_to_codec in_ac out_ac</code> do the same as <code class="code">Swresample.create</code> with the <code class="code">in_ac</code> audio codec properties as input format and the <code class="code">out_ac</code> audio codec properties as output format.</p>
+</div>
 </div>
 
 <pre><span id="VALreuse_output"><span class="keyword">val</span> reuse_output</span> : <code class="type"><a href="Swresample.Make.html#TYPEt">t</a> -> bool -> unit</code></pre><div class="info ">
-<code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>. Reusing the output reduces the number of memory allocations. In this cas, the data returned by <code class="code">Swresample.convert</code> is invalidated by a new call to this function.<br>
+<div class="info-desc">
+<p><code class="code">Swresample.reuse_output ro</code> enables or disables the reuse of <code class="code">Swresample.convert</code> output according to the value of <code class="code">ro</code>. Reusing the output reduces the number of memory allocations. In this cas, the data returned by <code class="code">Swresample.convert</code> is invalidated by a new call to this function.</p>
+</div>
 </div>
 
 <pre><span id="VALconvert"><span class="keyword">val</span> convert</span> : <code class="type"><a href="Swresample.Make.html#TYPEt">t</a> -> I.t -> O.t</code></pre><div class="info ">
-<code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.<br>
-<b>Raises</b> <code>Failure</code> if the conversion failed.<br>
+<div class="info-desc">
+<p><code class="code">Swresample.convert rsp iad</code> resample and convert the <code class="code">iad</code> input audio data to the output audio data according to the <code class="code">rsp</code> resampler context format.</p>
+</div>
+<ul class="info-attributes">
+<li><b>Raises</b> <code>Failure</code> if the conversion failed.</li>
+</ul>
 </div>
 </body></html>

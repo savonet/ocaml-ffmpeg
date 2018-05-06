@@ -21,6 +21,7 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><link title="Line" rel="Section" href="#1_Line">
 <link title="Container" rel="Section" href="#1_Container">
@@ -40,26 +41,22 @@
 </div>
 <h1>Module <a href="type_Avutil.html">Avutil</a></h1>
 
-<pre><span class="keyword">module</span> Avutil: <code class="code">sig</code> <a href="Avutil.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Common code shared across all FFmpeg libraries.<br>
+<pre><span id="MODULEAvutil"><span class="keyword">module</span> Avutil</span>: <code class="code">sig</code> <a href="Avutil.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Common code shared across all FFmpeg libraries.</p>
+</div>
 </div>
 <hr width="100%">
-<br>
-<h1 id="1_Line">Line</h1><br>
-
+<h2 id="1_Line">Line</h2>
 <pre><span id="TYPEinput"><span class="keyword">type</span> <code class="type"></code>input</span> </pre>
 
 
 <pre><span id="TYPEoutput"><span class="keyword">type</span> <code class="type"></code>output</span> </pre>
 
-<br>
-<h1 id="1_Container">Container</h1><br>
-
+<h2 id="1_Container">Container</h2>
 <pre><span id="TYPEcontainer"><span class="keyword">type</span> <code class="type">'a</code> container</span> </pre>
 
-<br>
-<h1 id="1_Media">Media</h1><br>
-
+<h2 id="1_Media">Media</h2>
 <pre><span id="TYPEaudio"><span class="keyword">type</span> <code class="type"></code>audio</span> </pre>
 
 
@@ -68,51 +65,68 @@ Common code shared across all FFmpeg libraries.<br>
 
 <pre><span id="TYPEsubtitle"><span class="keyword">type</span> <code class="type"></code>subtitle</span> </pre>
 
-<br>
-<h1 id="1_Format">Format</h1><br>
-
+<h2 id="1_Format">Format</h2>
 <pre><span id="TYPEformat"><span class="keyword">type</span> <code class="type">('line, 'media)</code> format</span> </pre>
 
-<br>
-<h1 id="1_Frame">Frame</h1><br>
-
+<h2 id="1_Frame">Frame</h2>
 <pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type">'media</code> frame</span> </pre>
 
-<br>
-<h1 id="1_Exception">Exception</h1><br>
-
+<h2 id="1_Exception">Exception</h2>
 <pre><span id="EXCEPTIONFailure"><span class="keyword">exception</span> Failure</span> <span class="keyword">of</span> <code class="type">string</code></pre>
 <div class="info ">
-A failure occured (with given explanation).<br>
+<div class="info-desc">
+<p>A failure occured (with given explanation).</p>
 </div>
-<br>
-<div class="h9" id="9_Timestamp">Timestamp</div><br>
-
-<pre><span class="keyword">module</span> <a href="Avutil.Time_format.html">Time_format</a>: <code class="code">sig</code> <a href="Avutil.Time_format.html">..</a> <code class="code">end</code></pre><div class="info">
-Formats for time.
 </div>
 
-<pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> int64</code></pre><div class="info ">
-Return the time base of FFmpeg.<br>
+<pre><span id="TYPEdata"><span class="keyword">type</span> <code class="type"></code>data</span> = <code class="type">(int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t</code> </pre>
+
+
+<pre><span id="VALcreate_data"><span class="keyword">val</span> create_data</span> : <code class="type">int -> <a href="Avutil.html#TYPEdata">data</a></code></pre>
+<pre><code><span id="TYPErational"><span class="keyword">type</span> <code class="type"></code>rational</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTrational.num">num</span>&nbsp;: <code class="type">int</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTrational.den">den</span>&nbsp;: <code class="type">int</code>;</code></td>
+
+</tr></table>
+}
+
+
+<div class="h10" id="9_Timestamp">Timestamp</div>
+<pre><span id="MODULETime_format"><span class="keyword">module</span> <a href="Avutil.Time_format.html">Time_format</a></span>: <code class="code">sig</code> <a href="Avutil.Time_format.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Formats for time.</p>
+
 </div>
-<br>
-<h5 id="5_Audioutilities">Audio utilities</h5><br>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Channel_layout.html">Channel_layout</a>: <code class="code">sig</code> <a href="Avutil.Channel_layout.html">..</a> <code class="code">end</code></pre><div class="info">
-Formats for channels layouts.
+<pre><span id="VALtime_base"><span class="keyword">val</span> time_base</span> : <code class="type">unit -> <a href="Avutil.html#TYPErational">rational</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Return the time base of FFmpeg.</p>
+</div>
+</div>
+<h6 id="5_Audioutilities">Audio utilities</h6>
+<pre><span id="MODULEChannel_layout"><span class="keyword">module</span> <a href="Avutil.Channel_layout.html">Channel_layout</a></span>: <code class="code">sig</code> <a href="Avutil.Channel_layout.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Formats for channels layouts.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Sample_format.html">Sample_format</a>: <code class="code">sig</code> <a href="Avutil.Sample_format.html">..</a> <code class="code">end</code></pre><div class="info">
-Formats for audio samples.
+<pre><span id="MODULESample_format"><span class="keyword">module</span> <a href="Avutil.Sample_format.html">Sample_format</a></span>: <code class="code">sig</code> <a href="Avutil.Sample_format.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Formats for audio samples.</p>
+
 </div>
-<br>
-<h5 id="5_Videoutilities">Video utilities</h5><br>
+<h6 id="5_Videoutilities">Video utilities</h6>
+<pre><span id="MODULEPixel_format"><span class="keyword">module</span> <a href="Avutil.Pixel_format.html">Pixel_format</a></span>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Formats for pixels.</p>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Pixel_format.html">Pixel_format</a>: <code class="code">sig</code> <a href="Avutil.Pixel_format.html">..</a> <code class="code">end</code></pre><div class="info">
-Formats for pixels.
 </div>
 
-<pre><span class="keyword">module</span> <a href="Avutil.Video.html">Video</a>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><br>
-<h5 id="5_Subtitleutilities">Subtitle utilities</h5><br>
-
-<pre><span class="keyword">module</span> <a href="Avutil.Subtitle.html">Subtitle</a>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre></body></html>
+<pre><span id="MODULEVideo"><span class="keyword">module</span> <a href="Avutil.Video.html">Video</a></span>: <code class="code">sig</code> <a href="Avutil.Video.html">..</a> <code class="code">end</code></pre><h6 id="5_Subtitleutilities">Subtitle utilities</h6>
+<pre><span id="MODULESubtitle"><span class="keyword">module</span> <a href="Avutil.Subtitle.html">Subtitle</a></span>: <code class="code">sig</code> <a href="Avutil.Subtitle.html">..</a> <code class="code">end</code></pre></body></html>

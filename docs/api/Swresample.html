@@ -5,7 +5,7 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Av.html">
+<link rel="previous" href="Swresample_options.html">
 <link rel="next" href="Avdevice.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -21,82 +21,103 @@
 <link title="Codec_id" rel="Chapter" href="Codec_id.html">
 <link title="Avcodec" rel="Chapter" href="Avcodec.html">
 <link title="Av" rel="Chapter" href="Av.html">
+<link title="Swresample_options" rel="Chapter" href="Swresample_options.html">
 <link title="Swresample" rel="Chapter" href="Swresample.html">
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Swresample</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Av.html" title="Av">Previous</a>
+<div class="navbar"><a class="pre" href="Swresample_options.html" title="Swresample_options">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;<a class="post" href="Avdevice.html" title="Avdevice">Next</a>
 </div>
 <h1>Module <a href="type_Swresample.html">Swresample</a></h1>
 
-<pre><span class="keyword">module</span> Swresample: <code class="code">sig</code> <a href="Swresample.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Audio resampling, sample format conversion and mixing<br>
+<pre><span id="MODULESwresample"><span class="keyword">module</span> Swresample</span>: <code class="code">sig</code> <a href="Swresample.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Audio resampling, sample format conversion and mixing</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module type</span> <a href="Swresample.AudioData.html">AudioData</a> = <code class="code">sig</code> <a href="Swresample.AudioData.html">..</a> <code class="code">end</code></pre><div class="info">
-Audio data modules for Swresample module input and output parameterization.
+<pre><span id="MODULETYPEAudioData"><span class="keyword">module type</span> <a href="Swresample.AudioData.html">AudioData</a></span> = <code class="code">sig</code> <a href="Swresample.AudioData.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Audio data modules for Swresample module input and output parameterization.</p>
+
 </div>
 
-<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type">('i, 'o)</code> t</span> </pre>
+<pre><span id="TYPEoptions"><span class="keyword">type</span> <code class="type"></code>options</span> = <code class="type">[ `Dither_rectangular<br>       | `Dither_triangular<br>       | `Dither_triangular_highpass<br>       | `Engine_soxr<br>       | `Engine_swr<br>       | `Filter_type_blackman_nuttall<br>       | `Filter_type_cubic<br>       | `Filter_type_kaiser ]</code> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Swresample.Make.html">Make</a>: <div class="sig_block"><code class="code">functor (</code><code class="code">I</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><div class="sig_block"><code class="code">functor (</code><code class="code">O</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Swresample.Make.html">..</a> <code class="code">end</code></div></div></pre><div class="info">
-Functor building an implementation of the swresample structure with parameterized input an output audio data types
+<pre><span id="TYPEctx"><span class="keyword">type</span> <code class="type">('i, 'o)</code> ctx</span> </pre>
+
+
+<pre><span id="MODULEMake"><span class="keyword">module</span> <a href="Swresample.Make.html">Make</a></span>: <div class="sig_block"><code class="code">functor (</code><code class="code">I</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><div class="sig_block"><code class="code">functor (</code><code class="code">O</code><code class="code"> : </code><code class="type"><a href="Swresample.AudioData.html">AudioData</a></code><code class="code">) -&gt; </code><code class="code">sig</code> <a href="Swresample.Make.html">..</a> <code class="code">end</code></div></div></pre><div class="info">
+<p>Functor building an implementation of the swresample structure with parameterized input an output audio data types</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.Bytes.html">Bytes</a>: <code class="code">sig</code> <a href="Swresample.Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Byte string with undefined sample format for interleaved channels.
+<pre><span id="MODULEBytes"><span class="keyword">module</span> <a href="Swresample.Bytes.html">Bytes</a></span>: <code class="code">sig</code> <a href="Swresample.Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Byte string with undefined sample format for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8Bytes.html">U8Bytes</a>: <code class="code">sig</code> <a href="Swresample.U8Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format byte string for interleaved channels.
+<pre><span id="MODULEU8Bytes"><span class="keyword">module</span> <a href="Swresample.U8Bytes.html">U8Bytes</a></span>: <code class="code">sig</code> <a href="Swresample.U8Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format byte string for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16Bytes.html">S16Bytes</a>: <code class="code">sig</code> <a href="Swresample.S16Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format byte string for interleaved channels.
+<pre><span id="MODULES16Bytes"><span class="keyword">module</span> <a href="Swresample.S16Bytes.html">S16Bytes</a></span>: <code class="code">sig</code> <a href="Swresample.S16Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format byte string for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32Bytes.html">S32Bytes</a>: <code class="code">sig</code> <a href="Swresample.S32Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format byte string for interleaved channels.
+<pre><span id="MODULES32Bytes"><span class="keyword">module</span> <a href="Swresample.S32Bytes.html">S32Bytes</a></span>: <code class="code">sig</code> <a href="Swresample.S32Bytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format byte string for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltBytes.html">FltBytes</a>: <code class="code">sig</code> <a href="Swresample.FltBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format byte string for interleaved channels.
+<pre><span id="MODULEFltBytes"><span class="keyword">module</span> <a href="Swresample.FltBytes.html">FltBytes</a></span>: <code class="code">sig</code> <a href="Swresample.FltBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format byte string for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblBytes.html">DblBytes</a>: <code class="code">sig</code> <a href="Swresample.DblBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format byte string for interleaved channels.
+<pre><span id="MODULEDblBytes"><span class="keyword">module</span> <a href="Swresample.DblBytes.html">DblBytes</a></span>: <code class="code">sig</code> <a href="Swresample.DblBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format byte string for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8PlanarBytes.html">U8PlanarBytes</a>: <code class="code">sig</code> <a href="Swresample.U8PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format byte string for planar channels.
+<pre><span id="MODULEU8PlanarBytes"><span class="keyword">module</span> <a href="Swresample.U8PlanarBytes.html">U8PlanarBytes</a></span>: <code class="code">sig</code> <a href="Swresample.U8PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format byte string for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16PlanarBytes.html">S16PlanarBytes</a>: <code class="code">sig</code> <a href="Swresample.S16PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format byte string for planar channels.
+<pre><span id="MODULES16PlanarBytes"><span class="keyword">module</span> <a href="Swresample.S16PlanarBytes.html">S16PlanarBytes</a></span>: <code class="code">sig</code> <a href="Swresample.S16PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format byte string for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32PlanarBytes.html">S32PlanarBytes</a>: <code class="code">sig</code> <a href="Swresample.S32PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format byte string for planar channels.
+<pre><span id="MODULES32PlanarBytes"><span class="keyword">module</span> <a href="Swresample.S32PlanarBytes.html">S32PlanarBytes</a></span>: <code class="code">sig</code> <a href="Swresample.S32PlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format byte string for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltPlanarBytes.html">FltPlanarBytes</a>: <code class="code">sig</code> <a href="Swresample.FltPlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format byte string for planar channels.
+<pre><span id="MODULEFltPlanarBytes"><span class="keyword">module</span> <a href="Swresample.FltPlanarBytes.html">FltPlanarBytes</a></span>: <code class="code">sig</code> <a href="Swresample.FltPlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format byte string for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblPlanarBytes.html">DblPlanarBytes</a>: <code class="code">sig</code> <a href="Swresample.DblPlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format byte string for planar channels.
+<pre><span id="MODULEDblPlanarBytes"><span class="keyword">module</span> <a href="Swresample.DblPlanarBytes.html">DblPlanarBytes</a></span>: <code class="code">sig</code> <a href="Swresample.DblPlanarBytes.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format byte string for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FloatArray.html">FloatArray</a>: <code class="code">sig</code> <a href="Swresample.FloatArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format array for interleaved channels.
+<pre><span id="MODULEFloatArray"><span class="keyword">module</span> <a href="Swresample.FloatArray.html">FloatArray</a></span>: <code class="code">sig</code> <a href="Swresample.FloatArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format array for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.PlanarFloatArray.html">PlanarFloatArray</a>: <code class="code">sig</code> <a href="Swresample.PlanarFloatArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format array for planar channels.
+<pre><span id="MODULEPlanarFloatArray"><span class="keyword">module</span> <a href="Swresample.PlanarFloatArray.html">PlanarFloatArray</a></span>: <code class="code">sig</code> <a href="Swresample.PlanarFloatArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format array for planar channels.</p>
+
 </div>
 
 <pre><span id="TYPEu8ba"><span class="keyword">type</span> <code class="type"></code>u8ba</span> = <code class="type">(int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t</code> </pre>
@@ -114,87 +135,108 @@ Float 64 bit sample format array for planar channels.
 <pre><span id="TYPEf64ba"><span class="keyword">type</span> <code class="type"></code>f64ba</span> = <code class="type">(float, Bigarray.float64_elt, Bigarray.c_layout) Bigarray.Array1.t</code> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8BigArray.html">U8BigArray</a>: <code class="code">sig</code> <a href="Swresample.U8BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format bigarray for interleaved channels.
+<pre><span id="MODULEU8BigArray"><span class="keyword">module</span> <a href="Swresample.U8BigArray.html">U8BigArray</a></span>: <code class="code">sig</code> <a href="Swresample.U8BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format bigarray for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16BigArray.html">S16BigArray</a>: <code class="code">sig</code> <a href="Swresample.S16BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format bigarray for interleaved channels.
+<pre><span id="MODULES16BigArray"><span class="keyword">module</span> <a href="Swresample.S16BigArray.html">S16BigArray</a></span>: <code class="code">sig</code> <a href="Swresample.S16BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format bigarray for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32BigArray.html">S32BigArray</a>: <code class="code">sig</code> <a href="Swresample.S32BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format bigarray for interleaved channels.
+<pre><span id="MODULES32BigArray"><span class="keyword">module</span> <a href="Swresample.S32BigArray.html">S32BigArray</a></span>: <code class="code">sig</code> <a href="Swresample.S32BigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format bigarray for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltBigArray.html">FltBigArray</a>: <code class="code">sig</code> <a href="Swresample.FltBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format bigarray for interleaved channels.
+<pre><span id="MODULEFltBigArray"><span class="keyword">module</span> <a href="Swresample.FltBigArray.html">FltBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.FltBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format bigarray for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblBigArray.html">DblBigArray</a>: <code class="code">sig</code> <a href="Swresample.DblBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format bigarray for interleaved channels.
+<pre><span id="MODULEDblBigArray"><span class="keyword">module</span> <a href="Swresample.DblBigArray.html">DblBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.DblBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format bigarray for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8PlanarBigArray.html">U8PlanarBigArray</a>: <code class="code">sig</code> <a href="Swresample.U8PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format bigarray for planar channels.
+<pre><span id="MODULEU8PlanarBigArray"><span class="keyword">module</span> <a href="Swresample.U8PlanarBigArray.html">U8PlanarBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.U8PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format bigarray for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16PlanarBigArray.html">S16PlanarBigArray</a>: <code class="code">sig</code> <a href="Swresample.S16PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format bigarray for planar channels.
+<pre><span id="MODULES16PlanarBigArray"><span class="keyword">module</span> <a href="Swresample.S16PlanarBigArray.html">S16PlanarBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.S16PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format bigarray for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32PlanarBigArray.html">S32PlanarBigArray</a>: <code class="code">sig</code> <a href="Swresample.S32PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format bigarray for planar channels.
+<pre><span id="MODULES32PlanarBigArray"><span class="keyword">module</span> <a href="Swresample.S32PlanarBigArray.html">S32PlanarBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.S32PlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format bigarray for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltPlanarBigArray.html">FltPlanarBigArray</a>: <code class="code">sig</code> <a href="Swresample.FltPlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format bigarray for planar channels.
+<pre><span id="MODULEFltPlanarBigArray"><span class="keyword">module</span> <a href="Swresample.FltPlanarBigArray.html">FltPlanarBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.FltPlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format bigarray for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblPlanarBigArray.html">DblPlanarBigArray</a>: <code class="code">sig</code> <a href="Swresample.DblPlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format bigarray for planar channels.
+<pre><span id="MODULEDblPlanarBigArray"><span class="keyword">module</span> <a href="Swresample.DblPlanarBigArray.html">DblPlanarBigArray</a></span>: <code class="code">sig</code> <a href="Swresample.DblPlanarBigArray.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format bigarray for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.Frame.html">Frame</a>: <code class="code">sig</code> <a href="Swresample.Frame.html">..</a> <code class="code">end</code></pre><div class="info">
-Audio frame with undefined sample format.
+<pre><span id="MODULEFrame"><span class="keyword">module</span> <a href="Swresample.Frame.html">Frame</a></span>: <code class="code">sig</code> <a href="Swresample.Frame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Audio frame with undefined sample format.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8Frame.html">U8Frame</a>: <code class="code">sig</code> <a href="Swresample.U8Frame.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format audio frame for interleaved channels.
+<pre><span id="MODULEU8Frame"><span class="keyword">module</span> <a href="Swresample.U8Frame.html">U8Frame</a></span>: <code class="code">sig</code> <a href="Swresample.U8Frame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format audio frame for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16Frame.html">S16Frame</a>: <code class="code">sig</code> <a href="Swresample.S16Frame.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format audio frame for interleaved channels.
+<pre><span id="MODULES16Frame"><span class="keyword">module</span> <a href="Swresample.S16Frame.html">S16Frame</a></span>: <code class="code">sig</code> <a href="Swresample.S16Frame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format audio frame for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32Frame.html">S32Frame</a>: <code class="code">sig</code> <a href="Swresample.S32Frame.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format audio frame for interleaved channels.
+<pre><span id="MODULES32Frame"><span class="keyword">module</span> <a href="Swresample.S32Frame.html">S32Frame</a></span>: <code class="code">sig</code> <a href="Swresample.S32Frame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format audio frame for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltFrame.html">FltFrame</a>: <code class="code">sig</code> <a href="Swresample.FltFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format audio frame for interleaved channels.
+<pre><span id="MODULEFltFrame"><span class="keyword">module</span> <a href="Swresample.FltFrame.html">FltFrame</a></span>: <code class="code">sig</code> <a href="Swresample.FltFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format audio frame for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblFrame.html">DblFrame</a>: <code class="code">sig</code> <a href="Swresample.DblFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format audio frame for interleaved channels.
+<pre><span id="MODULEDblFrame"><span class="keyword">module</span> <a href="Swresample.DblFrame.html">DblFrame</a></span>: <code class="code">sig</code> <a href="Swresample.DblFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format audio frame for interleaved channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.U8PlanarFrame.html">U8PlanarFrame</a>: <code class="code">sig</code> <a href="Swresample.U8PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Unsigned 8 bit sample format audio frame for planar channels.
+<pre><span id="MODULEU8PlanarFrame"><span class="keyword">module</span> <a href="Swresample.U8PlanarFrame.html">U8PlanarFrame</a></span>: <code class="code">sig</code> <a href="Swresample.U8PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Unsigned 8 bit sample format audio frame for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S16PlanarFrame.html">S16PlanarFrame</a>: <code class="code">sig</code> <a href="Swresample.S16PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 16 bit sample format audio frame for planar channels.
+<pre><span id="MODULES16PlanarFrame"><span class="keyword">module</span> <a href="Swresample.S16PlanarFrame.html">S16PlanarFrame</a></span>: <code class="code">sig</code> <a href="Swresample.S16PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 16 bit sample format audio frame for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.S32PlanarFrame.html">S32PlanarFrame</a>: <code class="code">sig</code> <a href="Swresample.S32PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Signed 32 bit sample format audio frame for planar channels.
+<pre><span id="MODULES32PlanarFrame"><span class="keyword">module</span> <a href="Swresample.S32PlanarFrame.html">S32PlanarFrame</a></span>: <code class="code">sig</code> <a href="Swresample.S32PlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Signed 32 bit sample format audio frame for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.FltPlanarFrame.html">FltPlanarFrame</a>: <code class="code">sig</code> <a href="Swresample.FltPlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 32 bit sample format audio frame for planar channels.
+<pre><span id="MODULEFltPlanarFrame"><span class="keyword">module</span> <a href="Swresample.FltPlanarFrame.html">FltPlanarFrame</a></span>: <code class="code">sig</code> <a href="Swresample.FltPlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 32 bit sample format audio frame for planar channels.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Swresample.DblPlanarFrame.html">DblPlanarFrame</a>: <code class="code">sig</code> <a href="Swresample.DblPlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
-Float 64 bit sample format audio frame for planar channels.
+<pre><span id="MODULEDblPlanarFrame"><span class="keyword">module</span> <a href="Swresample.DblPlanarFrame.html">DblPlanarFrame</a></span>: <code class="code">sig</code> <a href="Swresample.DblPlanarFrame.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Float 64 bit sample format audio frame for planar channels.</p>
+
 </div>
 </body></html>
