@@ -151,7 +151,7 @@ val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> un
 (** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t] in the [fmt] time format according to the method indicated by the [flags]. @raise Failure if the seeking failed. *)
 
 val reuse_output : input container -> bool -> unit
-(** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet}, {!Av.iter_packet}, {!Av.read}, {!Av.iter}, {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input} and {!Av.iter_input} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by a reading function is invalidated by a new call to this function. *)
+(** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet}, {!Av.iter_packet}, {!Av.read_frame}, {!Av.iter_frame}, {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input_frame} and {!Av.iter_input_frame} output according to the value of [ro]. Reusing the output reduces the number of memory allocations. In this cas, the data returned by a reading function is invalidated by a new call to this function. *)
 
 
 (** {5 Output} *)
