@@ -39,12 +39,12 @@ external get_time_base : (_, _)stream -> Avutil.rational = "ocaml_av_get_stream_
 external set_time_base : (_, _)stream -> Avutil.rational -> unit = "ocaml_av_set_stream_time_base"
 
 
-external _get_streams : input container -> media_type -> int array = "ocaml_av_get_streams"
+external _get_streams : input container -> media_type -> int list = "ocaml_av_get_streams"
 
 let get_streams input media_type =
   _get_streams input media_type
-  |> Array.map(fun i -> let s = mk_stream input i in (i, s, get_codec s))
-  |> Array.to_list
+  |> List.rev_map(fun i -> let s = mk_stream input i in (i, s, get_codec s))
+
 
 let get_audio_streams input = get_streams input MT_audio
 let get_video_streams input = get_streams input MT_video
@@ -181,7 +181,7 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
     | Some sf -> sf
     | None -> match codec with
       | Some cp -> Avcodec.Audio.get_sample_format cp
-      | None -> Avcodec.Audio.find_best_sample_format ci
+      | None -> Avcodec.Audio.find_best_sample_format ci `Dbl
   in
   let br = match bit_rate with
     | Some br -> br
@@ -238,7 +238,7 @@ let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rat
     | Some pf -> pf
     | None -> match codec with
       | Some cp -> Avcodec.Video.get_pixel_format cp
-      | None -> Avcodec.Video.find_best_pixel_format ci
+      | None -> Avcodec.Video.find_best_pixel_format ci `Yuv420p
   in
   let br = match bit_rate with
     | Some br -> br

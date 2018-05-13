@@ -89,7 +89,39 @@ module Audio = struct
 
   external find_id : string -> id = "ocaml_avcodec_find_audio_codec_id"
 
-  external find_best_sample_format : id -> Avutil.Sample_format.t = "ocaml_avcodec_find_best_sample_format"
+  
+  external get_supported_channel_layouts : id -> Avutil.Channel_layout.t list = "ocaml_avcodec_get_supported_channel_layouts"
+  let get_supported_channel_layouts id = List.rev(get_supported_channel_layouts id)
+
+  
+  let find_best_channel_layout id default =
+
+    match get_supported_channel_layouts id with
+    | h::_ -> h
+    | [] -> default
+
+  
+  external get_supported_sample_formats : id -> Avutil.Sample_format.t list = "ocaml_avcodec_get_supported_sample_formats"
+  let get_supported_sample_formats id = List.rev(get_supported_sample_formats id)
+
+  
+  let find_best_sample_format id default =
+
+    match get_supported_sample_formats id with
+    | h::_ -> h
+    | [] -> default
+
+  
+  external get_supported_sample_rates : id -> int list = "ocaml_avcodec_get_supported_sample_rates"
+  let get_supported_sample_rates id = List.rev(get_supported_sample_rates id)
+
+  
+  let find_best_sample_rate id default =
+
+    match get_supported_sample_rates id with
+    | h::_ -> h
+    | [] -> default
+      
 
   external get_id : audio t -> id = "ocaml_avcodec_parameters_get_audio_codec_id"
   external get_channel_layout : audio t -> Avutil.Channel_layout.t = "ocaml_avcodec_parameters_get_channel_layout"
@@ -118,8 +150,28 @@ module Video = struct
 
   external find_id : string -> id = "ocaml_avcodec_find_video_codec_id"
 
-  external find_best_pixel_format : id -> Avutil.Pixel_format.t = "ocaml_avcodec_find_best_pixel_format"
+  external get_supported_frame_rates : id -> Avutil.rational list = "ocaml_avcodec_get_supported_frame_rates"
+  let get_supported_frame_rates id = List.rev(get_supported_frame_rates id)
 
+  
+  let find_best_frame_rate id default =
+
+    match get_supported_frame_rates id with
+    | h::_ -> h
+    | [] -> default
+
+  
+  external get_supported_pixel_formats : id -> Avutil.Pixel_format.t list = "ocaml_avcodec_get_supported_pixel_formats"
+  let get_supported_pixel_formats id = List.rev(get_supported_pixel_formats id)
+
+
+  let find_best_pixel_format id default =
+
+    match get_supported_pixel_formats id with
+    | h::_ -> h
+    | [] -> default
+
+  
   external get_id : video t -> id = "ocaml_avcodec_parameters_get_video_codec_id"
   external get_width : video t -> int = "ocaml_avcodec_parameters_get_width"
   external get_height : video t -> int = "ocaml_avcodec_parameters_get_height"

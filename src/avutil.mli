@@ -67,6 +67,12 @@ module Channel_layout : sig
 
   (** Channel layout formats. *)
   type t = Channel_layout.t
+
+  (** Return the number of channels in the channel layout. *)
+  val get_nb_channels : t -> int
+
+  (** Return default channel layout for a given number of channels. *)
+  val get_default : int -> t
 end
 
 (** Formats for audio samples. *)

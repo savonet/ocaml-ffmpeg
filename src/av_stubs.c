@@ -189,25 +189,19 @@ AVFormatContext * ocaml_av_get_format_context(value *p_av) {
 CAMLprim value ocaml_av_get_streams(value _av, value _media_type)
 {
   CAMLparam2(_av, _media_type);
-  CAMLlocal2(v, ans);
+  CAMLlocal2(list, cons);
   av_t * av = Av_val(_av);
   enum AVMediaType type = MediaType_val(_media_type);
-  unsigned int i, j, len = 0;
+  unsigned int i;
 
+  List_init(list);
+  
   for(i = 0; i < av->format_context->nb_streams; i++) {
-    if(av->format_context->streams[i]->codecpar->codec_type == type) len++;
+    if(av->format_context->streams[i]->codecpar->codec_type == type)
+      List_add(list, cons, Val_int(i));
   }
 
-  ans = caml_alloc_tuple(len);
-
-  for(i = 0, j = 0; i < av->format_context->nb_streams; i++) {
-    if(av->format_context->streams[i]->codecpar->codec_type == type) {
-      Store_field(ans, j, Val_int(i));
-      j++;
-    }
-  }
-
-  CAMLreturn(ans);
+  CAMLreturn(list);
 }
 
 CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
@@ -379,7 +373,7 @@ CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index)
     metadata = av->format_context->streams[index]->metadata;
   }
 
-  list = Val_emptylist;
+  List_init(list);
 
   while((tag = av_dict_get(metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
 
@@ -387,12 +381,7 @@ CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index)
     Store_field(pair, 0, caml_copy_string(tag->key));
     Store_field(pair, 1, caml_copy_string(tag->value));
 
-    cons = caml_alloc(2, 0);
-
-    Store_field(cons, 0, pair);  // head
-    Store_field(cons, 1, list);  // tail
-
-    list = cons;
+    List_add(list, cons, pair);
   }
 
   CAMLreturn(list);

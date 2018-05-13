@@ -49,9 +49,23 @@ module Audio : sig
   (** Return the id of a codec from his name.
       @raise Failure if the codec is not found or is not an audio codec. *)
 
-  val find_best_sample_format : id -> Avutil.Sample_format.t
-  (** Return the best sample format of a codec.
-      @raise Failure if the codec has no best sample format. *)
+  (** Return the list of supported channel layouts of the codec. *)
+  val get_supported_channel_layouts : id -> Avutil.Channel_layout.t list
+      
+  val find_best_channel_layout : id -> Avutil.Channel_layout.t -> Avutil.Channel_layout.t
+  (** [Avcodec.Audio.find_best_channel_layout id default] return the best channel layout of the [id] codec or the [default] value if the codec has no channel layout. *)
+
+  (** Return the list of supported sample formats of the codec. *)
+  val get_supported_sample_formats : id -> Avutil.Sample_format.t list
+      
+  val find_best_sample_format : id -> Avutil.Sample_format.t -> Avutil.Sample_format.t
+  (** [Avcodec.Audio.find_best_sample_format id default] return the best sample format of the [id] codec or the [default] value if the codec has no sample format. *)
+
+  (** Return the list of supported sample rates of the codec. *)
+  val get_supported_sample_rates : id -> int list
+      
+  val find_best_sample_rate : id -> int -> int
+  (** [Avcodec.Audio.find_best_sample_rate id default] return the best sample rate of the [id] codec or the [default] value if the codec has no sample rate. *)
 
   (** Return the id of the codec. *)
   val get_id : audio t -> id
@@ -96,9 +110,18 @@ module Video : sig
   (** Return the id of a codec from his name.
       @raise Failure if the codec is not found or is not a video codec. *)
 
-  val find_best_pixel_format : id -> Avutil.Pixel_format.t
-  (** Return the best pixel format of a codec.
-      @raise Failure if the codec has no best pixel format. *)
+  (** Return the list of supported frame rates of the codec. *)
+  val get_supported_frame_rates : id -> Avutil.rational list
+      
+  val find_best_frame_rate : id -> Avutil.rational -> Avutil.rational
+  (** [Avcodec.Video.find_best_frame_rate id default] return the best frame rate of the [id] codec or the [default] value if the codec has no frame rate. *)
+
+  (** Return the list of supported pixel formats of the codec. *)
+  val get_supported_pixel_formats : id -> Avutil.Pixel_format.t list
+      
+  val find_best_pixel_format : id -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
+  (** [Avcodec.Video.find_best_pixel_format id default] return the best pixel format of the [id] codec or the [default] value if the codec has no pixel format. *)
+
 
   (** Return the id of the codec. *)
   val get_id : video t -> id

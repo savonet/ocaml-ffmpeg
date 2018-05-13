@@ -671,19 +671,60 @@ CAMLprim value ocaml_avcodec_find_audio_codec_id(value _name)
 }
 
 
-CAMLprim value ocaml_avcodec_find_best_sample_format(value _audio_codec_id)
+CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec_id)
 {
-  CAMLparam1(_audio_codec_id);
-  enum AVCodecID codec_id = AudioCodecID_val(_audio_codec_id);
+  CAMLparam1(_codec_id);
+  CAMLlocal2(list, cons);
+  int i;
+  List_init(list);
 
   avcodec_register_all();
+  AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
 
-  AVCodec * codec = avcodec_find_encoder(codec_id);
-  if( ! codec) Raise(EXN_FAILURE, "Failed to find codec");
-  if( ! codec->sample_fmts) Raise(EXN_FAILURE, "Failed to find codec sample formats");
-    
-  CAMLreturn(Val_SampleFormat(codec->sample_fmts[0]));
+  if(codec && codec->channel_layouts) {
+  for(i = 0; codec->channel_layouts[i] != -1; i++)
+      List_add(list, cons, Val_ChannelLayout(codec->channel_layouts[i]));
+  }
+
+  CAMLreturn(list);
 }
+
+CAMLprim value ocaml_avcodec_get_supported_sample_formats(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLlocal2(list, cons);
+  int i;
+  List_init(list);
+
+  avcodec_register_all();
+  AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
+
+  if(codec && codec->sample_fmts) {
+  for(i = 0; codec->sample_fmts[i] != -1; i++)
+      List_add(list, cons, Val_SampleFormat(codec->sample_fmts[i]));
+  }
+
+  CAMLreturn(list);
+}
+
+CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLlocal2(list, cons);
+  int i;
+  List_init(list);
+
+  avcodec_register_all();
+  AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
+
+  if(codec && codec->supported_samplerates) {
+  for(i = 0; codec->supported_samplerates[i] != 0; i++)
+    List_add(list, cons, Val_int(codec->supported_samplerates[i]));
+  }
+
+  CAMLreturn(list);
+}
+
 
 /**** Audio codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_audio_codec_id(value _cp) {
@@ -749,18 +790,42 @@ CAMLprim value ocaml_avcodec_find_video_codec_id(value _name)
   CAMLreturn(Val_VideoCodecID(find_codec_id(String_val(_name))));
 }
 
-CAMLprim value ocaml_avcodec_find_best_pixel_format(value _video_codec_id)
+CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec_id)
 {
-  CAMLparam1(_video_codec_id);
-  enum AVCodecID codec_id = VideoCodecID_val(_video_codec_id);
+  CAMLparam1(_codec_id);
+  CAMLlocal3(list, cons, val);
+  int i;
+  List_init(list);
 
   avcodec_register_all();
+  AVCodec * codec = avcodec_find_encoder(VideoCodecID_val(_codec_id));
 
-  AVCodec * codec = avcodec_find_encoder(codec_id);
-  if( ! codec) Raise(EXN_FAILURE, "Failed to find codec");
-  if( ! codec->pix_fmts) Raise(EXN_FAILURE, "Failed to find codec pixel formats");
-    
-  CAMLreturn(Val_PixelFormat(codec->pix_fmts[0]));
+  if(codec && codec->supported_framerates) {
+    for(i = 0; codec->supported_framerates[i].num != 0; i++) {
+      value_of_rational(&codec->supported_framerates[i], &val);
+      List_add(list, cons, val);
+    }
+  }
+
+  CAMLreturn(list);
+}
+
+CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec_id)
+{
+  CAMLparam1(_codec_id);
+  CAMLlocal2(list, cons);
+  int i;
+  List_init(list);
+
+  avcodec_register_all();
+  AVCodec * codec = avcodec_find_encoder(VideoCodecID_val(_codec_id));
+
+  if(codec && codec->pix_fmts) {
+  for(i = 0; codec->pix_fmts[i] != -1; i++)
+      List_add(list, cons, Val_PixelFormat(codec->pix_fmts[i]));
+  }
+
+  CAMLreturn(list);
 }
 
 

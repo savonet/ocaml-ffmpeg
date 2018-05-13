@@ -23,7 +23,7 @@ char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
 
 /**** Rational ****/
-void value_of_rational(AVRational * rational, value * pvalue) {
+void value_of_rational(const AVRational * rational, value * pvalue) {
   *pvalue = caml_alloc_tuple(2);
   Field(*pvalue, 0) = Val_int(rational->num);
   Field(*pvalue, 1) = Val_int(rational->den);
@@ -54,6 +54,18 @@ CAMLprim value ocaml_avutil_time_base()
 }
 
 /**** Channel layout ****/
+CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout)
+{
+  CAMLparam1(_channel_layout);
+  CAMLreturn(Val_int(av_get_channel_layout_nb_channels(ChannelLayout_val(_channel_layout))));
+}
+
+CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels)
+{
+  CAMLparam1(_nb_channels);
+  CAMLreturn(Val_ChannelLayout(av_get_default_channel_layout(Int_val(_nb_channels))));
+}
+
 
 /**** Sample format ****/
 

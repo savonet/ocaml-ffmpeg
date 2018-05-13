@@ -59,6 +59,9 @@ end
 
 module Channel_layout = struct
   type t = Channel_layout.t
+
+  external get_nb_channels : t -> int = "ocaml_avutil_get_channel_layout_nb_channels"
+  external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
 end
 
 module Sample_format = struct

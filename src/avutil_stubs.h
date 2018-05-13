@@ -38,6 +38,8 @@
 extern char ocaml_av_exn_msg[];
 
 
+#define List_init(list) (list) = Val_emptylist
+
 #define List_add(list, cons, val) {             \
     (cons) = caml_alloc(2, 0);                  \
     Store_field((cons), 0, (val));              \
@@ -49,7 +51,7 @@ extern char ocaml_av_exn_msg[];
 /**** AVRational ****/
 #define rational_of_value(v) ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
 
-void value_of_rational(AVRational * r, value * pv);
+void value_of_rational(const AVRational * r, value * pv);
 
 
 /**** Time format ****/

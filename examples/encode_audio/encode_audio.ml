@@ -14,7 +14,7 @@ let () =
   let codec_id = Audio.find_id Sys.argv.(2) in
 
   let encoder = Audio.create_encoder codec_id in
-  let out_sample_format = Audio.find_best_sample_format codec_id in
+  let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
 
   let rsp = Resampler.create `Mono sample_rate
       `Stereo ~out_sample_format sample_rate in
