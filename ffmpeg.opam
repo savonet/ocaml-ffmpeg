@@ -4,6 +4,8 @@ maintainer: "Romain Beauxis <toots@rastageeks.org>"
 authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
 homepage: "https://github.com/savonet/ocaml-ffmpeg"
 build: [
+  ["git" "submodule" "init"]
+  ["git" "submodule" "update"]
   ["./bootstrap"]
   ["./configure" "--prefix" prefix]
   [make]
@@ -12,10 +14,12 @@ install: [
   [make "install"]
 ]
 remove: ["ocamlfind" "remove" "ffmpeg"]
-depends: ["ocamlfind"]
+depends: [
+  "ocamlfind" {build}
+]
 depexts: [
-  [["debian"] ["libavutil-dev" "libswscale-dev"]]
-  [["ubuntu"] ["libavutil-dev" "libswscale-dev"]]
+  [["debian"] ["libavutil-dev" "libswscale-dev" "libavformat-dev"]]
+  [["ubuntu"] ["libavutil-dev" "libswscale-dev" "libavformat-dev"]]
   [["alpine"] ["ffmpeg-dev"]]
   [["archlinux"] ["ffmpeg"]]
   [["centos"] ["ffmpeg-devel"]]
