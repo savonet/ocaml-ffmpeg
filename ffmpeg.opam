@@ -17,6 +17,7 @@ remove: ["ocamlfind" "remove" "ffmpeg"]
 depends: [
   "ocamlfind" {build}
   "conf-pkg-config" {build}
+  "conf-autoconf" {build}
   "base-bigarray"
 ]
 depexts: [
