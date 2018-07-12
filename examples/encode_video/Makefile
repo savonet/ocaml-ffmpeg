@@ -5,7 +5,7 @@ LIBS = bigarray ffmpeg
 INCDIRS = ../../src
 THREADS = yes
 CFLAGS = -O3
-OCAMLFLAGS = -O3 -unsafe -inline 100 -noassert
+OCAMLFLAGS = -unsafe -inline 100 -noassert
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
 all: native-code

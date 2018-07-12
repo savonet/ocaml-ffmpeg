@@ -326,7 +326,8 @@ static int convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samp
   int i;
 
   if(ret != swr->out_vector_nb_samples || swr->release_out_vector) {
-    caml_modify_generational_global_root(&swr->out_vector, caml_alloc_float_array(len));
+    caml_modify_generational_global_root(&swr->out_vector,
+                                         caml_alloc(len * Double_wosize, Double_array_tag));
     swr->out_vector_nb_samples = ret;
   }
 
@@ -357,7 +358,8 @@ static int convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_
 
   if(ret != swr->out_vector_nb_samples || swr->release_out_vector) {
     for(int i = 0; i < swr->out.nb_channels; i++) {
-      Store_field(swr->out_vector, i, caml_alloc_float_array(ret));
+      Store_field(swr->out_vector, i,
+                  caml_alloc(ret * Double_wosize, Double_array_tag));
     }
     swr->out_vector_nb_samples = ret;
   }
