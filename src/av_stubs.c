@@ -486,6 +486,8 @@ static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
 
 static stream_t * open_stream_index(av_t *av, int index)
 {
+  if( ! av->format_context) Fail("Failed to open stream %d of closed input", index);
+
   if(index < 0 || index >= av->format_context->nb_streams) Fail("Failed to open stream %d : index out of bounds", index);
   
   if( ! av->streams && ! allocate_input_context(av)) return NULL;
