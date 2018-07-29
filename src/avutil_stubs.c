@@ -1,3 +1,6 @@
+#include <assert.h>
+#include <pthread.h>
+
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
 #include <caml/alloc.h>
@@ -6,8 +9,6 @@
 #include <caml/custom.h>
 #include <caml/bigarray.h>
 #include <caml/threads.h>
-
-#include <assert.h>
 
 #include <libavutil/pixfmt.h>
 #include <libavutil/pixdesc.h>
@@ -20,6 +21,57 @@
 
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
+
+
+/***** Global initialisation *****/
+
+static int lock_manager(void **mtx, enum AVLockOp op)
+{
+  switch(op) {
+  case AV_LOCK_CREATE:
+    *mtx = malloc(sizeof(pthread_mutex_t));
+
+    if(!*mtx)
+      return 1;
+    return !!pthread_mutex_init(*mtx, NULL);
+
+  case AV_LOCK_OBTAIN:
+    return !!pthread_mutex_lock(*mtx);
+
+  case AV_LOCK_RELEASE:
+    return !!pthread_mutex_unlock(*mtx);
+
+  case AV_LOCK_DESTROY:
+    pthread_mutex_destroy(*mtx);
+    free(*mtx);
+    return 0;
+  }
+  return 1;
+}
+
+int register_lock_manager()
+{
+  static int registering_done = 0;
+  static pthread_mutex_t registering_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+  if( ! registering_done) {
+    pthread_mutex_lock(&registering_mutex);
+ 
+    if( ! registering_done) {
+
+      int ret = av_lockmgr_register(lock_manager);
+
+      if(ret < 0) {
+        Log("Failed to register lock manager : %s", av_err2str(ret));
+      }
+      else {
+        registering_done = 1;
+      }
+      pthread_mutex_unlock(&registering_mutex);
+    }
+  }
+  return registering_done;
+} 
 
 
 /**** Rational ****/

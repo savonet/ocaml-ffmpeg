@@ -1,5 +1,4 @@
 #include <string.h>
-#include <pthread.h>
 
 #include <caml/mlvalues.h>
 #include <caml/memory.h>
@@ -297,6 +296,8 @@ static av_t * open_input(char *url, AVInputFormat *format)
   av->is_input = 1;
   av->release_out = 1;
   
+  if( ! register_lock_manager()) return NULL;
+
   av_register_all();
 
   if(url && 0 == strncmp("http", url, 4)) {
@@ -921,6 +922,8 @@ static av_t * open_output(AVOutputFormat *format, const char *format_name, const
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate output context");
+
+  if( ! register_lock_manager()) return NULL;
 
   av_register_all();
 

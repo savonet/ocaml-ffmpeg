@@ -48,6 +48,11 @@ extern char ocaml_av_exn_msg[];
   }
 
 
+/***** Global initialisation *****/
+
+int register_lock_manager();
+
+  
 /**** AVRational ****/
 #define rational_of_value(v) ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
 
