@@ -110,7 +110,7 @@ static struct custom_operations packet_ops =
     custom_deserialize_default
   };
 
-void value_of_packet(AVPacket *packet, value * pvalue)
+void value_of_ffmpeg_packet(AVPacket *packet, value * pvalue)
 {
   if( ! packet) Raise(EXN_FAILURE, "Empty packet");
 
@@ -123,7 +123,7 @@ AVPacket * alloc_packet_value(value * pvalue)
   AVPacket *packet = av_packet_alloc();
   if( ! packet) Fail("Failed to allocate packet");
 
-  value_of_packet(packet, pvalue);
+  value_of_ffmpeg_packet(packet, pvalue);
 
   return packet;
 }
@@ -271,7 +271,7 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data, value _ofs
   }
 
   if(packet->size) {
-    value_of_packet(packet, &val_packet);
+    value_of_ffmpeg_packet(packet, &val_packet);
 
     tuple = caml_alloc_tuple(2);
 
@@ -631,7 +631,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx)
   }
   else {
     ans = caml_alloc(1, 0);
-    value_of_packet(packet, &val_packet);
+    value_of_ffmpeg_packet(packet, &val_packet);
     Store_field(ans, 0, val_packet);
   }  
   CAMLreturn(ans);
