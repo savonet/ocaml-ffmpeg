@@ -31,7 +31,6 @@ typedef struct {
   AVCodecContext *codec_context;
 
   // input
-  AVPacket * packet;
   value packet_value;
   value frame_value;
   int got_frame;
@@ -92,8 +91,6 @@ static void free_stream(stream_t * stream)
   if( ! stream) return;
   
   if(stream->codec_context) avcodec_free_context(&stream->codec_context);
-
-  if(stream->packet) av_packet_free(&stream->packet);
 
   if(stream->packet_value) caml_remove_generational_global_root(&stream->packet_value);
 
@@ -443,38 +440,6 @@ static value get_stream_packet_value(stream_t * stream) {
   return stream->packet_value;
 }
 
-static value * allocate_type_frame(enum AVMediaType type, value * pvalue)
-{
-  if(type == AVMEDIA_TYPE_SUBTITLE) {
-    if( ! alloc_subtitle_value(pvalue)) return NULL;
-  }
-  else {
-    if( ! alloc_frame_value(pvalue)) return NULL;
-  }
-  return pvalue;
-}
-
-static void provide_frame_value(av_t * av, stream_t * stream, value * frame_value)
-{
-  if(av->release_out) {
-    if( ! allocate_type_frame(stream->codec_context->codec_type, frame_value))
-      Raise(EXN_FAILURE, ocaml_av_error_msg);
-  }
-  else {
-    // Allocate the frame if needed
-    if(stream->frame_value) {
-      *frame_value = stream->frame_value;
-    }
-    else {
-      if( ! allocate_type_frame(stream->codec_context->codec_type, frame_value))
-        Raise(EXN_FAILURE, "Failed to allocate stream frame value");
-
-      stream->frame_value = *frame_value;
-      caml_register_generational_global_root(&stream->frame_value);
-    }
-  }
-}
-
 static stream_t** allocate_input_context(av_t *av)
 {
   if( ! av->format_context) Fail("Failed to read closed input");
@@ -484,6 +449,17 @@ static stream_t** allocate_input_context(av_t *av)
   if( ! av->streams) Fail("Failed to allocate streams array");
 
   return av->streams;
+}
+
+static value * allocate_type_frame(enum AVMediaType type, value * pvalue)
+{
+  if(type == AVMEDIA_TYPE_SUBTITLE) {
+    if( ! alloc_subtitle_value(pvalue)) return NULL;
+  }
+  else {
+    if( ! alloc_frame_value(pvalue)) return NULL;
+  }
+  return pvalue;
 }
 
 static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
@@ -501,6 +477,10 @@ static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
   stream->codec_context = avcodec_alloc_context3(codec);
 
   if( ! stream->codec_context) Fail("Failed to allocate stream %d codec context", index);
+
+  // Allocate the frame
+  if( ! allocate_type_frame(type, &stream->frame_value)) return NULL;
+  caml_register_generational_global_root(&stream->frame_value);
 
   return stream;
 }
@@ -681,18 +661,20 @@ CAMLprim value ocaml_av_read_stream_frame(value _stream) {
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
 
-  if( ! (av->streams && av->streams[index])) {
-    if( ! open_stream_index(av, index)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! (av->streams && av->streams[index]) && ! open_stream_index(av, index))
+    Raise(EXN_FAILURE, ocaml_av_error_msg);
 
-    av->streams[index]->packet = av_packet_alloc();
-    if( ! av->streams[index]->packet) Raise(EXN_FAILURE, "Failed to allocate packet");
-  }
-  
   stream_t * stream = av->streams[index];
-  AVPacket * packet = stream->packet;
+  AVPacket * packet = Packet_val(get_stream_packet_value(stream));
   value frame_kind = 0;
 
-  provide_frame_value(av, stream, &frame_value);
+  if(av->release_out) {
+    if( ! allocate_type_frame(stream->codec_context->codec_type, &frame_value))
+      Raise(EXN_FAILURE, ocaml_av_error_msg);
+  }
+  else {
+    frame_value = stream->frame_value;
+  }
   AVFrame * frame = Frame_val(frame_value);
 
   caml_release_runtime_system();
@@ -780,6 +762,8 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
   stream_t * stream = NULL;
   value frame_kind = 0;
 
+  caml_release_runtime_system();
+
   for(; ! frame_kind;) {
     if( ! av->end_of_file) {
   
@@ -807,16 +791,10 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
         break;
       }
     }
-
-    provide_frame_value(av, stream, &frame_value);
-
-    caml_release_runtime_system();
-
-    frame_kind = decode_packet(av, stream, packet, Frame_val(frame_value));
-
-    caml_acquire_runtime_system();
+    frame_kind = decode_packet(av, stream, packet, Frame_val(stream->frame_value));
   }
 
+  caml_acquire_runtime_system();
   if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
   
   if(frame_kind == PVV_End_of_file) {
@@ -825,11 +803,17 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
   else {
     stream_frame = caml_alloc_tuple(2);
     Field(stream_frame, 0) = Val_int(stream->index);
-    Field(stream_frame, 1) = frame_value;
+    Field(stream_frame, 1) = stream->frame_value;
 
     ans = caml_alloc_tuple(2);
     Field(ans, 0) = frame_kind;
     Field(ans, 1) = stream_frame;
+
+    if(av->release_out) {
+      if( ! allocate_type_frame(stream->codec_context->codec_type, &frame_value))
+        Raise(EXN_FAILURE, ocaml_av_error_msg);
+      caml_modify_generational_global_root(&stream->frame_value, frame_value);
+    }
   }
   CAMLreturn(ans);
 }
