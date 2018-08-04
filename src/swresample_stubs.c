@@ -57,30 +57,9 @@ static int alloc_data(struct audio_t * audio, int nb_samples)
 
   audio->owns_data = 1;
 
-  int ret = av_samples_alloc(&audio->data[0], NULL, audio->nb_channels,
+  int ret = av_samples_alloc(audio->data, NULL, audio->nb_channels,
                              nb_samples, audio->sample_fmt, 0);
   if(ret < 0) return ret;
-
-  audio->nb_samples = nb_samples;
-  return ret;
-}
-
-static int alloc_planar_data(struct audio_t * audio, int nb_samples)
-{
-  int i, ret = 0;
-
-  if(audio->data != NULL && audio->data[0] != NULL) {
-    for(i = 0; i < audio->nb_channels; i++) av_freep(&audio->data[i]);
-    audio->nb_samples = 0;
-  }
-
-  audio->owns_data = 1;
-  
-  for(i = 0; i < audio->nb_channels; i++) {
-    ret = av_samples_alloc(&audio->data[i], NULL, audio->nb_channels,
-                           nb_samples, audio->sample_fmt, 0);
-    if(ret < 0) return ret;
-  }
 
   audio->nb_samples = nb_samples;
   return ret;
@@ -123,7 +102,7 @@ static int get_in_samples_planar_string(swr_t *swr, value *in_vector)
   int i, nb_samples = str_len / swr->in.bytes_per_samples;
 
   if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_planar_data(&swr->in, nb_samples);
+    int ret = alloc_data(&swr->in, nb_samples);
     if (ret < 0) return ret;
   }
 
@@ -164,7 +143,7 @@ static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector)
   int nb_samples = nb_words / Double_wosize;
 
   if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_planar_data(&swr->in, nb_samples);
+    int ret = alloc_data(&swr->in, nb_samples);
     if (ret < 0) return ret;
   }
 
@@ -273,7 +252,7 @@ static int convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_sa
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_planar_data(&swr->out, out_nb_samples);
+    int ret = alloc_data(&swr->out, out_nb_samples);
     if(ret < 0) return ret;
   }
 
@@ -329,7 +308,7 @@ static int convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_planar_data(&swr->out, out_nb_samples);
+    int ret = alloc_data(&swr->out, out_nb_samples);
     if(ret < 0) return ret;
   }
 
@@ -452,16 +431,12 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
 
 void swresample_free(swr_t *swr)
 {
-  int i;
-  
   if(swr->context) swr_free(&swr->context);
 
   if(swr->in.data && swr->get_in_samples != get_in_samples_frame) {
 
     if(swr->in.owns_data) {
-      for(i = 0; i < swr->in.nb_channels && swr->in.data[i]; i++) {
-        av_freep(&swr->in.data[i]);
-      }
+      av_freep(&swr->in.data[0]);
     }
     free(swr->in.data);
   }
@@ -469,9 +444,7 @@ void swresample_free(swr_t *swr)
   if(swr->out.data && swr->convert != convert_to_frame) {
 
     if(swr->out.owns_data) {
-      for(i = 0; i < swr->out.nb_channels && swr->out.data[i]; i++) {
-        av_freep(&swr->out.data[i]);
-      }
+      av_freep(&swr->out.data[0]);
     }
     free(swr->out.data);
   }
