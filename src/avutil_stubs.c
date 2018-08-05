@@ -25,6 +25,23 @@ char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
 /***** Global initialisation *****/
 
+static void ocaml_ffmpeg_on_thread_exit(void *key) {
+  caml_c_thread_unregister();
+}
+
+static void ocaml_ffmpeg_register_thread() {
+  static pthread_key_t key = (pthread_key_t)NULL;
+  static int initialized = 1;
+
+  pthread_key_create(&key, &ocaml_ffmpeg_on_thread_exit);
+
+  void *ptr;
+  if ((ptr = pthread_getspecific(key)) == NULL) {
+    pthread_setspecific(key,(void*)&initialized);
+    caml_c_thread_register();
+  }
+}
+
 static int lock_manager(void **mtx, enum AVLockOp op)
 {
   switch(op) {
@@ -96,7 +113,7 @@ int64_t second_fractions_of_time_format(value time_format)
 }
 
 /**** Logging ****/
-CAMLprim ocaml_avutil_set_log_level(value level)
+CAMLprim value ocaml_avutil_set_log_level(value level)
 {
   CAMLparam0();
   av_log_set_level(Int_val(level));
@@ -116,6 +133,7 @@ static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list
 
   ret = av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
+  ocaml_ffmpeg_register_thread();
   caml_acquire_runtime_system();
   caml_callback(ocaml_log_callback, caml_copy_string(line));
   caml_release_runtime_system();
@@ -125,7 +143,7 @@ CAMLprim value ocaml_avutil_set_log_callback(value callback)
 {
   CAMLparam1(callback);
   
-  if (ocaml_log_callback == NULL) {
+  if (ocaml_log_callback == (value)NULL) {
     ocaml_log_callback = callback;
     caml_register_generational_global_root(&ocaml_log_callback);
   } else {
@@ -141,7 +159,7 @@ CAMLprim value ocaml_avutil_clear_log_callback()
 {
   CAMLparam0();
 
-  if (ocaml_log_callback != NULL) {
+  if (ocaml_log_callback != (value)NULL) {
     caml_remove_generational_global_root(&ocaml_log_callback);
     ocaml_log_callback = (value)NULL;
   }
