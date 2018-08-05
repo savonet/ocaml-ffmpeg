@@ -96,6 +96,14 @@ int64_t second_fractions_of_time_format(value time_format)
 }
 
 /**** Logging ****/
+CAMLprim ocaml_avutil_set_log_level(value level)
+{
+  CAMLparam0();
+  av_log_set_level(Int_val(level));
+  CAMLreturn(Val_unit);
+}
+
+
 #define LINE_SIZE 1024
 
 value ocaml_log_callback = (value)NULL;
@@ -108,11 +116,9 @@ static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list
 
   ret = av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
-  caml_c_thread_register();
   caml_acquire_runtime_system();
   caml_callback(ocaml_log_callback, caml_copy_string(line));
   caml_release_runtime_system();
-  caml_c_thread_unregister();
 }
 
 CAMLprim value ocaml_avutil_set_log_callback(value callback)
@@ -127,6 +133,8 @@ CAMLprim value ocaml_avutil_set_log_callback(value callback)
   }
 
   av_log_set_callback(&av_log_ocaml_callback);
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_avutil_clear_log_callback()
@@ -139,6 +147,8 @@ CAMLprim value ocaml_avutil_clear_log_callback()
   }
 
   av_log_set_callback(&av_log_default_callback);
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_avutil_time_base()
