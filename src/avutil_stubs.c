@@ -95,6 +95,52 @@ int64_t second_fractions_of_time_format(value time_format)
   return 1;
 }
 
+/**** Logging ****/
+#define LINE_SIZE 1024
+
+value ocaml_log_callback = (value)NULL;
+
+static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list vl)
+{
+  static int print_prefix = 1;
+  char line[LINE_SIZE];
+  int ret;
+
+  ret = av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
+
+  caml_c_thread_register();
+  caml_acquire_runtime_system();
+  caml_callback(ocaml_log_callback, caml_copy_string(line));
+  caml_release_runtime_system();
+  caml_c_thread_unregister();
+}
+
+CAMLprim value ocaml_avutil_set_log_callback(value callback)
+{
+  CAMLparam1(callback);
+  
+  if (ocaml_log_callback == NULL) {
+    ocaml_log_callback = callback;
+    caml_register_generational_global_root(&ocaml_log_callback);
+  } else {
+    caml_modify_generational_global_root(&ocaml_log_callback,callback);
+  }
+
+  av_log_set_callback(&av_log_ocaml_callback);
+}
+
+CAMLprim value ocaml_avutil_clear_log_callback()
+{
+  CAMLparam0();
+
+  if (ocaml_log_callback != NULL) {
+    caml_remove_generational_global_root(&ocaml_log_callback);
+    ocaml_log_callback = (value)NULL;
+  }
+
+  av_log_set_callback(&av_log_default_callback);
+}
+
 CAMLprim value ocaml_avutil_time_base()
 {
   CAMLparam0();
