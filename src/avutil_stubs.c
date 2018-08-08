@@ -25,6 +25,29 @@ char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
 /***** Global initialisation *****/
 
+static pthread_key_t ocaml_c_thread_key;
+static pthread_once_t ocaml_c_thread_key_once = PTHREAD_ONCE_INIT;
+
+static void ocaml_ffmpeg_on_thread_exit(void *key) {
+  caml_c_thread_unregister();
+}
+
+static void ocaml_ffmpeg_make_key() {
+  pthread_key_create(&ocaml_c_thread_key, ocaml_ffmpeg_on_thread_exit);
+}
+
+static void ocaml_ffmpeg_register_thread() {
+  static int initialized = 1;
+  void *ptr;
+
+  pthread_once(&ocaml_c_thread_key_once, ocaml_ffmpeg_make_key);
+
+  if ((ptr = pthread_getspecific(ocaml_c_thread_key)) == NULL) {
+    pthread_setspecific(ocaml_c_thread_key,(void*)&initialized);
+    caml_c_thread_register();
+  }
+}
+
 static int lock_manager(void **mtx, enum AVLockOp op)
 {
   switch(op) {
@@ -93,6 +116,63 @@ int64_t second_fractions_of_time_format(value time_format)
   default : break;
   }
   return 1;
+}
+
+/**** Logging ****/
+CAMLprim value ocaml_avutil_set_log_level(value level)
+{
+  CAMLparam0();
+  av_log_set_level(Int_val(level));
+  CAMLreturn(Val_unit);
+}
+
+
+#define LINE_SIZE 1024
+
+value ocaml_log_callback = (value)NULL;
+
+static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list vl)
+{
+  static int print_prefix = 1;
+  char line[LINE_SIZE];
+  int ret;
+
+  ret = av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
+
+  ocaml_ffmpeg_register_thread();
+  caml_acquire_runtime_system();
+  caml_callback(ocaml_log_callback, caml_copy_string(line));
+  caml_release_runtime_system();
+}
+
+CAMLprim value ocaml_avutil_set_log_callback(value callback)
+{
+  CAMLparam1(callback);
+  
+  if (ocaml_log_callback == (value)NULL) {
+    ocaml_log_callback = callback;
+    caml_register_generational_global_root(&ocaml_log_callback);
+  } else {
+    caml_modify_generational_global_root(&ocaml_log_callback,callback);
+  }
+
+  av_log_set_callback(&av_log_ocaml_callback);
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avutil_clear_log_callback()
+{
+  CAMLparam0();
+
+  if (ocaml_log_callback != (value)NULL) {
+    caml_remove_generational_global_root(&ocaml_log_callback);
+    ocaml_log_callback = (value)NULL;
+  }
+
+  av_log_set_callback(&av_log_default_callback);
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_avutil_time_base()

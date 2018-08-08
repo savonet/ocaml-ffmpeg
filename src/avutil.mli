@@ -58,7 +58,24 @@ end
 (** Return the time base of FFmpeg. *)
 val time_base : unit -> rational
 
+(** {5 Logging utilities} *)
 
+module Log : sig
+  type level = [
+    | `Quiet
+    | `Panic
+    | `Fatal
+    | `Error
+    | `Warning
+    | `Info
+    | `Verbose
+    | `Debug
+  ]
+
+  val set_level      : level -> unit
+  val set_callback   : (string -> unit) -> unit
+  val clear_callback : unit -> unit
+end
 
 (** {5 Audio utilities} *)
 

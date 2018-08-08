@@ -42,6 +42,50 @@ module Time_format = struct
   ]
 end
 
+module Log = struct
+  type level = [
+    | `Quiet
+    | `Panic
+    | `Fatal
+    | `Error
+    | `Warning
+    | `Info
+    | `Verbose
+    | `Debug
+  ]
+
+  let int_of_level = function
+    | `Quiet -> -8
+    | `Panic -> 0
+    | `Fatal -> 8
+    | `Error -> 16
+    | `Warning -> 24
+    | `Info -> 32
+    | `Verbose -> 40
+    | `Debug -> 48
+
+  external set_level : int -> unit = "ocaml_avutil_set_log_level"
+
+  let set_level level =
+    set_level (int_of_level level)
+
+  external set_callback : (string -> unit) -> unit = "ocaml_avutil_set_log_callback"
+
+  let set_callback fn =
+    let m = Mutex.create () in
+    let fn s =
+      Mutex.lock m;
+      try
+        fn s;
+        Mutex.unlock m
+      with e ->
+        Mutex.unlock m;
+        raise e
+    in
+    set_callback fn
+
+  external clear_callback : unit -> unit = "ocaml_avutil_clear_log_callback"
+end
 
 module Pixel_format = struct
   type t = Pixel_format.t
