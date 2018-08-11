@@ -50,6 +50,8 @@ extern char ocaml_av_exn_msg[];
 
 /***** Global initialisation *****/
 
+void ocaml_ffmpeg_register_thread();
+
 int register_lock_manager();
 
   

@@ -36,7 +36,7 @@ static void ocaml_ffmpeg_make_key() {
   pthread_key_create(&ocaml_c_thread_key, ocaml_ffmpeg_on_thread_exit);
 }
 
-static void ocaml_ffmpeg_register_thread() {
+void ocaml_ffmpeg_register_thread() {
   static int initialized = 1;
   void *ptr;
 

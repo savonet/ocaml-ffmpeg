@@ -146,7 +146,11 @@ CAMLprim value ocaml_avdevice_app_to_dev_control_message(value _message, value _
     message_type = APP_TO_DEV_MESSAGE_TYPES[Int_val(_message)];
   }
 
-  int ret = avdevice_app_to_dev_control_message(ocaml_av_get_format_context(&_av), message_type, data, data_size);
+  AVFormatContext * format_context = ocaml_av_get_format_context(&_av);
+  
+  caml_release_runtime_system();
+  int ret = avdevice_app_to_dev_control_message(format_context, message_type, data, data_size);
+  caml_acquire_runtime_system();
   if(ret == AVERROR(ENOSYS)) Raise(EXN_FAILURE, "App to device control message failed : device doesn't implement handler of the message");
   if(ret < 0) Raise(EXN_FAILURE, "App to device control message failed : %s", av_err2str(ret));
 
@@ -166,7 +170,7 @@ CAMLprim value ocaml_avdevice_app_to_dev_control_message(value _message, value _
 #define MUTE_STATE_CHANGED_TAG 3
 #define VOLUME_LEVEL_CHANGED_TAG 4
 
-int control_message_callback(struct AVFormatContext *ctx, int type, void *data, size_t data_size)
+static int ocaml_control_message_callback(struct AVFormatContext *ctx, int type, void *data, size_t data_size)
 {
   CAMLparam0();
   CAMLlocal3(msg, opt, res);
@@ -236,11 +240,24 @@ int control_message_callback(struct AVFormatContext *ctx, int type, void *data, 
   CAMLreturn(ret);
 }
 
+static int c_control_message_callback(struct AVFormatContext *ctx, int type, void *data, size_t data_size)
+{
+  ocaml_ffmpeg_register_thread();
+
+  caml_acquire_runtime_system();
+
+  int ret = ocaml_control_message_callback(ctx, type, data, data_size);
+
+  caml_release_runtime_system();
+
+  return ret;
+}
+
 CAMLprim value ocaml_avdevice_set_control_message_callback(value _control_message_callback, value _av)
 {
   CAMLparam2(_control_message_callback, _av);
 
-  ocaml_av_set_control_message_callback(&_av, control_message_callback, &_control_message_callback);
+  ocaml_av_set_control_message_callback(&_av, c_control_message_callback, &_control_message_callback);
 
   CAMLreturn(Val_unit);
 }
