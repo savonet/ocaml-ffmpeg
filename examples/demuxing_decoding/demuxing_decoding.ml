@@ -14,6 +14,9 @@ let () =
     exit 1
   );
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let input_filename = Sys.argv.(1) in
   let video_output_filename = Sys.argv.(2) in
   let audio_output_filename = Sys.argv.(3) in

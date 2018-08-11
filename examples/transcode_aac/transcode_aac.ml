@@ -5,6 +5,9 @@ let () =
     Printf.eprintf "Usage: %s <input_file> <output_file>.mp4\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let _, is, codec = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
 
   let os = Av.open_output Sys.argv.(2)

@@ -9,6 +9,9 @@ let () =
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in let frame_size = 512 in
 
   let codec_id = Audio.find_id Sys.argv.(2) in

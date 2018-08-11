@@ -5,6 +5,9 @@ let () =
     Printf.printf"usage: %s input_file output_file\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
 

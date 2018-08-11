@@ -11,6 +11,9 @@ let () =
       audio frames to a rawaudio file named audio_output_file.\n" Sys.argv.(0);
     exit 1);
 
+  Log.set_level `Debug;
+  Log.set_callback print_string;
+  
   let audio_output_filename = Sys.argv.(2) ^ ".raw" in
   let audio_output_file = open_out_bin audio_output_filename in
 

@@ -34,7 +34,7 @@
     caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
   }
 
-  extern char ocaml_av_error_msg[];
+extern char ocaml_av_error_msg[];
 extern char ocaml_av_exn_msg[];
 
 

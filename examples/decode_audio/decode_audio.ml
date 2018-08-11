@@ -9,6 +9,9 @@ let () =
       audio frames to a audio file named <output file>.\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let in_codec_id = Audio.find_id Sys.argv.(2) in
 
   let parser = Audio.create_parser in_codec_id in

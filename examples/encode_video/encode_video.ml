@@ -30,6 +30,9 @@ let () =
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let width = 352 in let height = 288 in let pixel_format = `Yuv420p in
   let codec_name = Sys.argv.(2) in
 

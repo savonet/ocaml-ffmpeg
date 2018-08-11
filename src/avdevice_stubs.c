@@ -20,7 +20,9 @@ static value get_input_devices(AVInputFormat * (*input_device_next)(AVInputForma
 
   if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
+  caml_release_runtime_system();
   avdevice_register_all();
+  caml_acquire_runtime_system();
 
   while((fmt = input_device_next(fmt))) len++;
   
@@ -60,7 +62,9 @@ static value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputF
 
   if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
 
+  caml_release_runtime_system();
   avdevice_register_all();
+  caml_acquire_runtime_system();
 
   while((fmt = output_device_next (fmt))) len++;
   

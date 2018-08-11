@@ -135,9 +135,8 @@ static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list
 {
   static int print_prefix = 1;
   char line[LINE_SIZE];
-  int ret;
 
-  ret = av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
+  av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
   ocaml_ffmpeg_register_thread();
   caml_acquire_runtime_system();

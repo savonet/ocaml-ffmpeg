@@ -45,6 +45,9 @@ let () =
     Printf.printf"Usage: %s <output file> <audio codec> <video codec> <subtitle codec>\n" Sys.argv.(0);
     exit 1);
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let dst = Av.open_output Sys.argv.(1) in
 
   Av.set_output_metadata dst ["Title", "On Off"];

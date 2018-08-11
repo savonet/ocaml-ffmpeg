@@ -11,6 +11,9 @@ let () =
       printf"\nusage: %s input [output]\ninput and output can be devices or file names\n" Sys.argv.(0);
       exit 0));
 
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+  
   let src = try Avdevice.open_audio_input Sys.argv.(1)
     with Avutil.Failure _ -> Av.open_input Sys.argv.(1) in
 
