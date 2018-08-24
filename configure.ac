@@ -1,7 +1,7 @@
 AC_INIT([ocaml-ffmpeg],[0.2.0],[savonet-users@lists.sourceforge.net])
 
 VERSION=$PACKAGE_VERSION
-requires=bigarray threads
+requires="bigarray threads"
 AC_MSG_RESULT([configuring $PACKAGE_STRING])
 
 AC_BASE_CHECKS()
