@@ -14,6 +14,7 @@ install: [
   [make "install"]
 ]
 remove: ["ocamlfind" "remove" "ffmpeg"]
+available: [ ocaml-version >= "4.05.0"]
 depends: [
   "ocamlfind" {build}
   "conf-pkg-config" {build}
