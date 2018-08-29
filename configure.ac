@@ -6,6 +6,9 @@ AC_MSG_RESULT([configuring $PACKAGE_STRING])
 
 AC_BASE_CHECKS()
 
+AC_PATH_PROG(SYSTEM_OCAMLOPT,"ocamlopt")
+AC_SUBST(SYSTEM_OCAMLOPT)
+
 PKG_PROG_PKG_CONFIG()
 PKG_CONFIG_CHECK_MODULE([libavutil])
 PKG_CONFIG_CHECK_MODULE([libswscale])
@@ -13,6 +16,10 @@ PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
 #PKG_CONFIG_CHECK_MODULE([libswresample])
 #PKG_CONFIG_CHECK_MODULE([libavdevice])
+
+# Do we need more?
+GEN_CODE_INCLUDE=`$PKG_CONFIG --variable=includedir libavcodec`
+AC_SUBST(GEN_CODE_INCLUDE)
 
 AC_CHECK_DECL([avcodec_send_packet],[HAS_AV="yes"],[HAS_AV=""],[#include "libavcodec/avcodec.h"])
 AC_SUBST(HAS_AV)
@@ -22,6 +29,7 @@ if test "x$HAS_SWRESAMPLE" = "xyes" ; then
   LIBS="$LIBS -lswresample"
 fi
 AC_SUBST(HAS_SWRESAMPLE)
+
 
 AC_CHECK_HEADERS([libavdevice/avdevice.h],[HAS_AVDEVICE="yes"],[HAS_AVDEVICE=""])
 if test "x$HAS_AVDEVICE" = "xyes" ; then

@@ -10,6 +10,7 @@ OCAMLMAKEFILE = OCamlMakefile
 OCAMLFIND = @OCAMLFIND@
 OCAMLFIND_LDCONF = @OCAMLFIND_LDCONF@
 OCAMLC = @OCAMLC@ -thread
+SYSTEM_OCAMLOPT = @SYSTEM_OCAMLOPT@
 OCAMLOPT = @OCAMLOPT@ -thread
 OCAMLBEST = @OCAMLBEST@
 OCAMLMKTOP = @OCAMLMKTOP@
@@ -24,6 +25,8 @@ LATEX = @LATEX@
 DVIPS = @DVIPS@
 PS2PDF = @PS2PDF@
 OCAMLLIBPATH = @CAMLLIBPATH@
+
+GEN_CODE_INCLUDE = @GEN_CODE_INCLUDE@
 
 SOURCES = pixel_format.mli pixel_format.ml channel_layout.mli channel_layout.ml sample_format.mli sample_format.ml avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml
 ifeq "@HAS_AV@" "yes"
@@ -59,9 +62,9 @@ byte: byte-code-library
 opt: native-code-library
 
 gen-code:
-	$(OCAMLOPT) -c gen_code_stubs.c
-	$(OCAMLOPT) str.cmxa gen_code_stubs.o gen_code.ml -o gen_code
-	./gen_code $(INCDIRS) $(CFLAGS)
+	$(SYSTEM_OCAMLOPT) -c gen_code_stubs.c
+	$(SYSTEM_OCAMLOPT) str.cmxa gen_code_stubs.o gen_code.ml -o gen_code
+	./gen_code -I$(GEN_CODE_INCLUDE)
 
 install: libinstall
 
