@@ -1,4 +1,4 @@
-0.2.0 ()
+0.2.0 (09-09-2018)
 =====
 * Add support for demuxing and resampling (#2).
 * Add audio and video encoding.
