@@ -29,10 +29,10 @@ let () =
   for i = 0 to 2000 do
     Array.init frame_size (fun t -> sin(float_of_int(t + (i * frame_size)) *. c))
     |> Resampler.convert rsp
-    |> Avcodec.encode encoder(Packet.to_bytes %> output_bytes out_file)
+    |> Avcodec.encode encoder (Packet.to_bytes %> output_bytes out_file)
   done;
 
-  Avcodec.flush_encoder encoder(Packet.to_bytes %> output_bytes out_file);
+  Avcodec.flush_encoder encoder (Packet.to_bytes %> output_bytes out_file);
 
   close_out out_file;
 

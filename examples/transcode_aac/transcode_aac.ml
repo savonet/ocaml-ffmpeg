@@ -8,14 +8,15 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
   
-  let _, is, codec = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
+  let _, istream, codec = Av.open_input Sys.argv.(1)
+                          |> Av.find_best_audio_stream in
 
-  let os = Av.open_output Sys.argv.(2)
+  let ostream = Av.open_output Sys.argv.(2)
            |> Av.new_audio_stream ~codec_id:`Aac ~codec in
 
-  is |> Av.iter_frame(fun frm -> Av.write_frame os frm);
+  istream |> Av.iter_frame (Av.write_frame ostream);
 
-  Av.get_input is |> Av.close;
-  Av.get_output os |> Av.close;
+  Av.get_input istream |> Av.close;
+  Av.get_output ostream |> Av.close;
 
   Gc.full_major (); Gc.full_major ()

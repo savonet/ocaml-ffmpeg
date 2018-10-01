@@ -13,15 +13,14 @@ let () =
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
 
-  let oass = Av.get_audio_streams src |> List.fold_left (
-      fun oss (i, stream, _) -> (i, Av.new_audio_stream ~stream dst)::oss) []
-  in
-  let ovss = Av.get_video_streams src |> List.fold_left (
-      fun oss (i, stream, _) -> (i, Av.new_video_stream ~stream dst)::oss) []
-  in
-  let osss = Av.get_subtitle_streams src |> List.fold_left (
-      fun oss (i, stream, _) -> (i, Av.new_subtitle_stream ~stream dst)::oss) []
-  in
+  let oass = Av.get_audio_streams src |> List.map (fun (i, stream, _) ->
+      (i, Av.new_audio_stream ~stream dst)) in
+  
+  let ovss = Av.get_video_streams src |> List.map (fun (i, stream, _) ->
+      (i, Av.new_video_stream ~stream dst)) in
+  
+  let osss = Av.get_subtitle_streams src |> List.map (fun (i, stream, _) ->
+      (i, Av.new_subtitle_stream ~stream dst)) in
 
   src |> Av.iter_input_packet
     ~audio:(fun i pkt -> Av.write_packet(List.assoc i oass) pkt)

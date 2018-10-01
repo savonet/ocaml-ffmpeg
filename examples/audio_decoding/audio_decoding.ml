@@ -17,16 +17,17 @@ let () =
   let audio_output_filename = Sys.argv.(2) ^ ".raw" in
   let audio_output_file = open_out_bin audio_output_filename in
 
-  let _, is, ic = Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream in
+  let _, istream, icodec = Av.open_input Sys.argv.(1)
+                           |> Av.find_best_audio_stream in
 
   let options = [`Engine_soxr] in
   
-  let rsp = FrameToS32Bytes.from_codec ~options ic `Stereo 44100 in
+  let rsp = FrameToS32Bytes.from_codec ~options icodec `Stereo 44100 in
 
-  is |> Av.iter_frame (fun frame ->
+  istream |> Av.iter_frame (fun frame ->
       FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
 
-  Av.get_input is |> Av.close;
+  Av.get_input istream |> Av.close;
   close_out audio_output_file;
 
   Printf.printf "Play the output audio file with the command:\nffplay -f %s -ac 2 -ar 44100 %s\n"
