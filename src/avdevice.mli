@@ -1,4 +1,4 @@
-(** Special devices access *)
+(** This module contains input and output devices for grabbing from and rendering to many common multimedia input/output software frameworks. *)
 
 open Avutil
 

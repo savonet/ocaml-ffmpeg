@@ -1,4 +1,4 @@
-(** Audio, video and subtitle encoder and decoder *)
+(** This module contains decoders and encoders for audio, video and subtitle codecs. *)
 
 open Avutil
 

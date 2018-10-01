@@ -1,4 +1,4 @@
-(** Audio resampling, sample format conversion and mixing *)
+(** This module perform audio resampling, rematrixing and sample format conversion operations. *)
 
 open Avutil
 open Swresample_options

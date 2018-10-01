@@ -1,4 +1,4 @@
-(** Video color conversion and scaling *)
+(** This module perform image scaling and color space/pixel format conversion operations. *)
 
 open Avutil
     

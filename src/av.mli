@@ -1,4 +1,4 @@
-(** Format, input, output and streams reading and writing *)
+(** This module perform demuxing then decoding for reading and coding then muxing for writing multimedia container formats. *)
 
 open Avutil
 
