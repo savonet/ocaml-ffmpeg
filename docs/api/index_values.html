@@ -34,6 +34,8 @@
 </div>
 </td></tr>
 <tr><td align="left"><div>C</div></td></tr>
+<tr><td><a href="Avutil.Log.html#VALclear_callback">clear_callback</a> [<a href="Avutil.Log.html">Avutil.Log</a>]</td>
+<td></td></tr>
 <tr><td><a href="Av.html#VALclose">close</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <p>Close an input or output container.</p>
@@ -149,15 +151,33 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALfind_best_channel_layout">find_best_channel_layout</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Audio.find_best_channel_layout id default</code> return the best channel layout of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no channel layout.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALfind_best_frame_rate">find_best_frame_rate</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Video.find_best_frame_rate id default</code> return the best frame rate of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no frame rate.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Avcodec.Video.html#VALfind_best_pixel_format">find_best_pixel_format</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
 <td><div class="info">
-<p>Return the best pixel format of a codec.</p>
+<p><code class="code">Avcodec.Video.find_best_pixel_format id default</code> return the best pixel format of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no pixel format.</p>
 
 </div>
 </td></tr>
 <tr><td><a href="Avcodec.Audio.html#VALfind_best_sample_format">find_best_sample_format</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
 <td><div class="info">
-<p>Return the best sample format of a codec.</p>
+<p><code class="code">Avcodec.Audio.find_best_sample_format id default</code> return the best sample format of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no sample format.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALfind_best_sample_rate">find_best_sample_rate</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p><code class="code">Avcodec.Audio.find_best_sample_rate id default</code> return the best sample rate of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no sample rate.</p>
 
 </div>
 </td></tr>
@@ -279,6 +299,12 @@
 <tr><td><a href="Av.html#VALget_codec">get_codec</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <p><code class="code">Av.get_codec stream</code> return the codec of the <code class="code">stream</code>.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avutil.Channel_layout.html#VALget_default">get_default</a> [<a href="Avutil.Channel_layout.html">Avutil.Channel_layout</a>]</td>
+<td><div class="info">
+<p>Return default channel layout for a given number of channels.</p>
 
 </div>
 </td></tr>
@@ -408,6 +434,12 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Avutil.Channel_layout.html#VALget_nb_channels">get_nb_channels</a> [<a href="Avutil.Channel_layout.html">Avutil.Channel_layout</a>]</td>
+<td><div class="info">
+<p>Return the number of channels in the channel layout.</p>
+
+</div>
+</td></tr>
 <tr><td><a href="Av.html#VALget_output">get_output</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <p>Return the output container of the output stream.</p>
@@ -471,6 +503,36 @@
 <tr><td><a href="Av.html#VALget_subtitle_streams">get_subtitle_streams</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <p>Same as <a href="Av.html#VALget_audio_streams"><code class="code">Av.get_audio_streams</code></a> for the subtitle streams.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALget_supported_channel_layouts">get_supported_channel_layouts</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p>Return the list of supported channel layouts of the codec.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALget_supported_frame_rates">get_supported_frame_rates</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p>Return the list of supported frame rates of the codec.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Video.html#VALget_supported_pixel_formats">get_supported_pixel_formats</a> [<a href="Avcodec.Video.html">Avcodec.Video</a>]</td>
+<td><div class="info">
+<p>Return the list of supported pixel formats of the codec.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALget_supported_sample_formats">get_supported_sample_formats</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p>Return the list of supported sample formats of the codec.</p>
+
+</div>
+</td></tr>
+<tr><td><a href="Avcodec.Audio.html#VALget_supported_sample_rates">get_supported_sample_rates</a> [<a href="Avcodec.Audio.html">Avcodec.Audio</a>]</td>
+<td><div class="info">
+<p>Return the list of supported sample rates of the codec.</p>
 
 </div>
 </td></tr>
@@ -723,12 +785,16 @@
 
 </div>
 </td></tr>
+<tr><td><a href="Avutil.Log.html#VALset_callback">set_callback</a> [<a href="Avutil.Log.html">Avutil.Log</a>]</td>
+<td></td></tr>
 <tr><td><a href="Avdevice.Dev_to_app.html#VALset_control_message_callback">set_control_message_callback</a> [<a href="Avdevice.Dev_to_app.html">Avdevice.Dev_to_app</a>]</td>
 <td><div class="info">
 <p><code class="code">Avdevice.Dev_to_app.set_control_message_callback callback device</code> set the <code class="code">callback</code> for <code class="code">device</code> message reception.</p>
 
 </div>
 </td></tr>
+<tr><td><a href="Avutil.Log.html#VALset_level">set_level</a> [<a href="Avutil.Log.html">Avutil.Log</a>]</td>
+<td></td></tr>
 <tr><td><a href="Av.html#VALset_metadata">set_metadata</a> [<a href="Av.html">Av</a>]</td>
 <td><div class="info">
 <p>Same as <a href="Av.html#VALset_output_metadata"><code class="code">Av.set_output_metadata</code></a> for the output streams.</p>

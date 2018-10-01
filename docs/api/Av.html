@@ -37,7 +37,7 @@
 
 <pre><span id="MODULEAv"><span class="keyword">module</span> Av</span>: <code class="code">sig</code> <a href="Av.html">..</a> <code class="code">end</code></pre><div class="info module top">
 <div class="info-desc">
-<p>Format, input, output and streams reading and writing</p>
+<p>This module perform demuxing then decoding for reading and coding then muxing for writing multimedia container formats.</p>
 </div>
 </div>
 <hr width="100%">
@@ -61,7 +61,7 @@
 </ul>
 </div>
 
-<pre><span id="VALget_input_duration"><span class="keyword">val</span> get_input_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> Int64.t</code></pre><div class="info ">
+<pre><span id="VALget_input_duration"><span class="keyword">val</span> get_input_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -><br>       <a href="Avutil.html#TYPEinput">input</a> <a href="Avutil.html#TYPEcontainer">container</a> -> Stdlib.Int64.t</code></pre><div class="info ">
 <div class="info-desc">
 <p><code class="code">Av.get_input_duration ~format:fmt input</code> return the duration of an <code class="code">input</code> in the <code class="code">fmt</code> time format (in second by default).</p>
 </div>
@@ -153,7 +153,7 @@
 </div>
 </div>
 
-<pre><span id="VALget_duration"><span class="keyword">val</span> get_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> (<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> Int64.t</code></pre><div class="info ">
+<pre><span id="VALget_duration"><span class="keyword">val</span> get_duration</span> : <code class="type">?format:<a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -><br>       (<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -> Stdlib.Int64.t</code></pre><div class="info ">
 <div class="info-desc">
 <p>Same as <a href="Av.html#VALget_input_duration"><code class="code">Av.get_input_duration</code></a> for the input streams.</p>
 </div>
@@ -305,7 +305,7 @@
 </div>
 
 
-<pre><span id="VALseek"><span class="keyword">val</span> seek</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -><br>       <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Int64.t -> <a href="Av.html#TYPEseek_flag">seek_flag</a> array -> unit</code></pre><div class="info ">
+<pre><span id="VALseek"><span class="keyword">val</span> seek</span> : <code class="type">(<a href="Avutil.html#TYPEinput">input</a>, 'a) <a href="Av.html#TYPEstream">stream</a> -><br>       <a href="Avutil.Time_format.html#TYPEt">Time_format.t</a> -> Stdlib.Int64.t -> <a href="Av.html#TYPEseek_flag">seek_flag</a> array -> unit</code></pre><div class="info ">
 <div class="info-desc">
 <p><code class="code">Av.seek is fmt t flags</code> seek in the input stream <code class="code">is</code> at the position <code class="code">t</code> in the <code class="code">fmt</code> time format according to the method indicated by the <code class="code">flags</code>.</p>
 </div>

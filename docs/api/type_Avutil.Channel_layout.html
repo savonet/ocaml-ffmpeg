@@ -21,4 +21,8 @@
 <link title="Avdevice" rel="Chapter" href="Avdevice.html"><title>Avutil.Channel_layout</title>
 </head>
 <body>
-<code class="code"><span class="keyword">sig</span>&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keyword">end</span></code></body></html>
+<code class="code"><span class="keyword">sig</span><br>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Channel_layout</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_nb_channels&nbsp;:&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;get_default&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Avutil</span>.<span class="constructor">Channel_layout</span>.t<br>
+<span class="keyword">end</span></code></body></html>

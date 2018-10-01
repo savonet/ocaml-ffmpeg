@@ -62,13 +62,40 @@
 </ul>
 </div>
 
-<pre><span id="VALfind_best_sample_format"><span class="keyword">val</span> find_best_sample_format</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
+<pre><span id="VALget_supported_channel_layouts"><span class="keyword">val</span> get_supported_channel_layouts</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> list</code></pre><div class="info ">
 <div class="info-desc">
-<p>Return the best sample format of a codec.</p>
+<p>Return the list of supported channel layouts of the codec.</p>
 </div>
-<ul class="info-attributes">
-<li><b>Raises</b> <code>Failure</code> if the codec has no best sample format.</li>
-</ul>
+</div>
+
+<pre><span id="VALfind_best_channel_layout"><span class="keyword">val</span> find_best_channel_layout</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a> -> <a href="Avutil.Channel_layout.html#TYPEt">Channel_layout.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Audio.find_best_channel_layout id default</code> return the best channel layout of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no channel layout.</p>
+</div>
+</div>
+
+<pre><span id="VALget_supported_sample_formats"><span class="keyword">val</span> get_supported_sample_formats</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> list</code></pre><div class="info ">
+<div class="info-desc">
+<p>Return the list of supported sample formats of the codec.</p>
+</div>
+</div>
+
+<pre><span id="VALfind_best_sample_format"><span class="keyword">val</span> find_best_sample_format</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a> -> <a href="Avutil.Sample_format.html#TYPEt">Sample_format.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Audio.find_best_sample_format id default</code> return the best sample format of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no sample format.</p>
+</div>
+</div>
+
+<pre><span id="VALget_supported_sample_rates"><span class="keyword">val</span> get_supported_sample_rates</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> int list</code></pre><div class="info ">
+<div class="info-desc">
+<p>Return the list of supported sample rates of the codec.</p>
+</div>
+</div>
+
+<pre><span id="VALfind_best_sample_rate"><span class="keyword">val</span> find_best_sample_rate</span> : <code class="type"><a href="Avcodec.Audio.html#TYPEid">id</a> -> int -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Audio.find_best_sample_rate id default</code> return the best sample rate of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no sample rate.</p>
+</div>
 </div>
 
 <pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEaudio">audio</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Audio.html#TYPEid">id</a></code></pre><div class="info ">

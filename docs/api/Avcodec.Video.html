@@ -62,13 +62,28 @@
 </ul>
 </div>
 
-<pre><span id="VALfind_best_pixel_format"><span class="keyword">val</span> find_best_pixel_format</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a></code></pre><div class="info ">
+<pre><span id="VALget_supported_frame_rates"><span class="keyword">val</span> get_supported_frame_rates</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.html#TYPErational">rational</a> list</code></pre><div class="info ">
 <div class="info-desc">
-<p>Return the best pixel format of a codec.</p>
+<p>Return the list of supported frame rates of the codec.</p>
 </div>
-<ul class="info-attributes">
-<li><b>Raises</b> <code>Failure</code> if the codec has no best pixel format.</li>
-</ul>
+</div>
+
+<pre><span id="VALfind_best_frame_rate"><span class="keyword">val</span> find_best_frame_rate</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.html#TYPErational">rational</a> -> <a href="Avutil.html#TYPErational">rational</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Video.find_best_frame_rate id default</code> return the best frame rate of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no frame rate.</p>
+</div>
+</div>
+
+<pre><span id="VALget_supported_pixel_formats"><span class="keyword">val</span> get_supported_pixel_formats</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a> list</code></pre><div class="info ">
+<div class="info-desc">
+<p>Return the list of supported pixel formats of the codec.</p>
+</div>
+</div>
+
+<pre><span id="VALfind_best_pixel_format"><span class="keyword">val</span> find_best_pixel_format</span> : <code class="type"><a href="Avcodec.Video.html#TYPEid">id</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a> -> <a href="Avutil.Pixel_format.html#TYPEt">Pixel_format.t</a></code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">Avcodec.Video.find_best_pixel_format id default</code> return the best pixel format of the <code class="code">id</code> codec or the <code class="code">default</code> value if the codec has no pixel format.</p>
+</div>
 </div>
 
 <pre><span id="VALget_id"><span class="keyword">val</span> get_id</span> : <code class="type"><a href="Avutil.html#TYPEvideo">video</a> <a href="Avcodec.html#TYPEt">Avcodec.t</a> -> <a href="Avcodec.Video.html#TYPEid">id</a></code></pre><div class="info ">
