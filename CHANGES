@@ -1,3 +1,7 @@
+0.2.1 (11-12-2018)
+=====
+* Fix dist.
+
 0.2.0 (09-09-2018)
 =====
 * Add support for demuxing and resampling (#2).
