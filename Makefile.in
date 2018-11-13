@@ -1,8 +1,10 @@
 PROGNAME := ocaml-ffmpeg
-DISTFILES := @AUTOCONF_INSTALL_FILES@ CHANGES COPYING Makefile.in README \
+DISTFILES := @AUTOCONF_INSTALL_FILES@ CHANGES COPYING Makefile.in README.md \
 	bootstrap configure configure.ac  \
 	src/*.ml src/*.mli src/*.c src/*.h src/Makefile.in src/META.in \
-	src/OCamlMakefile
+	src/OCamlMakefile \
+	examples/Makefile examples/*/*.ml examples/*/Makefile examples/*/OCamlMakefile \
+	test/*.ml test/Makefile test/OCamlMakefile
 VERSION = @VERSION@
 
 all clean install uninstall:
