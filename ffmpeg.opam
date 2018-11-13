@@ -22,8 +22,8 @@ depends: [
   "base-bigarray"
 ]
 depexts: [
-  [["debian"] ["libavutil-dev" "libswscale-dev" "libavformat-dev"]]
-  [["ubuntu"] ["libavutil-dev" "libswscale-dev" "libavformat-dev"]]
+  [["debian"] ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]]
+  [["ubuntu"] ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]]
   [["alpine"] ["ffmpeg-dev"]]
   [["archlinux"] ["ffmpeg"]]
   [["centos"] ["ffmpeg-devel"]]
