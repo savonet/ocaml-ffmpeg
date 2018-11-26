@@ -1,8 +1,17 @@
-opam-version: "1.2"
+opam-version: "2.0"
 version: "dev"
 maintainer: "Romain Beauxis <toots@rastageeks.org>"
 authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
 homepage: "https://github.com/savonet/ocaml-ffmpeg"
+bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
+depends: [
+  "ocaml" {>= "4.05.0"}
+  "ocamlfind" {build}
+  "conf-pkg-config" {build}
+  "conf-autoconf" {build}
+  "base-bigarray"
+]
+flags: light-uninstall
 build: [
   ["git" "submodule" "init"]
   ["git" "submodule" "update"]
@@ -10,27 +19,31 @@ build: [
   ["./configure" "--prefix" prefix]
   [make]
 ]
-install: [
-  [make "install"]
-]
+install: [make "install"]
 remove: ["ocamlfind" "remove" "ffmpeg"]
-available: [ ocaml-version >= "4.05.0"]
-depends: [
-  "ocamlfind" {build}
-  "conf-pkg-config" {build}
-  "conf-autoconf" {build}
-  "base-bigarray"
-]
 depexts: [
-  [["debian"] ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]]
-  [["ubuntu"] ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]]
-  [["alpine"] ["ffmpeg-dev"]]
-  [["archlinux"] ["ffmpeg"]]
-  [["centos"] ["ffmpeg-devel"]]
-  [["fedora"] ["ffmpeg-devel"]]
-  [["opensuse"] ["ffmpeg-devel"]]
-  [["nixpkgs"] ["ffmpeg"]]
-  [["osx" "homebrew"] ["ffmpeg"]]
+  [
+    "libavutil-dev"
+    "libswscale-dev"
+    "libavformat-dev"
+    "libavcodec-dev"
+    "libavdevice-dev"
+    "libswresample-dev"
+  ] {os-distribution = "debian"}
+  [
+    "libavutil-dev"
+    "libswscale-dev"
+    "libavformat-dev"
+    "libavcodec-dev"
+    "libavdevice-dev"
+    "libswresample-dev"
+  ] {os-distribution = "ubuntu"}
+  ["ffmpeg-dev"] {os-distribution = "alpine"}
+  ["ffmpeg"] {os-distribution = "archlinux"}
+  ["ffmpeg-devel"] {os-distribution = "centos"}
+  ["ffmpeg-devel"] {os-distribution = "fedora"}
+  ["ffmpeg-devel"] {os-distribution = "opensuse"}
+  ["ffmpeg"] {os-distribution = "nixos"}
+  ["ffmpeg"] {os = "macos" & os-distribution = "homebrew"}
 ]
-bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
-dev-repo: "https://github.com/savonet/ocaml-ffmpeg.git"
+dev-repo: "git+https://github.com/savonet/ocaml-ffmpeg.git"
