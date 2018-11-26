@@ -677,7 +677,7 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
                                   out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate,
                                   options);
-  if( ! swr) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! swr) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
   Swr_val(ans) = swr;

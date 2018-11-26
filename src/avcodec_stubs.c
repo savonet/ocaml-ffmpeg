@@ -233,7 +233,7 @@ CAMLprim value ocaml_avcodec_create_parser(value _codec_id) {
   parser_t * parser = avcodec_create_parser((enum AVCodecID)Int_val(_codec_id));
   caml_acquire_runtime_system();
 
-  if( ! parser) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! parser) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&parser_ops, sizeof(parser_t*), 0, 1);
   Parser_val(ans) = parser;
@@ -378,7 +378,7 @@ CAMLprim value ocaml_avcodec_create_context(value _codec_id, value _decoder, val
   codec_context_t * ctx = avcodec_create_codec_context((enum AVCodecID)Int_val(_codec_id), Int_val(_decoder));
   caml_acquire_runtime_system();
 
-  if( ! ctx) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! ctx) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&codec_context_ops, sizeof(codec_context_t*), 0, 1);
   CodecContext_val(ans) = ctx;
@@ -591,7 +591,7 @@ CAMLprim value ocaml_avcodec_send_frame(value _ctx, value _frame)
   int ret = send_frame(ctx, frame);
   caml_acquire_runtime_system();
 
-  if(ret == AVERROR_EXTERNAL) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(ret == AVERROR_EXTERNAL) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   if(ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) Raise(EXN_FAILURE, "Failed to send frame for encoding : %s", av_err2str(ret));
 
@@ -647,7 +647,7 @@ CAMLprim value ocaml_avcodec_flush_encoder(value _ctx) {
 
 static enum AVCodecID find_codec_id(const char *name)
 {
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
@@ -684,7 +684,7 @@ CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
@@ -705,7 +705,7 @@ CAMLprim value ocaml_avcodec_get_supported_sample_formats(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
@@ -726,7 +726,7 @@ CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
@@ -812,7 +812,7 @@ CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
@@ -835,7 +835,7 @@ CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   avcodec_register_all();
 
