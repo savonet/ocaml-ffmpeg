@@ -335,7 +335,7 @@ CAMLprim value ocaml_av_open_input(value _url)
 
   free(url);
   caml_acquire_runtime_system();
-  if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -354,7 +354,7 @@ CAMLprim value ocaml_av_open_input_format(value _format)
   caml_release_runtime_system();
   av_t *av = open_input(NULL, format);
   caml_acquire_runtime_system();
-  if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -527,7 +527,7 @@ static stream_t * open_stream_index(av_t *av, int index)
       caml_release_runtime_system();                            \
       stream_t * stream = open_stream_index((av), (index));     \
       caml_acquire_runtime_system();                            \
-      if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);     \
+      if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);     \
     }                                                           \
   }
 
@@ -647,7 +647,7 @@ CAMLprim value ocaml_av_read_stream_packet(value _stream) {
   Check_stream(av, index);
 
   if(av->release_out) {
-    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
   }
   else {
     packet_value = provide_packet_value(&av->streams[index]->packet_value);
@@ -683,7 +683,7 @@ CAMLprim value ocaml_av_read_stream_frame(value _stream) {
   value frame_kind = 0;
 
   AVFrame * frame = provide_stream_frame(av, stream, &frame_value);
-  if( ! frame) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! frame) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   caml_release_runtime_system();
 
@@ -695,7 +695,7 @@ CAMLprim value ocaml_av_read_stream_frame(value _stream) {
   }
   caml_acquire_runtime_system();
 
-  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   if(frame_kind == PVV_End_of_file) {
     ans = PVV_End_of_file;
@@ -716,10 +716,10 @@ CAMLprim value ocaml_av_read_input_packet(value _av) {
   av_t * av = Av_val(_av);
   stream_t ** selected_streams = av->selected_streams ? av->streams : NULL;
 
-  if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   if(av->release_out) {
-    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+    if( ! alloc_packet_value(&packet_value)) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
   }
   else {
     packet_value = provide_packet_value(&av->packet_value);
@@ -760,7 +760,7 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
   CAMLlocal3(ans, stream_frame, frame_value);
   av_t * av = Av_val(_av);
 
-  if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(! av->streams && ! allocate_input_context(av)) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   AVPacket * packet = Packet_val(provide_packet_value(&av->packet_value));
   stream_t ** streams = av->streams;
@@ -802,7 +802,7 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
     caml_acquire_runtime_system();
 
     AVFrame * frame = allocate_type_frame(stream->codec_context->codec_type, &frame_value);
-    if( ! frame) Raise(EXN_FAILURE, ocaml_av_error_msg);
+    if( ! frame) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
     caml_release_runtime_system();
 
@@ -810,7 +810,7 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if(frame_kind == PVV_Error) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
   
   if(frame_kind == PVV_End_of_file) {
     ans = PVV_End_of_file;
@@ -966,7 +966,7 @@ CAMLprim value ocaml_av_open_output(value _filename)
 
   free(filename);
   caml_acquire_runtime_system();
-  if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -985,7 +985,7 @@ CAMLprim value ocaml_av_open_output_format(value _format)
   caml_release_runtime_system();
   av_t *av = open_output(format, NULL, NULL);
   caml_acquire_runtime_system();
-  if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -1006,7 +1006,7 @@ CAMLprim value ocaml_av_open_output_format_name(value _format_name)
 
   free(format_name);
   caml_acquire_runtime_system();
-  if( ! av) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -1149,7 +1149,7 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_id, value
                                        rational_of_value(_time_base));
   caml_acquire_runtime_system();
 
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
                                        
   CAMLreturn(Val_int(stream->index));
 }
@@ -1194,7 +1194,7 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_id, value
                                        rational_of_value(_time_base));
   caml_acquire_runtime_system();
 
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   CAMLreturn(Val_int(stream->index));
 }
@@ -1229,7 +1229,7 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_id,
                                           rational_of_value(_time_base));
   caml_acquire_runtime_system();
 
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   CAMLreturn(Val_int(stream->index));
 }
@@ -1607,7 +1607,7 @@ CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame)
   }
   caml_acquire_runtime_system();
 
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
   CAMLreturn(Val_unit);
 }
 
@@ -1619,7 +1619,7 @@ CAMLprim value ocaml_av_write_audio_frame(value _av, value _frame) {
   caml_release_runtime_system();
   stream_t * stream = write_audio_frame(av, 0, frame);
   caml_acquire_runtime_system();
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }
@@ -1632,7 +1632,7 @@ CAMLprim value ocaml_av_write_video_frame(value _av, value _frame) {
   caml_release_runtime_system();
   stream_t * stream = write_video_frame(av, 0, frame);
   caml_acquire_runtime_system();
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }
@@ -1671,7 +1671,7 @@ CAMLprim value ocaml_av_close(value _av)
 
   caml_acquire_runtime_system();
 
-  if( ! stream) Raise(EXN_FAILURE, ocaml_av_error_msg);
+  if( ! stream) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   CAMLreturn(Val_unit);
 }
