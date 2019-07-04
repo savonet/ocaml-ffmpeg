@@ -1,9 +1,12 @@
 opam-version: "2.0"
-version: "dev"
+name: "ffmpeg"
+version: "0.2.1"
 maintainer: "Romain Beauxis <toots@rastageeks.org>"
 authors: "The Savonet Team <savonet-users@lists.sourceforge.net>"
 homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
+synopsis:
+  "Bindings for the ffmpeg library which provides functions for decoding audio and video files"
 depends: [
   "ocaml" {>= "4.05.0"}
   "ocamlfind" {build}
@@ -11,16 +14,13 @@ depends: [
   "conf-autoconf" {build}
   "base-bigarray"
 ]
-flags: light-uninstall
 build: [
-  ["git" "submodule" "init"]
-  ["git" "submodule" "update"]
-  ["./bootstrap"]
+  ["./bootstrap"] {pinned}
   ["./configure" "--prefix" prefix]
+  [make "clean"] {pinned}
   [make]
 ]
 install: [make "install"]
-remove: ["ocamlfind" "remove" "ffmpeg"]
 depexts: [
   [
     "libavutil-dev"
