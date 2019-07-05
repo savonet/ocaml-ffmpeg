@@ -15,9 +15,9 @@ depends: [
   "base-bigarray"
 ]
 build: [
-  ["./bootstrap"] {pinned}
+  ["./bootstrap"] {dev}
   ["./configure" "--prefix" prefix]
-  [make "clean"] {pinned}
+  [make "clean"] {dev}
   [make]
 ]
 install: [make "install"]
