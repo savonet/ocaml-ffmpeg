@@ -19,6 +19,47 @@ end
 external open_input : string -> input container = "ocaml_av_open_input"
 external open_input_format : (input, _)format -> input container = "ocaml_av_open_input_format"
 
+type avio
+
+type _read_callbacks = {
+  _read : bytes -> int -> int -> int;
+  _seek : (int -> int -> int) option
+}
+
+let seek_of_int = function
+  | 0 -> Unix.SEEK_SET
+  | 1 -> Unix.SEEK_CUR
+  | 2 -> Unix.SEEK_END
+  | _ -> assert false;
+
+type read_callbacks = {
+  read : bytes -> int -> int -> int;
+  seek : (int -> Unix.seek_command -> int) option
+}
+
+external ocaml_av_create_io : int -> _read_callbacks -> avio = "ocaml_av_create_io"
+
+let ocaml_av_create_io len {read;seek} =
+  let _seek = match seek with
+    | None ->
+         None
+    | Some fn ->
+         Some (fun a m -> fn a (seek_of_int m))
+ in
+ ocaml_av_create_io len {_read=read;_seek}
+
+external ocaml_av_open_input_stream : avio -> input container = "ocaml_av_open_input_stream"
+external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
+
+let open_input_stream read_callbacks =
+  let avio = ocaml_av_create_io 4096 read_callbacks in
+  let cleanup () = caml_av_input_io_finalise avio in
+  let input =
+    ocaml_av_open_input_stream avio
+  in
+  Gc.finalise_last cleanup input;
+  input
+
 external _get_duration : input container -> int -> Time_format.t -> Int64.t = "ocaml_av_get_duration"
 let get_input_duration ?(format=`Second) i = _get_duration i (-1) format
 

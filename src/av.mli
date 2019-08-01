@@ -37,6 +37,12 @@ val open_input : string -> input container
 val open_input_format : (input, _)format -> input container
 (** [Av.open_input_format format] open the input [format]. @raise Failure if the opening failed. *)
 
+type read_callbacks = {
+  read : bytes -> int -> int -> int;
+  seek : (int -> Unix.seek_command -> int) option
+}
+
+val open_input_stream : read_callbacks -> input container
 
 val get_input_duration : ?format:Time_format.t -> input container -> Int64.t
 (** [Av.get_input_duration ~format:fmt input] return the duration of an [input] in the [fmt] time format (in second by default). *)

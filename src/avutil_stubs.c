@@ -129,18 +129,33 @@ CAMLprim value ocaml_avutil_set_log_level(value level)
 
 #define LINE_SIZE 1024
 
-value ocaml_log_callback = (value)NULL;
+static value ocaml_log_callback = (value)NULL;
 
 static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
   static int print_prefix = 1;
   char line[LINE_SIZE];
+  value ret, buffer;
 
   av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
   ocaml_ffmpeg_register_thread();
+
   caml_acquire_runtime_system();
-  caml_callback(ocaml_log_callback, caml_copy_string(line));
+
+  buffer = caml_copy_string(line);
+
+  caml_register_generational_global_root(&buffer);
+
+  ret = caml_callback_exn(ocaml_log_callback, buffer);
+  if(Is_exception_result(ret)) {
+    ret = Extract_exception(ret);
+    caml_remove_generational_global_root(&buffer);
+    caml_raise(ret);
+  }
+
+  caml_remove_generational_global_root(&buffer);
+
   caml_release_runtime_system();
 }
 
