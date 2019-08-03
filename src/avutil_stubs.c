@@ -42,10 +42,8 @@ void ocaml_ffmpeg_register_thread() {
 
   pthread_once(&ocaml_c_thread_key_once, ocaml_ffmpeg_make_key);
 
-  if ((ptr = pthread_getspecific(ocaml_c_thread_key)) == NULL) {
+  if (caml_c_thread_register() && !pthread_getspecific(ocaml_c_thread_key))
     pthread_setspecific(ocaml_c_thread_key,(void*)&initialized);
-    caml_c_thread_register();
-  }
 }
 
 static int lock_manager(void **mtx, enum AVLockOp op)
@@ -147,12 +145,7 @@ static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list
 
   caml_register_generational_global_root(&buffer);
 
-  ret = caml_callback_exn(ocaml_log_callback, buffer);
-  if(Is_exception_result(ret)) {
-    ret = Extract_exception(ret);
-    caml_remove_generational_global_root(&buffer);
-    caml_raise(ret);
-  }
+  caml_callback(ocaml_log_callback, buffer);
 
   caml_remove_generational_global_root(&buffer);
 

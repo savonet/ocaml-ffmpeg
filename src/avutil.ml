@@ -73,14 +73,17 @@ module Log = struct
 
   let set_callback fn =
     let m = Mutex.create () in
+    let fn msg =
+      try fn msg with
+       | exn ->
+          Printf.printf
+            "Error while calling custom log function: %s\n%!"
+              (Printexc.to_string exn)
+    in
     let fn s =
       Mutex.lock m;
-      try
-        fn s;
-        Mutex.unlock m
-      with e ->
-        Mutex.unlock m;
-        raise e
+      fn s;
+      Mutex.unlock m
     in
     set_callback fn
 
