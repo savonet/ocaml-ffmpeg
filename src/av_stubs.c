@@ -361,12 +361,13 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
   
   if (Field(cb,1) != Val_none) {
     avio->seek_cb = Some_val(Field(cb,1));
+    caml_register_generational_global_root(&avio->seek_cb);
     avio->avio_context = avio_alloc_context(
       avio->buffer, avio->buffer_size, 0, (void *)avio,
       ocaml_avio_read_callback, NULL,
       ocaml_avio_seek_callback);
   } else {
-    avio->seek_cb = Val_none;
+    avio->seek_cb = (value)NULL;
     avio->avio_context = avio_alloc_context(
       avio->buffer, avio->buffer_size, 0, (void *)avio,
       ocaml_avio_read_callback, NULL, NULL);
@@ -383,7 +384,6 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
 
   avio->read_cb = Field(cb,0);
   caml_register_generational_global_root(&avio->read_cb);
-  caml_register_generational_global_root(&avio->seek_cb);
 
   ret = caml_alloc_custom(&avio_ops, sizeof(avio_t*), 0, 1);
 
@@ -398,7 +398,8 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   avio_t *avio = Avio_val(_avio);
   av_freep(avio->avio_context);
   caml_remove_generational_global_root(&avio->read_cb);
-  caml_remove_generational_global_root(&avio->seek_cb);
+  if (avio->seek_cb)
+    caml_remove_generational_global_root(&avio->seek_cb);
   free(avio);
   CAMLreturn(Val_unit);
 }
