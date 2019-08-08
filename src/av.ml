@@ -1,5 +1,9 @@
 open Avutil
 
+external init : unit -> unit = "ocaml_av_init" [@@noalloc]
+
+let () = init ()
+
 (* Format *)
 module Format = struct
   external get_input_name : (input, _)format -> string = "ocaml_av_input_format_get_name"

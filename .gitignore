@@ -35,3 +35,4 @@ src/sample_format_stubs.h
 src/swresample_options.ml
 src/swresample_options.mli
 src/swresample_options_stubs.h
+examples/decode_stream/decode_stream

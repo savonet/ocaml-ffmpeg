@@ -22,6 +22,11 @@ exception Failure of string
 let () =
   Callback.register_exception "ffmpeg_exn_failure" (Failure "");
 
+external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
+
+let () =
+  if not (ocaml_avutil_register_lock_manager()) then
+    raise (Failure "Failed to register lock manager")
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 

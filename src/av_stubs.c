@@ -25,6 +25,16 @@
 #define Val_none Val_int(0)
 #define Some_val(v) Field(v,0)
 
+/**** Init ****/
+
+value ocaml_av_init(value unit) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+  av_register_all();
+#endif
+  avformat_network_init();
+  return Val_unit;
+}
+
 /**** Context ****/
 
 typedef struct {
@@ -445,14 +455,6 @@ static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *form
   av->is_input = 1;
   av->release_out = 1;
   av->format_context = format_context;
-  
-  if( ! register_lock_manager()) return NULL;
-
-  av_register_all();
-
-  if(url && 0 == strncmp("http", url, 4)) {
-    avformat_network_init();
-  }
   
   int ret = avformat_open_input(&av->format_context, url, format, NULL);
   
@@ -1101,10 +1103,6 @@ static av_t * open_output(AVOutputFormat *format, const char *format_name, const
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate output context");
-
-  if( ! register_lock_manager()) return NULL;
-
-  av_register_all();
 
   avformat_alloc_output_context2(&av->format_context, format, format_name, file_name);
   

@@ -69,7 +69,11 @@ static int alloc_data(struct audio_t * audio, int nb_samples)
 static int get_in_samples_frame(swr_t *swr, value *in_vector)
 {
   AVFrame *frame = Frame_val(*in_vector);
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 0, 100)
   int nb_channels = av_frame_get_channels(frame);
+#else
+  int nb_channels = frame->channels;
+#endif
     
   if(nb_channels != swr->in.nb_channels) Raise(EXN_FAILURE, "Swresample failed to convert %d channels : %d channels were expected", nb_channels, swr->in.nb_channels);
 

@@ -5,6 +5,10 @@ type 'a t
 type 'media decoder
 type 'media encoder
 
+external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
+
+let () = init ()
+
 
 external get_input_buffer_padding_size : unit -> int = "ocaml_avcodec_get_input_buffer_padding_size"
 

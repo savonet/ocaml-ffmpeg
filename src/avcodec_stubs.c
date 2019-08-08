@@ -14,6 +14,13 @@
 #include "avcodec_stubs.h"
 #include "codec_id_stubs.h"
 
+value ocaml_avcodec_init(value unit) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+  avcodec_register_all();
+#endif
+  return Val_unit;
+}
+
 
 CAMLprim value ocaml_avcodec_get_input_buffer_padding_size() {
   CAMLparam0();
@@ -199,10 +206,6 @@ static struct custom_operations parser_ops =
 
 static parser_t * avcodec_create_parser(enum AVCodecID codec_id)
 {
-  if( ! register_lock_manager()) return NULL;
-
-  avcodec_register_all();
-
   AVCodec * codec = avcodec_find_decoder(codec_id);
   if ( ! codec) Fail("Failed to find parser's decoder");
 
@@ -340,10 +343,6 @@ static struct custom_operations codec_context_ops =
 
 static codec_context_t * avcodec_create_codec_context(enum AVCodecID codec_id, int decoder)
 {
-  if( ! register_lock_manager()) return NULL;
-
-  avcodec_register_all();
-
   codec_context_t * ctx = (codec_context_t*)calloc(1, sizeof(codec_context_t));
   if ( ! ctx) Fail("Failed to allocate codec context");
 
@@ -647,10 +646,6 @@ CAMLprim value ocaml_avcodec_flush_encoder(value _ctx) {
 
 static enum AVCodecID find_codec_id(const char *name)
 {
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
-
   AVCodec * codec = avcodec_find_encoder_by_name(name);
   if( ! codec) Raise(EXN_FAILURE, "Failed to find %s codec", name);
 
@@ -684,10 +679,6 @@ CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
-
   AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
 
   if(codec && codec->channel_layouts) {
@@ -705,10 +696,6 @@ CAMLprim value ocaml_avcodec_get_supported_sample_formats(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
-
   AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
 
   if(codec && codec->sample_fmts) {
@@ -725,10 +712,6 @@ CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec_id)
   CAMLlocal2(list, cons);
   int i;
   List_init(list);
-
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
 
   AVCodec * codec = avcodec_find_encoder(AudioCodecID_val(_codec_id));
 
@@ -812,10 +795,6 @@ CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec_id)
   int i;
   List_init(list);
 
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
-
   AVCodec * codec = avcodec_find_encoder(VideoCodecID_val(_codec_id));
 
   if(codec && codec->supported_framerates) {
@@ -834,10 +813,6 @@ CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec_id)
   CAMLlocal2(list, cons);
   int i;
   List_init(list);
-
-  if( ! register_lock_manager()) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
-
-  avcodec_register_all();
 
   AVCodec * codec = avcodec_find_encoder(VideoCodecID_val(_codec_id));
 
