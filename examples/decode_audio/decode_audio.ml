@@ -22,8 +22,8 @@ let () =
   let out_file = Av.open_output Sys.argv.(3) in
   let out_stream = Av.new_audio_stream ~codec_name:Sys.argv.(4) out_file in
 
-  (* Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|] *)
-  Bigarray.Genarray.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
+  Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
+  (* Bigarray.Genarray.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|] *)
   |> Bigarray.array1_of_genarray
   |> Packet.parse_data parser @@ Avcodec.decode decoder @@ Av.write_frame out_stream;
 
