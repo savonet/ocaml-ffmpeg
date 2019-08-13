@@ -13,6 +13,7 @@
 #include <libavutil/timestamp.h>
 #include <libavutil/avstring.h>
 #include <libavformat/avformat.h>
+#include <libavformat/avio.h>
 #include <libavutil/audio_fifo.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
@@ -21,8 +22,18 @@
 #include "avcodec_stubs.h"
 #include "av_stubs.h"
 
-#include <libavutil/timestamp.h>
-#include <libavformat/avformat.h>
+#define Val_none Val_int(0)
+#define Some_val(v) Field(v,0)
+
+/**** Init ****/
+
+value ocaml_av_init(value unit) {
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
+  av_register_all();
+#endif
+  avformat_network_init();
+  return Val_unit;
+}
 
 /**** Context ****/
 
@@ -257,6 +268,152 @@ void ocaml_av_set_control_message_callback(value *p_av, av_format_control_messag
 
 /***** Input *****/
 
+/***** AVIO *****/
+
+typedef struct avio_t {
+  AVFormatContext *format_context;
+  unsigned char *buffer;
+  int buffer_size;
+  AVIOContext *avio_context;
+  value read_cb;
+  value seek_cb;
+} avio_t;
+
+#define Avio_val(v) (*(avio_t**)Data_custom_val(v))
+
+static struct custom_operations avio_ops = {
+  "ocaml_avio_ops",
+  custom_finalize_default,
+  custom_compare_default,
+  custom_hash_default,
+  custom_serialize_default,
+  custom_deserialize_default
+};
+
+static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
+  value buffer, res;
+  avio_t *avio = (avio_t *)private;
+
+  caml_acquire_runtime_system();
+
+  buffer = caml_alloc_string(buf_size);
+
+  caml_register_generational_global_root(&buffer);
+
+  res = caml_callback3_exn(avio->read_cb,buffer,Val_int(0),Val_int(buf_size));
+  if(Is_exception_result(res)) {
+    res = Extract_exception(res);
+    caml_remove_generational_global_root(&buffer);
+    caml_raise(res);
+  }
+
+  memcpy(buf,String_val(buffer),Int_val(res));
+
+  caml_remove_generational_global_root(&buffer);
+
+  caml_release_runtime_system();
+
+  return Int_val(res);
+}
+
+static int64_t ocaml_avio_seek_callback(void *private, int64_t offset, int whence) {
+  value res;
+  avio_t *avio = (avio_t *)private;
+  int _whence;
+  int64_t n;
+
+  switch (whence) {
+    case SEEK_SET:
+      _whence = 0;
+      break;
+    case SEEK_CUR:
+      _whence = 1;
+      break;
+    case SEEK_END:
+      _whence = 2;
+      break;
+    default:
+      return -1;
+  }
+
+  caml_acquire_runtime_system();
+
+  res = caml_callback2(avio->seek_cb,Val_int(offset), Val_int(_whence));
+
+  n = Int_val(res);
+
+  caml_release_runtime_system();
+
+  return n;
+}
+
+CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
+  CAMLparam1(cb);
+  CAMLlocal1(ret);
+
+  avio_t *avio = (avio_t *)calloc(1, sizeof(avio_t));
+  if (!avio) caml_raise_out_of_memory();
+
+  avio->format_context = avformat_alloc_context();
+  if (!avio->format_context) {
+    free(avio);
+    caml_raise_out_of_memory();
+  }
+
+  avio->buffer_size = Int_val(bufsize);
+  avio->buffer = av_malloc(avio->buffer_size);
+  if (!avio->buffer) {
+    av_freep(avio->format_context);
+    free(avio);
+    caml_raise_out_of_memory();
+  }
+
+  
+  if (Field(cb,1) != Val_none) {
+    avio->seek_cb = Some_val(Field(cb,1));
+    caml_register_generational_global_root(&avio->seek_cb);
+    avio->avio_context = avio_alloc_context(
+      avio->buffer, avio->buffer_size, 0, (void *)avio,
+      ocaml_avio_read_callback, NULL,
+      ocaml_avio_seek_callback);
+  } else {
+    avio->seek_cb = (value)NULL;
+    avio->avio_context = avio_alloc_context(
+      avio->buffer, avio->buffer_size, 0, (void *)avio,
+      ocaml_avio_read_callback, NULL, NULL);
+  }
+
+  if (!avio->avio_context) {
+    av_freep(avio->buffer);
+    av_freep(avio->format_context);
+    free(avio);
+    caml_raise_out_of_memory();
+  }
+
+  avio->format_context->pb = avio->avio_context;
+
+  avio->read_cb = Field(cb,0);
+  caml_register_generational_global_root(&avio->read_cb);
+
+  ret = caml_alloc_custom(&avio_ops, sizeof(avio_t*), 0, 1);
+
+  Avio_val(ret) = avio;
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value caml_av_input_io_finalise(value _avio) {
+  CAMLparam1(_avio);
+  // format_context and the buffer are freed as part of av_close.
+  avio_t *avio = Avio_val(_avio);
+  av_freep(avio->avio_context);
+  caml_remove_generational_global_root(&avio->read_cb);
+  if (avio->seek_cb)
+    caml_remove_generational_global_root(&avio->seek_cb);
+  free(avio);
+  CAMLreturn(Val_unit);
+}
+
 /***** AVInputFormat *****/
 static struct custom_operations inputFormat_ops = {
   "ocaml_av_inputformat",
@@ -290,21 +447,14 @@ CAMLprim value ocaml_av_input_format_get_long_name(value _format)
 }
 
 
-static av_t * open_input(char *url, AVInputFormat *format)
+static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *format_context)
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate input context");
 
   av->is_input = 1;
   av->release_out = 1;
-  
-  if( ! register_lock_manager()) return NULL;
-
-  av_register_all();
-
-  if(url && 0 == strncmp("http", url, 4)) {
-    avformat_network_init();
-  }
+  av->format_context = format_context;
   
   int ret = avformat_open_input(&av->format_context, url, format, NULL);
   
@@ -331,7 +481,7 @@ CAMLprim value ocaml_av_open_input(value _url)
 
   // open input url
   caml_release_runtime_system();
-  av_t *av = open_input(url, NULL);
+  av_t *av = open_input(url, NULL, NULL);
 
   free(url);
   caml_acquire_runtime_system();
@@ -352,9 +502,31 @@ CAMLprim value ocaml_av_open_input_format(value _format)
 
   // open input format
   caml_release_runtime_system();
-  av_t *av = open_input(NULL, format);
+  av_t *av = open_input(NULL, format, NULL);
   caml_acquire_runtime_system();
   if( ! av) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
+
+  // allocate format context
+  ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
+  Av_val(ans) = av;
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_open_input_stream(value _avio)
+{
+  CAMLparam1(_avio);
+  CAMLlocal1(ans);
+  avio_t *avio = Avio_val(_avio);
+
+  // open input format
+  caml_release_runtime_system();
+  av_t *av = open_input(NULL, NULL, avio->format_context);
+  caml_acquire_runtime_system();
+  if( ! av) {
+    avio->format_context = NULL;
+    Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
+  }
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -931,10 +1103,6 @@ static av_t * open_output(AVOutputFormat *format, const char *format_name, const
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) Fail("Failed to allocate output context");
-
-  if( ! register_lock_manager()) return NULL;
-
-  av_register_all();
 
   avformat_alloc_output_context2(&av->format_context, format, format_name, file_name);
   

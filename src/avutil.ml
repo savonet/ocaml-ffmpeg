@@ -22,6 +22,11 @@ exception Failure of string
 let () =
   Callback.register_exception "ffmpeg_exn_failure" (Failure "");
 
+external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
+
+let () =
+  if not (ocaml_avutil_register_lock_manager()) then
+    raise (Failure "Failed to register lock manager")
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
@@ -73,14 +78,17 @@ module Log = struct
 
   let set_callback fn =
     let m = Mutex.create () in
+    let fn msg =
+      try fn msg with
+       | exn ->
+          Printf.printf
+            "Error while calling custom log function: %s\n%!"
+              (Printexc.to_string exn)
+    in
     let fn s =
       Mutex.lock m;
-      try
-        fn s;
-        Mutex.unlock m
-      with e ->
-        Mutex.unlock m;
-        raise e
+      fn s;
+      Mutex.unlock m
     in
     set_callback fn
 

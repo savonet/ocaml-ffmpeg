@@ -24,30 +24,7 @@ char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
 
 /***** Global initialisation *****/
-
-static pthread_key_t ocaml_c_thread_key;
-static pthread_once_t ocaml_c_thread_key_once = PTHREAD_ONCE_INIT;
-
-static void ocaml_ffmpeg_on_thread_exit(void *key) {
-  caml_c_thread_unregister();
-}
-
-static void ocaml_ffmpeg_make_key() {
-  pthread_key_create(&ocaml_c_thread_key, ocaml_ffmpeg_on_thread_exit);
-}
-
-void ocaml_ffmpeg_register_thread() {
-  static int initialized = 1;
-  void *ptr;
-
-  pthread_once(&ocaml_c_thread_key_once, ocaml_ffmpeg_make_key);
-
-  if ((ptr = pthread_getspecific(ocaml_c_thread_key)) == NULL) {
-    pthread_setspecific(ocaml_c_thread_key,(void*)&initialized);
-    caml_c_thread_register();
-  }
-}
-
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
 static int lock_manager(void **mtx, enum AVLockOp op)
 {
   switch(op) {
@@ -72,14 +49,14 @@ static int lock_manager(void **mtx, enum AVLockOp op)
   return 1;
 }
 
-int register_lock_manager()
+value ocaml_avutil_register_lock_manager(value unit)
 {
   static int registering_done = 0;
   static pthread_mutex_t registering_mutex = PTHREAD_MUTEX_INITIALIZER;
 
   if( ! registering_done) {
     pthread_mutex_lock(&registering_mutex);
- 
+
     if( ! registering_done) {
 
       int ret = av_lockmgr_register(lock_manager);
@@ -93,9 +70,30 @@ int register_lock_manager()
       pthread_mutex_unlock(&registering_mutex);
     }
   }
-  return registering_done;
-} 
+  return Val_int(registering_done);
+#else
+value ocaml_avutil_register_lock_manager(value unit) { return Val_true; }
+#endif
 
+static pthread_key_t ocaml_c_thread_key;
+static pthread_once_t ocaml_c_thread_key_once = PTHREAD_ONCE_INIT;
+
+static void ocaml_ffmpeg_on_thread_exit(void *key) {
+  caml_c_thread_unregister();
+}
+
+static void ocaml_ffmpeg_make_key() {
+  pthread_key_create(&ocaml_c_thread_key, ocaml_ffmpeg_on_thread_exit);
+}
+
+void ocaml_ffmpeg_register_thread() {
+  static int initialized = 1;
+
+  pthread_once(&ocaml_c_thread_key_once, ocaml_ffmpeg_make_key);
+
+  if (caml_c_thread_register() && !pthread_getspecific(ocaml_c_thread_key))
+    pthread_setspecific(ocaml_c_thread_key,(void*)&initialized);
+}
 
 /**** Rational ****/
 void value_of_rational(const AVRational * rational, value * pvalue) {
@@ -129,18 +127,28 @@ CAMLprim value ocaml_avutil_set_log_level(value level)
 
 #define LINE_SIZE 1024
 
-value ocaml_log_callback = (value)NULL;
+static value ocaml_log_callback = (value)NULL;
 
 static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list vl)
 {
   static int print_prefix = 1;
   char line[LINE_SIZE];
+  value buffer;
 
   av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
   ocaml_ffmpeg_register_thread();
+
   caml_acquire_runtime_system();
-  caml_callback(ocaml_log_callback, caml_copy_string(line));
+
+  buffer = caml_copy_string(line);
+
+  caml_register_generational_global_root(&buffer);
+
+  caml_callback(ocaml_log_callback, buffer);
+
+  caml_remove_generational_global_root(&buffer);
+
   caml_release_runtime_system();
 }
 
