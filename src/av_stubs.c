@@ -300,7 +300,7 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
 
   caml_register_generational_global_root(&buffer);
 
-  res = caml_callback3(avio->read_cb,buffer,Val_int(0),Val_int(buf_size));
+  res = caml_callback3_exn(avio->read_cb,buffer,Val_int(0),Val_int(buf_size));
   if(Is_exception_result(res)) {
     res = Extract_exception(res);
     caml_remove_generational_global_root(&buffer);
