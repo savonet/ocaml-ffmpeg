@@ -62,8 +62,8 @@ byte: byte-code-library
 opt: native-code-library
 
 gen-code:
-	$(SYSTEM_OCAMLOPT) -c gen_code_stubs.c
-	$(SYSTEM_OCAMLOPT) str.cmxa gen_code_stubs.o gen_code.ml -o gen_code
+	$(OCAMLC) -c gen_code_stubs.c
+	$(OCAMLC) -custom str.cma gen_code_stubs.o gen_code.ml -o gen_code
 	./gen_code -I$(GEN_CODE_INCLUDE)
 
 install: libinstall
