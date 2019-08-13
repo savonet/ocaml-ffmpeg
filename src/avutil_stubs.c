@@ -71,6 +71,7 @@ value ocaml_avutil_register_lock_manager(value unit)
     }
   }
   return Val_int(registering_done);
+}
 #else
 value ocaml_avutil_register_lock_manager(value unit) { return Val_true; }
 #endif
