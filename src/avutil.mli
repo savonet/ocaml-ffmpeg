@@ -33,6 +33,29 @@ type 'media frame
 (** A failure occured (with given explanation). *)
 exception Failure of string
 
+(** Internal errors. *)
+type error = [
+  | `Bsf_not_found
+  | `Decoder_not_found
+  | `Demuxer_not_found
+  | `Encoder_not_found
+  | `Eof
+  | `Exit
+  | `Filter_not_found
+  | `Invalid_data
+  | `Muxer_not_found
+  | `Option_not_found
+  | `Patch_welcome
+  | `Protocol_not_found
+  | `Stream_not_found
+  | `Bug
+  | `Unknown
+  | `Experimental
+]
+
+exception Error of error
+
+val string_of_error : error -> string
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 

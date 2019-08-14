@@ -59,7 +59,7 @@ static AVCodecContext * avcodec_create_AVCodecContext(AVCodec *codec)
   int ret = avcodec_open2(codec_context, codec, NULL);
   if(ret < 0) {
     avcodec_free_context(&codec_context);
-    Fail("Failed to open codec : %s", av_err2str(ret));
+    ocaml_avutil_raise_error(ret);
   }
 
   return codec_context;
@@ -92,7 +92,7 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
   if( ! dst) Raise(EXN_FAILURE, "Failed to alloc codec parameters");
 
   int ret = avcodec_parameters_copy(dst, src);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to copy codec parameters : %s", av_err2str(ret));
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   *pvalue = caml_alloc_custom(&codec_parameters_ops, sizeof(AVCodecParameters*), 0, 1);
   CodecParameters_val(*pvalue) = dst;
@@ -270,7 +270,7 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data, value _ofs
 
   if (ret < 0) {
     av_packet_free(&packet);
-    Raise(EXN_FAILURE, "Failed to parse data : %s", av_err2str(ret));
+    ocaml_avutil_raise_error(ret);
   }
 
   if(packet->size) {
@@ -456,7 +456,7 @@ CAMLprim value ocaml_avcodec_send_packet(value _ctx, value _packet)
   int ret = avcodec_send_packet(ctx->codec_context, packet);
   caml_acquire_runtime_system();
 
-  if(ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) Raise(EXN_FAILURE, "Failed to decode data : %s", av_err2str(ret));
+  if(ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) ocaml_avutil_raise_error(ret);
 
   if (ret == AVERROR(EAGAIN)) ans = PVV_Again;
   else ans = PVV_Ok;
@@ -483,7 +483,7 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx)
   if (ret < 0) {
     av_frame_free(&frame);
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) ans = Val_int(0);
-    else Raise(EXN_FAILURE, "Failed to receive frame : %s", av_err2str(ret));
+    else ocaml_avutil_raise_error(ret);
   }
   else {
     ans = caml_alloc(1, 0);
@@ -592,7 +592,7 @@ CAMLprim value ocaml_avcodec_send_frame(value _ctx, value _frame)
 
   if(ret == AVERROR_EXTERNAL) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
-  if(ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) Raise(EXN_FAILURE, "Failed to send frame for encoding : %s", av_err2str(ret));
+  if(ret < 0 && ret != AVERROR_EOF && ret != AVERROR(EAGAIN)) ocaml_avutil_raise_error(ret);
 
   if (ret == AVERROR(EAGAIN)) ans = PVV_Again;
   else ans = PVV_Ok;
@@ -626,7 +626,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx)
   if (ret < 0) {
     av_packet_free(&packet);
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) ans = Val_int(0);
-    else Raise(EXN_FAILURE, "Failed to receive packet from frame : %s", av_err2str(ret));
+    else ocaml_avutil_raise_error(ret);
   }
   else {
     ans = caml_alloc(1, 0);

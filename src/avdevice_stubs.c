@@ -148,7 +148,7 @@ CAMLprim value ocaml_avdevice_app_to_dev_control_message(value _message, value _
   int ret = avdevice_app_to_dev_control_message(format_context, message_type, data, data_size);
   caml_acquire_runtime_system();
   if(ret == AVERROR(ENOSYS)) Raise(EXN_FAILURE, "App to device control message failed : device doesn't implement handler of the message");
-  if(ret < 0) Raise(EXN_FAILURE, "App to device control message failed : %s", av_err2str(ret));
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   CAMLreturn(Val_unit);
 }

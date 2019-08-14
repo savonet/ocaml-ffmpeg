@@ -19,8 +19,32 @@ type 'media frame
 
 exception Failure of string
 
+type error = [
+  | `Bsf_not_found
+  | `Decoder_not_found
+  | `Demuxer_not_found
+  | `Encoder_not_found
+  | `Eof
+  | `Exit
+  | `Filter_not_found
+  | `Invalid_data
+  | `Muxer_not_found
+  | `Option_not_found
+  | `Patch_welcome
+  | `Protocol_not_found
+  | `Stream_not_found
+  | `Bug
+  | `Unknown
+  | `Experimental
+] 
+
+external string_of_error : error -> string = "ocaml_avutil_string_of_error"
+
+exception Error of error
+
 let () =
   Callback.register_exception "ffmpeg_exn_failure" (Failure "");
+  Callback.register_exception "ffmpeg_exn_error" (Error `Unknown) 
 
 external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
 

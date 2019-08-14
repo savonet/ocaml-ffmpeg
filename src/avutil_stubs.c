@@ -19,9 +19,128 @@
 #include "channel_layout_stubs.h"
 #include "sample_format_stubs.h"
 
+int lasterr;
 char ocaml_av_error_msg[ERROR_MSG_SIZE + 1];
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
+void ocaml_avutil_raise_error(int err) {
+  int _err;
+
+  switch (err) {
+    case AVERROR_BSF_NOT_FOUND:
+      _err = PVV_Bsf_not_found;
+      break;
+    case AVERROR_DECODER_NOT_FOUND:
+      _err = PVV_Decoder_not_found;
+      break;
+    case AVERROR_DEMUXER_NOT_FOUND:
+      _err = PVV_Demuxer_not_found;
+      break;
+    case AVERROR_ENCODER_NOT_FOUND:
+      _err = PVV_Encoder_not_found;
+      break;
+    case AVERROR_EOF:
+      _err = PVV_Eof;
+      break;
+    case AVERROR_EXIT:
+      _err = PVV_Exit;
+      break;
+    case AVERROR_FILTER_NOT_FOUND:
+      _err = PVV_Filter_not_found;
+      break;
+    case AVERROR_INVALIDDATA:
+      _err = PVV_Invalid_data;
+      break;
+    case AVERROR_MUXER_NOT_FOUND:
+      _err = PVV_Muxer_not_found;
+      break;
+    case AVERROR_OPTION_NOT_FOUND:
+      _err = PVV_Option_not_found;
+      break;
+    case AVERROR_PATCHWELCOME:
+      _err = PVV_Patch_welcome;
+      break;
+    case AVERROR_PROTOCOL_NOT_FOUND:
+      _err = PVV_Protocol_not_found;
+      break;
+    case AVERROR_STREAM_NOT_FOUND:
+      _err = PVV_Stream_not_found;
+      break;
+    case AVERROR_BUG:
+      _err = PVV_Bug;
+      break;
+    case AVERROR_UNKNOWN:
+      _err = PVV_Unknown;
+      break;
+    case AVERROR_EXPERIMENTAL:
+      _err = PVV_Experimental;
+      break;
+    default:
+      caml_raise_with_string(*caml_named_value(EXN_FAILURE), av_err2str(err));
+  }
+
+  caml_raise_with_arg(*caml_named_value(EXN_ERROR), _err);
+}
+
+CAMLprim value ocaml_avutil_string_of_error(value error) {
+  CAMLparam0();
+  int err;
+
+  switch (error) {
+    case PVV_Bsf_not_found:
+      err = AVERROR_BSF_NOT_FOUND;
+      break;
+    case PVV_Decoder_not_found:
+      err = AVERROR_DECODER_NOT_FOUND;
+      break;
+    case PVV_Demuxer_not_found:
+      err = AVERROR_DEMUXER_NOT_FOUND;
+      break;
+    case PVV_Encoder_not_found:
+      err = AVERROR_ENCODER_NOT_FOUND;
+      break;
+    case PVV_Eof:
+      err = AVERROR_EOF;
+      break;
+    case PVV_Exit:
+      err = AVERROR_EXIT;
+      break;
+    case PVV_Filter_not_found:
+      err = AVERROR_FILTER_NOT_FOUND;
+      break;
+    case PVV_Invalid_data:
+      err = AVERROR_INVALIDDATA;
+      break;
+    case PVV_Muxer_not_found:
+      err = AVERROR_MUXER_NOT_FOUND;
+      break;
+    case PVV_Option_not_found:
+      err = AVERROR_OPTION_NOT_FOUND;
+      break;
+    case PVV_Patch_welcome:
+      err = AVERROR_PATCHWELCOME;
+      break;
+    case PVV_Protocol_not_found:
+      err = AVERROR_PROTOCOL_NOT_FOUND;
+      break;
+    case PVV_Stream_not_found:
+      err = AVERROR_STREAM_NOT_FOUND;
+      break;
+    case PVV_Bug:
+      err = AVERROR_BUG;
+      break;
+    case PVV_Unknown:
+      err = AVERROR_UNKNOWN;
+      break;
+    case PVV_Experimental:
+      err = AVERROR_EXPERIMENTAL;
+      break;
+    default:
+      caml_failwith("Invalid error!");
+  }
+
+  CAMLreturn(caml_copy_string(av_err2str(err)));
+}
 
 /***** Global initialisation *****/
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
@@ -350,7 +469,7 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
   frame->height = Int_val(_h);
 
   int ret = av_frame_get_buffer(frame, 32);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to alloc video frame buffer : %s", av_err2str(ret));
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   value_of_frame(frame, &ans);
 #endif
@@ -385,11 +504,11 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
 
   if(Bool_val(_make_writable)) {
     int ret = av_frame_make_writable(frame);
-    if (ret < 0) Raise(EXN_FAILURE, "Failed to make frame writable : %s", av_err2str(ret));
+    if (ret < 0) ocaml_avutil_raise_error(ret);
   }
 
   int nb_planes = av_pix_fmt_count_planes((enum AVPixelFormat)frame->format);
-  if(nb_planes < 0) Raise(EXN_FAILURE, "Failed to get frame planes count : %s", av_err2str(nb_planes));
+  if(nb_planes < 0) ocaml_avutil_raise_error(nb_planes);
   
   ans = caml_alloc_tuple(nb_planes);
 

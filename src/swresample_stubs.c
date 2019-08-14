@@ -440,14 +440,14 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
 
   // acquisition of the input samples and the input number of samples per channel
   int in_nb_samples = swr->get_in_samples(swr, &_in_vector);
-  if(in_nb_samples < 0) Raise(EXN_FAILURE, "Failed to get input samples : %s", av_err2str(in_nb_samples));
+  if(in_nb_samples < 0) ocaml_avutil_raise_error(in_nb_samples);
 
   // Computation of the output number of samples per channel according to the input ones
   int out_nb_samples = swr_get_out_samples(swr->context, in_nb_samples);
 
   // Resample and convert input data to output data
   int ret = swr->convert(swr, in_nb_samples, out_nb_samples);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert samples : %s", av_err2str(ret));
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   CAMLreturn(swr->out_vector);
 }

@@ -21,9 +21,9 @@
 
 #define ERROR_MSG_SIZE 256
 #define EXN_FAILURE "ffmpeg_exn_failure"
+#define EXN_ERROR "ffmpeg_exn_error"
 
 #define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
-
 #define Fail(...) {                                             \
     snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__);  \
     return NULL;                                                \
@@ -34,9 +34,11 @@
     caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
   }
 
+void ocaml_avutil_raise_error(int err);
+
+extern int lasterr;
 extern char ocaml_av_error_msg[];
 extern char ocaml_av_exn_msg[];
-
 
 #define List_init(list) (list) = Val_emptylist
 
