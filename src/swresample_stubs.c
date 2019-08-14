@@ -573,7 +573,10 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
 {
   caml_release_runtime_system();
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
-  if( ! swr) Fail("Failed to allocate Swresample context");
+  if( ! swr) {
+    caml_acquire_runtime_system();
+    caml_raise_out_of_memory();
+  }
   
   SwrContext *ctx = swresample_set_context(swr,
                                            in_channel_layout, in_sample_fmt, in_sample_rate,
