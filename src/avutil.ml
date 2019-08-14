@@ -146,7 +146,6 @@ module Sample_format = struct
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end
 
-
 module Video = struct
   type planes = (data * int) array
 
