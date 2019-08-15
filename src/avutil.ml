@@ -17,16 +17,46 @@ type ('line, 'media) format
 (* Frame *)
 type 'media frame
 
-exception Failure of string
+type error = [
+  | `Bsf_not_found
+  | `Decoder_not_found
+  | `Demuxer_not_found
+  | `Encoder_not_found
+  | `Eof
+  | `Exit
+  | `Filter_not_found
+  | `Invalid_data
+  | `Muxer_not_found
+  | `Option_not_found
+  | `Patch_welcome
+  | `Protocol_not_found
+  | `Stream_not_found
+  | `Bug
+  | `Unknown
+  | `Experimental
+  | `Failure of string
+] 
+
+external string_of_error : error -> string = "ocaml_avutil_string_of_error"
+
+exception Error of error
 
 let () =
-  Callback.register_exception "ffmpeg_exn_failure" (Failure "");
+  Printexc.register_printer (function
+    | Error err ->
+        Some (Printf.sprintf "FFmpeg.Avutils.Error(%s)" (string_of_error err))
+    | _         ->
+        None)
+
+let () =
+  Callback.register_exception "ffmpeg_exn_error" (Error `Unknown);
+  Callback.register "ffmpeg_exn_failure" (fun s -> raise (Error (`Failure s))) 
 
 external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
 
 let () =
   if not (ocaml_avutil_register_lock_manager()) then
-    raise (Failure "Failed to register lock manager")
+    raise (Error (`Failure "Failed to register lock manager"))
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
@@ -121,7 +151,6 @@ module Sample_format = struct
 
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
 end
-
 
 module Video = struct
   type planes = (data * int) array

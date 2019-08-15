@@ -106,7 +106,8 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_, value src_h
   c = sws_getContext(src_w, src_h, src_format, dst_w, dst_h, dst_format, flags, NULL, NULL, NULL);
   caml_acquire_runtime_system();
 
-  assert(c);
+  if (!c) Fail("Failed to get sws context!");
+
   ans = caml_alloc_custom(&context_ops, sizeof(struct SwsContext*), 0, 1);
   Context_val(ans) = c;
   CAMLreturn(ans);
@@ -255,22 +256,28 @@ static int alloc_out_frame(sws_t *sws)
   caml_failwith("Not implemented.");
 #else
   do {
+    caml_release_runtime_system();
     AVFrame * frame = av_frame_alloc();
-    if( ! frame) {
-      ret = -1;
-      break;
-    }
+    caml_acquire_runtime_system();
+
+    if (!frame) caml_raise_out_of_memory();
 
     frame->width  = sws->out.width;
     frame->height = sws->out.height;
     frame->format = sws->out.pixel_format;
 
     // allocate the buffers for the frame data
+    caml_release_runtime_system();
+
     ret = av_frame_get_buffer(frame, 32);
+
     if (ret < 0) {
       av_frame_free(&frame);
-      break;
+      caml_release_runtime_system();
+      ocaml_avutil_raise_error(ret);
     }
+
+    caml_release_runtime_system();
 
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
@@ -354,12 +361,12 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
 
   // acquisition of the input pixels
   int ret = sws->get_in_pixels(sws, &_in_vector);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to get input pixels");
+  if(ret < 0) Fail( "Failed to get input pixels");
 
   // Allocate out data if needed
   if (sws->release_out_vector) {
     ret = sws->alloc_out(sws);
-    if(ret < 0) Raise(EXN_FAILURE, "Failed to allocate out vector");
+    if(ret < 0) ocaml_avutil_raise_error(ret);
   }
 
   // Scale and convert input data to output data
@@ -369,11 +376,12 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
                   sws->srcSliceY, sws->srcSliceH,
                   sws->out.slice, sws->out.stride);
   caml_acquire_runtime_system();
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert pixels");
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   if(sws->copy_out) {
     ret = sws->copy_out(sws);
-    if(ret < 0) Raise(EXN_FAILURE, "Failed to copy converted pixels");
+    if(ret < 0) ocaml_avutil_raise_error(ret);
   }
   
   CAMLreturn(sws->out_vector);
@@ -423,7 +431,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   sws_t * sws = (sws_t*)calloc(1, sizeof(sws_t));
 
-  if( ! sws) Raise(EXN_FAILURE, "Failed to create Swscale context");
+  if( ! sws) Fail( "Failed to create Swscale context");
 
   sws->in.slice = sws->in.slice_tab;
   sws->in.stride = sws->in.stride_tab;
@@ -452,7 +460,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   if( ! sws->context) {
     free(sws);
-    Raise(EXN_FAILURE, "Failed to create Swscale context");
+    Fail("Failed to create Swscale context");
   }
 
   sws->release_out_vector = 1;
@@ -483,10 +491,13 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
     sws->alloc_out = alloc_out_ba;
   }
 
+  caml_release_runtime_system();
   int ret = av_image_fill_linesizes(sws->out.stride, sws->out.pixel_format, sws->out.width);
+
   if(ret < 0) {
     swscale_free(sws);
-    Raise(EXN_FAILURE, "Failed to create Swscale context");
+    caml_acquire_runtime_system();
+    Fail( "Failed to create Swscale context");
   }
 
   for(sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes]; sws->out.nb_planes++);
@@ -494,8 +505,11 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
   ret = sws->alloc_out(sws);
   if(ret < 0) {
     swscale_free(sws);
-    Raise(EXN_FAILURE, "Failed to create Swscale context");
+    caml_acquire_runtime_system();
+    Fail( "Failed to create Swscale context");
   }
+
+  caml_acquire_runtime_system();
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t*), 0, 1);
   Sws_val(ans) = sws;

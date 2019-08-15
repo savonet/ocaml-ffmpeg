@@ -28,28 +28,28 @@ val get_default_video_output_format : unit -> (output, video)format
 
 
 val open_audio_input : string -> input container
-(** Open the audio input device from his name. @raise Failure if the device is not found. *)
+(** Open the audio input device from his name. @raise Error if the device is not found. *)
 
 val open_default_audio_input : unit -> input container
-(** Open the default audio input device from his name. @raise Failure if the device is not found. *)
+(** Open the default audio input device from his name. @raise Error if the device is not found. *)
 
 val open_video_input : string -> input container
-(** Open the video input device from his name. @raise Failure if the device is not found. *)
+(** Open the video input device from his name. @raise Error if the device is not found. *)
 
 val open_default_video_input : unit -> input container
-(** Open the default video input device from his name. @raise Failure if the device is not found. *)
+(** Open the default video input device from his name. @raise Error if the device is not found. *)
 
 val open_audio_output : string -> output container
-(** Open the audio output device from his name. @raise Failure if the device is not found. *)
+(** Open the audio output device from his name. @raise Error if the device is not found. *)
 
 val open_default_audio_output : unit -> output container
-(** Open the default audio output device from his name. @raise Failure if the device is not found. *)
+(** Open the default audio output device from his name. @raise Error if the device is not found. *)
 
 val open_video_output : string -> output container
-(** Open the video output device from his name. @raise Failure if the device is not found. *)
+(** Open the video output device from his name. @raise Error if the device is not found. *)
 
 val open_default_video_output : unit -> output container
-(** Open the default video output device from his name. @raise Failure if the device is not found. *)
+(** Open the default video output device from his name. @raise Error if the device is not found. *)
 
 
 (** Application to device communication *)
@@ -70,7 +70,7 @@ module App_to_dev : sig
   | Get_mute
 
   val control_messages : message list -> _ container -> unit
-  (** [Avdevice.App_to_dev.control_messages msg_list device] send the [msg_list] list of control message to the [device]. @raise Failure if the application to device control message failed. *)
+  (** [Avdevice.App_to_dev.control_messages msg_list device] send the [msg_list] list of control message to the [device]. @raise Error if the application to device control message failed. *)
 end
 
 (** Device to application communication *)
