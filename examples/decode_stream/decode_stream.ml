@@ -25,11 +25,15 @@ let () =
     Av.find_best_audio_stream container
   in
   let rec f () =
-    match Av.read_frame stream with
-      | `Frame frame ->
-           Av.write_frame out_stream frame;
-           f ()
-      | `End_of_file -> ()
+    try
+      match Av.read_frame stream with
+        | `Frame frame ->
+             Av.write_frame out_stream frame;
+             f ()
+        | `End_of_file -> ()
+    with
+      | FFmpeg.Avutil.Failure s when s = "Failed to read stream : Invalid data found when processing input" ->
+          f ()
   in
   f ();
 

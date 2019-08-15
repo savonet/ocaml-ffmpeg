@@ -117,7 +117,7 @@ let () =
 
   List.iter(print_define_polymorphic_variant_value pvv_oc)
     ["Audio"; "Video"; "Subtitle"; "Packet"; "Frame";
-     "Ok"; "Again"; "End_of_file"; "Error";
+     "Ok"; "Again"; "End_of_file"; 
      "Second"; "Millisecond"; "Microsecond"; "Nanosecond";
      (* Errors *)
      "Bsf_not_found"; "Decoder_not_found"; "Demuxer_not_found";

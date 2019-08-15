@@ -65,6 +65,7 @@ typedef struct av_t {
   value packet_value;
   int end_of_file;
   int selected_streams;
+  int frames_pending;
   stream_t * best_audio_stream;
   stream_t * best_video_stream;
   stream_t * best_subtitle_stream;
@@ -454,6 +455,7 @@ static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *form
 
   av->is_input = 1;
   av->release_out = 1;
+  av->frames_pending = 0;
   av->format_context = format_context;
   
   int ret = avformat_open_input(&av->format_context, url, format, NULL);
@@ -730,43 +732,48 @@ CAMLprim value ocaml_av_select_stream(value _stream)
 }
 
 
-static value decode_packet(av_t * av, stream_t * stream, AVPacket * packet, AVFrame * frame)
+static int decode_frame(av_t * av, stream_t * stream, AVPacket * packet, AVFrame * frame, value *frame_kind)
 {
   AVCodecContext * dec = stream->codec_context;
-  value frame_kind = 0;
   int ret = AVERROR_INVALIDDATA;
 
   if(dec->codec_type == AVMEDIA_TYPE_AUDIO ||
      dec->codec_type == AVMEDIA_TYPE_VIDEO) {
   
-    ret = avcodec_send_packet(dec, packet);
-  
-    if (ret >= 0 || ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-  
-      if (ret >= 0) packet->size = 0;
-  
-      // decode frame
+    if (!av->frames_pending) {
+      ret = avcodec_send_packet(dec, packet);
+      av_packet_unref(packet);
+
+      if (ret < 0 && ret != AVERROR_EOF) return ret;
+
+      av->frames_pending = 1;
+    }
+
+    // decode frame
+    if (ret != AVERROR_EOF)
       ret = avcodec_receive_frame(dec, frame);
+
+    if (ret == AVERROR(EAGAIN)) {
+      *frame_kind = 0;
+      av->frames_pending = 0;
+      return 0;
     }
   
     if(dec->codec_type == AVMEDIA_TYPE_AUDIO) {
-      frame_kind = PVV_Audio;
+      *frame_kind = PVV_Audio;
     }
     else {
-      frame_kind = PVV_Video;
+      *frame_kind = PVV_Video;
     }
   }
   else if(dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
   
     ret = avcodec_decode_subtitle2(dec, (AVSubtitle *)frame, &stream->got_frame, packet);
-  
-    if (ret >= 0) packet->size = 0;
-  
-    frame_kind = PVV_Subtitle;
-  }
-  
-  if(packet->size <= 0) {
     av_packet_unref(packet);
+
+    if (ret < 0) return ret;
+  
+    *frame_kind = PVV_Subtitle;
   }
   
   if(ret >= 0) {
@@ -774,29 +781,28 @@ static value decode_packet(av_t * av, stream_t * stream, AVPacket * packet, AVFr
   }
   else if (ret == AVERROR_EOF) {
     stream->got_frame = 0;
-    frame_kind = PVV_End_of_file;
-  }
-  else if (ret == AVERROR(EAGAIN)) {
-    frame_kind = 0;
-  }
-  else {
-    lasterr = ret;
-    frame_kind = PVV_Error;
+    *frame_kind = PVV_End_of_file;
+    ret = 0;
   }
 
-  return frame_kind;
+  return ret;
 }
 
 static int read_packet(av_t * av, AVPacket * packet, int stream_index, stream_t ** selected_streams)
 {
+  int ret = 0;
+
   for(;;) {
     // read frames from the file
-    int ret = av_read_frame(av->format_context, packet);
+    ret = av_read_frame(av->format_context, packet);
 
     if(ret == AVERROR_EOF) {
       packet->data = NULL;
       packet->size = 0;
-      av->end_of_file = 1;
+      if (ret == AVERROR_EOF) {
+        av->end_of_file = 1;
+        ret = 0;
+      }
       break;
     }
 
@@ -810,7 +816,7 @@ static int read_packet(av_t * av, AVPacket * packet, int stream_index, stream_t 
     av_packet_unref(packet);
   }
 
-  return 0;
+  return ret;
 }
 
 
@@ -819,6 +825,7 @@ CAMLprim value ocaml_av_read_stream_packet(value _stream) {
   CAMLlocal2(ans, packet_value);
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
+  int ret;
 
   Check_stream(av, index);
 
@@ -831,8 +838,10 @@ CAMLprim value ocaml_av_read_stream_packet(value _stream) {
   AVPacket * packet = Packet_val(packet_value);
 
   caml_release_runtime_system();
-  read_packet(av, packet, index, NULL);
+  ret = read_packet(av, packet, index, NULL);
   caml_acquire_runtime_system();
+
+  if (ret < 0) Raise(EXN_FAILURE, "Failed to read packet : %s", av_err2str(ret));
 
   if(av->end_of_file) {
     ans = PVV_End_of_file;
@@ -851,7 +860,7 @@ CAMLprim value ocaml_av_read_stream_frame(value _stream) {
   CAMLlocal2(ans, frame_value);
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
-  int err;
+  int ret;
 
   Check_stream(av, index);
 
@@ -865,17 +874,16 @@ CAMLprim value ocaml_av_read_stream_frame(value _stream) {
   caml_release_runtime_system();
 
   for(; ! frame_kind;) {
-    if( ! av->end_of_file && packet->size <= 0) {
-      err = read_packet(av, packet, index, NULL);
-      if (err < 0) break;
+    if( ! av->end_of_file && !av->frames_pending) {
+      ret = read_packet(av, packet, index, NULL);
+      if (ret < 0) break;
     }
-    frame_kind = decode_packet(av, stream, packet, frame);
+    ret = decode_frame(av, stream, packet, frame, &frame_kind);
+    if (ret < 0) break; 
   }
   caml_acquire_runtime_system();
 
-  if (err < 0) ocaml_avutil_raise_error(err);
-
-  if(frame_kind == PVV_Error) ocaml_avutil_raise_error(lasterr);
+  if (ret < 0) ocaml_avutil_raise_error(ret);
 
   if(frame_kind == PVV_End_of_file) {
     ans = PVV_End_of_file;
@@ -895,7 +903,7 @@ CAMLprim value ocaml_av_read_input_packet(value _av) {
   CAMLlocal3(ans, stream_packet, packet_value);
   av_t * av = Av_val(_av);
   stream_t ** selected_streams = av->selected_streams ? av->streams : NULL;
-  int err;
+  int ret;
 
   if(! av->streams && ! allocate_input_context(av)) ocaml_avutil_raise_error(lasterr);
 
@@ -908,10 +916,11 @@ CAMLprim value ocaml_av_read_input_packet(value _av) {
   AVPacket * packet = Packet_val(packet_value);
 
   caml_release_runtime_system();
-  err = read_packet(av, packet, -1, selected_streams);
+  ret = read_packet(av, packet, -1, selected_streams);
   caml_acquire_runtime_system();
 
-  if (err < 0) ocaml_avutil_raise_error(err);
+  if (ret < 0) ocaml_avutil_raise_error(ret);
+
   if(av->end_of_file) {
     ans = PVV_End_of_file;
   }
@@ -950,22 +959,23 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
   unsigned int nb_streams = av->format_context->nb_streams;
   stream_t * stream = NULL;
   value frame_kind = 0;
-  int err;
+  int ret;
 
   caml_release_runtime_system();
 
   for(; ! frame_kind;) {
     if( ! av->end_of_file) {
   
-      if(packet->size <= 0) {
-        err = read_packet(av, packet, -1, selected_streams);
-        if (err < 0) break;
+      if(!av->frames_pending) {
+        ret = read_packet(av, packet, -1, selected_streams);
+        if (ret < 0) break;
+
         if(av->end_of_file) continue;
       }
   
       if((stream = streams[packet->stream_index]) == NULL) {
         if(NULL == (stream = open_stream_index(av, packet->stream_index))) {
-          frame_kind = PVV_Error;
+          ret = AVERROR_STREAM_NOT_FOUND;
           break;
         }
       }
@@ -985,18 +995,21 @@ CAMLprim value ocaml_av_read_input_frame(value _av)
 
     caml_acquire_runtime_system();
 
-    if (err < 0) ocaml_avutil_raise_error(err);
+    if (ret < 0) ocaml_avutil_raise_error(ret);
 
     AVFrame * frame = allocate_type_frame(stream->codec_context->codec_type, &frame_value);
     if( ! frame) caml_raise_out_of_memory();
 
     caml_release_runtime_system();
 
-    frame_kind = decode_packet(av, stream, packet, frame);
+    ret = decode_frame(av, stream, packet, frame, &frame_kind);
+
+    if (ret < 0) break;
   }
 
   caml_acquire_runtime_system();
-  if(frame_kind == PVV_Error) ocaml_avutil_raise_error(lasterr);
+
+  if (ret < 0)  ocaml_avutil_raise_error(ret);
   
   if(frame_kind == PVV_End_of_file) {
     ans = PVV_End_of_file;

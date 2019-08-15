@@ -2,6 +2,7 @@
 =====
 * Implement support for streams
 * Cleanup internal logic
+* Fix build on bytecode architecture (#27)
 
 0.2.1 (11-12-2018)
 =====
