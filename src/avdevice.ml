@@ -1,25 +1,33 @@
 open Avutil
 
+external init : unit -> unit = "ocaml_avdevice_init" [@@noalloc]
+
+let () = init ()
+
+let hd = function
+  | [] -> raise Not_found
+  | x::_ -> x
+
 external get_audio_input_formats : unit -> (input, audio)format array = "ocaml_avdevice_get_audio_input_formats"
 let get_audio_input_formats() = Array.to_list ( get_audio_input_formats() )
-let get_default_audio_input_format() = List.hd(get_audio_input_formats())
+let get_default_audio_input_format() = hd(get_audio_input_formats())
 
 external get_video_input_formats : unit -> (input, video)format array = "ocaml_avdevice_get_video_input_formats"
 let get_video_input_formats() = Array.to_list ( get_video_input_formats() )
-let get_default_video_input_format() = List.hd(get_video_input_formats())
+let get_default_video_input_format() = hd(get_video_input_formats())
 
 external get_audio_output_formats : unit -> (output, audio)format array = "ocaml_avdevice_get_audio_output_formats"
 let get_audio_output_formats() = Array.to_list ( get_audio_output_formats() )
-let get_default_audio_output_format() = List.hd(get_audio_output_formats())
+let get_default_audio_output_format() = hd(get_audio_output_formats())
 
 external get_video_output_formats : unit -> (output, video)format array = "ocaml_avdevice_get_video_output_formats"
 let get_video_output_formats() = Array.to_list ( get_video_output_formats() )
-let get_default_video_output_format() = List.hd(get_video_output_formats())
+let get_default_video_output_format() = hd(get_video_output_formats())
 
 
 let find_input name fmts =
   try List.find(fun d -> Av.Format.get_input_name d = name) fmts
-  with Not_found -> raise(Failure("Input device not found : " ^ name))
+  with Not_found -> raise (Error (`Failure("Input device not found : " ^ name)))
 
 let find_audio_input name = find_input name (get_audio_input_formats())
 
@@ -27,7 +35,7 @@ let find_video_input name = find_input name (get_video_input_formats())
 
 let find_output name fmts =
   try List.find(fun d -> Av.Format.get_output_name d = name) fmts
-  with Not_found -> raise(Failure("Output device not found : " ^ name))
+  with Not_found -> raise (Error (`Failure("Output device not found : " ^ name)))
 
 let find_audio_output name = find_output name (get_audio_output_formats())
 

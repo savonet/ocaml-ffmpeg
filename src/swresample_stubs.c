@@ -44,13 +44,15 @@ struct swr_t {
   int release_out_vector;
 
   int (*get_in_samples)(swr_t *, value *);
-  int (*convert)(swr_t *, int, int);
+  void (*convert)(swr_t *, int, int);
 };
 
 #define Swr_val(v) (*(swr_t**)Data_custom_val(v))
 
-static int alloc_data(struct audio_t * audio, int nb_samples)
+static inline void alloc_data(struct audio_t * audio, int nb_samples)
 {
+  caml_release_runtime_system();
+
   if(audio->data != NULL && audio->data[0] != NULL) {
     av_freep(&audio->data[0]);
     audio->nb_samples = 0;
@@ -60,24 +62,29 @@ static int alloc_data(struct audio_t * audio, int nb_samples)
 
   int ret = av_samples_alloc(audio->data, NULL, audio->nb_channels,
                              nb_samples, audio->sample_fmt, 0);
-  if(ret < 0) return ret;
+
+
+  caml_acquire_runtime_system();
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   audio->nb_samples = nb_samples;
-  return ret;
 }
 
 static int get_in_samples_frame(swr_t *swr, value *in_vector)
 {
   AVFrame *frame = Frame_val(*in_vector);
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 0, 100)
+  caml_release_runtime_system();
   int nb_channels = av_frame_get_channels(frame);
+  caml_acquire_runtime_system();
 #else
   int nb_channels = frame->channels;
 #endif
     
-  if(nb_channels != swr->in.nb_channels) Raise(EXN_FAILURE, "Swresample failed to convert %d channels : %d channels were expected", nb_channels, swr->in.nb_channels);
+  if(nb_channels != swr->in.nb_channels) Fail( "Swresample failed to convert %d channels : %d channels were expected", nb_channels, swr->in.nb_channels);
 
-  if(frame->format != swr->in.sample_fmt) Raise(EXN_FAILURE, "Swresample failed to convert %s sample format : %s sample format were expected", av_get_sample_fmt_name(frame->format), av_get_sample_fmt_name(swr->in.sample_fmt));
+  if(frame->format != swr->in.sample_fmt) Fail( "Swresample failed to convert %s sample format : %s sample format were expected", av_get_sample_fmt_name(frame->format), av_get_sample_fmt_name(swr->in.sample_fmt));
 
   swr->in.data = frame->extended_data;
 
@@ -89,10 +96,8 @@ static int get_in_samples_string(swr_t *swr, value *in_vector)
   int str_len = caml_string_length(*in_vector);
   int nb_samples = str_len / (swr->in.bytes_per_samples * swr->in.nb_channels);
 
-  if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_data(&swr->in, nb_samples);
-    if (ret < 0) return ret;
-  }
+  if(nb_samples > swr->in.nb_samples)
+    alloc_data(&swr->in, nb_samples);
 
   memcpy(swr->in.data[0], (uint8_t*)String_val(*in_vector), str_len);
 
@@ -106,15 +111,13 @@ static int get_in_samples_planar_string(swr_t *swr, value *in_vector)
   int str_len = caml_string_length(Field(*in_vector, 0));
   int i, nb_samples = str_len / swr->in.bytes_per_samples;
 
-  if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_data(&swr->in, nb_samples);
-    if (ret < 0) return ret;
-  }
+  if(nb_samples > swr->in.nb_samples)
+    alloc_data(&swr->in, nb_samples);
 
   for (i = 0; i < swr->in.nb_channels; i++) {
     str = Field(*in_vector, i);
     
-    if(str_len != caml_string_length(str)) Raise(EXN_FAILURE, "Swresample failed to convert channel %d's %lu bytes : %d bytes were expected", i, caml_string_length(str), str_len);
+    if(str_len != caml_string_length(str)) Fail( "Swresample failed to convert channel %d's %lu bytes : %d bytes were expected", i, caml_string_length(str), str_len);
 
     memcpy(swr->in.data[i], (uint8_t*)String_val(str), str_len);
   }
@@ -126,10 +129,8 @@ static int get_in_samples_float_array(swr_t *swr, value *in_vector)
   int i, linesize = Wosize_val(*in_vector) / Double_wosize;
   int nb_samples = linesize / swr->in.nb_channels;
 
-  if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_data(&swr->in, nb_samples);
-    if (ret < 0) return ret;
-  }
+  if(nb_samples > swr->in.nb_samples)
+    alloc_data(&swr->in, nb_samples);
 
   double * pcm = (double*)swr->in.data[0];
   
@@ -147,15 +148,13 @@ static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector)
   int i, j, nb_words = Wosize_val(Field(*in_vector, 0));
   int nb_samples = nb_words / Double_wosize;
 
-  if(nb_samples > swr->in.nb_samples) {
-    int ret = alloc_data(&swr->in, nb_samples);
-    if (ret < 0) return ret;
-  }
+  if(nb_samples > swr->in.nb_samples)
+    alloc_data(&swr->in, nb_samples);
 
   for (i = 0; i < swr->in.nb_channels; i++) {
     fa = Field(*in_vector, i);
     
-    if(nb_words != Wosize_val(fa)) Raise(EXN_FAILURE, "Swresample failed to convert channel %d's %lu bytes : %d bytes were expected", i, Wosize_val(fa), nb_words);
+    if(nb_words != Wosize_val(fa)) Fail( "Swresample failed to convert channel %d's %lu bytes : %d bytes were expected", i, Wosize_val(fa), nb_words);
 
     double * pcm = (double*)swr->in.data[i];
     
@@ -181,7 +180,7 @@ static int get_in_samples_planar_ba(swr_t *swr, value *in_vector)
   for (int i = 0; i < swr->in.nb_channels; i++) {
     ba = Field(*in_vector, i);
     
-    if(nb_samples != Caml_ba_array_val(ba)->dim[0]) Raise(EXN_FAILURE, "Swresample failed to convert channel %d's %ld bytes : %d bytes were expected", i, Caml_ba_array_val(ba)->dim[0], nb_samples);
+    if(nb_samples != Caml_ba_array_val(ba)->dim[0]) Fail( "Swresample failed to convert channel %d's %ld bytes : %d bytes were expected", i, Caml_ba_array_val(ba)->dim[0], nb_samples);
 
     swr->in.data[i] = Caml_ba_data_val(ba);
   }
@@ -189,65 +188,69 @@ static int get_in_samples_planar_ba(swr_t *swr, value *in_vector)
 }
 
 
-static int alloc_out_frame(swr_t *swr, int nb_samples)
+static void alloc_out_frame(swr_t *swr, int nb_samples)
 {
   CAMLparam0();
   CAMLlocal1(vector);
+  int ret;
   
+  caml_release_runtime_system();
   AVFrame * frame = av_frame_alloc();
 
-  if( ! frame) Raise(EXN_FAILURE, "Failed to allocate resampling output frame");
+  if( ! frame) {
+    caml_acquire_runtime_system();
+    caml_raise_out_of_memory();
+  }
 
   frame->nb_samples     = nb_samples;
   frame->channel_layout = swr->out_channel_layout;
   frame->format         = swr->out.sample_fmt;
   frame->sample_rate    = swr->out_sample_rate;
 
-  int ret = av_frame_get_buffer(frame, 0);
+  ret = av_frame_get_buffer(frame, 0);
 
   if (ret < 0) {
     av_frame_free(&frame);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
   }
-  else {
-    value_of_frame(frame, &vector);
-    caml_modify_generational_global_root(&swr->out_vector, vector);
-    swr->out.data = frame->extended_data;
-    swr->out.nb_samples = nb_samples;
-  }
-  CAMLreturnT(int, ret);
+
+  caml_acquire_runtime_system();
+
+  vector = value_of_frame(frame);
+  caml_modify_generational_global_root(&swr->out_vector, vector);
+  swr->out.data = frame->extended_data;
+  swr->out.nb_samples = nb_samples;
 }
 
-static int convert_to_frame(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_frame(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
-  if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
-    int ret = alloc_out_frame(swr, out_nb_samples);
-    if(ret < 0) return ret;
-  }
+  if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector)
+    alloc_out_frame(swr, out_nb_samples);
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   Frame_val(swr->out_vector)->nb_samples = ret;
-  return ret;
 }
 
-static int convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
-  if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_data(&swr->out, out_nb_samples);
-    if(ret < 0) return ret;
-  }
+  if (out_nb_samples > swr->out.nb_samples)
+    alloc_data(&swr->out, out_nb_samples);
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   size_t len = ret * swr->out.nb_channels * swr->out.bytes_per_samples;
 
@@ -257,23 +260,20 @@ static int convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
   }
 
   memcpy(String_val(swr->out_vector), swr->out.data[0], len);
-
-  return ret;
 }
 
-static int convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
-  if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_data(&swr->out, out_nb_samples);
-    if(ret < 0) return ret;
-  }
+  if (out_nb_samples > swr->out.nb_samples)
+    alloc_data(&swr->out, out_nb_samples);
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   size_t len = ret * swr->out.bytes_per_samples;
   int i;
@@ -288,22 +288,20 @@ static int convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_sa
   for(i = 0; i < swr->out.nb_channels; i++) {
     memcpy(String_val(Field(swr->out_vector, i)), swr->out.data[i], len);
   }
-  return ret;
 }
 
-static int convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
-  if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_data(&swr->out, out_nb_samples);
-    if(ret < 0) return ret;
-  }
+  if (out_nb_samples > swr->out.nb_samples)
+    alloc_data(&swr->out, out_nb_samples);
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   size_t len = ret * swr->out.nb_channels;
   int i;
@@ -319,22 +317,20 @@ static int convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samp
   for (i = 0; i < len; i++) {
     Store_double_field(swr->out_vector, i, pcm[i]);
   }
-  return ret;
 }
 
-static int convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
-  if (out_nb_samples > swr->out.nb_samples) {
-    int ret = alloc_data(&swr->out, out_nb_samples);
-    if(ret < 0) return ret;
-  }
+  if (out_nb_samples > swr->out.nb_samples)
+    alloc_data(&swr->out, out_nb_samples);
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   int i, j;
   double *pcm;
@@ -353,7 +349,6 @@ static int convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_
     for (j = 0; j < ret; j++)
       Store_double_field(Field(swr->out_vector, i), j, pcm[j]);
   }
-  return ret;
 }
 
 static void alloc_out_ba(swr_t *swr, int nb_samples)
@@ -368,7 +363,7 @@ static void alloc_out_ba(swr_t *swr, int nb_samples)
   swr->out.nb_samples = nb_samples;
 }
 
-static int convert_to_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
@@ -379,10 +374,10 @@ static int convert_to_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   Caml_ba_array_val(swr->out_vector)->dim[0] = ret * swr->out.nb_channels;
-  return ret;
 }
 
 
@@ -401,7 +396,7 @@ static void alloc_out_planar_ba(swr_t *swr, int nb_samples)
   swr->out.nb_samples = nb_samples;
 }
 
-static int convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static inline void convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
@@ -412,13 +407,13 @@ static int convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_nb_sample
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
                         (const uint8_t **)swr->in.data, in_nb_samples);
   caml_acquire_runtime_system();
-  if(ret < 0) return ret;
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   int i;
   for(i = 0; i < swr->out.nb_channels; i++) {
     Caml_ba_array_val(Field(swr->out_vector, i))->dim[0] = ret;
   }
-  return ret;
 }
 
 CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
@@ -430,7 +425,7 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
   if(swr->in.is_planar) {
     int in_nb_channels = Wosize_val(_in_vector);
 
-    if(in_nb_channels != swr->in.nb_channels) Raise(EXN_FAILURE, "Swresample failed to convert %d channels : %d channels were expected", in_nb_channels, swr->in.nb_channels);
+    if(in_nb_channels != swr->in.nb_channels) Fail( "Swresample failed to convert %d channels : %d channels were expected", in_nb_channels, swr->in.nb_channels);
   }
 
   // Optionnaly release the output vector
@@ -440,14 +435,13 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector)
 
   // acquisition of the input samples and the input number of samples per channel
   int in_nb_samples = swr->get_in_samples(swr, &_in_vector);
-  if(in_nb_samples < 0) Raise(EXN_FAILURE, "Failed to get input samples : %s", av_err2str(in_nb_samples));
+  if(in_nb_samples < 0) ocaml_avutil_raise_error(in_nb_samples);
 
   // Computation of the output number of samples per channel according to the input ones
   int out_nb_samples = swr_get_out_samples(swr->context, in_nb_samples);
 
   // Resample and convert input data to output data
-  int ret = swr->convert(swr, in_nb_samples, out_nb_samples);
-  if(ret < 0) Raise(EXN_FAILURE, "Failed to convert samples : %s", av_err2str(ret));
+  swr->convert(swr, in_nb_samples, out_nb_samples);
 
   CAMLreturn(swr->out_vector);
 }
@@ -460,7 +454,9 @@ void swresample_free(swr_t *swr)
   if(swr->in.data && swr->get_in_samples != get_in_samples_frame) {
 
     if(swr->in.owns_data) {
+      caml_release_runtime_system();
       av_freep(&swr->in.data[0]);
+      caml_acquire_runtime_system();
     }
     free(swr->in.data);
   }
@@ -468,7 +464,9 @@ void swresample_free(swr_t *swr)
   if(swr->out.data && swr->convert != convert_to_frame) {
 
     if(swr->out.owns_data) {
+      caml_release_runtime_system();
       av_freep(&swr->out.data[0]);
+      caml_acquire_runtime_system();
     }
     free(swr->out.data);
   }
@@ -496,11 +494,11 @@ static struct custom_operations swr_ops =
 #define NB_OPTIONS_TYPES 3
 
 
-static SwrContext * swresample_set_context(swr_t * swr,
+static inline SwrContext * swresample_set_context(swr_t * swr,
                                            int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
                                            int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[])
 {
-  if( ! swr->context && ! (swr->context = swr_alloc())) Fail("Failed to allocate swresample context");
+  if( ! swr->context && ! (swr->context = swr_alloc())) caml_raise_out_of_memory();
 
   SwrContext *ctx = swr->context;
 
@@ -559,31 +557,34 @@ static SwrContext * swresample_set_context(swr_t * swr,
       }
     }
 
-    if(ret != 0) Fail("Failed to set option : %s", av_err2str(ret));
+    if(ret != 0) ocaml_avutil_raise_error(ret);
   }
 
   // initialize the resampling context
+  caml_release_runtime_system();
   ret = swr_init(ctx);
-  if(ret < 0) Fail("Failed to initialize the resampling context : %s", av_err2str(ret));
+  caml_acquire_runtime_system();
+
+  if(ret < 0) ocaml_avutil_raise_error(ret);
 
   return ctx;
 }
 
 swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate, vector_kind out_vector_kind, int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[])
 {
-  caml_release_runtime_system();
   swr_t * swr = (swr_t*)calloc(1, sizeof(swr_t));
-  if( ! swr) Fail("Failed to allocate Swresample context");
+  if( ! swr) {
+    caml_raise_out_of_memory();
+  }
   
   SwrContext *ctx = swresample_set_context(swr,
                                            in_channel_layout, in_sample_fmt, in_sample_rate,
                                            out_channel_layout, out_sample_fmt, out_sample_rate,
                                            options);
-  caml_acquire_runtime_system();
 
   if( ! ctx) {
     swresample_free(swr);
-    return NULL;
+    caml_raise_out_of_memory();
   }
 
   if(in_vector_kind != Frm) {
@@ -606,6 +607,7 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
   caml_register_generational_global_root(&swr->out_vector);
 
   swr->out.bytes_per_samples = av_get_bytes_per_sample(out_sample_fmt);
+
   swr->release_out_vector = 1;
 
   switch(in_vector_kind) {
@@ -681,7 +683,6 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
   swr_t * swr = swresample_create(in_vector_kind, in_channel_layout, in_sample_fmt, in_sample_rate,
                                   out_vector_kind, out_channel_layout, out_sample_fmt, out_sample_rate,
                                   options);
-  if( ! swr) Raise(EXN_FAILURE, "%s", ocaml_av_error_msg);
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
   Swr_val(ans) = swr;

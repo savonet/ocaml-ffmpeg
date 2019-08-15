@@ -113,33 +113,28 @@ let get_metadata s = List.rev(_get_metadata s.container s.index)
 
 external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
-
-type 'a stream_packet_result = [`Packet of 'a Avcodec.Packet.t | `End_of_file]
-
-external read_packet : (input, 'm)stream -> 'm stream_packet_result = "ocaml_av_read_stream_packet"
+external read_packet : (input, 'm)stream -> 'm Avcodec.Packet.t = "ocaml_av_read_stream_packet"
 
 let rec iter_packet f stream =
-  match read_packet stream with
-  | `Packet packet -> f packet; iter_packet f stream
-  | `End_of_file -> ()
+  try
+    f (read_packet stream);
+    iter_packet f stream
+  with
+    | Error `Eof -> ()
 
-
-type 'a stream_frame_result = [`Frame of 'a frame | `End_of_file]
-
-
-external read_frame : (input, 'm)stream -> 'm stream_frame_result = "ocaml_av_read_stream_frame"
+external read_frame : (input, 'm)stream -> 'm frame = "ocaml_av_read_stream_frame"
 
 let rec iter_frame f s =
-  match read_frame s with
-  | `Frame frame -> f frame; iter_frame f s
-  | `End_of_file -> ()
-
+  try
+    f (read_frame s);
+    iter_frame f s
+  with
+    | Error `Eof -> ()
 
 type input_packet_result = [
   | `Audio of int * audio Avcodec.Packet.t
   | `Video of int * video Avcodec.Packet.t
   | `Subtitle of int * subtitle Avcodec.Packet.t
-  | `End_of_file
 ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -151,16 +146,16 @@ let iter_input_packet ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(
     | `Audio(index, packet) -> audio index packet; iter()
     | `Video(index, packet) -> video index packet; iter()
     | `Subtitle(index, packet) -> subtitle index packet; iter()
-    | `End_of_file -> ()
   in
-  iter()
+  try
+    iter()
+  with Error `Eof -> ()
 
 
 type input_frame_result = [
   | `Audio of int * audio frame
   | `Video of int * video frame
   | `Subtitle of int * subtitle frame
-  | `End_of_file
 ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -172,9 +167,10 @@ let iter_input_frame ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(f
     | `Audio(index, frame) -> audio index frame; iter()
     | `Video(index, frame) -> video index frame; iter()
     | `Subtitle(index, frame) -> subtitle index frame; iter()
-    | `End_of_file -> ()
   in
-  iter()
+  try
+    iter()
+  with Error `Eof -> ()
 
 
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
@@ -214,7 +210,7 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
       | Some cn -> Avcodec.Audio.find_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Audio.get_id cp
-        | None -> raise(Failure "Audio codec undefined")
+        | None -> raise (Error (`Failure "Audio codec undefined"))
   in
   let cl = match channel_layout with
     | Some cl -> cl
@@ -265,19 +261,19 @@ let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rat
       | Some cn -> Avcodec.Video.find_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Video.get_id cp
-        | None -> raise(Failure "Video codec undefined")
+        | None -> raise (Error (`Failure "Video codec undefined"))
   in
   let w = match width with
     | Some w -> w
     | None -> match codec with
       | Some cp -> Avcodec.Video.get_width cp
-      | None -> raise(Failure "Video width undefined")
+      | None -> raise (Error (`Failure "Video width undefined"))
   in
   let h = match height with
     | Some h -> h
     | None -> match codec with
       | Some cp -> Avcodec.Video.get_height cp
-      | None -> raise(Failure "Video height undefined")
+      | None -> raise (Error (`Failure "Video height undefined"))
   in
   let pf = match pixel_format with
     | Some pf -> pf
@@ -316,7 +312,7 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec ?time_base ?stream o =
       | Some cn -> Avcodec.Subtitle.find_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Subtitle.get_id cp
-        | None -> raise(Failure "Subtitle codec undefined")
+        | None -> raise (Error (`Failure "Subtitle codec undefined"))
   in
   let tb = match time_base with
     | Some tb -> tb

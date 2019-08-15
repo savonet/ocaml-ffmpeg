@@ -8,7 +8,7 @@ CFLAGS = -O3
 OCAMLFLAGS = -unsafe -inline 10 -noassert
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
-all: native-code
+all: nc
 
 test: all
 	./encoding out.mkv aac mpeg4 ass

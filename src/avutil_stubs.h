@@ -20,23 +20,16 @@
 #include "polymorphic_variant_values_stubs.h"
 
 #define ERROR_MSG_SIZE 256
-#define EXN_FAILURE "ffmpeg_exn_failure"
+#define EXN_ERROR "ffmpeg_exn_error"
 
-#define Log(...) snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__)
-
-#define Fail(...) {                                             \
-    snprintf(ocaml_av_error_msg, ERROR_MSG_SIZE, __VA_ARGS__);  \
-    return NULL;                                                \
-  }
-
-#define Raise(exn, ...) {                                               \
+#define Fail(...) {                                               \
     snprintf(ocaml_av_exn_msg, ERROR_MSG_SIZE, __VA_ARGS__);            \
-    caml_raise_with_string(*caml_named_value(exn), (ocaml_av_exn_msg)); \
+    caml_callback(*caml_named_value("ffmpeg_exn_failure"), caml_copy_string(ocaml_av_exn_msg)); \
   }
 
-extern char ocaml_av_error_msg[];
-extern char ocaml_av_exn_msg[];
+void ocaml_avutil_raise_error(int err);
 
+extern char ocaml_av_exn_msg[];
 
 #define List_init(list) (list) = Val_emptylist
 
@@ -93,17 +86,12 @@ value Val_PixelFormat(enum AVPixelFormat pf);
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
 
-void value_of_frame(AVFrame *frame, value * pvalue);
-
-AVFrame * alloc_frame_value(value * pvalue);
-
+value value_of_frame(AVFrame *frame);
 
 /***** AVSubtitle *****/
 #define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
 
-void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);
-
-AVSubtitle * alloc_subtitle_value(value * pvalue);
+value value_of_subtitle(AVSubtitle *subtitle);
 
 int subtitle_header_default(AVCodecContext *avctx);
 

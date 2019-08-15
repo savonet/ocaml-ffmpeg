@@ -11,6 +11,7 @@ test: all
 	$(MAKE) -C encode_video $@
 	$(MAKE) -C encoding $@
 	$(MAKE) -C decode_audio $@
+	$(MAKE) -C decode_stream $@
 	$(MAKE) -C audio_decoding $@
 	$(MAKE) -C audio_device $@
 	$(MAKE) -C remuxing $@

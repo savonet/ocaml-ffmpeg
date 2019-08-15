@@ -49,8 +49,8 @@ let () =
       let _, _, lines = Subtitle.frame_to_lines sf in
       lines |> List.iter print_endline;
       decode()
-    | `End_of_file -> ()
-    | exception Failure msg -> prerr_endline msg
+    | exception Error `Eof -> ()
+    | exception Error err -> prerr_endline (Avutil.string_of_error err)
   in
   decode();
 

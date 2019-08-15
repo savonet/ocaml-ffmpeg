@@ -18,7 +18,7 @@ let () =
       Av.select input_stream;
 
       ((fun _ frame -> Av.write_audio_frame dst frame), (fun() -> Av.close dst))
-    with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
+    with Avutil.Error _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
   let video, close_video = try
       let _, input_stream, _ = Av.find_best_video_stream src in
@@ -28,7 +28,7 @@ let () =
       Av.select input_stream;
 
       ((fun _ frame -> Av.write_video_frame dst frame), (fun() -> Av.close dst))
-    with Avutil.Failure _ -> ((fun _ _ -> ()), (fun() -> ())) in
+    with Avutil.Error _ -> ((fun _ _ -> ()), (fun() -> ())) in
 
   Av.iter_input_frame ~audio ~video src;
 

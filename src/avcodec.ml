@@ -206,9 +206,7 @@ end
 
 
 
-type send_result = [`Ok | `Again]
-
-external _send_packet : 'media decoder -> 'media Packet.t -> send_result = "ocaml_avcodec_send_packet"
+external _send_packet : 'media decoder -> 'media Packet.t -> unit = "ocaml_avcodec_send_packet"
 external _receive_frame : 'media decoder -> 'media frame option = "ocaml_avcodec_receive_frame"
 external _flush_decoder : 'media decoder -> unit = "ocaml_avcodec_flush_decoder"
 
@@ -218,18 +216,17 @@ let rec receive_frame decoder f =
   | None -> ()
 
 
-let rec decode decoder f packet =
-  match _send_packet decoder packet with
-  | `Ok -> receive_frame decoder f
-  | `Again -> receive_frame decoder f; decode decoder f packet
-
-
-let flush_decoder decoder f =
-  _flush_decoder decoder;
+let decode decoder f packet =
+  _send_packet decoder packet;
   receive_frame decoder f
 
+let flush_decoder decoder f =
+  try
+    _flush_decoder decoder;
+    receive_frame decoder f
+  with Avutil.Error `Eof -> ()
 
-external _send_frame : 'media encoder -> 'media frame -> send_result = "ocaml_avcodec_send_frame"
+external _send_frame : 'media encoder -> 'media frame -> unit = "ocaml_avcodec_send_frame"
 external _receive_packet : 'media encoder -> 'media Packet.t option = "ocaml_avcodec_receive_packet"
 external _flush_encoder : 'media encoder -> unit = "ocaml_avcodec_flush_encoder"
 
@@ -239,12 +236,12 @@ let rec receive_packet encoder f =
   | None -> ()
 
 
-let rec encode encoder f frame =
-  match _send_frame encoder frame with
-  | `Ok -> receive_packet encoder f
-  | `Again -> receive_packet encoder f; encode encoder f frame
-
+let encode encoder f frame =
+  _send_frame encoder frame;
+  receive_packet encoder f
 
 let flush_encoder encoder f =
+  (* First flush remaining packets. *)
+  receive_packet encoder f;
   _flush_encoder encoder;
   receive_packet encoder f
