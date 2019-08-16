@@ -282,7 +282,7 @@ static int alloc_out_frame(sws_t *sws)
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
 
-    value_of_frame(frame, &v);
+    v = value_of_frame(frame);
     caml_modify_generational_global_root(&sws->out_vector, v);
   } while(0);
 #endif

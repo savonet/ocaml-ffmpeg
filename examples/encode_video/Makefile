@@ -8,7 +8,7 @@ CFLAGS = -O3
 OCAMLFLAGS = -unsafe -inline 100 -noassert
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
-all: native-code
+all: nc
 
 test: all
 	./encode_video video.ogg libtheora

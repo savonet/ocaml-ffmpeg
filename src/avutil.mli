@@ -46,6 +46,7 @@ type error = [
   | `Protocol_not_found
   | `Stream_not_found
   | `Bug
+  | `Eagain
   | `Unknown
   | `Experimental
 (* `Failure is for errors from the binding code itself. *)

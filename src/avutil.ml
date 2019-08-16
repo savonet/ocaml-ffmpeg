@@ -32,6 +32,7 @@ type error = [
   | `Protocol_not_found
   | `Stream_not_found
   | `Bug
+  | `Eagain
   | `Unknown
   | `Experimental
   | `Failure of string

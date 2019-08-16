@@ -113,33 +113,28 @@ let get_metadata s = List.rev(_get_metadata s.container s.index)
 
 external select : (input, _)stream -> unit = "ocaml_av_select_stream"
 
-
-type 'a stream_packet_result = [`Packet of 'a Avcodec.Packet.t | `End_of_file]
-
-external read_packet : (input, 'm)stream -> 'm stream_packet_result = "ocaml_av_read_stream_packet"
+external read_packet : (input, 'm)stream -> 'm Avcodec.Packet.t = "ocaml_av_read_stream_packet"
 
 let rec iter_packet f stream =
-  match read_packet stream with
-  | `Packet packet -> f packet; iter_packet f stream
-  | `End_of_file -> ()
+  try
+    f (read_packet stream);
+    iter_packet f stream
+  with
+    | Error `Eof -> ()
 
-
-type 'a stream_frame_result = [`Frame of 'a frame | `End_of_file]
-
-
-external read_frame : (input, 'm)stream -> 'm stream_frame_result = "ocaml_av_read_stream_frame"
+external read_frame : (input, 'm)stream -> 'm frame = "ocaml_av_read_stream_frame"
 
 let rec iter_frame f s =
-  match read_frame s with
-  | `Frame frame -> f frame; iter_frame f s
-  | `End_of_file -> ()
-
+  try
+    f (read_frame s);
+    iter_frame f s
+  with
+    | Error `Eof -> ()
 
 type input_packet_result = [
   | `Audio of int * audio Avcodec.Packet.t
   | `Video of int * video Avcodec.Packet.t
   | `Subtitle of int * subtitle Avcodec.Packet.t
-  | `End_of_file
 ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -151,16 +146,16 @@ let iter_input_packet ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(
     | `Audio(index, packet) -> audio index packet; iter()
     | `Video(index, packet) -> video index packet; iter()
     | `Subtitle(index, packet) -> subtitle index packet; iter()
-    | `End_of_file -> ()
   in
-  iter()
+  try
+    iter()
+  with Error `Eof -> ()
 
 
 type input_frame_result = [
   | `Audio of int * audio frame
   | `Video of int * video frame
   | `Subtitle of int * subtitle frame
-  | `End_of_file
 ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -172,9 +167,10 @@ let iter_input_frame ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(f
     | `Audio(index, frame) -> audio index frame; iter()
     | `Video(index, frame) -> video index frame; iter()
     | `Subtitle(index, frame) -> subtitle index frame; iter()
-    | `End_of_file -> ()
   in
-  iter()
+  try
+    iter()
+  with Error `Eof -> ()
 
 
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame

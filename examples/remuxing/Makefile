@@ -6,7 +6,7 @@ INCDIRS = ../../src
 THREADS = yes
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
-all: dc
+all: nc
 
 test: all
 	./remuxing ../encoding/out.mkv out.mp4

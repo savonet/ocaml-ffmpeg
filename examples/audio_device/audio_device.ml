@@ -1,6 +1,9 @@
 open FFmpeg
 
 let () =
+  Printexc.record_backtrace true
+
+let () =
   if Array.length Sys.argv < 2 then Printf.(Av.Format.(
       printf "\ninput devices :\n";
       Avdevice.get_audio_input_formats() |> List.iter
@@ -35,9 +38,11 @@ let () =
    with Avutil.Error err -> prerr_endline (Avutil.string_of_error err));
 
   let rec run n =
-    if n > 0 then match Av.read_frame ias with
-      | `Frame frame -> Av.write_audio_frame dst frame; run(n - 1)
-      | `End_of_file -> ()
+    if n > 0 then try
+      let frame = Av.read_frame ias in
+      Av.write_audio_frame dst frame; run(n - 1)
+    with
+      | Avutil.Error `Eof -> ()
   in
   run 500;
 

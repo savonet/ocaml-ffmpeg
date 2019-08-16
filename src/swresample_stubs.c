@@ -51,19 +51,19 @@ struct swr_t {
 
 static inline void alloc_data(struct audio_t * audio, int nb_samples)
 {
-  if(audio->data != NULL && audio->data[0] != NULL) {
-    caml_release_runtime_system();
-    av_freep(&audio->data[0]);
-    caml_acquire_runtime_system();
+  caml_release_runtime_system();
 
+  if(audio->data != NULL && audio->data[0] != NULL) {
+    av_freep(&audio->data[0]);
     audio->nb_samples = 0;
   }
 
   audio->owns_data = 1;
 
-  caml_release_runtime_system();
   int ret = av_samples_alloc(audio->data, NULL, audio->nb_channels,
                              nb_samples, audio->sample_fmt, 0);
+
+
   caml_acquire_runtime_system();
 
   if(ret < 0) ocaml_avutil_raise_error(ret);
@@ -196,16 +196,17 @@ static void alloc_out_frame(swr_t *swr, int nb_samples)
   
   caml_release_runtime_system();
   AVFrame * frame = av_frame_alloc();
-  caml_acquire_runtime_system();
 
-  if( ! frame) caml_raise_out_of_memory();
+  if( ! frame) {
+    caml_acquire_runtime_system();
+    caml_raise_out_of_memory();
+  }
 
   frame->nb_samples     = nb_samples;
   frame->channel_layout = swr->out_channel_layout;
   frame->format         = swr->out.sample_fmt;
   frame->sample_rate    = swr->out_sample_rate;
 
-  caml_release_runtime_system();
   ret = av_frame_get_buffer(frame, 0);
 
   if (ret < 0) {
@@ -216,7 +217,7 @@ static void alloc_out_frame(swr_t *swr, int nb_samples)
 
   caml_acquire_runtime_system();
 
-  value_of_frame(frame, &vector);
+  vector = value_of_frame(frame);
   caml_modify_generational_global_root(&swr->out_vector, vector);
   swr->out.data = frame->extended_data;
   swr->out.nb_samples = nb_samples;

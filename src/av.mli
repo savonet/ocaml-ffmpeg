@@ -97,20 +97,14 @@ val get_metadata : (input, _)stream -> (string * string) list
 val select : (input, _)stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Error if the selection failed. *)
 
-(** Stream packet reading result. *)
-type 'media stream_packet_result = [ `Packet of 'media Avcodec.Packet.t | `End_of_file ]
-
-val read_packet : (input, 'media)stream -> 'media stream_packet_result
-(** [Av.read_packet stream] read the input [stream]. Return the next packet of the [stream] or [End_of_file] if the end of the stream is reached. @raise Error if the reading failed. *)
+val read_packet : (input, 'media)stream -> 'media Avcodec.Packet.t
+(** [Av.read_packet stream] read the input [stream]. Return the next packet of the [stream] or raises [Error `Eof] if the end of the stream is reached. @raise Error if the reading failed. *)
 
 val iter_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media)stream -> unit
 (** [Av.iter_packet f is] applies function [f] in turn to all the packets of the input stream [is]. @raise Error if the reading failed. *)
 
-(** Stream frame reading result. *)
-type 'media stream_frame_result = [ `Frame of 'media frame | `End_of_file ]
-
-val read_frame : (input, 'media)stream -> 'media stream_frame_result
-(** [Av.read_frame stream] read the input [stream]. Return the next frame of the [stream] or [End_of_file] if the end of the stream is reached. @raise Error if the reading failed. *)
+val read_frame : (input, 'media)stream -> 'media frame
+(** [Av.read_frame stream] read the input [stream]. Return the next frame of the [stream] or raises [Error `Eof] if the end of the stream is reached. @raise Error if the reading failed. *)
 
 val iter_frame : ('media frame -> unit) -> (input, 'media)stream -> unit
 (** [Av.iter_frame f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Error if the reading failed. *)
@@ -120,7 +114,6 @@ type input_packet_result = [
   | `Audio of int * audio Avcodec.Packet.t
   | `Video of int * video Avcodec.Packet.t
   | `Subtitle of int * subtitle Avcodec.Packet.t
-  | `End_of_file
 ]
 
 val read_input_packet : input container -> input_packet_result
@@ -137,11 +130,10 @@ type input_frame_result = [
   | `Audio of int * audio frame
   | `Video of int * video frame
   | `Subtitle of int * subtitle frame
-  | `End_of_file
 ]
 
 val read_input_frame : input container -> input_frame_result
-(** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and frame of the input or [End_of_file] if the end of the input is reached. @raise Error if the reading failed. *)
+(** Reads the selected streams if any or all streams otherwise. Return the next [Audio] [Video] or [Subtitle] index and frame of the input or raises [Error `Eof] if the end of the input is reached. @raise Error if the reading failed. *)
 
 val iter_input_frame : ?audio:(int -> audio frame -> unit) ->
   ?video:(int -> video frame -> unit) ->

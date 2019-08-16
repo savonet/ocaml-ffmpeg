@@ -86,17 +86,12 @@ value Val_PixelFormat(enum AVPixelFormat pf);
 
 #define Frame_val(v) (*(struct AVFrame**)Data_custom_val(v))
 
-void value_of_frame(AVFrame *frame, value * pvalue);
-
-AVFrame * alloc_frame_value(value * pvalue);
-
+value value_of_frame(AVFrame *frame);
 
 /***** AVSubtitle *****/
 #define Subtitle_val(v) (*(struct AVSubtitle**)Data_custom_val(v))
 
-void value_of_subtitle(AVSubtitle *subtitle, value * pvalue);
-
-AVSubtitle * alloc_subtitle_value(value * pvalue);
+value value_of_subtitle(AVSubtitle *subtitle);
 
 int subtitle_header_default(AVCodecContext *avctx);
 

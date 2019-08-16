@@ -6,7 +6,7 @@ INCDIRS = ../../src
 THREADS = yes
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
-all: dnc
+all: nc
 
 test: all
 	./transcoding ../encoding/out.mkv out.mp4

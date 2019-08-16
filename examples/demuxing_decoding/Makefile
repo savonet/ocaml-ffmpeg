@@ -6,7 +6,7 @@ INCDIRS = ../../src
 THREADS = yes
 TRASH = *.raw *.flac *.ogg *.mp4 *.mkv
 
-all: dnc
+all: nc
 
 test: all
 	./demuxing_decoding ../encoding/out.mkv vo.raw ao.raw

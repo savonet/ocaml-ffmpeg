@@ -2,6 +2,9 @@ open FFmpeg
 open Avcodec
 
 let () =
+  Printexc.record_backtrace true
+
+let () =
   if Array.length Sys.argv < 4 then (
     Printf.eprintf "      usage: %s <input file> <output file> <output codec>
       API example program to show how to read audio frames from an input file using the streaming API.
@@ -45,20 +48,15 @@ let () =
      (Avcodec.Audio.get_nb_channels codec) sample_format;
   let rec f () =
     try
-      match Av.read_frame stream with
-        | `Frame frame ->
-             Av.write_frame out_stream frame;
-             f ()
-        | `End_of_file ->
-             Printf.printf "Stream EOF!\n%!";
-             ()
+      Av.write_frame out_stream (Av.read_frame stream);
+      f ()
     with
+      | FFmpeg.Avutil.Error `Eof -> ()
       | FFmpeg.Avutil.Error `Invalid_data ->
           f ()
   in
   f ();
 
-  Printf.printf "Done here!\n%!";
   Unix.close in_fd;
   Av.close out_file;
 

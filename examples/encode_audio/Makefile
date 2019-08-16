@@ -6,7 +6,7 @@ INCDIRS = ../../src
 THREADS = yes
 TRASH = *.raw *.flac *.ogg *.mp2 *.mp4 *.mkv
 
-all: dc
+all: nc
 
 test: all
 	./encode_audio A4.flac flac

@@ -1,6 +1,9 @@
 open FFmpeg
 
 let () =
+  Printexc.record_backtrace true
+
+let () =
   if Array.length Sys.argv < 3 then (
     Printf.printf"usage: %s input_file output_file\n" Sys.argv.(0);
     exit 1);

@@ -67,6 +67,9 @@ void ocaml_avutil_raise_error(int err) {
     case AVERROR_BUG:
       _err = PVV_Bug;
       break;
+    case AVERROR(EAGAIN):
+      _err = PVV_Eagain;
+      break;
     case AVERROR_UNKNOWN:
       _err = PVV_Unknown;
       break;
@@ -126,6 +129,9 @@ CAMLprim value ocaml_avutil_string_of_error(value error) {
       break;
     case PVV_Bug:
       err = AVERROR_BUG;
+      break;
+    case PVV_Eagain:
+      err = AVERROR(EAGAIN);
       break;
     case PVV_Unknown:
       err = AVERROR_UNKNOWN;
@@ -431,10 +437,7 @@ static void finalize_frame(value v)
 {
 #ifdef HAS_FRAME
   AVFrame *frame = Frame_val(v);
-
-  caml_release_runtime_system();
-  if(frame) av_frame_free(&frame);
-  caml_acquire_runtime_system();
+  av_frame_free(&frame);
 #endif
 }
 
@@ -448,26 +451,16 @@ static struct custom_operations frame_ops =
     custom_deserialize_default
   };
 
-void value_of_frame(AVFrame *frame, value * pvalue)
+value value_of_frame(AVFrame *frame)
 {
-  if( ! frame) Fail( "Empty frame");
+  value ret;
+  if(!frame) Fail( "Empty frame");
 
-  *pvalue = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
-  Frame_val((*pvalue)) = frame;
+  ret = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
+  Frame_val(ret) = frame;
+
+  return ret;
 }
-
-AVFrame * alloc_frame_value(value * pvalue)
-{
-  caml_release_runtime_system();
-  AVFrame * frame = av_frame_alloc();
-  caml_acquire_runtime_system();
-
-  if( ! frame) caml_raise_out_of_memory();
-
-  value_of_frame(frame, pvalue);
-  return frame;
-}
-
 
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format)
 {
@@ -491,7 +484,7 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
 
   if(ret < 0) ocaml_avutil_raise_error(ret);
 
-  value_of_frame(frame, &ans);
+  ans = value_of_frame(frame);
 #endif
   CAMLreturn(ans);
 }
@@ -574,22 +567,15 @@ static struct custom_operations subtitle_ops =
     custom_deserialize_default
   };
 
-void value_of_subtitle(AVSubtitle *subtitle, value * pvalue)
+value value_of_subtitle(AVSubtitle *subtitle)
 {
+  value ret;
   if( ! subtitle) Fail( "Empty subtitle");
 
-  *pvalue = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle*), 0, 1);
-  Subtitle_val((*pvalue)) = subtitle;
-}
+  ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle*), 0, 1);
+  Subtitle_val(ret) = subtitle;
 
-AVSubtitle * alloc_subtitle_value(value * pvalue)
-{
-  AVSubtitle * subtitle = (AVSubtitle*)calloc(1, sizeof(AVSubtitle));
-  if( ! subtitle) caml_raise_out_of_memory();
-
-  value_of_subtitle(subtitle, pvalue);
-
-  return subtitle;
+  return ret;
 }
 
 int subtitle_header_default(AVCodecContext *codec_context)
@@ -608,7 +594,7 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time, value _end_
   AVSubtitle * subtitle = (AVSubtitle*)calloc(1, sizeof(AVSubtitle));
   if( ! subtitle) caml_raise_out_of_memory();
 
-  value_of_subtitle(subtitle, &ans);
+  ans = value_of_subtitle(subtitle);
 
   //  subtitle->start_display_time = (uint32_t)start_time;
   subtitle->end_display_time = (uint32_t)end_time;
