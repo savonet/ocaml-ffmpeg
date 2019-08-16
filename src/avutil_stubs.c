@@ -134,7 +134,8 @@ CAMLprim value ocaml_avutil_string_of_error(value error) {
       err = AVERROR_EXPERIMENTAL;
       break;
     default:
-      caml_failwith("Invalid error!");
+      // Failure error is a 2-uple with string as second entry.
+      CAMLreturn(Field(error,1));
   }
 
   CAMLreturn(caml_copy_string(av_err2str(err)));

@@ -15,14 +15,14 @@ let () =
   Avutil.Log.set_callback print_string;
   
   let src = try Avdevice.open_audio_input Sys.argv.(1)
-    with Avutil.Failure _ -> Av.open_input Sys.argv.(1) in
+    with Avutil.Error _ -> Av.open_input Sys.argv.(1) in
 
   let (_, ias, _) = Av.find_best_audio_stream src in
 
   let dst = try
       if Array.length Sys.argv < 3 then Avdevice.open_default_audio_output()
        else Avdevice.open_audio_output Sys.argv.(2)
-    with Avutil.Failure _ ->
+    with Avutil.Error _ ->
       Av.open_output Sys.argv.(2)
       |> Av.new_audio_stream ~codec_id:`Flac |> Av.get_output in
 
@@ -32,7 +32,7 @@ let () =
       | _ -> print_endline "Unexpected dev to app controle message")) dst;
 
   (try Avdevice.App_to_dev.(control_messages[Get_volume; Set_volume 0.3]) dst
-   with Avutil.Failure msg -> prerr_endline msg);
+   with Avutil.Error err -> prerr_endline (Avutil.string_of_error err));
 
   let rec run n =
     if n > 0 then match Av.read_frame ias with
