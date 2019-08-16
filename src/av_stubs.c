@@ -1690,7 +1690,7 @@ static inline void write_audio_frame(av_t * av, int stream_index, AVFrame * fram
 
         int read_size = av_audio_fifo_read(fifo, (void **)output_frame->data, frame_size);
 
-        if (read_size < frame_size) {
+        if (frame && read_size < frame_size) {
           caml_acquire_runtime_system();
           Fail("Invalid input: read_size < frame_size");
         }
