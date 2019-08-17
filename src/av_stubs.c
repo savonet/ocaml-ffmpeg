@@ -1139,31 +1139,37 @@ static inline av_t * open_output(AVOutputFormat *format, char *format_name, char
     caml_raise_out_of_memory();
   }
 
+  caml_release_runtime_system();
+
   avformat_alloc_output_context2(&av->format_context, format, format_name, file_name);
 
   if ( ! av->format_context) {
     free_av(av);
     if (format_name) free(format_name);
     if (file_name) free(file_name);
+
+    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
   // open the output file, if needed
-  if( ! (av->format_context->oformat->flags & AVFMT_NOFILE)) {
-    caml_release_runtime_system();
+  if(! (av->format_context->oformat->flags & AVFMT_NOFILE)) {
     int err = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
-    caml_acquire_runtime_system();
 
     if (err < 0) {
       free_av(av);
       if (format_name) free(format_name);
       if (file_name) free(file_name);
+
+      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(err);
     }
   }
 
   if (format_name) free(format_name);
   if (file_name) free(file_name);
+
+  caml_acquire_runtime_system();
 
   return av;
 }
@@ -1281,35 +1287,35 @@ static inline stream_t * new_stream(av_t *av, enum AVCodecID codec_id)
 
 static inline void init_stream_encoder(av_t *av, stream_t *stream)
 {
-  AVCodecContext * enc_ctx = stream->codec_context;
+  AVCodecContext *enc_ctx = stream->codec_context;
 
   // Some formats want stream headers to be separate.
   if (av->format_context->oformat->flags & AVFMT_GLOBALHEADER)
     enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-
   caml_release_runtime_system();
   int ret = avcodec_open2(enc_ctx, NULL, NULL);
-  caml_acquire_runtime_system();
 
-  if (ret < 0) ocaml_avutil_raise_error(ret);
+  if (ret < 0) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
 
-  AVStream * avstream = av->format_context->streams[stream->index];
+  AVStream *avstream = av->format_context->streams[stream->index];
   avstream->time_base = enc_ctx->time_base;
-
   
-  caml_release_runtime_system();
   ret = avcodec_parameters_from_context(avstream->codecpar, enc_ctx);
+
   caml_acquire_runtime_system();
 
   if (ret < 0) ocaml_avutil_raise_error(ret);
 }
 
-static inline stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate, AVRational time_base)
+static inline stream_t *new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate, AVRational time_base)
 {
   stream_t * stream = new_stream(av, codec_id);
   
-  AVCodecContext * enc_ctx = stream->codec_context;
+  AVCodecContext *enc_ctx = stream->codec_context;
 
   enc_ctx->bit_rate = bit_rate;
   enc_ctx->sample_rate = sample_rate;
@@ -1322,10 +1328,14 @@ static inline stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uin
 
   if (enc_ctx->frame_size > 0
       || ! (enc_ctx->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
+    caml_release_runtime_system();
 
     // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
     stream->enc_frame = av_frame_alloc();
-    if( ! stream->enc_frame) caml_raise_out_of_memory();
+    if( ! stream->enc_frame) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
 
     stream->enc_frame->nb_samples     = enc_ctx->frame_size;
     stream->enc_frame->channel_layout = enc_ctx->channel_layout;
@@ -1333,11 +1343,18 @@ static inline stream_t * new_audio_stream(av_t *av, enum AVCodecID codec_id, uin
     stream->enc_frame->sample_rate    = enc_ctx->sample_rate;
 
     int ret = av_frame_get_buffer(stream->enc_frame, 0);
-    if (ret < 0) ocaml_avutil_raise_error(ret);
+
+    if (ret < 0) {
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+     }
   
     // Create the FIFO buffer based on the specified output sample format.
     stream->audio_fifo = av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->channels, 1);
-    if( ! stream->audio_fifo) caml_raise_out_of_memory();
+
+    caml_release_runtime_system();
+
+    if(!stream->audio_fifo) caml_raise_out_of_memory();
   }
 
   return stream;
@@ -1472,13 +1489,16 @@ static inline void write_frame(av_t * av, int stream_index, AVCodecContext * enc
   AVStream * avstream = av->format_context->streams[stream_index];
   int ret;
 
+  caml_release_runtime_system();
+
   if( ! av->header_written) {
     // write output file header
-    caml_release_runtime_system();
     ret = avformat_write_header(av->format_context, NULL);
-    caml_acquire_runtime_system();
 
-    if(ret < 0) ocaml_avutil_raise_error(ret); 
+    if(ret < 0) {
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret); 
+    }
 
     av->header_written = 1;
   }
@@ -1489,45 +1509,48 @@ static inline void write_frame(av_t * av, int stream_index, AVCodecContext * enc
   packet.size = 0;
 
   // send the frame for encoding
-  caml_release_runtime_system();
   ret = avcodec_send_frame(enc_ctx, frame);
-  caml_acquire_runtime_system();
 
-  if (!frame && ret == AVERROR_EOF) return;
+  if (!frame && ret == AVERROR_EOF) {
+    caml_acquire_runtime_system();
+    return;
+  }
 
-  if (frame && ret == AVERROR_EOF) ocaml_avutil_raise_error(ret);
+  if (frame && ret == AVERROR_EOF) {
+     caml_acquire_runtime_system();
+     ocaml_avutil_raise_error(ret);
+  }
 
-  if (ret < 0 && ret != AVERROR_EOF) ocaml_avutil_raise_error(ret);
+  if (ret < 0 && ret != AVERROR_EOF) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
 
   // read all the available output packets (in general there may be any number of them
   while (ret >= 0) {
-    caml_release_runtime_system();
     ret = avcodec_receive_packet(enc_ctx, &packet);
-    caml_acquire_runtime_system();
 
     if (ret < 0) break;
 
     packet.stream_index = stream_index;
     packet.pos = -1;
-    caml_release_runtime_system();
     av_packet_rescale_ts(&packet, enc_ctx->time_base, avstream->time_base);
-    caml_acquire_runtime_system();
 
-    caml_release_runtime_system();
     ret = av_interleaved_write_frame(av->format_context, &packet);
-    caml_acquire_runtime_system();
 
     av_packet_unref(&packet);
   }
+
+  caml_acquire_runtime_system();
 
   if (!frame && ret == AVERROR_EOF) return;
 
   if (ret < 0 && ret != AVERROR(EAGAIN)) ocaml_avutil_raise_error(ret);
 }
 
-static inline void resample_audio_frame(stream_t * stream, AVFrame * frame)
+static inline AVFrame *resample_audio_frame(stream_t * stream, AVFrame * frame)
 {
-  AVCodecContext * enc_ctx = stream->codec_context;
+  AVCodecContext *enc_ctx = stream->codec_context;
 
   caml_release_runtime_system();
 
@@ -1535,7 +1558,7 @@ static inline void resample_audio_frame(stream_t * stream, AVFrame * frame)
     // create resampler context
     struct SwrContext *swr_ctx = swr_alloc();
 
-    if ( ! swr_ctx) {
+    if (!swr_ctx) {
       caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
@@ -1560,8 +1583,7 @@ static inline void resample_audio_frame(stream_t * stream, AVFrame * frame)
 
   int out_nb_samples = swr_get_out_samples(stream->swr_ctx, frame->nb_samples);
 
-  if( ! stream->sw_frame || out_nb_samples > stream->sw_frame->nb_samples) {
-
+  if(! stream->sw_frame || out_nb_samples > stream->sw_frame->nb_samples) {
     if(stream->sw_frame) {
       av_frame_free(&stream->sw_frame);
     }
@@ -1569,7 +1591,7 @@ static inline void resample_audio_frame(stream_t * stream, AVFrame * frame)
     // Allocate the resampler frame
     stream->sw_frame = av_frame_alloc();
 
-    if( ! stream->sw_frame) {
+    if(!stream->sw_frame) {
       caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
@@ -1602,6 +1624,8 @@ static inline void resample_audio_frame(stream_t * stream, AVFrame * frame)
   caml_acquire_runtime_system();
 
   if(ret < 0) ocaml_avutil_raise_error(ret);
+
+  return stream->sw_frame;
 }
 
 static inline void write_audio_frame(av_t * av, int stream_index, AVFrame * frame)
@@ -1639,7 +1663,7 @@ static inline void write_audio_frame(av_t * av, int stream_index, AVFrame * fram
                || frame->channel_layout != enc_ctx->channel_layout
                || ((enum AVSampleFormat)frame->format) != enc_ctx->sample_fmt)) {
 
-    resample_audio_frame(stream, frame);
+    frame = resample_audio_frame(stream, frame);
   }
 
   if(stream->audio_fifo == NULL) {
