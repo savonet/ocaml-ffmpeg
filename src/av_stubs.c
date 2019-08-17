@@ -101,8 +101,6 @@ static void free_stream(stream_t * stream)
 {
   if( ! stream) return;
   
-  caml_release_runtime_system();
-
   if(stream->codec_context) {
     avcodec_free_context(&stream->codec_context);
   }
@@ -126,8 +124,6 @@ static void free_stream(stream_t * stream)
   if(stream->enc_frame) {
     av_frame_free(&stream->enc_frame);
   }
-
-  caml_acquire_runtime_system();
 
   free(stream);
 }
