@@ -175,7 +175,7 @@ static int lock_manager(void **mtx, enum AVLockOp op)
 
 CAMLprim value ocaml_avutil_register_lock_manager(value unit)
 {
-  CAMLparams();
+  CAMLparam0();
   static int registering_done = 0;
   static pthread_mutex_t registering_mutex = PTHREAD_MUTEX_INITIALIZER;
 
