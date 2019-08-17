@@ -56,3 +56,4 @@ examples/remuxing/out.mp4
 *.mkv
 *.mp4
 *.raw
+test/test
