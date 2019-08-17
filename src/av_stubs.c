@@ -101,9 +101,7 @@ static void free_stream(stream_t * stream)
 {
   if( ! stream) return;
   
-  if(stream->codec_context) {
-    avcodec_free_context(&stream->codec_context);
-  }
+  if(stream->codec_context) avcodec_free_context(&stream->codec_context);
 
   if(stream->swr_ctx) {
     swr_free(&stream->swr_ctx);
@@ -1911,7 +1909,11 @@ CAMLprim value ocaml_av_close(value _av)
     av_write_trailer(av->format_context);
     caml_acquire_runtime_system();
   }
+  // Close is called both from the Gc context and here so 
+  // we have to release runtime only here (yes, it does log!)
+  caml_release_runtime_system();
   close_av(av);
+  caml_acquire_runtime_system();
 
   CAMLreturn(Val_unit);
 }
