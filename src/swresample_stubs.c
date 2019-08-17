@@ -534,7 +534,7 @@ static inline SwrContext * swresample_set_context(swr_t * swr,
     swr->out_sample_rate = out_sample_rate;
   }
 
-  int i, ret;
+  int i, ret = 0;
 
   for (i = 0; options[i]; i++) {
     int64_t val = DitherType_val(options[i]);

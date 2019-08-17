@@ -7,7 +7,7 @@ let () =
 module Compat = struct
   let map_file _ _ _ _ _ = assert false
 
-  include Bigarray
+  include Bigarray.Genarray
 
   include Unix
 end

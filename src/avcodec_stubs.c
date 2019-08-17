@@ -410,7 +410,7 @@ CAMLprim value ocaml_avcodec_create_context(value _codec_id, value _decoder, val
 }
 
 
-static inline AVCodecContext * open_codec(codec_context_t *ctx, AVFrame *frame)
+static inline void open_codec(codec_context_t *ctx, AVFrame *frame)
 {
   if( ! frame) Fail( "Failed to open encoder without frame");
   
@@ -420,9 +420,11 @@ static inline AVCodecContext * open_codec(codec_context_t *ctx, AVFrame *frame)
 
   caml_release_runtime_system();
   ctx->codec_context = avcodec_alloc_context3(codec);
-  caml_acquire_runtime_system();
 
-  if( ! ctx->codec_context) caml_raise_out_of_memory();
+  if( ! ctx->codec_context) {
+    caml_acquire_runtime_system();
+    caml_raise_out_of_memory();
+  }
 
   if(codec->type == AVMEDIA_TYPE_AUDIO) {
     ctx->codec_context->channel_layout = frame->channel_layout;
@@ -442,42 +444,44 @@ static inline AVCodecContext * open_codec(codec_context_t *ctx, AVFrame *frame)
   ctx->codec_context->bit_rate = ctx->bit_rate;
 
   // Open the codec
-  caml_release_runtime_system();
   int ret = avcodec_open2(ctx->codec_context, NULL, NULL);
-  caml_acquire_runtime_system();
 
-  if(ret < 0) ocaml_avutil_raise_error(ret);
+  if(ret < 0) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
 
   if (ctx->codec_context->frame_size > 0
       || ! (ctx->codec_context->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
 
     // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
-    caml_release_runtime_system();
     ctx->enc_frame = av_frame_alloc();
-    caml_acquire_runtime_system();
 
-    if( ! ctx->enc_frame) caml_raise_out_of_memory();
+    if( ! ctx->enc_frame) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
 
     ctx->enc_frame->nb_samples     = ctx->codec_context->frame_size;
     ctx->enc_frame->channel_layout = ctx->codec_context->channel_layout;
     ctx->enc_frame->format         = ctx->codec_context->sample_fmt;
     ctx->enc_frame->sample_rate    = ctx->codec_context->sample_rate;
 
-    caml_release_runtime_system();
     int ret = av_frame_get_buffer(ctx->enc_frame, 0);
-    caml_acquire_runtime_system();
 
-    if (ret < 0) ocaml_avutil_raise_error(ret);
+    if (ret < 0) {
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
 
     // Create the FIFO buffer based on the specified output sample format.
-    caml_release_runtime_system();
     ctx->audio_fifo = av_audio_fifo_alloc(ctx->codec_context->sample_fmt, ctx->codec_context->channels, 1);
-    caml_acquire_runtime_system();
 
-    if( ! ctx->audio_fifo) caml_raise_out_of_memory();
+    if( ! ctx->audio_fifo) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
   }
-
-  return ctx->codec_context;
 }
 
 CAMLprim value ocaml_avcodec_send_packet(value _ctx, value _packet)
@@ -585,10 +589,8 @@ static inline void send_audio_fifo_frame(codec_context_t *ctx)
 static inline int send_frame(codec_context_t *ctx, AVFrame *frame)
 {
   int ret;
-  AVCodecContext * enc_ctx = ctx->codec_context;
 
-  if(!ctx->codec_context)
-    enc_ctx = open_codec(ctx, frame);
+  if(!ctx->codec_context) open_codec(ctx, frame);
 
   ctx->flushed = ! frame;
 
