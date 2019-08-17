@@ -143,8 +143,6 @@ static void close_av(av_t * av)
       av->streams = NULL;
     }
 
-    caml_release_runtime_system();
-
     if(av->format_context->iformat) {
       avformat_close_input(&av->format_context);
     }
@@ -158,8 +156,6 @@ static void close_av(av_t * av)
 
       av->format_context = NULL;
     }
-
-    caml_acquire_runtime_system();
 
     av->best_audio_stream = NULL;
     av->best_video_stream = NULL;
