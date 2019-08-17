@@ -738,6 +738,8 @@ static inline int decode_packet(av_t * av, stream_t * stream, AVPacket * packet,
   if(dec->codec_type == AVMEDIA_TYPE_AUDIO ||
      dec->codec_type == AVMEDIA_TYPE_VIDEO) {
   
+    // Assumption: each time this function is called with `frames_pending == 0`, 
+    // a fresh packet is also provided and no packet otherwise.
     if (!av->frames_pending) {
       ret = avcodec_send_packet(dec, packet);
 
