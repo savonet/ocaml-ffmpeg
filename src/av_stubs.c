@@ -146,12 +146,10 @@ static void close_av(av_t * av)
     }
     else if(av->format_context->oformat) {
       // Close the output file if needed.
-      if( ! (av->format_context->oformat->flags & AVFMT_NOFILE)) {
+      if( ! (av->format_context->oformat->flags & AVFMT_NOFILE))
         avio_closep(&av->format_context->pb);
-      }
 
       avformat_free_context(av->format_context);
-
       av->format_context = NULL;
     }
 
@@ -360,9 +358,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
   }
 
   avio->buffer_size = Int_val(bufsize);
-
   avio->buffer = av_malloc(avio->buffer_size);
-
   if (!avio->buffer) {
     av_freep(avio->format_context);
     caml_acquire_runtime_system();
@@ -444,7 +440,7 @@ static struct custom_operations inputFormat_ops = {
 
 void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value)
 {
-  if( ! inputFormat) Fail( "Empty input format");
+  if( ! inputFormat) Fail("Empty input format");
 
   *p_value = caml_alloc_custom(&inputFormat_ops, sizeof(AVInputFormat*), 0, 1);
   InputFormat_val((*p_value)) = inputFormat;
@@ -596,7 +592,7 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index, value _time
   av_t * av = Av_val(_av);
   int index = Int_val(_stream_index);
   
-  if( ! av->format_context) Fail( "Failed to get closed input duration");
+  if( ! av->format_context) Fail("Failed to get closed input duration");
 
   int64_t duration = av->format_context->duration;
   int64_t num = 1;
@@ -624,7 +620,7 @@ CAMLprim value ocaml_av_reuse_output(value _av, value _reuse_output)
 
 static inline stream_t** allocate_input_context(av_t *av)
 {
-  if( ! av->format_context) Fail( "Failed to read closed input");
+  if( ! av->format_context) Fail("Failed to read closed input");
   
   // Allocate streams context array
   av->streams = (stream_t**)calloc(av->format_context->nb_streams, sizeof(stream_t*));
@@ -633,11 +629,11 @@ static inline stream_t** allocate_input_context(av_t *av)
   return av->streams;
 }
 
-static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
+static inline stream_t *allocate_stream_context(av_t *av, int index, AVCodec *codec)
 {
   enum AVMediaType type = codec->type;
 
-  if(type != AVMEDIA_TYPE_AUDIO && type != AVMEDIA_TYPE_VIDEO && type != AVMEDIA_TYPE_SUBTITLE) Fail( "Failed to allocate stream %d of media type %s", index, av_get_media_type_string(type));
+  if(type != AVMEDIA_TYPE_AUDIO && type != AVMEDIA_TYPE_VIDEO && type != AVMEDIA_TYPE_SUBTITLE) Fail("Failed to allocate stream %d of media type %s", index, av_get_media_type_string(type));
 
   stream_t * stream = (stream_t*)calloc(1, sizeof(stream_t));
   if( ! stream) caml_raise_out_of_memory();
@@ -654,15 +650,15 @@ static stream_t * allocate_stream_context(av_t *av, int index, AVCodec *codec)
   return stream;
 }
 
-static inline stream_t * open_stream_index(av_t *av, int index)
+static inline stream_t *open_stream_index(av_t *av, int index)
 {
   int err;
 
-  if( ! av->format_context) Fail( "Failed to open stream %d of closed input", index);
+  if(!av->format_context) Fail("Failed to open stream %d of closed input", index);
 
-  if(index < 0 || index >= av->format_context->nb_streams) Fail( "Failed to open stream %d : index out of bounds", index);
+  if(index < 0 || index >= av->format_context->nb_streams) Fail("Failed to open stream %d : index out of bounds", index);
   
-  if( ! av->streams && ! allocate_input_context(av)) caml_raise_out_of_memory();
+  if(!av->streams && !allocate_input_context(av)) caml_raise_out_of_memory();
 
   // find decoder for the stream
   AVCodecParameters *dec_param = av->format_context->streams[index]->codecpar;
@@ -673,18 +669,19 @@ static inline stream_t * open_stream_index(av_t *av, int index)
 
   if( ! dec) ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
   
-  stream_t * stream = allocate_stream_context(av, index, dec);
+  stream_t *stream = allocate_stream_context(av, index, dec);
   if ( ! stream) caml_raise_out_of_memory();
 
   // initialize the stream parameters with demuxer information
   caml_release_runtime_system();
   err = avcodec_parameters_to_context(stream->codec_context, dec_param);
-  caml_acquire_runtime_system();
 
-  if (err < 0) ocaml_avutil_raise_error(err);
+  if (err < 0) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(err);
+  }
 
   // Open the decoder
-  caml_release_runtime_system();
   err = avcodec_open2(stream->codec_context, dec, NULL);
   caml_acquire_runtime_system();
 
@@ -776,20 +773,24 @@ static inline void read_packet(av_t * av, AVPacket * packet, int stream_index, s
 {
   int ret;
 
+  caml_release_runtime_system();
+
   for(;;) {
     // read frames from the file
-    caml_release_runtime_system();   
     ret = av_read_frame(av->format_context, packet);
-    caml_acquire_runtime_system();
 
     if(ret == AVERROR_EOF) {
       packet->data = NULL;
       packet->size = 0;
       av->end_of_file = 1;
+      caml_acquire_runtime_system();
       return;
     }
 
-    if(ret < 0) ocaml_avutil_raise_error(ret);
+    if(ret < 0) {
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
 
     if(packet->stream_index == stream_index
        || (stream_index < 0
@@ -798,6 +799,8 @@ static inline void read_packet(av_t * av, AVPacket * packet, int stream_index, s
 
     av_packet_unref(packet);
   }
+
+  caml_acquire_runtime_system();
 }
 
 
@@ -1049,7 +1052,7 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _tim
   int index = StreamIndex_val(_stream);
   int64_t timestamp = Int64_val(_timestamp);
 
-  if( ! av->format_context) Fail( "Failed to seek closed input");
+  if( ! av->format_context) Fail("Failed to seek closed input");
   
   int64_t num = AV_TIME_BASE;
   int64_t den = 1;
@@ -1069,7 +1072,9 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format, value _tim
     flags |= seek_flags_val(Field(_flags, i));
 
   caml_release_runtime_system();
+
   int ret = av_seek_frame(av->format_context, index, timestamp, flags);
+
   caml_acquire_runtime_system();
 
   if(ret < 0) ocaml_avutil_raise_error(ret);
@@ -1093,7 +1098,7 @@ static struct custom_operations outputFormat_ops = {
 
 void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value)
 {
-  if( ! outputFormat) Fail( "Empty output format");
+  if( ! outputFormat) Fail("Empty output format");
 
   *p_value = caml_alloc_custom(&outputFormat_ops, sizeof(AVOutputFormat*), 0, 1);
   OutputFormat_val((*p_value)) = outputFormat;
@@ -1231,8 +1236,8 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags
   int index = Int_val(_stream_index);
   AVDictionary * metadata = NULL;
 
-  if( ! av->format_context) Fail( "Failed to set metadata to closed output");
-  if(av->header_written) Fail( "Failed to set metadata : header already written");
+  if( ! av->format_context) Fail("Failed to set metadata to closed output");
+  if(av->header_written) Fail("Failed to set metadata : header already written");
 
   int i, ret, len = Wosize_val(_tags);
   
@@ -1259,14 +1264,14 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags
 
 static inline stream_t * new_stream(av_t *av, enum AVCodecID codec_id)
 {
-  if( ! av->format_context) Fail( "Failed to add stream to closed output");
-  if(av->header_written) Fail( "Failed to create new stream : header already written");
+  if(!av->format_context) Fail("Failed to add stream to closed output");
+  if(av->header_written) Fail("Failed to create new stream : header already written");
 
   caml_release_runtime_system();
   AVCodec * encoder = avcodec_find_encoder(codec_id);
   caml_acquire_runtime_system();
 
-  if( ! encoder) Fail( "Failed to find %s encoder", avcodec_get_name(codec_id));
+  if( ! encoder) Fail("Failed to find %s encoder", avcodec_get_name(codec_id));
 
   // Allocate streams array
   size_t streams_size = sizeof(stream_t*) * (av->format_context->nb_streams + 1);
@@ -1456,7 +1461,7 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet)
   int ret = 0, stream_index = StreamIndex_val(_stream);
   AVPacket *packet = Packet_val(_packet);
 
-  if( ! av->streams) Fail( "Failed to write in closed output");
+  if( ! av->streams) Fail("Failed to write in closed output");
 
   caml_release_runtime_system();
 
@@ -1775,7 +1780,7 @@ static void scale_video_frame(stream_t * stream, AVFrame * frame)
 static inline void write_video_frame(av_t * av, int stream_index, AVFrame * frame)
 {
   if(av->format_context->nb_streams == 0) {
-    if( ! av->format_context->oformat) Fail( "Failed to create undefined output format");
+    if( ! av->format_context->oformat) Fail("Failed to create undefined output format");
 
     enum AVCodecID codec_id = av->format_context->oformat->video_codec;
 
@@ -1795,11 +1800,11 @@ static inline void write_video_frame(av_t * av, int stream_index, AVFrame * fram
                      (AVRational){1, 25});
   }
 
-  if( ! av->streams) Fail( "Failed to write in closed output");
+  if( ! av->streams) Fail("Failed to write in closed output");
 
   stream_t * stream = av->streams[stream_index];
   
-  if( ! stream->codec_context) Fail( "Failed to write video frame with no encoder");
+  if( ! stream->codec_context) Fail("Failed to write video frame with no encoder");
 
   AVCodecContext * enc_ctx = stream->codec_context;
   
@@ -1823,7 +1828,7 @@ static inline void write_subtitle_frame(av_t * av, int stream_index, AVSubtitle 
   AVStream * avstream = av->format_context->streams[stream->index];
   AVCodecContext * enc_ctx = stream->codec_context;
   
-  if( ! stream->codec_context) Fail( "Failed to write subtitle frame with no encoder");
+  if( ! stream->codec_context) Fail("Failed to write subtitle frame with no encoder");
 
   int err;
   int size = 512;
@@ -1870,7 +1875,7 @@ CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame)
   av_t * av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
   
-  if( ! av->streams) Fail( "Invalid input: no streams provided");
+  if(!av->streams) Fail("Invalid input: no streams provided");
 
   enum AVMediaType type = av->streams[index]->codec_context->codec_type;
 
