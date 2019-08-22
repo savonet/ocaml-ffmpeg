@@ -30,9 +30,32 @@ type 'media frame
 
 (** {1 Exception} *)
 
-(** A failure occured (with given explanation). *)
-exception Failure of string
+(** Internal errors. *)
+type error = [
+  | `Bsf_not_found
+  | `Decoder_not_found
+  | `Demuxer_not_found
+  | `Encoder_not_found
+  | `Eof
+  | `Exit
+  | `Filter_not_found
+  | `Invalid_data
+  | `Muxer_not_found
+  | `Option_not_found
+  | `Patch_welcome
+  | `Protocol_not_found
+  | `Stream_not_found
+  | `Bug
+  | `Eagain
+  | `Unknown
+  | `Experimental
+(* `Failure is for errors from the binding code itself. *)
+  | `Failure of string
+]
 
+exception Error of error
+
+val string_of_error : error -> string
 
 type data = (int, Bigarray.int8_unsigned_elt, Bigarray.c_layout) Bigarray.Array1.t
 
@@ -120,7 +143,7 @@ module Pixel_format : sig
   (** [Pixel_format.to_string f] Return a string representation of the pixel format [f]. *)
   val to_string : t -> string
 
-  (** [Pixel_format.of_string s] Convert the string [s] into a [Pixel_format.t]. @raise Failure if [s] is not a valid format. *)
+  (** [Pixel_format.of_string s] Convert the string [s] into a [Pixel_format.t]. @raise Error if [s] is not a valid format. *)
   val of_string : string -> t
 end
 
@@ -128,13 +151,13 @@ module Video : sig
   type planes = (data * int) array
 
   val create_frame : int -> int -> Pixel_format.t -> video frame
-  (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width, [h] height and [pf] pixel format. @raise Failure if the allocation failed. *)
+  (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width, [h] height and [pf] pixel format. @raise Error if the allocation failed. *)
 
   val frame_get_linesize : video frame -> int -> int
-  (** [Avutil.Video.frame_get_linesize vf n] return the line size of the [n] plane of the [vf] video frame. @raise Failure if [n] is out of boundaries. *)
+  (** [Avutil.Video.frame_get_linesize vf n] return the line size of the [n] plane of the [vf] video frame. @raise Error if [n] is out of boundaries. *)
 
   val frame_visit : make_writable:bool -> (planes -> unit) -> video frame -> video frame
-  (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Failure if the make frame writable operation failed. *)
+  (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Error if the make frame writable operation failed. *)
 end
 
 
@@ -146,7 +169,7 @@ module Subtitle : sig
   (** Return the time base for subtitles. *)
 
   val create_frame : float -> float -> string list -> subtitle frame
-  (** [Avutil.Subtitle.create_frame start end lines] create a subtitle frame from [lines] which is displayed at [start] time and hidden at [end] time in seconds. @raise Failure if the allocation failed. *)
+  (** [Avutil.Subtitle.create_frame start end lines] create a subtitle frame from [lines] which is displayed at [start] time and hidden at [end] time in seconds. @raise Error if the allocation failed. *)
 
   val frame_to_lines : subtitle frame -> (float * float * string list)
   (** Convert subtitle frame to lines. The two float are the start and the end dislpay time in seconds. *)

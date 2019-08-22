@@ -25,7 +25,7 @@ module Make (I : AudioData) (O : AudioData) : sig
   val create : ?options:options list -> Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
   (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl] channel layout, [in_sf] sample format and [in_sr] sample rate as input format and [out_cl] channel layout, [out_sf] sample format and [out_sr] sample rate as output format.
 If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.
-@raise Failure "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
+@raise Error "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
 
   val from_codec : ?options:options list -> audio Avcodec.t -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
   (** [Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format. *)
@@ -43,7 +43,7 @@ If a sample format parameter is not provided, the sample format defined by the a
 
   val convert : t -> I.t -> O.t
   (** [Swresample.convert rsp iad] resample and convert the [iad] input audio data to the output audio data according to the [rsp] resampler context format.
-@raise Failure if the conversion failed. *)
+@raise Error if the conversion failed. *)
 end
 
     

@@ -5,6 +5,9 @@ module Resampler = Swresample.Make (Swresample.FloatArray) (Swresample.Frame)
 let (%>) f g x = g(f x)
 
 let () =
+  Printexc.record_backtrace true
+
+let () =
   if Array.length Sys.argv < 3 then (
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
     exit 1);
@@ -15,7 +18,6 @@ let () =
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in let frame_size = 512 in
 
   let codec_id = Audio.find_id Sys.argv.(2) in
-
   let encoder = Audio.create_encoder codec_id in
   let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
 

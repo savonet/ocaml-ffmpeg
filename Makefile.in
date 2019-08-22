@@ -28,7 +28,7 @@ dist:
 	tar zcvf ../$(PROGNAME)-$(VERSION).tar.gz $(PROGNAME)-$(VERSION)
 	rm -rf $(PROGNAME)-$(VERSION)
 
-test: all
+test: distclean all
 	$(MAKE) -C examples $@
 	$(MAKE) -C test $@
 

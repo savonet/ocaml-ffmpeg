@@ -1,4 +1,4 @@
-AC_INIT([ocaml-ffmpeg],[0.2.1],[savonet-users@lists.sourceforge.net])
+AC_INIT([ocaml-ffmpeg],[0.3.0],[savonet-users@lists.sourceforge.net])
 
 VERSION=$PACKAGE_VERSION
 requires="bigarray threads"

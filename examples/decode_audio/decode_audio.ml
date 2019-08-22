@@ -2,6 +2,17 @@ open FFmpeg
 open Avcodec
 
 let () =
+  Printexc.record_backtrace true
+
+module Compat = struct
+  let map_file _ _ _ _ _ = assert false
+
+  include Bigarray.Genarray
+
+  include Unix
+end
+
+let () =
   if Array.length Sys.argv < 5 then (
     Printf.eprintf "      usage: %s <input file> <input codec> <output file> <output codec>
       API example program to show how to read audio frames from an input file.
@@ -22,8 +33,7 @@ let () =
   let out_file = Av.open_output Sys.argv.(3) in
   let out_stream = Av.new_audio_stream ~codec_name:Sys.argv.(4) out_file in
 
-  (* Unix.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|] *)
-  Bigarray.Genarray.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
+  Compat.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [|-1|]
   |> Bigarray.array1_of_genarray
   |> Packet.parse_data parser @@ Avcodec.decode decoder @@ Av.write_frame out_stream;
 

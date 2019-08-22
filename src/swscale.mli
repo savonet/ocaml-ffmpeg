@@ -60,7 +60,7 @@ module Make (I : VideoData) (O : VideoData) : sig
 
   val convert : t -> I.t -> O.t
   (** [Swscale.convert ctx ivd] scale and convert the [ivd] input video data to the output video data according to the [ctx] scaler context format.
-@raise Failure if the conversion failed. *)
+@raise Error if the conversion failed. *)
 end
 
 

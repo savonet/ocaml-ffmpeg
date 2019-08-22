@@ -29,7 +29,7 @@ module Packet : sig
 
   val parse_data : 'a parser -> ('a t -> unit) -> data -> unit
   (** [Avcodec.Packet.parse_data parser f data] applies function [f] to the parsed packets frome the [data] array according to the [parser] configuration.
-    @raise Failure if the parsing failed. *)
+    @raise Error if the parsing failed. *)
 
   val parse_bytes : 'a parser -> ('a t -> unit) -> bytes -> int -> unit
   (** Same as {!Avcodec.Packet.parse_data} with bytes array. *)
@@ -47,7 +47,7 @@ module Audio : sig
 
   val find_id : string -> id
   (** Return the id of a codec from his name.
-      @raise Failure if the codec is not found or is not an audio codec. *)
+      @raise Error if the codec is not found or is not an audio codec. *)
 
   (** Return the list of supported channel layouts of the codec. *)
   val get_supported_channel_layouts : id -> Avutil.Channel_layout.t list
@@ -87,15 +87,15 @@ module Audio : sig
 
   val create_parser : id -> audio Packet.parser
   (** [Avcodec.Audio.create_parser id] create an audio packet parser.
-      @raise Failure if the parser creation failed. *)
+      @raise Error if the parser creation failed. *)
 
   val create_decoder : id -> audio decoder
   (** [Avcodec.Audio.create_decoder id] create an audio decoder.
-      @raise Failure if the decoder creation failed. *)
+      @raise Error if the decoder creation failed. *)
 
   val create_encoder : ?bit_rate:int -> id -> audio encoder
   (** [Avcodec.Audio.create_encoder ~bit_rate:bit_rate id] create an audio encoder.
-      @raise Failure if the encoder creation failed. *)
+      @raise Error if the encoder creation failed. *)
 end
 
 (** Video codecs. *)
@@ -108,7 +108,7 @@ module Video : sig
 
   val find_id : string -> id
   (** Return the id of a codec from his name.
-      @raise Failure if the codec is not found or is not a video codec. *)
+      @raise Error if the codec is not found or is not a video codec. *)
 
   (** Return the list of supported frame rates of the codec. *)
   val get_supported_frame_rates : id -> Avutil.rational list
@@ -144,15 +144,15 @@ module Video : sig
 
   val create_parser : id -> video Packet.parser
   (** [Avcodec.Video.create_parser id] create an video packet parser.
-      @raise Failure if the parser creation failed. *)
+      @raise Error if the parser creation failed. *)
 
   val create_decoder : id -> video decoder
   (** [Avcodec.Video.create_decoder id] create a video decoder.
-      @raise Failure if the decoder creation failed. *)
+      @raise Error if the decoder creation failed. *)
 
   val create_encoder : ?bit_rate:int -> ?frame_rate:int -> id -> video encoder
   (** [Avcodec.Video.create_encoder ~bit_rate:bit_rate id] create a video encoder.
-      @raise Failure if the encoder creation failed. *)
+      @raise Error if the encoder creation failed. *)
 end
 
 (** Subtitle codecs. *)
@@ -165,7 +165,7 @@ module Subtitle : sig
 
   val find_id : string -> id
   (** Return the id of a codec from his name.
-      @raise Failure if the codec is not found or is not a subtitle codec. *)
+      @raise Error if the codec is not found or is not a subtitle codec. *)
 
   (** Return the id of the codec. *)
   val get_id : subtitle t -> id
@@ -174,16 +174,16 @@ end
 
 val decode : 'media decoder -> ('media frame -> unit) -> 'media Packet.t -> unit
 (** [Avcodec.decode decoder f packet] applies function [f] to the decoded frames frome the [packet] according to the [decoder] configuration.
-    @raise Failure if the decoding failed. *)
+    @raise Error if the decoding failed. *)
 
 val flush_decoder : 'media decoder -> ('media frame -> unit) -> unit
 (** [Avcodec.flush_decoder decoder f] applies function [f] to the decoded frames frome the buffered packets in the [decoder].
-    @raise Failure if the decoding failed. *)
+    @raise Error if the decoding failed. *)
 
 val encode : 'media encoder -> ('media Packet.t -> unit) -> 'media frame -> unit
 (** [Avcodec.encode encoder f frame] applies function [f] to the encoded packets from the [frame] according to the [encoder] configuration.
-    @raise Failure if the encoding failed. *)
+    @raise Error if the encoding failed. *)
 
 val flush_encoder : 'media encoder -> ('media Packet.t -> unit) -> unit
 (** [Avcodec.flush_encoder encoder] applies function [f] to the encoded packets from the buffered frames in the [encoder].
-    @raise Failure if the encoding failed. *)
+    @raise Error if the encoding failed. *)

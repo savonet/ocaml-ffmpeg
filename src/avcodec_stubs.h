@@ -15,10 +15,7 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
 
 #define Packet_val(v) (*(struct AVPacket**)Data_custom_val(v))
 
-void value_of_packet(AVPacket *packet, value * pvalue);
-
-AVPacket * alloc_packet_value(value * pvalue);
-
+value value_of_ffmpeg(AVPacket *packet);
 
 /**** Audio codec ID ****/
 
