@@ -482,7 +482,10 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
   int ret = av_frame_get_buffer(frame, 32);
   caml_acquire_runtime_system();
 
-  if(ret < 0) ocaml_avutil_raise_error(ret);
+  if(ret < 0) {
+    av_frame_free(&frame);
+    ocaml_avutil_raise_error(ret);
+  }
 
   ans = value_of_frame(frame);
 #endif
