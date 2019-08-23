@@ -23,27 +23,15 @@ build: [
 ]
 install: [make "install"]
 depexts: [
-  [
-    "libavutil-dev"
-    "libswscale-dev"
-    "libavformat-dev"
-    "libavcodec-dev"
-    "libavdevice-dev"
-    "libswresample-dev"
-  ] {os-distribution = "debian"}
-  [
-    "libavutil-dev"
-    "libswscale-dev"
-    "libavformat-dev"
-    "libavcodec-dev"
-    "libavdevice-dev"
-    "libswresample-dev"
-  ] {os-distribution = "ubuntu"}
+  ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]
+    {os-distribution = "debian"}
+  ["libavutil-dev" "libswscale-dev" "libavformat-dev" "libavcodec-dev" "libavdevice-dev" "libswresample-dev"]
+    {os-distribution = "ubuntu"}
   ["ffmpeg-dev"] {os-distribution = "alpine"}
-  ["ffmpeg"] {os-distribution = "archlinux"}
+  ["ffmpeg"] {os-distribution = "arch"}
   ["ffmpeg-devel"] {os-distribution = "centos"}
   ["ffmpeg-devel"] {os-distribution = "fedora"}
-  ["ffmpeg-devel"] {os-distribution = "opensuse"}
+  ["ffmpeg-devel"] {os-family = "suse"}
   ["ffmpeg"] {os-distribution = "nixos"}
   ["ffmpeg"] {os = "macos" & os-distribution = "homebrew"}
 ]
