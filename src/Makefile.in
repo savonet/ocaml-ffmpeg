@@ -10,7 +10,7 @@ OCAMLMAKEFILE = OCamlMakefile
 OCAMLFIND = @OCAMLFIND@
 OCAMLFIND_LDCONF = @OCAMLFIND_LDCONF@
 OCAMLC = @OCAMLC@ -thread
-SYSTEM_OCAMLOPT = @SYSTEM_OCAMLOPT@
+SYSTEM_OCAMLC = @SYSTEM_OCAMLC@
 OCAMLOPT = @OCAMLOPT@ -thread
 OCAMLBEST = @OCAMLBEST@
 OCAMLMKTOP = @OCAMLMKTOP@
@@ -62,8 +62,8 @@ byte: byte-code-library
 opt: native-code-library
 
 gen-code:
-	$(OCAMLC) -c gen_code_stubs.c
-	$(OCAMLC) -custom str.cma gen_code_stubs.o gen_code.ml -o gen_code
+	$(SYSTEM_OCAMLC) -c gen_code_stubs.c
+	$(SYSTEM_OCAMLC) -custom str.cma gen_code_stubs.o gen_code.ml -o gen_code
 	./gen_code -I$(GEN_CODE_INCLUDE)
 
 install: libinstall
