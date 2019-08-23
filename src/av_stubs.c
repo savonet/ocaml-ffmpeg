@@ -359,6 +359,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
 
   avio->buffer_size = Int_val(bufsize);
   avio->buffer = av_malloc(avio->buffer_size);
+
   if (!avio->buffer) {
     av_freep(avio->format_context);
     caml_acquire_runtime_system();
@@ -475,6 +476,7 @@ static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *form
   av->release_out = 1;
   av->frames_pending = 0;
   av->format_context = format_context;
+  av->streams = NULL;
   
   caml_release_runtime_system();
   err = avformat_open_input(&av->format_context, url, format, NULL);
