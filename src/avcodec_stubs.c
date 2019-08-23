@@ -131,7 +131,7 @@ static struct custom_operations packet_ops =
     custom_deserialize_default
   };
 
-value value_of_ffmpeg(AVPacket *packet)
+value value_of_ffmpeg_packet(AVPacket *packet)
 {
   value ret;
 
@@ -290,7 +290,7 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data, value _ofs
   caml_acquire_runtime_system();
 
   if(packet->size) {
-    val_packet = value_of_ffmpeg(packet);
+    val_packet = value_of_ffmpeg_packet(packet);
 
     tuple = caml_alloc_tuple(2);
 
@@ -698,7 +698,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx)
   }
   else {
     ans = caml_alloc(1, 0);
-    val_packet = value_of_ffmpeg(packet);
+    val_packet = value_of_ffmpeg_packet(packet);
     Store_field(ans, 0, val_packet);
   }  
   CAMLreturn(ans);

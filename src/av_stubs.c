@@ -828,7 +828,7 @@ CAMLprim value ocaml_av_read_stream_packet(value _stream) {
     ocaml_avutil_raise_error(AVERROR_EOF);
   }
 
-  CAMLreturn(value_of_ffmpeg(packet));
+  CAMLreturn(value_of_ffmpeg_packet(packet));
 }
 
 
@@ -912,7 +912,7 @@ CAMLprim value ocaml_av_read_input_packet(value _av) {
 
   stream_packet = caml_alloc_tuple(2);
   Field(stream_packet, 0) = Val_int(index);
-  Field(stream_packet, 1) = value_of_ffmpeg(packet);
+  Field(stream_packet, 1) = value_of_ffmpeg_packet(packet);
 
   ans = caml_alloc_tuple(2);
   switch(av->streams[index]->codec_context->codec_type) {
