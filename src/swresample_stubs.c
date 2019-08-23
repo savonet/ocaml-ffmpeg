@@ -453,21 +453,15 @@ void swresample_free(swr_t *swr)
 
   if(swr->in.data && swr->get_in_samples != get_in_samples_frame) {
 
-    if(swr->in.owns_data) {
-      caml_release_runtime_system();
-      av_freep(&swr->in.data[0]);
-      caml_acquire_runtime_system();
-    }
+    if(swr->in.owns_data) av_freep(&swr->in.data[0]);
+
     free(swr->in.data);
   }
 
   if(swr->out.data && swr->convert != convert_to_frame) {
 
-    if(swr->out.owns_data) {
-      caml_release_runtime_system();
-      av_freep(&swr->out.data[0]);
-      caml_acquire_runtime_system();
-    }
+    if(swr->out.owns_data) av_freep(&swr->out.data[0]);
+
     free(swr->out.data);
   }
   

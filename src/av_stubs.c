@@ -1923,9 +1923,11 @@ CAMLprim value ocaml_av_close(value _av)
   }
   // Close is called both from the Gc context and here so 
   // we have to release runtime only here (yes, it does log!)
+  caml_register_generational_global_root(&_av);
   caml_release_runtime_system();
   close_av(av);
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&_av);
 
   CAMLreturn(Val_unit);
 }
