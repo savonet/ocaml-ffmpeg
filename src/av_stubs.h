@@ -19,7 +19,7 @@ void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value);
 
 #define OutputFormat_val(v) (*(struct AVOutputFormat**)Data_custom_val(v))
 
-void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value);
+value value_of_outputFormat(AVOutputFormat *outputFormat);
 
 
 /***** Control message *****/

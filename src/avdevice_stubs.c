@@ -59,7 +59,7 @@ CAMLprim value ocaml_avdevice_get_video_input_formats(value unit)
 static inline value get_output_devices(AVOutputFormat * (*output_device_next)(AVOutputFormat *))
 {
   CAMLparam0();
-  CAMLlocal2(v, ans);
+  CAMLlocal1(ans);
   AVOutputFormat *fmt = NULL;
   int len = 0;
 
@@ -72,8 +72,7 @@ static inline value get_output_devices(AVOutputFormat * (*output_device_next)(AV
 
   while((fmt = output_device_next (fmt))) {
 
-    value_of_outputFormat(fmt, &v);
-    Store_field(ans, i, v);
+    Store_field(ans, i, value_of_outputFormat(fmt));
     i++;
   }
 

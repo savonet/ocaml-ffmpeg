@@ -18,6 +18,9 @@ module Format : sig
   val get_output_long_name : (output, _)format -> string
   (** Return the long name of the output format *)
 
+  val guess_output_format : ?short_name:string -> ?filename:string -> ?mime:string -> unit -> (output, 'a) format option
+  (** Guess output format based on the passed arguments. *)
+
   val get_audio_codec_id : (output, audio)format -> Avcodec.Audio.id
   (** Return the audio codec id of the output audio format *)
 

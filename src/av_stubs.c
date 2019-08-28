@@ -1077,12 +1077,68 @@ static struct custom_operations outputFormat_ops = {
   custom_deserialize_default
 };
 
-void value_of_outputFormat(AVOutputFormat *outputFormat, value * p_value)
+value value_of_outputFormat(AVOutputFormat *outputFormat)
 {
+  value v;
   if( ! outputFormat) Fail("Empty output format");
 
-  *p_value = caml_alloc_custom(&outputFormat_ops, sizeof(AVOutputFormat*), 0, 1);
-  OutputFormat_val((*p_value)) = outputFormat;
+  v = caml_alloc_custom(&outputFormat_ops, sizeof(AVOutputFormat*), 0, 1);
+  OutputFormat_val(v) = outputFormat;
+
+  return v;
+}
+
+CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename, value _mime)
+{
+  CAMLparam3(_short_name, _filename, _mime);
+  CAMLlocal1(ans);
+  char *short_name = NULL;
+  char *filename = NULL;
+  char *mime = NULL;
+  AVOutputFormat *guessed;
+
+  if (caml_string_length(_short_name) > 0) {
+    short_name = malloc(caml_string_length(_short_name));
+    if (!short_name) caml_raise_out_of_memory();
+
+    memcpy(short_name, String_val(_short_name), caml_string_length(_short_name));
+  };
+
+  if (caml_string_length(_filename) > 0) {
+    filename = malloc(caml_string_length(_filename));
+    if (!filename) {
+      if (short_name) free(short_name);
+      caml_raise_out_of_memory();
+    }
+  
+    memcpy(filename, String_val(_filename), caml_string_length(_filename));
+  }
+
+  if (caml_string_length(_mime) > 0) {
+    mime = malloc(caml_string_length(_mime));
+    if (!mime) {
+      if (short_name) free(short_name);
+      if (filename) free(filename);
+      caml_raise_out_of_memory();
+    }
+
+    memcpy(mime, String_val(_mime), caml_string_length(_mime));
+  }
+
+  caml_release_runtime_system();
+  guessed = av_guess_format(short_name, filename, mime);
+  caml_acquire_runtime_system();
+
+  if (short_name) free(short_name);
+  if (filename) free(filename);
+  if (mime) free(mime);
+
+  if (!guessed) CAMLreturn(Val_none);
+
+  ans = caml_alloc_small(1, 0);
+  Field(ans, 0) = value_of_outputFormat(guessed);
+
+  CAMLreturn(ans); 
 }
 
 CAMLprim value ocaml_av_output_format_get_name(value _format)

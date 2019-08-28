@@ -14,6 +14,10 @@ module Format = struct
   external get_audio_codec_id : (output, audio)format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
   external get_video_codec_id : (output, video)format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
   external get_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
+
+  external guess_output_format : string -> string -> string -> (output, 'a) format option = "ocaml_av_output_format_guess"
+  let guess_output_format ?(short_name="") ?(filename="") ?(mime="") () =
+    guess_output_format short_name filename mime
 end
 
 
