@@ -46,7 +46,7 @@ module Audio : sig
   val get_name : id -> string
 
   val find_id : string -> id
-  (** Return the id of a codec from his name.
+  (** Return the id of a codec from its name.
       @raise Error if the codec is not found or is not an audio codec. *)
 
   (** Return the list of supported channel layouts of the codec. *)
@@ -107,7 +107,7 @@ module Video : sig
   val get_name : id -> string
 
   val find_id : string -> id
-  (** Return the id of a codec from his name.
+  (** Return the id of a codec from its name.
       @raise Error if the codec is not found or is not a video codec. *)
 
   (** Return the list of supported frame rates of the codec. *)
@@ -164,7 +164,7 @@ module Subtitle : sig
   val get_name : id -> string
 
   val find_id : string -> id
-  (** Return the id of a codec from his name.
+  (** Return the id of a codec from its name.
       @raise Error if the codec is not found or is not a subtitle codec. *)
 
   (** Return the id of the codec. *)

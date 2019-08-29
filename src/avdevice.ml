@@ -52,15 +52,17 @@ let open_video_input name = Av.open_input_format(find_video_input name)
 let open_default_video_input() =
   Av.open_input_format(get_default_video_input_format())
 
-let open_audio_output name = Av.open_output_format(find_audio_output name)
+external open_output_format : (output, _)format -> output container = "ocaml_av_open_output_format"
+
+let open_audio_output name = open_output_format(find_audio_output name)
 
 let open_default_audio_output() =
-  Av.open_output_format(get_default_audio_output_format())
+  open_output_format(get_default_audio_output_format())
 
-let open_video_output name = Av.open_output_format(find_video_output name)
+let open_video_output name = open_output_format(find_video_output name)
 
 let open_default_video_output() =
-  Av.open_output_format(get_default_video_output_format())
+  open_output_format(get_default_video_output_format())
 
 
 

@@ -185,9 +185,6 @@ external reuse_output : input container -> bool -> unit = "ocaml_av_reuse_output
 
 (* Output *)
 external open_output : string -> output container = "ocaml_av_open_output"
-external open_output_format : (output, _)format -> output container = "ocaml_av_open_output_format"
-external open_output_format_name : string -> output container = "ocaml_av_open_output_format_name"
-
 
 external _set_metadata : output container -> int -> (string * string) array -> unit = "ocaml_av_set_metadata"
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)

@@ -1218,22 +1218,20 @@ CAMLprim value ocaml_av_output_format_get_subtitle_codec_id(value _output_format
 }
 
 
-static inline av_t * open_output(AVOutputFormat *format, char *format_name, char *file_name)
+static inline av_t * open_output(AVOutputFormat *format, char *file_name)
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) {
-    if (format_name) free(format_name);
     if (file_name) free(file_name);
     caml_raise_out_of_memory();
   }
 
   caml_release_runtime_system();
 
-  avformat_alloc_output_context2(&av->format_context, format, format_name, file_name);
+  avformat_alloc_output_context2(&av->format_context, format, NULL, file_name);
 
   if ( ! av->format_context) {
     free_av(av);
-    if (format_name) free(format_name);
     if (file_name) free(file_name);
 
     caml_acquire_runtime_system();
@@ -1246,7 +1244,6 @@ static inline av_t * open_output(AVOutputFormat *format, char *format_name, char
 
     if (err < 0) {
       free_av(av);
-      if (format_name) free(format_name);
       if (file_name) free(file_name);
 
       caml_acquire_runtime_system();
@@ -1254,7 +1251,6 @@ static inline av_t * open_output(AVOutputFormat *format, char *format_name, char
     }
   }
 
-  if (format_name) free(format_name);
   if (file_name) free(file_name);
 
   caml_acquire_runtime_system();
@@ -1269,7 +1265,7 @@ CAMLprim value ocaml_av_open_output(value _filename)
   char * filename = strndup(String_val(_filename), caml_string_length(_filename));
 
   // open output file
-  av_t *av = open_output(NULL, NULL, filename);
+  av_t *av = open_output(NULL, filename);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -1285,23 +1281,7 @@ CAMLprim value ocaml_av_open_output_format(value _format)
   AVOutputFormat *format = OutputFormat_val(_format);
 
   // open output format
-  av_t *av = open_output(format, NULL, NULL);
-
-  // allocate format context
-  ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
-  Av_val(ans) = av;
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_open_output_format_name(value _format_name)
-{
-  CAMLparam1(_format_name);
-  CAMLlocal1(ans);
-  char * format_name = strndup(String_val(_format_name), caml_string_length(_format_name));
-
-  // open output file
-  av_t *av = open_output(NULL, format_name, NULL);
+  av_t *av = open_output(format, NULL);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);

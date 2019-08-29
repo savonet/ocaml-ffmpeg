@@ -160,13 +160,6 @@ val reuse_output : input container -> bool -> unit
 val open_output : string -> output container
 (** [Av.open_output filename] open the output file named [filename]. @raise Error if the opening failed. *)
 
-val open_output_format : (output, _) format -> output container
-(** [Av.open_output_format format] open the output [format]. @raise Error if the opening failed. *)
-
-val open_output_format_name : string -> output container
-(** [Av.open_output_format_name name] open the output format of name [name]. @raise Error if the opening failed. *)
-
-
 val set_output_metadata : output container -> (string * string) list -> unit
 (** [Av.set_output_metadata dst tags] set the metadata of the [dst] output with the [tags] tag list. This must be set before starting writing streams. @raise Error if a writing already taken place or if the setting failed. *)
 
