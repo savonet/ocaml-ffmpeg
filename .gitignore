@@ -49,6 +49,9 @@ examples/transcode_aac/transcode_aac
 examples/transcoding/transcoding
 examples/audio_decoding/flac.raw
 examples/remuxing/out.mp4
+examples/decode_stream/A4.ogg
+examples/decode_stream/A4.mp3
+examples/decode_stream/decode_stream
 *.mp3
 *.flac
 *.ogg

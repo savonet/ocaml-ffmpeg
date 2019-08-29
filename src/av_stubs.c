@@ -72,6 +72,7 @@ typedef struct av_t {
   // output
   int header_written;
   int release_out;
+  int custom_io;
 } av_t;
 
 #define Av_val(v) (*(av_t**)Data_custom_val(v))
@@ -146,7 +147,7 @@ static void close_av(av_t * av)
     }
     else if(av->format_context->oformat) {
       // Close the output file if needed.
-      if( ! (av->format_context->oformat->flags & AVFMT_NOFILE))
+      if(!av->custom_io && !(av->format_context->oformat->flags & AVFMT_NOFILE))
         avio_closep(&av->format_context->pb);
 
       avformat_free_context(av->format_context);
@@ -375,6 +376,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb, value _write_cb
   int(*read_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
   int(*write_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
   int64_t(*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
+  int write_flag = 0;
 
   avio_t *avio = (avio_t *)calloc(1, sizeof(avio_t));
   if (!avio) caml_raise_out_of_memory();
@@ -414,6 +416,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb, value _write_cb
     avio->write_cb = Some_val(_write_cb);
     caml_register_generational_global_root(&avio->write_cb);
     write_cb = ocaml_avio_write_callback;
+    write_flag = 1;
   }
   
   if (_seek_cb != Val_none) {
@@ -424,7 +427,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb, value _write_cb
 
   caml_release_runtime_system();
   avio->avio_context = avio_alloc_context(
-    avio->buffer, avio->buffer_size, 0, (void *)avio,
+    avio->buffer, avio->buffer_size, write_flag, (void *)avio,
     read_cb, write_cb, seek_cb);
   caml_acquire_runtime_system();
 
@@ -1142,14 +1145,14 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename, 
   AVOutputFormat *guessed;
 
   if (caml_string_length(_short_name) > 0) {
-    short_name = malloc(caml_string_length(_short_name));
+    short_name = calloc(caml_string_length(_short_name), sizeof(char));
     if (!short_name) caml_raise_out_of_memory();
 
     memcpy(short_name, String_val(_short_name), caml_string_length(_short_name));
   };
 
   if (caml_string_length(_filename) > 0) {
-    filename = malloc(caml_string_length(_filename));
+    filename = calloc(caml_string_length(_filename), sizeof(char));
     if (!filename) {
       if (short_name) free(short_name);
       caml_raise_out_of_memory();
@@ -1159,7 +1162,7 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename, 
   }
 
   if (caml_string_length(_mime) > 0) {
-    mime = malloc(caml_string_length(_mime));
+    mime = calloc(caml_string_length(_mime), sizeof(char));
     if (!mime) {
       if (short_name) free(short_name);
       if (filename) free(filename);
@@ -1239,18 +1242,31 @@ static inline av_t * open_output(AVOutputFormat *format, char *file_name, AVIOCo
   }
 
   // open the output file, if needed
-  if(! avio_context) {
-    int err = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
-
-    if (err < 0) {
+  if (avio_context) {
+    if (av->format_context->oformat->flags & AVFMT_NOFILE) {
       free_av(av);
       if (file_name) free(file_name);
 
       caml_acquire_runtime_system();
-      ocaml_avutil_raise_error(err);
+      Fail("Cannot set custom I/O on this format!");
     }
-  } else {
+
     av->format_context->pb = avio_context;
+    av->custom_io = 1;
+  } else {
+    if(!(av->format_context->oformat->flags & AVFMT_NOFILE)) {
+      int err = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
+
+      if (err < 0) {
+        free_av(av);
+        if (file_name) free(file_name);
+
+        caml_acquire_runtime_system();
+        ocaml_avutil_raise_error(err);
+      }
+
+      av->custom_io = 0;
+    }
   }
 
   if (file_name) free(file_name);
@@ -1578,7 +1594,7 @@ static inline void write_frame(av_t * av, int stream_index, AVCodecContext * enc
 
   caml_release_runtime_system();
 
-  if( ! av->header_written) {
+  if(!av->header_written) {
     // write output file header
     ret = avformat_write_header(av->format_context, NULL);
 
