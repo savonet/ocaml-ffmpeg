@@ -29,9 +29,9 @@ external open_input_format : (input, _)format -> input container = "ocaml_av_ope
 
 type avio
 
-type read_cb = bytes -> int -> int -> int
-type write_cb = bytes -> int -> int -> int
-type seek_cb = int -> int -> int
+type read = bytes -> int -> int -> int
+type write = bytes -> int -> int -> int
+type seek = int -> int -> int
 
 let seek_of_int = function
   | 0 -> Unix.SEEK_SET
@@ -44,9 +44,9 @@ type read_callbacks = {
   seek : (int -> Unix.seek_command -> int) option
 }
 
-external ocaml_av_create_io : int -> read_cb option -> write_cb option -> seek_cb option -> avio = "ocaml_av_create_io"
+external ocaml_av_create_io : int -> read option -> write option -> seek option -> avio = "ocaml_av_create_io"
 
-let ocaml_av_create_io len {read;seek} =
+let ocaml_av_create_read_io len {read;seek} =
   let _seek = match seek with
     | None ->
          None
@@ -59,7 +59,7 @@ external ocaml_av_open_input_stream : avio -> input container = "ocaml_av_open_i
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 
 let open_input_stream read_callbacks =
-  let avio = ocaml_av_create_io 4096 read_callbacks in
+  let avio = ocaml_av_create_read_io 4096 read_callbacks in
   let cleanup () = caml_av_input_io_finalise avio in
   let input =
     ocaml_av_open_input_stream avio
@@ -185,6 +185,17 @@ external reuse_output : input container -> bool -> unit = "ocaml_av_reuse_output
 
 (* Output *)
 external open_output : string -> output container = "ocaml_av_open_output"
+
+external ocaml_av_open_output_stream : (output, _) format -> avio -> output container = "ocaml_av_open_output_stream"
+
+let open_output_stream format write =
+  let avio = ocaml_av_create_io 4096 None (Some write) None in
+  let cleanup () = caml_av_input_io_finalise avio in
+  let output =
+    ocaml_av_open_output_stream format avio
+  in
+  Gc.finalise_last cleanup output;
+  output
 
 external _set_metadata : output container -> int -> (string * string) array -> unit = "ocaml_av_set_metadata"
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)

@@ -1218,7 +1218,7 @@ CAMLprim value ocaml_av_output_format_get_subtitle_codec_id(value _output_format
 }
 
 
-static inline av_t * open_output(AVOutputFormat *format, char *file_name)
+static inline av_t * open_output(AVOutputFormat *format, char *file_name, AVIOContext *avio_context)
 {
   av_t *av = (av_t*)calloc(1, sizeof(av_t));
   if ( ! av) {
@@ -1239,7 +1239,7 @@ static inline av_t * open_output(AVOutputFormat *format, char *file_name)
   }
 
   // open the output file, if needed
-  if(! (av->format_context->oformat->flags & AVFMT_NOFILE)) {
+  if(! avio_context) {
     int err = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
 
     if (err < 0) {
@@ -1249,6 +1249,8 @@ static inline av_t * open_output(AVOutputFormat *format, char *file_name)
       caml_acquire_runtime_system();
       ocaml_avutil_raise_error(err);
     }
+  } else {
+    av->format_context->pb = avio_context;
   }
 
   if (file_name) free(file_name);
@@ -1265,7 +1267,7 @@ CAMLprim value ocaml_av_open_output(value _filename)
   char * filename = strndup(String_val(_filename), caml_string_length(_filename));
 
   // open output file
-  av_t *av = open_output(NULL, filename);
+  av_t *av = open_output(NULL, filename, NULL);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
@@ -1281,7 +1283,24 @@ CAMLprim value ocaml_av_open_output_format(value _format)
   AVOutputFormat *format = OutputFormat_val(_format);
 
   // open output format
-  av_t *av = open_output(format, NULL);
+  av_t *av = open_output(format, NULL, NULL);
+
+  // allocate format context
+  ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
+  Av_val(ans) = av;
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_open_output_stream(value _format, value _avio)
+{
+  CAMLparam2(_format, _avio);
+  CAMLlocal1(ans);
+  AVOutputFormat *format = OutputFormat_val(_format);
+  avio_t *avio = Avio_val(_avio);
+
+  // open output format
+  av_t *av = open_output(format, NULL, avio->avio_context);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
