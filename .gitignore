@@ -42,6 +42,7 @@ examples/decode_audio/decode_audio
 examples/demuxing_decoding/demuxing_decoding
 examples/encode_audio/encode_audio
 examples/encode_video/encode_video
+examples/encode_stream/encode_stream
 examples/encoding/encoding
 examples/player/player
 examples/remuxing/remuxing
