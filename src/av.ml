@@ -29,10 +29,9 @@ external open_input_format : (input, _)format -> input container = "ocaml_av_ope
 
 type avio
 
-type _read_callbacks = {
-  _read : bytes -> int -> int -> int;
-  _seek : (int -> int -> int) option
-}
+type read_cb = bytes -> int -> int -> int
+type write_cb = bytes -> int -> int -> int
+type seek_cb = int -> int -> int
 
 let seek_of_int = function
   | 0 -> Unix.SEEK_SET
@@ -45,7 +44,7 @@ type read_callbacks = {
   seek : (int -> Unix.seek_command -> int) option
 }
 
-external ocaml_av_create_io : int -> _read_callbacks -> avio = "ocaml_av_create_io"
+external ocaml_av_create_io : int -> read_cb option -> write_cb option -> seek_cb option -> avio = "ocaml_av_create_io"
 
 let ocaml_av_create_io len {read;seek} =
   let _seek = match seek with
@@ -54,7 +53,7 @@ let ocaml_av_create_io len {read;seek} =
     | Some fn ->
          Some (fun a m -> fn a (seek_of_int m))
  in
- ocaml_av_create_io len {_read=read;_seek}
+ ocaml_av_create_io len (Some read) None _seek
 
 external ocaml_av_open_input_stream : avio -> input container = "ocaml_av_open_input_stream"
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"

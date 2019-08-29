@@ -270,6 +270,7 @@ typedef struct avio_t {
   int buffer_size;
   AVIOContext *avio_context;
   value read_cb;
+  value write_cb;
   value seek_cb;
 } avio_t;
 
@@ -310,6 +311,32 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   return Int_val(res);
 }
 
+static int ocaml_avio_write_callback(void *private, uint8_t *buf, int buf_size) {
+  value buffer, res;
+  avio_t *avio = (avio_t *)private;
+
+  caml_acquire_runtime_system();
+
+  buffer = caml_alloc_string(buf_size);
+
+  memcpy(String_val(buffer), buf, buf_size);
+
+  caml_register_generational_global_root(&buffer);
+
+  res = caml_callback3_exn(avio->write_cb,buffer,Val_int(0),Val_int(buf_size));
+  if(Is_exception_result(res)) {
+    res = Extract_exception(res);
+    caml_remove_generational_global_root(&buffer);
+    caml_raise(res);
+  }
+
+  caml_remove_generational_global_root(&buffer);
+
+  caml_release_runtime_system();
+
+  return Int_val(res);
+}
+
 static int64_t ocaml_avio_seek_callback(void *private, int64_t offset, int whence) {
   value res;
   avio_t *avio = (avio_t *)private;
@@ -341,12 +368,20 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset, int whenc
   return n;
 }
 
-CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
-  CAMLparam1(cb);
+CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb, value _write_cb, value _seek_cb) {
+  CAMLparam3(_read_cb, _write_cb, _seek_cb);
   CAMLlocal1(ret);
+
+  int(*read_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
+  int(*write_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
+  int64_t(*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
 
   avio_t *avio = (avio_t *)calloc(1, sizeof(avio_t));
   if (!avio) caml_raise_out_of_memory();
+
+  avio->read_cb = (value)NULL;
+  avio->write_cb = (value)NULL;
+  avio->seek_cb = (value)NULL;
 
   caml_release_runtime_system();
   avio->format_context = avformat_alloc_context();
@@ -368,27 +403,30 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
   }
 
   caml_acquire_runtime_system();
-  
-  if (Field(cb,1) != Val_none) {
-    avio->seek_cb = Some_val(Field(cb,1));
-    caml_register_generational_global_root(&avio->seek_cb);
 
-    caml_release_runtime_system();
-    avio->avio_context = avio_alloc_context(
-      avio->buffer, avio->buffer_size, 0, (void *)avio,
-      ocaml_avio_read_callback, NULL,
-      ocaml_avio_seek_callback);
-    caml_acquire_runtime_system();
-
-  } else {
-    avio->seek_cb = (value)NULL;
-
-    caml_release_runtime_system();
-    avio->avio_context = avio_alloc_context(
-      avio->buffer, avio->buffer_size, 0, (void *)avio,
-      ocaml_avio_read_callback, NULL, NULL);
-    caml_acquire_runtime_system();
+  if (_read_cb != Val_none) {
+    avio->read_cb = Some_val(_read_cb);
+    caml_register_generational_global_root(&avio->read_cb);
+    read_cb = ocaml_avio_read_callback;
   }
+
+  if (_write_cb != Val_none) {
+    avio->write_cb = Some_val(_write_cb);
+    caml_register_generational_global_root(&avio->write_cb);
+    write_cb = ocaml_avio_write_callback;
+  }
+  
+  if (_seek_cb != Val_none) {
+    avio->seek_cb = Some_val(_seek_cb);
+    caml_register_generational_global_root(&avio->seek_cb);
+    seek_cb = ocaml_avio_seek_callback;
+  }
+
+  caml_release_runtime_system();
+  avio->avio_context = avio_alloc_context(
+    avio->buffer, avio->buffer_size, 0, (void *)avio,
+    read_cb, write_cb, seek_cb);
+  caml_acquire_runtime_system();
 
   if (!avio->avio_context) {
     caml_release_runtime_system();
@@ -402,7 +440,6 @@ CAMLprim value ocaml_av_create_io(value bufsize, value cb) {
 
   avio->format_context->pb = avio->avio_context;
 
-  avio->read_cb = Field(cb,0);
   caml_register_generational_global_root(&avio->read_cb);
 
   ret = caml_alloc_custom(&avio_ops, sizeof(avio_t*), 0, 1);
@@ -421,10 +458,17 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   av_freep(avio->avio_context);
   caml_acquire_runtime_system(); 
 
-  caml_remove_generational_global_root(&avio->read_cb);
+  if (avio->read_cb)
+    caml_remove_generational_global_root(&avio->read_cb);
+
+  if (avio->write_cb)
+    caml_remove_generational_global_root(&avio->write_cb);
+
   if (avio->seek_cb)
     caml_remove_generational_global_root(&avio->seek_cb);
+
   free(avio);
+
   CAMLreturn(Val_unit);
 }
 
