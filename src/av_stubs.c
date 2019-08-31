@@ -164,7 +164,7 @@ static void free_av(av_t * av)
 {
   if( ! av) return;
 
-  close_av(av);
+  if (av->format_context) Fail("Freeing unclosed av handler!");
   
   if(av->control_message_callback) {
     caml_remove_generational_global_root(&av->control_message_callback);
