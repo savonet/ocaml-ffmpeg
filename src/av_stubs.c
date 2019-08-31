@@ -164,6 +164,8 @@ static void free_av(av_t * av)
 {
   if( ! av) return;
 
+  // We cannot call av_close from here because it does log,
+  // which causes a deadlock with the runtime lock.
   if (av->format_context) Fail("Freeing unclosed av handler!");
   
   if(av->control_message_callback) {

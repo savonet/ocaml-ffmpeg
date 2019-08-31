@@ -58,6 +58,7 @@ let () =
   f ();
 
   Unix.close in_fd;
+  Av.close container;
   Av.close out_file;
 
   Gc.full_major (); Gc.full_major ();
