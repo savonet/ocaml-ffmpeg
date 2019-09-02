@@ -328,9 +328,9 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf, int buf_size) 
 
   buffer = caml_alloc_string(buf_size);
 
-  memcpy(String_val(buffer), buf, buf_size);
-
   caml_register_generational_global_root(&buffer);
+
+  memcpy(String_val(buffer), buf, buf_size);
 
   res = caml_callback3_exn(avio->write_cb,buffer,Val_int(0),Val_int(buf_size));
   if(Is_exception_result(res)) {
