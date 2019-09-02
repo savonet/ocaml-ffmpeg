@@ -1431,7 +1431,7 @@ static inline void init_stream_encoder(av_t *av, stream_t *stream)
 static inline stream_t *new_audio_stream(av_t *av, enum AVCodecID codec_id, uint64_t channel_layout, enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate, AVRational time_base)
 {
   stream_t * stream = new_stream(av, codec_id);
-  
+
   AVCodecContext *enc_ctx = stream->codec_context;
 
   enc_ctx->bit_rate = bit_rate;
@@ -1469,7 +1469,7 @@ static inline stream_t *new_audio_stream(av_t *av, enum AVCodecID codec_id, uint
     // Create the FIFO buffer based on the specified output sample format.
     stream->audio_fifo = av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->channels, 1);
 
-    caml_release_runtime_system();
+    caml_acquire_runtime_system();
 
     if(!stream->audio_fifo) caml_raise_out_of_memory();
   }
