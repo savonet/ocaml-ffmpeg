@@ -465,7 +465,11 @@ void swresample_free(swr_t *swr)
     free(swr->out.data);
   }
   
-  if(swr->out_vector) caml_remove_generational_global_root(&swr->out_vector);
+  if(swr->out_vector) {
+    caml_acquire_runtime_system();
+    caml_remove_generational_global_root(&swr->out_vector);
+    caml_release_runtime_system();
+  } 
 
   free(swr);
 }
