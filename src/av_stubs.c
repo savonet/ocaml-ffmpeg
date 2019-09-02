@@ -458,8 +458,6 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb, value _write_cb
 
   avio->format_context->pb = avio->avio_context;
 
-  caml_register_generational_global_root(&avio->read_cb);
-
   ret = caml_alloc_custom(&avio_ops, sizeof(avio_t*), 0, 1);
 
   Avio_val(ret) = avio;

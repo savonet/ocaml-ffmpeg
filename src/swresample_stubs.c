@@ -591,7 +591,7 @@ swr_t * swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
   }
   swr->in.bytes_per_samples = av_get_bytes_per_sample(in_sample_fmt);
 
-  swr->out_vector = caml_copy_string("foo");
+  swr->out_vector = Val_unit;
 
   if(out_vector_kind != Frm) {
     swr->out.data = (uint8_t**)calloc(swr->out.nb_channels, sizeof(uint8_t*));
