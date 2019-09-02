@@ -433,18 +433,22 @@ CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
 
 /***** AVFrame *****/
 
-static void finalize_frame(value v)
+CAMLprim value ocaml_avutil_finalize_frame(value v)
 {
+  CAMLparam1(v);
 #ifdef HAS_FRAME
   AVFrame *frame = Frame_val(v);
+  caml_release_runtime_system();
   av_frame_free(&frame);
+  caml_acquire_runtime_system();
 #endif
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations frame_ops =
   {
     "ocaml_avframe",
-    finalize_frame,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -458,6 +462,8 @@ value value_of_frame(AVFrame *frame)
 
   ret = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
   Frame_val(ret) = frame;
+
+  Finalize("ocaml_avutil_finalize_frame",ret);
 
   return ret;
 }
@@ -549,8 +555,9 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
 
 /***** AVSubtitle *****/
 
-static void finalize_subtitle(value v)
+CAMLprim value ocaml_avutil_finalize_subtitle(value v)
 {
+  CAMLparam1(v);
   struct AVSubtitle *subtitle = Subtitle_val(v);
 
   caml_release_runtime_system();
@@ -558,12 +565,14 @@ static void finalize_subtitle(value v)
   caml_acquire_runtime_system();
 
   free(subtitle);
+ 
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations subtitle_ops =
   {
     "ocaml_avsubtitle",
-    finalize_subtitle,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -577,6 +586,8 @@ value value_of_subtitle(AVSubtitle *subtitle)
 
   ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle*), 0, 1);
   Subtitle_val(ret) = subtitle;
+
+  Finalize("ocaml_avutil_finalize_subtitle", ret);
 
   return ret;
 }

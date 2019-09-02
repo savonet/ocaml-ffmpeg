@@ -16,6 +16,10 @@ type flag =
 
 type t
 
+external finalize : t -> unit = "ocaml_swscale_finalize_context"
+let () =
+  Callback.register "ocaml_swscale_finalize_context" finalize
+
 external create : flag array -> int -> int -> pixel_format -> int -> int -> pixel_format -> t = "ocaml_swscale_get_context_byte" "ocaml_swscale_get_context"
 let create flags = create (Array.of_list flags)
 
@@ -36,6 +40,10 @@ module Frame = struct type t = video frame let vk = Frm end
 module Bytes = struct type t = (string * int) array let vk = Str end
 
 type ('i, 'o) ctx
+
+external finalize_ctx : _ ctx -> unit = "ocaml_swscale_finalize_swscale"
+let () =
+  Callback.register "ocaml_swscale_finalize_swscale" finalize_ctx
 
 module Make (I : VideoData) (O : VideoData) = struct
   type t = (I.t, O.t) ctx

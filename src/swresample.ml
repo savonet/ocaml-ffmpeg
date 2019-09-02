@@ -159,6 +159,10 @@ type options = [dither_type | engine | filter_type]
 
 type ('i, 'o) ctx
 
+external finalize_ctx : _ ctx -> unit = "ocaml_swresample_finalize_swresample"
+let () =
+  Callback.register "ocaml_swresample_finalize_swresample" finalize_ctx 
+
 module Make (I : AudioData) (O : AudioData) = struct
   type t = (I.t, O.t) ctx
 

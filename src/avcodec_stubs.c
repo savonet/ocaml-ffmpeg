@@ -76,16 +76,20 @@ static inline AVCodecContext *create_AVCodecContext(AVCodec *codec)
 
 /***** AVCodecParameters *****/
 
-static void finalize_codec_parameters(value v)
+CAMLprim value ocaml_avcodec_finalize_codec_parameters(value v)
 {
+  CAMLparam1(v);
   struct AVCodecParameters *codec_parameters = CodecParameters_val(v);
+  caml_release_runtime_system();
   avcodec_parameters_free(&codec_parameters);
+  caml_acquire_runtime_system();
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations codec_parameters_ops =
   {
     "ocaml_avcodec_parameters",
-    finalize_codec_parameters,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -110,21 +114,27 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 
   *pvalue = caml_alloc_custom(&codec_parameters_ops, sizeof(AVCodecParameters*), 0, 1);
   CodecParameters_val(*pvalue) = dst;
+
+  Finalize("ocaml_avcodec_finalize_codec_parameters", *pvalue);
 }
 
   
 /***** AVPacket *****/
 
-static void finalize_packet(value v)
+CAMLprim value ocaml_avcodec_finalize_packet(value v)
 {
+  CAMLparam1(v);
   struct AVPacket *packet = Packet_val(v);
+  caml_release_runtime_system();
   av_packet_free(&packet);
+  caml_acquire_runtime_system();
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations packet_ops =
   {
     "ocaml_packet",
-    finalize_packet,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -139,6 +149,8 @@ value value_of_ffmpeg_packet(AVPacket *packet)
 
   ret = caml_alloc_custom(&packet_ops, sizeof(AVPacket*), 0, 1);
   Packet_val(ret) = packet;
+
+  Finalize("ocaml_avcodec_finalize_packet", ret);
 
   return ret;
 }
@@ -198,15 +210,17 @@ static void free_parser(parser_t *parser)
   free(parser);
 }
 
-static void finalize_parser(value v)
+CAMLprim value ocaml_avcodec_finalize_parser(value v)
 {
+  CAMLparam1(v);
   free_parser(Parser_val(v));
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations parser_ops =
   {
     "ocaml_avcodec_parser",
-    finalize_parser,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -251,6 +265,8 @@ CAMLprim value ocaml_avcodec_create_parser(value _codec_id) {
 
   ans = caml_alloc_custom(&parser_ops, sizeof(parser_t*), 0, 1);
   Parser_val(ans) = parser;
+
+  Finalize("ocaml_avcodec_finalize_parser", ans);
 
   CAMLreturn(ans);
 }
@@ -347,15 +363,17 @@ static void free_codec_context(codec_context_t *ctx)
   free(ctx);
 }
 
-static void finalize_codec_context(value v)
+CAMLprim value ocaml_avcodec_finalize_codec_context(value v)
 {
+  CAMLparam1(v);
   free_codec_context(CodecContext_val(v));
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations codec_context_ops =
   {
     "ocaml_codec_context",
-    finalize_codec_context,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -402,6 +420,8 @@ CAMLprim value ocaml_avcodec_create_context(value _codec_id, value _decoder, val
 
   ans = caml_alloc_custom(&codec_context_ops, sizeof(codec_context_t*), 0, 1);
   CodecContext_val(ans) = ctx;
+
+  Finalize("ocaml_avcodec_finalize_codec_context", ans);
 
   ctx->bit_rate = Is_block(_bit_rate) ? Int_val(Field(_bit_rate, 0)) : 0;
   ctx->frame_rate = Is_block(_frame_rate) ? Int_val(Field(_frame_rate, 0)) : 0;

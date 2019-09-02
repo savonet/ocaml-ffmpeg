@@ -9,6 +9,11 @@ external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
 
 let () = init ()
 
+external finalize_codec_parameters : 'a t -> unit = "ocaml_avcodec_finalize_codec_parameters"
+
+let () =
+  Callback.register "ocaml_avcodec_finalize_codec_parameters" finalize_codec_parameters
+
 
 external get_input_buffer_padding_size : unit -> int = "ocaml_avcodec_get_input_buffer_padding_size"
 
@@ -20,6 +25,11 @@ module Packet = struct
   (** Packet type *)
   type 'a t
 
+  external finalize : 'a t -> unit = "ocaml_avcodec_finalize_packet"
+
+  let () =
+    Callback.register "ocaml_avcodec_finalize_packet" finalize
+
   external get_size : 'a t -> int = "ocaml_avcodec_get_packet_size"
 
   external get_stream_index : 'a t -> int = "ocaml_avcodec_get_packet_stream_index"
@@ -30,6 +40,11 @@ module Packet = struct
 
   type parser_t
   type 'a parser = {mutable buf:data; mutable remainder:data; parser:parser_t}
+
+  external finalize_parser : parser_t -> unit = "ocaml_avcodec_finalize_parser"
+
+  let () =
+    Callback.register "ocaml_avcodec_finalize_parser" finalize_parser
 
   external create_parser : int -> parser_t = "ocaml_avcodec_create_parser"
 
@@ -80,6 +95,11 @@ end
 
 external create_decoder : int -> bool -> int option -> int option -> _ decoder = "ocaml_avcodec_create_context"
 external create_encoder : int -> bool -> int option -> int option -> _ encoder = "ocaml_avcodec_create_context"
+
+(* There isn't much choice here.. *)
+external finalize_codec_context : 'a -> unit = "ocaml_avcodec_finalize_codec_context"
+let () =
+  Callback.register "ocaml_avcodec_finalize_codec_context" finalize_codec_context
 
 
 (** Audio codecs. *)

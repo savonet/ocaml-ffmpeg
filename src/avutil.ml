@@ -11,11 +11,19 @@ type audio
 type video
 type subtitle
 
+external finalize_subtitle : subtitle -> unit = "ocaml_avutil_finalize_subtitle"
+let () =
+  Callback.register "ocaml_avutil_finalize_subtitle" finalize_subtitle
+
 (* Format *)
 type ('line, 'media) format
 
 (* Frame *)
 type 'media frame
+
+external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
+let () =
+  Callback.register "ocaml_avutil_finalize_frame" finalize_frame
 
 type error = [
   | `Bsf_not_found
@@ -51,7 +59,8 @@ let () =
 
 let () =
   Callback.register_exception "ffmpeg_exn_error" (Error `Unknown);
-  Callback.register "ffmpeg_exn_failure" (fun s -> raise (Error (`Failure s))) 
+  Callback.register "ffmpeg_exn_failure" (fun s -> raise (Error (`Failure s)));
+  Callback.register "ffmpeg_gc_finalise" Gc.finalise
 
 external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
 

@@ -162,27 +162,40 @@ static void close_av(av_t * av)
 
 static void free_av(av_t * av)
 {
-  if( ! av) return;
+  int unclosed = 0;
 
-  // We cannot call av_close from here because it does log,
-  // which causes a deadlock with the runtime lock.
-  if (av->format_context) Fail("Freeing unclosed av handler!");
-  
+  if (!av) return;
+
+  if (av->format_context) unclosed = 1;
+
+  close_av(av);
+
   if(av->control_message_callback) {
+    caml_acquire_runtime_system();
     caml_remove_generational_global_root(&av->control_message_callback);
+    caml_release_runtime_system();
   }
 
   free(av);
+
+  if (unclosed) {
+    caml_acquire_runtime_system();
+    Fail("Freeing unclosed av handler!");
+  }
 }
 
-static void finalize_av(value v)
+CAMLprim value ocaml_av_finalize_av(value v)
 {
+  CAMLparam1(v);
+  caml_release_runtime_system();
   free_av(Av_val(v));
+  caml_acquire_runtime_system();
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations av_ops = {
   "ocaml_av_context",
-  finalize_av,
+  custom_finalize_default,
   custom_compare_default,
   custom_hash_default,
   custom_serialize_default,
@@ -566,6 +579,8 @@ CAMLprim value ocaml_av_open_input(value _url)
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
   Av_val(ans) = av;
 
+  Finalize("ocaml_av_finalize_av",ans);
+
   CAMLreturn(ans);
 }
 
@@ -581,6 +596,8 @@ CAMLprim value ocaml_av_open_input_format(value _format)
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
   Av_val(ans) = av;
+
+  Finalize("ocaml_av_finalize_av",ans);
 
   CAMLreturn(ans);
 }

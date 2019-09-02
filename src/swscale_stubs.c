@@ -69,16 +69,20 @@ static int Flag_val(value v)
 
 #define Context_val(v) (*(struct SwsContext**)Data_custom_val(v))
 
-static void finalize_context(value v)
+CAMLprim value ocaml_swscale_finalize_context(value v)
 {
+  CAMLparam1(v);
   struct SwsContext *c = Context_val(v);
+  caml_release_runtime_system();
   sws_freeContext(c);
+  caml_acquire_runtime_system();
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations context_ops =
   {
     "ocaml_swscale_context",
-    finalize_context,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -110,6 +114,9 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_, value src_h
 
   ans = caml_alloc_custom(&context_ops, sizeof(struct SwsContext*), 0, 1);
   Context_val(ans) = c;
+
+  Finalize("ocaml_swscale_finalize_context", ans);
+
   CAMLreturn(ans);
 }
 
@@ -406,15 +413,19 @@ void swscale_free(sws_t *sws)
   free(sws);
 }
 
-static void finalize_swscale(value v)
+CAMLprim value ocaml_swscale_finalize_swscale(value v)
 {
+  CAMLparam1(v);
+  caml_release_runtime_system();
   swscale_free(Sws_val(v));
+  caml_acquire_runtime_system();
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations sws_ops =
   {
     "ocaml_swscale_context",
-    finalize_swscale,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -513,6 +524,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t*), 0, 1);
   Sws_val(ans) = sws;
+
+  Finalize("ocaml_swscale_finalize_swscale", ans);
 
   CAMLreturn(ans);
 }
