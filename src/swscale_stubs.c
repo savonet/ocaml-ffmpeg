@@ -258,12 +258,12 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector)
 
 static int alloc_out_frame(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
   int ret;
+
 #ifndef HAS_FRAME
   caml_failwith("Not implemented.");
 #else
+
   do {
     caml_release_runtime_system();
     AVFrame * frame = av_frame_alloc();
@@ -291,18 +291,18 @@ static int alloc_out_frame(sws_t *sws)
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
 
-    v = value_of_frame(frame);
-    caml_modify_generational_global_root(&sws->out_vector, v);
+    caml_modify_generational_global_root(&sws->out_vector, value_of_frame(frame));
   } while(0);
 #endif
-  CAMLreturnT(int, ret);
+  return ret;
 }
 
 static int alloc_out_string(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
+  value v;
   int i;
+
+  caml_register_generational_global_root(&v);
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
@@ -321,7 +321,9 @@ static int alloc_out_string(sws_t *sws)
     Store_field(sws->out_vector, i, v);
   }
 
-  CAMLreturnT(int, 0);
+  caml_remove_generational_global_root(&v);
+
+  return 0;
 }
 
 static int copy_out_string(sws_t *sws)
@@ -341,9 +343,10 @@ static int copy_out_string(sws_t *sws)
 
 static int alloc_out_ba(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
+  value v;
   int i;
+
+  caml_register_generational_global_root(&v);
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
@@ -360,7 +363,9 @@ static int alloc_out_ba(sws_t *sws)
     Store_field(sws->out_vector, i, v);
   }
 
-  CAMLreturnT(int, 0);
+  caml_remove_generational_global_root(&v);
+
+  return 0;
 }
 
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
