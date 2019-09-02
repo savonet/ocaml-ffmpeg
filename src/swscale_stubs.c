@@ -282,11 +282,11 @@ static int alloc_out_frame(sws_t *sws)
 
     if (ret < 0) {
       av_frame_free(&frame);
-      caml_release_runtime_system();
+      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
-    caml_release_runtime_system();
+    caml_acquire_runtime_system();
 
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
