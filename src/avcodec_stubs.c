@@ -79,10 +79,12 @@ static inline AVCodecContext *create_AVCodecContext(AVCodec *codec)
 CAMLprim value ocaml_avcodec_finalize_codec_parameters(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   struct AVCodecParameters *codec_parameters = CodecParameters_val(v);
   caml_release_runtime_system();
   avcodec_parameters_free(&codec_parameters);
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -124,10 +126,12 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 CAMLprim value ocaml_avcodec_finalize_packet(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   struct AVPacket *packet = Packet_val(v);
   caml_release_runtime_system();
   av_packet_free(&packet);
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -213,7 +217,9 @@ static void free_parser(parser_t *parser)
 CAMLprim value ocaml_avcodec_finalize_parser(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   free_parser(Parser_val(v));
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -366,7 +372,9 @@ static void free_codec_context(codec_context_t *ctx)
 CAMLprim value ocaml_avcodec_finalize_codec_context(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   free_codec_context(CodecContext_val(v));
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 

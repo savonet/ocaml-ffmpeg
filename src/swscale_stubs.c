@@ -72,10 +72,12 @@ static int Flag_val(value v)
 CAMLprim value ocaml_swscale_finalize_context(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   struct SwsContext *c = Context_val(v);
   caml_release_runtime_system();
   sws_freeContext(c);
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -416,9 +418,11 @@ void swscale_free(sws_t *sws)
 CAMLprim value ocaml_swscale_finalize_swscale(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   caml_release_runtime_system();
   swscale_free(Sws_val(v));
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 

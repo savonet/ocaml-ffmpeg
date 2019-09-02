@@ -473,9 +473,11 @@ void swresample_free(swr_t *swr)
 CAMLprim value ocaml_swresample_finalize_swresample(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   caml_release_runtime_system();
   swresample_free(Swr_val(v));
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 

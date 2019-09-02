@@ -162,11 +162,7 @@ static void close_av(av_t * av)
 
 static void free_av(av_t * av)
 {
-  int unclosed = 0;
-
   if (!av) return;
-
-  if (av->format_context) unclosed = 1;
 
   close_av(av);
 
@@ -177,19 +173,16 @@ static void free_av(av_t * av)
   }
 
   free(av);
-
-  if (unclosed) {
-    caml_acquire_runtime_system();
-    Fail("Freeing unclosed av handler!");
-  }
 }
 
 CAMLprim value ocaml_av_finalize_av(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   caml_release_runtime_system();
   free_av(Av_val(v));
   caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -470,6 +463,8 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   // format_context and the buffer are freed as part of av_close.
   avio_t *avio = Avio_val(_avio);
   
+  caml_register_generational_global_root(&_avio);
+
   caml_release_runtime_system();
   av_freep(avio->avio_context);
   caml_acquire_runtime_system(); 
@@ -484,6 +479,8 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
     caml_remove_generational_global_root(&avio->seek_cb);
 
   free(avio);
+
+  caml_remove_generational_global_root(&_avio);
 
   CAMLreturn(Val_unit);
 }
@@ -2053,8 +2050,7 @@ CAMLprim value ocaml_av_close(value _av)
     av_write_trailer(av->format_context);
     caml_acquire_runtime_system();
   }
-  // Close is called both from the Gc context and here so 
-  // we have to release runtime only here (yes, it does log!)
+
   caml_register_generational_global_root(&_av);
   caml_release_runtime_system();
   close_av(av);

@@ -436,12 +436,14 @@ CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
 CAMLprim value ocaml_avutil_finalize_frame(value v)
 {
   CAMLparam1(v);
+  caml_register_generational_global_root(&v);
 #ifdef HAS_FRAME
   AVFrame *frame = Frame_val(v);
   caml_release_runtime_system();
   av_frame_free(&frame);
   caml_acquire_runtime_system();
 #endif
+  caml_remove_generational_global_root(&v);
   CAMLreturn(Val_unit);
 }
 
@@ -558,6 +560,9 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
 CAMLprim value ocaml_avutil_finalize_subtitle(value v)
 {
   CAMLparam1(v);
+  
+  caml_register_generational_global_root(&v);
+
   struct AVSubtitle *subtitle = Subtitle_val(v);
 
   caml_release_runtime_system();
@@ -565,6 +570,8 @@ CAMLprim value ocaml_avutil_finalize_subtitle(value v)
   caml_acquire_runtime_system();
 
   free(subtitle);
+
+  caml_remove_generational_global_root(&v);
  
   CAMLreturn(Val_unit);
 }
