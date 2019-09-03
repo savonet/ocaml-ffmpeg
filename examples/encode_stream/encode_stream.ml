@@ -33,8 +33,8 @@ let () =
   in
   let fd = Unix.(openfile filename [O_WRONLY; O_CREAT; O_TRUNC] 0o644) in
   let write = Unix.write fd in
-  let seek = Some (Unix.lseek fd) in
-  let output = Av.open_output_stream format {write;seek} in
+  let seek = Unix.lseek fd in
+  let output = Av.open_output_stream format ~seek write in
   let stream = Av.new_audio_stream ~codec_id output in 
 
   for i = 0 to 2000 do

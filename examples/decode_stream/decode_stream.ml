@@ -19,9 +19,9 @@ let () =
   let out_stream = Av.new_audio_stream ~codec_name:Sys.argv.(3) out_file in
 
   let read = Unix.read in_fd in
-  let seek = Some (Unix.lseek in_fd) in
+  let seek = Unix.lseek in_fd in
   let container =
-    Av.open_input_stream {Av.read;seek}
+    Av.open_input_stream ~seek read
   in
   let (_, stream, codec) =
     Av.find_best_audio_stream container

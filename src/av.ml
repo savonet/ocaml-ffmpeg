@@ -43,25 +43,20 @@ let seek_of_int = function
   | 2 -> Unix.SEEK_END
   | _ -> assert false;
 
-type read_callbacks = {
-  read : read;
-  seek : seek option
-}
-
 external ocaml_av_create_io : int -> read option -> write option -> _seek option -> avio = "ocaml_av_create_io"
 
 let _seek_of_seek = function
   | None    -> None
   | Some fn -> Some (fun a m -> fn a (seek_of_int m))
 
-let ocaml_av_create_read_io len {read;seek} =
+let ocaml_av_create_read_io len ?seek read =
  ocaml_av_create_io len (Some read) None (_seek_of_seek seek)
 
 external ocaml_av_open_input_stream : avio -> input container = "ocaml_av_open_input_stream"
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 
-let open_input_stream read_callbacks =
-  let avio = ocaml_av_create_read_io 4096 read_callbacks in
+let open_input_stream ?seek read =
+  let avio = ocaml_av_create_read_io 4096 ?seek read in
   let cleanup () = caml_av_input_io_finalise avio in
   let input =
     ocaml_av_open_input_stream avio
@@ -190,12 +185,7 @@ external open_output : string -> output container = "ocaml_av_open_output"
 
 external ocaml_av_open_output_stream : (output, _) format -> avio -> output container = "ocaml_av_open_output_stream"
 
-type write_callbacks = {
-  write : write;
-  seek : seek option
-}
-
-let open_output_stream format {write;seek} =
+let open_output_stream format ?seek write =
   let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
   let cleanup () = caml_av_input_io_finalise avio in
   let output =

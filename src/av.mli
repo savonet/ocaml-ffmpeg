@@ -40,12 +40,11 @@ val open_input : string -> input container
 val open_input_format : (input, _)format -> input container
 (** [Av.open_input_format format] open the input [format]. @raise Error if the opening failed. *)
 
-type read_callbacks = {
-  read : bytes -> int -> int -> int;
-  seek : (int -> Unix.seek_command -> int) option
-}
+type read = bytes -> int -> int -> int
+type write = bytes -> int -> int -> int
+type seek = int -> Unix.seek_command -> int
 
-val open_input_stream : read_callbacks -> input container
+val open_input_stream : ?seek:seek -> read -> input container
 
 val get_input_duration : ?format:Time_format.t -> input container -> Int64.t
 (** [Av.get_input_duration ~format:fmt input] return the duration of an [input] in the [fmt] time format (in second by default). *)
@@ -160,12 +159,7 @@ val reuse_output : input container -> bool -> unit
 val open_output : string -> output container
 (** [Av.open_output filename] open the output file named [filename]. @raise Error if the opening failed. *)
 
-type write_callbacks = {
-  write: bytes -> int -> int -> int;
-  seek : (int -> Unix.seek_command -> int) option
-}
-
-val open_output_stream : (output, _) format -> write_callbacks -> output container
+val open_output_stream : (output, _) format -> ?seek:seek -> write -> output container
 (** [Av.open_stream callbacks] open the output container with the given callbacks. @raise Error if the opening failed. *)
 
 val set_output_metadata : output container -> (string * string) list -> unit
@@ -177,7 +171,6 @@ val set_metadata : (output, _)stream -> (string * string) list -> unit
 
 val get_output : (output, _)stream -> output container
 (** Return the output container of the output stream. *)
-
 
 val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, audio)stream -> output container -> (output, audio)stream
 (** [Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst] add a new audio stream to the [dst] media file. Parameters [ci], [cn], [cl], [sf], [br], [sr] passed unitarily take precedence over those of the [c] codec. The [c] codec and [tb] time base parameters take precedence over those of the [s] stream. This must be set before starting writing streams. @raise Error if a writing already taken place or if the stream allocation failed. *)
