@@ -19,14 +19,12 @@ let () =
 
   let codec_id = Audio.find_encoder_id Sys.argv.(2) in
   let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
- 
-  let opts, out_sample_rate =
+
+  let out_sample_rate =
     if Sys.argv.(2) = "flac" then
-      [{Avutil.
-        opt_name = "compression_level"; opt_val = `Int 12
-      }], 22050
+      22050
     else
-      [], 44100
+      44100
   in
 
   let rsp = Resampler.create `Mono sample_rate
@@ -44,12 +42,26 @@ let () =
   let write = Unix.write fd in
   let seek = Unix.lseek fd in
 
-  let output_opt =
-    [{Avutil.opt_name = "packetsize"; opt_val = `Int 4096}]
-  in
+  let output_opt = Hashtbl.create 2 in
+  Hashtbl.add output_opt "packetsize" (`Int 4096);
+  Hashtbl.add output_opt "foo" (`String "bla");
 
   let output = Av.open_output_stream ~opts:output_opt ~seek write format in
+
+  let opts = Hashtbl.create 2 in
+  Hashtbl.add opts "lpc_type" (`String "none");
+  Hashtbl.add opts "foo" (`String "bla");
+
   let stream = Av.new_audio_stream ~codec_id ~sample_rate:out_sample_rate ~opts output in 
+
+  assert(Hashtbl.mem opts "foo");
+  if Sys.argv.(2) = "flac" then
+    assert(not (Hashtbl.mem opts "lpc_type"))
+  else
+    assert(Hashtbl.mem opts "lpc_type");
+
+  assert(Hashtbl.mem output_opt "foo");
+  assert(not (Hashtbl.mem output_opt "packetsize"));
 
   for i = 0 to 2000 do
     Array.init frame_size (fun t -> sin(float_of_int(t + (i * frame_size)) *. c))

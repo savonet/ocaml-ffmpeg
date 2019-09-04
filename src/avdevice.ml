@@ -52,28 +52,52 @@ let open_video_input name = Av.open_input_format(find_video_input name)
 let open_default_video_input() =
   Av.open_input_format(get_default_video_input_format())
 
-external open_output_format : (output, _)format -> (string*string) array -> output container = "ocaml_av_open_output_format"
+external open_output_format : (output, _)format -> (string*string) array -> (output container)*(string array) = "ocaml_av_open_output_format"
 
 let _opt_val = function
   | `String s -> s
   | `Int i -> string_of_int i
   | `Float f -> string_of_float f
 
-let mk_opts opts =
-  Array.of_list (List.map (fun {opt_name;opt_val} ->
-    opt_name, _opt_val opt_val) opts)
+let mk_opts = function
+  | None -> [||]
+  | Some opts ->
+    Array.of_list (Hashtbl.fold (fun opt_name opt_val cur ->
+      (opt_name, _opt_val opt_val)::cur) opts [])
 
-let open_audio_output ?(opts=[]) name =
-  open_output_format (find_audio_output name) (mk_opts opts)
+let filter_opts unused = function
+  | None -> ()
+  | Some opts ->
+    Hashtbl.filter_map_inplace (fun k v ->
+      if (Array.mem k unused) then Some v else None) opts
 
-let open_default_audio_output ?(opts=[]) () =
-  open_output_format (get_default_audio_output_format()) (mk_opts opts)
+let open_audio_output ?opts name =
+  let ret, unused =
+    open_output_format (find_audio_output name) (mk_opts opts)
+  in
+  filter_opts unused opts;
+  ret
 
-let open_video_output ?(opts=[]) name =
-  open_output_format (find_video_output name) (mk_opts opts)
+let open_default_audio_output ?opts () =
+  let ret, unused =
+    open_output_format (get_default_audio_output_format()) (mk_opts opts)
+  in
+  filter_opts unused opts;
+  ret
 
-let open_default_video_output ?(opts=[]) () =
-  open_output_format (get_default_video_output_format()) (mk_opts opts)
+let open_video_output ?opts name =
+  let ret, unused =
+    open_output_format (find_video_output name) (mk_opts opts)
+  in
+  filter_opts unused opts;
+  ret
+
+let open_default_video_output ?opts () =
+  let ret, unused =
+    open_output_format (get_default_video_output_format()) (mk_opts opts)
+  in
+  filter_opts unused opts;
+  ret
 
 module App_to_dev = struct
   type message =

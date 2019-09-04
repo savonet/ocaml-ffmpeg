@@ -155,10 +155,10 @@ val reuse_output : input container -> bool -> unit
 
 (** {5 Output} *)
 
-val open_output : ?opts:Avutil.opt list -> string -> output container
+val open_output : ?opts:opts -> string -> output container
 (** [Av.open_output filename] open the output file named [filename]. @raise Error if the opening failed. *)
 
-val open_output_stream : ?opts:Avutil.opt list -> ?seek:seek -> write -> (output, _) format -> output container
+val open_output_stream : ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
 (** [Av.open_stream callbacks] open the output container with the given callbacks. @raise Error if the opening failed. *)
 
 val set_output_metadata : output container -> (string * string) list -> unit
@@ -181,7 +181,7 @@ val new_audio_stream :
   ?codec:audio Avcodec.t ->
   ?time_base:Avutil.rational ->
   ?stream:(_, audio) stream -> 
-  ?opts:(opt list) -> output container -> (output, audio) stream
+  ?opts:opts -> output container -> (output, audio) stream
 (** [Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst] add a new audio stream to the [dst] media file. Parameters [ci], [cn], [cl], [sf], [br], [sr] passed unitarily take precedence over those of the [c] codec. The [c] codec and [tb] time base parameters take precedence over those of the [s] stream. This must be set before starting writing streams. @raise Error if a writing already taken place or if the stream allocation failed. *)
 
 

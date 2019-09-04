@@ -6,10 +6,7 @@ type opt_val = [
   | `Float of float
 ]
 
-type opt = {
-  opt_name: string;
-  opt_val:  opt_val
-}
+type opts = (string, opt_val) Hashtbl.t
 
 (* Line *)
 type input
