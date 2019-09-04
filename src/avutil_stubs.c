@@ -672,4 +672,3 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle)
 
   CAMLreturn(ans);
 }
-

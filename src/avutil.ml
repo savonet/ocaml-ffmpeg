@@ -1,4 +1,16 @@
 
+(* Options *)
+type opt_val = [
+  | `String of string
+  | `Int of int
+  | `Float of float
+]
+
+type opt = {
+  opt_name: string;
+  opt_val:  opt_val
+}
+
 (* Line *)
 type input
 type output

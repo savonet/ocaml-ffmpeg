@@ -5,8 +5,13 @@ open Avutil
 (** {5 Format} *)
 
 module Format : sig
+  val is_option : _ format -> opt -> bool
+  (* Check if options applies to the given format. *)
 
-  val get_input_name : (input, _)format -> string
+  val apply : _ format -> opt -> unit
+  (* Apply option to the given format. *) 
+
+  val get_input_name : (input, _) format -> string
   (** Return the name of the input format *)
 
   val get_input_long_name : (input, _)format -> string
@@ -37,7 +42,7 @@ end
 val open_input : string -> input container
 (** [Av.open_input url] open the input [url] (a file name or http URL). @raise Error if the opening failed. *)
 
-val open_input_format : (input, _)format -> input container
+val open_input_format : (input, _) format -> input container
 (** [Av.open_input_format format] open the input [format]. @raise Error if the opening failed. *)
 
 type read = bytes -> int -> int -> int
@@ -172,15 +177,39 @@ val set_metadata : (output, _)stream -> (string * string) list -> unit
 val get_output : (output, _)stream -> output container
 (** Return the output container of the output stream. *)
 
-val new_audio_stream : ?codec_id:Avcodec.Audio.id -> ?codec_name:string -> ?channel_layout:Channel_layout.t -> ?sample_format:Sample_format.t -> ?bit_rate:int -> ?sample_rate:int -> ?codec:audio Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, audio)stream -> output container -> (output, audio)stream
+val new_audio_stream :
+  ?codec_id:Avcodec.Audio.id ->
+  ?codec_name:string ->
+  ?channel_layout:Channel_layout.t ->
+  ?sample_format:Sample_format.t ->
+  ?bit_rate:int ->
+  ?sample_rate:int ->
+  ?codec:audio Avcodec.t ->
+  ?time_base:Avutil.rational ->
+  ?stream:(_, audio) stream -> output container -> (output, audio) stream
 (** [Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst] add a new audio stream to the [dst] media file. Parameters [ci], [cn], [cl], [sf], [br], [sr] passed unitarily take precedence over those of the [c] codec. The [c] codec and [tb] time base parameters take precedence over those of the [s] stream. This must be set before starting writing streams. @raise Error if a writing already taken place or if the stream allocation failed. *)
 
 
-val new_video_stream : ?codec_id:Avcodec.Video.id -> ?codec_name:string -> ?width:int -> ?height:int -> ?pixel_format:Pixel_format.t -> ?bit_rate:int -> ?frame_rate:int -> ?codec:video Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, video)stream -> output container -> (output, video)stream
+val new_video_stream :
+  ?codec_id:Avcodec.Video.id ->
+  ?codec_name:string ->
+  ?width:int ->
+  ?height:int ->
+  ?pixel_format:Pixel_format.t ->
+  ?bit_rate:int ->
+  ?frame_rate:int ->
+  ?codec:video Avcodec.t ->
+  ?time_base:Avutil.rational ->
+  ?stream: (_, video) stream -> output container -> (output, video) stream
 (** Same as {!Av.new_audio_stream} for video stream. *)
 
 
-val new_subtitle_stream : ?codec_id:Avcodec.Subtitle.id -> ?codec_name:string -> ?codec:subtitle Avcodec.t -> ?time_base:Avutil.rational -> ?stream:(_, subtitle)stream -> output container -> (output, subtitle)stream
+val new_subtitle_stream :
+  ?codec_id:Avcodec.Subtitle.id ->
+  ?codec_name:string ->
+  ?codec:subtitle Avcodec.t ->
+  ?time_base:Avutil.rational ->
+  ?stream: (_, subtitle) stream -> output container -> (output, subtitle)stream
 (** Same as {!Av.new_audio_stream} for subtitle stream. *)
 
 

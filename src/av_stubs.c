@@ -15,6 +15,7 @@
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/audio_fifo.h>
+#include <libavutil/opt.h>
 #include <libswresample/swresample.h>
 #include <libswscale/swscale.h>
 
@@ -77,6 +78,71 @@ typedef struct av_t {
 
 #define Av_val(v) (*(av_t**)Data_custom_val(v))
 
+CAMLprim value ocaml_av_is_format_option(value _av, value _name)
+{
+  CAMLparam2(_av,_name);
+  int ret = 0;
+  av_t *av = Av_val(_av);
+  char *key = malloc(caml_string_length(_name));
+
+  if (!key) caml_raise_out_of_memory();
+
+  memcpy(key, String_val(_name), caml_string_length(_name));
+
+  caml_release_runtime_system();
+  if (av_opt_find(av->format_context, key, NULL, 0, 0) ||
+      (av->format_context->iformat && av->format_context->iformat->priv_class &&
+       av_opt_find(&av->format_context->iformat->priv_class, key, NULL, 0, AV_OPT_SEARCH_FAKE_OBJ)) ||
+      (av->format_context->oformat && av->format_context->oformat->priv_class &&
+       av_opt_find(&av->format_context->oformat->priv_class, key, NULL, 0, AV_OPT_SEARCH_FAKE_OBJ)))
+      ret = 1;
+  caml_acquire_runtime_system();
+
+  free(key);
+
+  CAMLreturn(Val_int(ret));
+}
+
+CAMLprim value ocaml_av_apply_option(value _av, value _name, value _val)
+{
+  CAMLparam3(_av,_name,_val);
+  av_t *av = Av_val(_av);
+  int ret;
+
+  char *key = malloc(caml_string_length(_name));
+
+  if (!key) caml_raise_out_of_memory();
+
+  char *val = malloc(caml_string_length(_val));
+
+  if (!val) {
+    free(key);
+    caml_raise_out_of_memory();
+  }
+
+  memcpy(key, String_val(_name), caml_string_length(_name));
+  memcpy(val, String_val(_name), caml_string_length(_val));
+
+  caml_release_runtime_system();
+  if (av_opt_find(av->format_context, key, NULL, 0, 0))
+    ret = av_opt_set(av->format_context, key, val, 0);
+  else if
+      ((av->format_context->iformat && av->format_context->iformat->priv_class &&
+       av_opt_find(&av->format_context->iformat->priv_class, key, NULL, 0, AV_OPT_SEARCH_FAKE_OBJ)) ||
+       (av->format_context->oformat && av->format_context->oformat->priv_class &&
+        av_opt_find(&av->format_context->oformat->priv_class, key, NULL, 0, AV_OPT_SEARCH_FAKE_OBJ)))
+    ret = av_opt_set(av->format_context->priv_data, key, val, 0);
+  else
+    ret = AVERROR_OPTION_NOT_FOUND;
+  caml_acquire_runtime_system();
+
+  free(key);
+  free(val);
+
+  if (ret < 0) ocaml_avutil_raise_error(ret);
+
+  CAMLreturn(Val_unit);
+}
 
 /***** Stream handler *****/
 
@@ -100,27 +166,27 @@ enum AVMediaType MediaType_val(value v)
 
 static void free_stream(stream_t * stream)
 {
-  if( ! stream) return;
+  if (!stream) return;
   
-  if(stream->codec_context) avcodec_free_context(&stream->codec_context);
+  if (stream->codec_context) avcodec_free_context(&stream->codec_context);
 
-  if(stream->swr_ctx) {
+  if (stream->swr_ctx) {
     swr_free(&stream->swr_ctx);
   }
 
-  if(stream->sws_ctx) {
+  if (stream->sws_ctx) {
     sws_freeContext(stream->sws_ctx);
   }
 
-  if(stream->sw_frame) {
+  if (stream->sw_frame) {
     av_frame_free(&stream->sw_frame);
   }
 
-  if(stream->audio_fifo) {
+  if (stream->audio_fifo) {
     av_audio_fifo_free(stream->audio_fifo);
   }
 
-  if(stream->enc_frame) {
+  if (stream->enc_frame) {
     av_frame_free(&stream->enc_frame);
   }
 
@@ -708,7 +774,7 @@ static inline stream_t *allocate_stream_context(av_t *av, int index, AVCodec *co
   stream->codec_context = avcodec_alloc_context3(codec);
   caml_acquire_runtime_system();
 
-  if( ! stream->codec_context) caml_raise_out_of_memory();
+  if (!stream->codec_context) caml_raise_out_of_memory();
 
   return stream;
 }
@@ -1391,11 +1457,13 @@ static inline stream_t * new_stream(av_t *av, enum AVCodecID codec_id)
   streams[av->format_context->nb_streams] = NULL;
   av->streams = streams;
 
-  stream_t * stream = allocate_stream_context(av, av->format_context->nb_streams, encoder);
-  if ( ! stream) caml_raise_out_of_memory();
+  stream_t *stream = allocate_stream_context(av, av->format_context->nb_streams, encoder);
+  if (!stream) caml_raise_out_of_memory();
+
+  stream->index = av->format_context->nb_streams;
 
   AVStream * avstream = avformat_new_stream(av->format_context, NULL);
-  if( ! avstream) caml_raise_out_of_memory();
+  if (!avstream) caml_raise_out_of_memory();
 
   avstream->id = av->format_context->nb_streams - 1;
 
@@ -1749,26 +1817,8 @@ static inline void write_audio_frame(av_t * av, int stream_index, AVFrame * fram
 {
   int err, fifo_size, frame_size;
 
-  if(av->format_context->nb_streams == 0) {
-    if( ! av->format_context->oformat) Fail("Invalid input found when writting audio frame");
-
-    enum AVCodecID codec_id = av->format_context->oformat->audio_codec;
-
-    caml_release_runtime_system();
-    AVCodec * codec = avcodec_find_encoder(codec_id);
-    caml_acquire_runtime_system();
-
-    enum AVSampleFormat sample_format = (enum AVSampleFormat)frame->format;
-
-    if(codec && codec->sample_fmts) {
-      sample_format = codec->sample_fmts[0];
-    }
-      
-    stream_t * stream = new_audio_stream(av, codec_id, frame->channel_layout,
-                                         sample_format, 192000, frame->sample_rate,
-                                         (AVRational){1, frame->sample_rate});
-    if(!stream && !av->streams) caml_raise_out_of_memory();
-  }
+  if(av->format_context->nb_streams < stream_index) 
+    Fail("Stream index not found!");
 
   stream_t * stream = av->streams[stream_index];
 
@@ -1889,26 +1939,8 @@ static void scale_video_frame(stream_t * stream, AVFrame * frame)
 
 static inline void write_video_frame(av_t * av, int stream_index, AVFrame * frame)
 {
-  if(av->format_context->nb_streams == 0) {
-    if( ! av->format_context->oformat) Fail("Failed to create undefined output format");
-
-    enum AVCodecID codec_id = av->format_context->oformat->video_codec;
-
-    caml_release_runtime_system();
-    AVCodec * codec = avcodec_find_encoder(codec_id);
-    caml_acquire_runtime_system();
-
-    enum AVPixelFormat pix_format = (enum AVPixelFormat)frame->format;
-
-    if(codec && codec->pix_fmts) {
-      pix_format = codec->pix_fmts[0];
-    }
-      
-    new_video_stream(av, av->format_context->oformat->video_codec,
-                     frame->width, frame->height, pix_format,
-                     frame->width * frame->height * 4, 25,
-                     (AVRational){1, 25});
-  }
+  if(av->format_context->nb_streams < stream_index)
+    Fail("Stream index not found!");
 
   if( ! av->streams) Fail("Failed to write in closed output");
 
@@ -1935,6 +1967,10 @@ static inline void write_video_frame(av_t * av, int stream_index, AVFrame * fram
 static inline void write_subtitle_frame(av_t * av, int stream_index, AVSubtitle * subtitle)
 {
   stream_t * stream = av->streams[stream_index];
+
+  if(av->format_context->nb_streams < stream_index)
+    Fail("Stream index not found!");
+
   AVStream * avstream = av->format_context->streams[stream->index];
   AVCodecContext * enc_ctx = stream->codec_context;
   

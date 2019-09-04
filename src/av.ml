@@ -6,6 +6,18 @@ let () = init ()
 
 (* Format *)
 module Format = struct
+  external is_option : _ format -> string -> bool = "ocaml_av_is_format_option"
+  let is_option fmt {opt_name} = is_option fmt opt_name
+
+  external apply : _ format -> string -> string -> unit = "ocaml_av_apply_option"
+  let apply fmt {opt_name;opt_val} = 
+    let opt_val = match opt_val with
+      | `String s -> s
+      | `Int i -> string_of_int i
+      | `Float f -> string_of_float f
+    in
+    apply fmt opt_name opt_val
+
   external get_input_name : (input, _)format -> string = "ocaml_av_input_format_get_name"
   external get_input_long_name : (input, _)format -> string = "ocaml_av_input_format_get_long_name"
 

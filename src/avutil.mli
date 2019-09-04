@@ -1,10 +1,22 @@
 (** Common code shared across all FFmpeg libraries. *)
 
+(* {1 Options } *)
+
+type opt_val = [
+  | `String of string
+  | `Int of int
+  | `Float of float
+]
+
+type opt = {
+  opt_name: string;
+  opt_val:  opt_val
+}
+
 (** {1 Line} *)
 
 type input
 type output
-
 
 (** {1 Container} *)
 
