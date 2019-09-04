@@ -23,7 +23,7 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
   
-  let in_codec_id = Audio.find_id Sys.argv.(2) in
+  let in_codec_id = Audio.find_decoder_id Sys.argv.(2) in
 
   let parser = Audio.create_parser in_codec_id in
   let decoder = Audio.create_decoder in_codec_id in

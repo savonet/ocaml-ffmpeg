@@ -215,7 +215,7 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Audio.find_id cn
+      | Some cn -> Avcodec.Audio.find_encoder_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Audio.get_id cp
         | None -> raise (Error (`Failure "Audio codec undefined"))
@@ -266,7 +266,7 @@ let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rat
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Video.find_id cn
+      | Some cn -> Avcodec.Video.find_encoder_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Video.get_id cp
         | None -> raise (Error (`Failure "Video codec undefined"))
@@ -317,7 +317,7 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec ?time_base ?stream o =
   let ci = match codec_id with
     | Some ci -> ci
     | None -> match codec_name with
-      | Some cn -> Avcodec.Subtitle.find_id cn
+      | Some cn -> Avcodec.Subtitle.find_encoder_id cn
       | None -> match codec with
         | Some cp -> Avcodec.Subtitle.get_id cp
         | None -> raise (Error (`Failure "Subtitle codec undefined"))

@@ -111,7 +111,9 @@ module Audio = struct
 
   external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_audio_codec_id"
+  external find_encoder_id : string -> id = "ocaml_avcodec_find_audio_encoder"
+
+  external find_decoder_id : string -> id = "ocaml_avcodec_find_audio_decoder"
 
   
   external get_supported_channel_layouts : id -> Avutil.Channel_layout.t list = "ocaml_avcodec_get_supported_channel_layouts"
@@ -172,7 +174,9 @@ module Video = struct
 
   external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_video_codec_id"
+  external find_encoder_id : string -> id = "ocaml_avcodec_find_video_encoder"
+
+  external find_decoder_id : string -> id = "ocaml_avcodec_find_video_decoder"
 
   external get_supported_frame_rates : id -> Avutil.rational list = "ocaml_avcodec_get_supported_frame_rates"
   let get_supported_frame_rates id = List.rev(get_supported_frame_rates id)
@@ -219,7 +223,9 @@ module Subtitle = struct
 
   external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_subtitle_codec_id"
+  external find_encoder_id : string -> id = "ocaml_avcodec_find_subtitle_encoder"
+
+  external find_decoder_id : string -> id = "ocaml_avcodec_find_subtitle_decoder"
 
   external get_id : subtitle t -> id = "ocaml_avcodec_parameters_get_subtitle_codec_id"
 end

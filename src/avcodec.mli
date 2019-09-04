@@ -45,8 +45,12 @@ module Audio : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  val find_id : string -> id
-  (** Return the id of a codec from its name.
+  val find_encoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
+      @raise Error if the codec is not found or is not an audio codec. *)
+
+  val find_decoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
       @raise Error if the codec is not found or is not an audio codec. *)
 
   (** Return the list of supported channel layouts of the codec. *)
@@ -106,9 +110,13 @@ module Video : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  val find_id : string -> id
-  (** Return the id of a codec from its name.
-      @raise Error if the codec is not found or is not a video codec. *)
+  val find_encoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
+      @raise Error if the codec is not found or is not an audio codec. *)
+
+  val find_decoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
+      @raise Error if the codec is not found or is not an audio codec. *)
 
   (** Return the list of supported frame rates of the codec. *)
   val get_supported_frame_rates : id -> Avutil.rational list
@@ -163,9 +171,13 @@ module Subtitle : sig
   (** Return the name of the codec. *)
   val get_name : id -> string
 
-  val find_id : string -> id
-  (** Return the id of a codec from its name.
-      @raise Error if the codec is not found or is not a subtitle codec. *)
+  val find_encoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
+      @raise Error if the codec is not found or is not an audio codec. *)
+
+  val find_decoder_id : string -> id
+  (** Return the id of a encoder codec from its name.
+      @raise Error if the codec is not found or is not an audio codec. *)
 
   (** Return the id of the codec. *)
   val get_id : subtitle t -> id
