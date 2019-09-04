@@ -5,12 +5,6 @@ open Avutil
 (** {5 Format} *)
 
 module Format : sig
-  val is_option : _ format -> opt -> bool
-  (* Check if options applies to the given format. *)
-
-  val apply : _ format -> opt -> unit
-  (* Apply option to the given format. *) 
-
   val get_input_name : (input, _) format -> string
   (** Return the name of the input format *)
 
@@ -161,10 +155,10 @@ val reuse_output : input container -> bool -> unit
 
 (** {5 Output} *)
 
-val open_output : string -> output container
+val open_output : ?opts:Avutil.opt list -> string -> output container
 (** [Av.open_output filename] open the output file named [filename]. @raise Error if the opening failed. *)
 
-val open_output_stream : (output, _) format -> ?seek:seek -> write -> output container
+val open_output_stream : ?opts:Avutil.opt list -> ?seek:seek -> write -> (output, _) format -> output container
 (** [Av.open_stream callbacks] open the output container with the given callbacks. @raise Error if the opening failed. *)
 
 val set_output_metadata : output container -> (string * string) list -> unit
@@ -186,7 +180,8 @@ val new_audio_stream :
   ?sample_rate:int ->
   ?codec:audio Avcodec.t ->
   ?time_base:Avutil.rational ->
-  ?stream:(_, audio) stream -> output container -> (output, audio) stream
+  ?stream:(_, audio) stream -> 
+  ?opts:(opt list) -> output container -> (output, audio) stream
 (** [Av.new_audio_stream ~codec_id:ci ~codec_name:cn ~channel_layout:cl ~sample_format:sf ~bit_rate:br ~sample_rate:sr ~codec:c ~time_base:tb ~stream:s dst] add a new audio stream to the [dst] media file. Parameters [ci], [cn], [cl], [sf], [br], [sr] passed unitarily take precedence over those of the [c] codec. The [c] codec and [tb] time base parameters take precedence over those of the [s] stream. This must be set before starting writing streams. @raise Error if a writing already taken place or if the stream allocation failed. *)
 
 

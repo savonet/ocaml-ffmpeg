@@ -52,19 +52,28 @@ let open_video_input name = Av.open_input_format(find_video_input name)
 let open_default_video_input() =
   Av.open_input_format(get_default_video_input_format())
 
-external open_output_format : (output, _)format -> output container = "ocaml_av_open_output_format"
+external open_output_format : (output, _)format -> (string*string) array -> output container = "ocaml_av_open_output_format"
 
-let open_audio_output name = open_output_format(find_audio_output name)
+let _opt_val = function
+  | `String s -> s
+  | `Int i -> string_of_int i
+  | `Float f -> string_of_float f
 
-let open_default_audio_output() =
-  open_output_format(get_default_audio_output_format())
+let mk_opts opts =
+  Array.of_list (List.map (fun {opt_name;opt_val} ->
+    opt_name, _opt_val opt_val) opts)
 
-let open_video_output name = open_output_format(find_video_output name)
+let open_audio_output ?(opts=[]) name =
+  open_output_format (find_audio_output name) (mk_opts opts)
 
-let open_default_video_output() =
-  open_output_format(get_default_video_output_format())
+let open_default_audio_output ?(opts=[]) () =
+  open_output_format (get_default_audio_output_format()) (mk_opts opts)
 
+let open_video_output ?(opts=[]) name =
+  open_output_format (find_video_output name) (mk_opts opts)
 
+let open_default_video_output ?(opts=[]) () =
+  open_output_format (get_default_video_output_format()) (mk_opts opts)
 
 module App_to_dev = struct
   type message =

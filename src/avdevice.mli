@@ -39,16 +39,16 @@ val open_video_input : string -> input container
 val open_default_video_input : unit -> input container
 (** Open the default video input device from its name. @raise Error if the device is not found. *)
 
-val open_audio_output : string -> output container
+val open_audio_output : ?opts:Avutil.opt list -> string -> output container
 (** Open the audio output device from its name. @raise Error if the device is not found. *)
 
-val open_default_audio_output : unit -> output container
+val open_default_audio_output : ?opts:Avutil.opt list -> unit -> output container
 (** Open the default audio output device from its name. @raise Error if the device is not found. *)
 
-val open_video_output : string -> output container
+val open_video_output : ?opts:Avutil.opt list -> string -> output container
 (** Open the video output device from its name. @raise Error if the device is not found. *)
 
-val open_default_video_output : unit -> output container
+val open_default_video_output : ?opts:Avutil.opt list -> unit -> output container
 (** Open the default video output device from its name. @raise Error if the device is not found. *)
 
 

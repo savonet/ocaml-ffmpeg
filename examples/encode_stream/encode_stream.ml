@@ -19,9 +19,18 @@ let () =
 
   let codec_id = Audio.find_encoder_id Sys.argv.(2) in
   let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
+ 
+  let opts, out_sample_rate =
+    if Sys.argv.(2) = "flac" then
+      [{Avutil.
+        opt_name = "compression_level"; opt_val = `Int 12
+      }], 22050
+    else
+      [], 44100
+  in
 
   let rsp = Resampler.create `Mono sample_rate
-      `Stereo ~out_sample_format sample_rate in
+      `Stereo ~out_sample_format out_sample_rate in
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
@@ -34,8 +43,13 @@ let () =
   let fd = Unix.(openfile filename [O_WRONLY; O_CREAT; O_TRUNC] 0o644) in
   let write = Unix.write fd in
   let seek = Unix.lseek fd in
-  let output = Av.open_output_stream format ~seek write in
-  let stream = Av.new_audio_stream ~codec_id output in 
+
+  let output_opt =
+    [{Avutil.opt_name = "packetsize"; opt_val = `Int 4096}]
+  in
+
+  let output = Av.open_output_stream ~opts:output_opt ~seek write format in
+  let stream = Av.new_audio_stream ~codec_id ~sample_rate:out_sample_rate ~opts output in 
 
   for i = 0 to 2000 do
     Array.init frame_size (fun t -> sin(float_of_int(t + (i * frame_size)) *. c))
