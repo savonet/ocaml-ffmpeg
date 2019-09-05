@@ -18,7 +18,7 @@ let () =
       (i, Av.new_audio_stream ~codec_id:`Aac ~codec dst)) in
 
   let ovss = Av.get_video_streams src |> List.map(fun (i, _, codec) ->
-      (i, Av.new_video_stream ~codec_id:`H264 ~codec dst)) in
+      (i, Av.new_video_stream ~codec_id:`Mpeg4 ~codec dst)) in
 
   let osss = Av.get_subtitle_streams src |> List.map(fun (i, _, codec) ->
       (i, Av.new_subtitle_stream ~codec dst)) in

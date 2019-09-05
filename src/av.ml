@@ -223,24 +223,29 @@ let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 
 let get_output s = s.container
 
-external new_audio_stream : output container -> Avcodec.Audio.id -> Channel_layout.t -> Sample_format.t -> int -> int -> Avutil.rational -> (string*string) array -> int*(string array) = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
+external new_audio_stream : output container -> string -> Channel_layout.t -> Sample_format.t -> int -> int -> Avutil.rational -> (string*string) array -> int*(string array) = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
 
 let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_rate ?sample_rate ?codec ?time_base ?stream ?opts o =
 
   let codec = match codec with
     | Some _ -> codec
     | None -> match stream with
-      | Some stm -> Some(get_codec stm)
+      | Some stm -> Some (get_codec stm)
       | None -> codec
   in
   let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Audio.find_encoder_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Audio.get_id cp
+    | Some _ -> codec_id
+    | None -> match codec with
+      | Some cp -> Some (Avcodec.Audio.get_id cp)
+      | None -> codec_id
+  in
+  let cn = match codec_name with
+    | Some cn -> cn
+    | None -> match ci with
+        | Some c -> Avcodec.Audio.get_name c
         | None -> raise (Error (`Failure "Audio codec undefined"))
   in
+  let ci = Avcodec.Audio.find_encoder_id cn in
   let cl = match channel_layout with
     | Some cl -> cl
     | None -> match codec with
@@ -272,29 +277,34 @@ let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_r
       | None -> {num = 1; den = sr}
   in
   let ret, unused =
-    new_audio_stream o ci cl sf br sr tb (mk_opts opts)
+    new_audio_stream o cn cl sf br sr tb (mk_opts opts)
   in
   filter_opts unused opts;
   mk_stream o ret
 
-external new_video_stream : output container -> Avcodec.Video.id -> int -> int -> Pixel_format.t -> int -> int -> Avutil.rational -> int = "ocaml_av_new_video_stream_byte" "ocaml_av_new_video_stream"
+external new_video_stream : output container -> string -> int -> int -> Pixel_format.t -> int -> int -> Avutil.rational -> int = "ocaml_av_new_video_stream_byte" "ocaml_av_new_video_stream"
 
 let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rate ?(frame_rate=25) ?codec ?time_base ?stream o =
 
   let codec = match codec with
     | Some _ -> codec
     | None -> match stream with
-      | Some stm -> Some(get_codec stm)
+      | Some stm -> Some (get_codec stm)
       | None -> codec
   in
-  let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Video.find_encoder_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Video.get_id cp
-        | None -> raise (Error (`Failure "Video codec undefined"))
+  let codec_id = match codec_id with
+    | Some _ -> codec_id
+    | None -> match codec with
+      | Some cp -> Some (Avcodec.Video.get_id cp)
+      | None -> codec_id
   in
+  let cn = match codec_name with
+    | Some cn -> cn
+    | None -> match codec_id with
+       | Some ci -> Avcodec.Video.get_name ci
+       | None -> raise (Error (`Failure "Video codec undefined"))
+  in
+  let ci = Avcodec.Video.find_encoder_id cn in
   let w = match width with
     | Some w -> w
     | None -> match codec with
@@ -325,26 +335,30 @@ let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rat
       | Some stm -> get_time_base stm
       | None -> {num = 1; den = frame_rate}
   in
-  mk_stream o (new_video_stream o ci w h pf br frame_rate tb)
+  mk_stream o (new_video_stream o cn w h pf br frame_rate tb)
 
 
-external new_subtitle_stream : output container -> Avcodec.Subtitle.id -> Avutil.rational -> int = "ocaml_av_new_subtitle_stream"
+external new_subtitle_stream : output container -> string -> Avutil.rational -> int = "ocaml_av_new_subtitle_stream"
 
 let new_subtitle_stream ?codec_id ?codec_name ?codec ?time_base ?stream o =
 
   let codec = match codec with
     | Some _ -> codec
     | None -> match stream with
-      | Some stm -> Some(get_codec stm)
+      | Some stm -> Some (get_codec stm)
       | None -> codec
   in
-  let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Subtitle.find_encoder_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Subtitle.get_id cp
-        | None -> raise (Error (`Failure "Subtitle codec undefined"))
+  let codec_id = match codec_id with
+    | Some _ -> codec_id
+    | None -> match codec with
+      | Some cp -> Some (Avcodec.Subtitle.get_id cp)
+      | None -> codec_id
+  in
+  let cn = match codec_name with
+    | Some cn -> cn
+    | None -> match codec_id with
+       | Some ci -> Avcodec.Subtitle.get_name ci
+       | None -> raise (Error (`Failure "Subtitle codec undefined"))
   in
   let tb = match time_base with
     | Some tb -> tb
@@ -352,7 +366,7 @@ let new_subtitle_stream ?codec_id ?codec_name ?codec ?time_base ?stream o =
       | Some stm -> get_time_base stm
       | None -> Subtitle.time_base()
   in
-  mk_stream o (new_subtitle_stream o ci tb)
+  mk_stream o (new_subtitle_stream o cn tb)
 
 
 external write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit = "ocaml_av_write_stream_packet"

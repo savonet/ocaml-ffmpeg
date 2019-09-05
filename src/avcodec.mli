@@ -39,7 +39,7 @@ end
 
 (** Audio codecs. *)
 module Audio : sig
-  (** Audio codec ids *)
+  (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and libfdk_aac *)
   type id = Codec_id.audio
 
   (** Return the name of the codec. *)
@@ -104,7 +104,7 @@ end
 
 (** Video codecs. *)
 module Video : sig
-  (** Video codec ids *)
+  (** Video codec ids. Careful: different codecs share the same ID, e.g. aac and libfdk_aac *)
   type id = Codec_id.video
 
   (** Return the name of the codec. *)
@@ -165,7 +165,7 @@ end
 
 (** Subtitle codecs. *)
 module Subtitle : sig
-  (** Subtitle codec ids *)
+  (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac and libfdk_aac *)
   type id = Codec_id.subtitle
 
   (** Return the name of the codec. *)

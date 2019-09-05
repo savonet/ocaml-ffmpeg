@@ -117,10 +117,10 @@ static struct custom_operations codec_parameters_ops =
 
 void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue)
 {
-  if( ! src) Fail( "Failed to get codec parameters");
+  if (!src) Fail( "Failed to get codec parameters");
 
   caml_release_runtime_system();
-  AVCodecParameters * dst = avcodec_parameters_alloc();
+  AVCodecParameters *dst = avcodec_parameters_alloc();
   caml_acquire_runtime_system();
 
   if( ! dst) caml_raise_out_of_memory();
@@ -760,7 +760,7 @@ CAMLprim value ocaml_avcodec_flush_encoder(value _ctx) {
 static enum AVCodecID find_encoder_id(const char *name)
 {
   caml_release_runtime_system();
-  AVCodec * codec = avcodec_find_encoder_by_name(name);
+  AVCodec *codec = avcodec_find_encoder_by_name(name);
   caml_acquire_runtime_system();  
 
   if (!codec) ocaml_avutil_raise_error(AVERROR_ENCODER_NOT_FOUND);
@@ -771,7 +771,7 @@ static enum AVCodecID find_encoder_id(const char *name)
 static enum AVCodecID find_decoder_id(const char *name)
 {
   caml_release_runtime_system();
-  AVCodec * codec = avcodec_find_decoder_by_name(name);
+  AVCodec *codec = avcodec_find_decoder_by_name(name);
   caml_acquire_runtime_system();
 
   if (!codec) ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
