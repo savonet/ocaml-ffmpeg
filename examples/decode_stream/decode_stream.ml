@@ -16,19 +16,20 @@ let () =
   
   let in_fd = Unix.openfile Sys.argv.(1) [Unix.O_RDONLY] 0 in
   let out_file = Av.open_output Sys.argv.(2) in
-  let out_stream = Av.new_audio_stream ~codec_name:Sys.argv.(3) out_file in
+  let codec = Avcodec.Audio.find_encoder Sys.argv.(3) in
+  let out_stream = Av.new_audio_stream ~codec out_file in
 
   let read = Unix.read in_fd in
   let seek = Unix.lseek in_fd in
   let container =
     Av.open_input_stream ~seek read
   in
-  let (_, stream, codec) =
+  let (_, stream, params) =
     Av.find_best_audio_stream container
   in
-  let codec_id = Avcodec.Audio.get_id codec in
+  let codec_id = Avcodec.Audio.get_params_id params in
   let sample_format =
-    match Avcodec.Audio.get_sample_format codec with
+    match Avcodec.Audio.get_sample_format params with
       | `Dbl -> "dbl"
       | `Dblp -> "dblp"
       | `Flt -> "flt"
@@ -43,9 +44,9 @@ let () =
       | `U8 -> "u8"
       | `U8p -> "u8p"
   in
-  Printf.printf "Detected codec: %s, %dHz, %d channels, %s\n%!"
-     (Avcodec.Audio.get_name codec_id) (Avcodec.Audio.get_sample_rate codec)
-     (Avcodec.Audio.get_nb_channels codec) sample_format;
+  Printf.printf "Detected format: %s, %dHz, %d channels, %s\n%!"
+     (Avcodec.Audio.string_of_id codec_id) (Avcodec.Audio.get_sample_rate params)
+     (Avcodec.Audio.get_nb_channels params) sample_format;
   let rec f () =
     try
       Av.write_frame out_stream (Av.read_frame stream);

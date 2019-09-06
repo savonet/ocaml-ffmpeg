@@ -117,6 +117,9 @@ module Channel_layout : sig
   (** Channel layout formats. *)
   type t = Channel_layout.t
 
+  (* Return a description of the channel layout. *)
+  val get_description : ?channels:int -> t -> string
+
   (** Return the number of channels in the channel layout. *)
   val get_nb_channels : t -> int
 
@@ -132,6 +135,9 @@ module Sample_format : sig
 
   (** Return the name of the sample format. *)
   val get_name : t -> string
+
+  (** Return the internal ID of the sample format. *)
+  val get_id : t -> int
 end
 
 

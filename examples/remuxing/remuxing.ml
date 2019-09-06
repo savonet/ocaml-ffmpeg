@@ -14,13 +14,30 @@ let () =
   let dst = Av.open_output Sys.argv.(2) in
 
   let oass = Av.get_audio_streams src |> List.map (fun (i, stream, _) ->
-      (i, Av.new_audio_stream ~stream dst)) in
+      let params = Av.get_codec_params stream in
+      let id = Avcodec.Audio.get_params_id params in
+      let codec = Avcodec.Audio.find_encoder
+        (Avcodec.Audio.string_of_id id)
+      in
+      let opts = Av.mk_audio_opts ~params () in
+      (i, Av.new_audio_stream ~codec ~opts dst)) in
   
   let ovss = Av.get_video_streams src |> List.map (fun (i, stream, _) ->
-      (i, Av.new_video_stream ~stream dst)) in
+      let params = Av.get_codec_params stream in
+      let id = Avcodec.Video.get_params_id params in
+      let codec = Avcodec.Video.find_encoder
+        (Avcodec.Video.string_of_id id)
+      in
+      let opts = Av.mk_video_opts ~params () in
+      (i, Av.new_video_stream ~codec ~opts dst)) in
   
   let osss = Av.get_subtitle_streams src |> List.map (fun (i, stream, _) ->
-      (i, Av.new_subtitle_stream ~stream dst)) in
+      let params = Av.get_codec_params stream in
+      let id = Avcodec.Subtitle.get_params_id params in
+      let codec = Avcodec.Subtitle.find_encoder
+        (Avcodec.Subtitle.string_of_id id)
+      in
+      (i, Av.new_subtitle_stream ~codec dst)) in
 
   src |> Av.iter_input_packet
     ~audio:(fun i pkt -> Av.write_packet(List.assoc i oass) pkt)

@@ -8,11 +8,15 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
   
-  let _, istream, codec = Av.open_input Sys.argv.(1)
+  let _, istream, params = Av.open_input Sys.argv.(1)
                           |> Av.find_best_audio_stream in
 
+  let codec = Avcodec.Audio.find_encoder "aac" in
+
+  let opts = Av.mk_audio_opts ~params () in
+
   let ostream = Av.open_output Sys.argv.(2)
-           |> Av.new_audio_stream ~codec_id:`Aac ~codec in
+           |> Av.new_audio_stream ~codec ~opts in
 
   istream |> Av.iter_frame (Av.write_frame ostream);
 

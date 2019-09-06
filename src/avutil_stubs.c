@@ -322,6 +322,17 @@ CAMLprim value ocaml_avutil_time_base()
 }
 
 /**** Channel layout ****/
+CAMLprim value ocaml_avutil_get_channel_layout_description(value _channel_layout, value channels)
+{
+  CAMLparam1(_channel_layout);
+  char buf[1024];
+  uint64_t channel_layout = ChannelLayout_val(_channel_layout);
+
+  av_get_channel_layout_string(buf, sizeof(buf), Int_val(channels), channel_layout);
+
+  CAMLreturn(caml_copy_string(buf));
+}
+
 CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout)
 {
   CAMLparam1(_channel_layout);
@@ -391,6 +402,11 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avutil_get_sample_fmt_id(value _sample_fmt)
+{
+  CAMLparam1(_sample_fmt);
+  CAMLreturn(Val_int(SampleFormat_val(_sample_fmt)));
+}
 
 /***** AVPixelFormat *****/
 CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)

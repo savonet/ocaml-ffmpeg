@@ -17,8 +17,8 @@ let () =
   
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in let frame_size = 512 in
 
-  let codec_id = Audio.find_encoder_id Sys.argv.(2) in
-  let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
+  let codec = Audio.find_encoder Sys.argv.(2) in
+  let out_sample_format = Audio.find_best_sample_format codec `Dbl in
 
   let out_sample_rate =
     if Sys.argv.(2) = "flac" then
@@ -48,11 +48,11 @@ let () =
 
   let output = Av.open_output_stream ~opts:output_opt ~seek write format in
 
-  let opts = Hashtbl.create 2 in
+  let opts = Av.mk_audio_opts ~channels:2 ~sample_rate:out_sample_rate () in
   Hashtbl.add opts "lpc_type" (`String "none");
   Hashtbl.add opts "foo" (`String "bla");
 
-  let stream = Av.new_audio_stream ~codec_id ~sample_rate:out_sample_rate ~opts output in 
+  let stream = Av.new_audio_stream ~codec ~sample_format:out_sample_format ~opts output in 
 
   assert(Hashtbl.mem opts "foo");
   if Sys.argv.(2) = "flac" then

@@ -1423,22 +1423,10 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags
   CAMLreturn(Val_unit);
 }
 
-static inline stream_t *new_stream(av_t *av, value _codec_name)
+static inline stream_t *new_stream(av_t *av, AVCodec *codec)
 {
   if(!av->format_context) Fail("Failed to add stream to closed output");
   if(av->header_written) Fail("Failed to create new stream : header already written");
-
-  char *codec_name = strndup(String_val(_codec_name), caml_string_length(_codec_name));
-  
-  if (!codec_name) caml_raise_out_of_memory();
-
-  caml_release_runtime_system();
-  AVCodec *encoder = avcodec_find_encoder_by_name(codec_name);
-  caml_acquire_runtime_system();
-
-  free(codec_name);
-
-  if (!encoder) Fail("Failed to find %s encoder", String_val(_codec_name));
 
   // Allocate streams array
   size_t streams_size = sizeof(stream_t*) * (av->format_context->nb_streams + 1);
@@ -1448,9 +1436,9 @@ static inline stream_t *new_stream(av_t *av, value _codec_name)
   streams[av->format_context->nb_streams] = NULL;
   av->streams = streams;
 
-  stream_t *stream = allocate_stream_context(av, av->format_context->nb_streams, encoder);
+  stream_t *stream = allocate_stream_context(av, av->format_context->nb_streams, codec);
 
-  AVStream * avstream = avformat_new_stream(av->format_context, encoder);
+  AVStream * avstream = avformat_new_stream(av->format_context, codec);
   if (!avstream) caml_raise_out_of_memory();
 
   avstream->id = av->format_context->nb_streams - 1;
@@ -1458,50 +1446,17 @@ static inline stream_t *new_stream(av_t *av, value _codec_name)
   return stream;
 }
 
-static inline void init_stream_encoder(av_t *av, stream_t *stream, AVDictionary **options)
+static inline void init_stream_encoder(av_t *av, stream_t *stream, value _opts, value *unused)
 {
   AVCodecContext *enc_ctx = stream->codec_context;
-
-  // Some formats want stream headers to be separate.
-  if (av->format_context->oformat->flags & AVFMT_GLOBALHEADER)
-    enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-
-  caml_release_runtime_system();
-  int ret = avcodec_open2(enc_ctx, enc_ctx->codec, options);
-
-  if (ret < 0) {
-    if (options) av_dict_free(options);
-    caml_acquire_runtime_system();
-    ocaml_avutil_raise_error(ret);
-  }
-
-  AVStream *avstream = av->format_context->streams[stream->index];
-  avstream->time_base = enc_ctx->time_base;
-  
-  ret = avcodec_parameters_from_context(avstream->codecpar, enc_ctx);
-
-  caml_acquire_runtime_system();
-}
-
-static inline stream_t *new_audio_stream(av_t *av, value _codec_name, uint64_t channel_layout,
-                                         enum AVSampleFormat sample_fmt, int bit_rate, int sample_rate, AVRational time_base,
-                                         value _opts, value *unused)
-{
-  stream_t * stream = new_stream(av, _codec_name);
-
-  AVCodecContext *enc_ctx = stream->codec_context;
-
-  enc_ctx->bit_rate = bit_rate;
-  enc_ctx->sample_rate = sample_rate;
-  enc_ctx->channel_layout = channel_layout;
-  enc_ctx->channels = av_get_channel_layout_nb_channels(channel_layout);
-  enc_ctx->sample_fmt = sample_fmt;
-  enc_ctx->time_base = time_base;
-
   AVDictionary *options = NULL;
   char *key, *val;
   int len = Wosize_val(_opts);
   int i;
+
+  // Some formats want stream headers to be separate.
+  if (av->format_context->oformat->flags & AVFMT_GLOBALHEADER)
+    enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
@@ -1510,10 +1465,14 @@ static inline stream_t *new_audio_stream(av_t *av, value _codec_name, uint64_t c
     av_dict_set(&options, key, val, 0);
   }
 
-  init_stream_encoder(av, stream, &options);
+  caml_release_runtime_system();
+
+  int ret = avcodec_open2(enc_ctx, enc_ctx->codec, &options);
 
   // Return unused keys
   int count = av_dict_count(options);
+
+  caml_acquire_runtime_system();
 
   *unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1522,10 +1481,34 @@ static inline stream_t *new_audio_stream(av_t *av, value _codec_name, uint64_t c
     Store_field(*unused,i,caml_copy_string(entry->key));
   }
 
+  caml_release_runtime_system();
+
   av_dict_free(&options);
 
+  if (ret < 0) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  AVStream *avstream = av->format_context->streams[stream->index];
+  avstream->time_base = enc_ctx->time_base;
+  
+
+  caml_acquire_runtime_system();
+}
+
+static inline stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt, AVCodec *codec, value _opts, value *unused)
+{
+  stream_t *stream = new_stream(av, codec);
+
+  AVCodecContext *enc_ctx = stream->codec_context;
+
+  enc_ctx->sample_fmt = sample_fmt;
+
+  init_stream_encoder(av, stream, _opts, unused);
+
   if (enc_ctx->frame_size > 0
-      || ! (enc_ctx->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
+      || !(enc_ctx->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
     caml_release_runtime_system();
 
     // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
@@ -1558,20 +1541,13 @@ static inline stream_t *new_audio_stream(av_t *av, value _codec_name, uint64_t c
   return stream;
 }
 
-CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_name, value _channel_layout, value _sample_fmt, value _bit_rate, value _sample_rate, value _time_base, value _opts)
+CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt, value _codec, value _opts)
 {
-  CAMLparam5(_av, _audio_codec_name, _channel_layout, _sample_fmt, _time_base);
-  CAMLxparam1(_opts);
+  CAMLparam2(_av, _opts);
   CAMLlocal2(ans, unused);
+  AVCodec *codec = (AVCodec *)_codec;
 
-  stream_t * stream = new_audio_stream(Av_val(_av),
-                                       _audio_codec_name,
-                                       ChannelLayout_val(_channel_layout),
-                                       SampleFormat_val(_sample_fmt),
-                                       Int_val(_bit_rate),
-                                       Int_val(_sample_rate),
-                                       rational_of_value(_time_base),
-                                       _opts, &unused);
+  stream_t * stream = new_audio_stream(Av_val(_av),Int_val(_sample_fmt), codec,_opts,&unused);
 
   ans = caml_alloc_tuple(2);
   Field(ans, 0) = Val_int(stream->index);
@@ -1580,78 +1556,63 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _audio_codec_name, val
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_new_audio_stream_byte(value *argv, int argn)
+static inline stream_t *new_video_stream(av_t *av, AVCodec *codec, int w, int h, value _opts, value *unused)
 {
-  return ocaml_av_new_audio_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
-}
-
-
-static inline stream_t * new_video_stream(av_t *av, value _codec_name, int width, int height, enum AVPixelFormat pix_fmt, int bit_rate, int frame_rate, AVRational time_base)
-{
-  stream_t * stream = new_stream(av, _codec_name);
-  if( ! stream) return NULL;
+  stream_t *stream = new_stream(av, codec);
+  if (!stream) return NULL;
   
   AVCodecContext * enc_ctx = stream->codec_context;
 
-  enc_ctx->bit_rate = bit_rate;
-  enc_ctx->width = width;
-  enc_ctx->height = height;
-  enc_ctx->pix_fmt = pix_fmt;
-  enc_ctx->time_base = time_base;
-  enc_ctx->framerate = (AVRational){frame_rate, 1};
- 
-  init_stream_encoder(av, stream, NULL);
+printf("w: %d. h: %d\n", w, h); fflush(stdout);
+  enc_ctx->width = w;
+  enc_ctx->height = h;
+
+  init_stream_encoder(av, stream, _opts, unused);
 
   return stream;
 }
 
-CAMLprim value ocaml_av_new_video_stream(value _av, value _video_codec_name, value _width, value _height, value _pix_fmt, value _bit_rate, value _frame_rate, value _time_base)
+CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _w, value _h, value _opts)
 {
-  CAMLparam4(_av, _video_codec_name, _pix_fmt, _time_base);
+  CAMLparam2(_av, _opts);
+  CAMLlocal2(ans, unused);
+  AVCodec *codec = (AVCodec *)_codec;
 
-  stream_t * stream = new_video_stream(
-                                       Av_val(_av),
-                                       _video_codec_name,
-                                       Int_val(_width),
-                                       Int_val(_height),
-                                       PixelFormat_val(_pix_fmt),
-                                       Int_val(_bit_rate),
-                                       Int_val(_frame_rate),
-                                       rational_of_value(_time_base));
+  stream_t * stream = new_video_stream(Av_val(_av),codec,Int_val(_w),Int_val(_h),_opts,&unused);
 
-  CAMLreturn(Val_int(stream->index));
+  ans = caml_alloc_tuple(2);
+  Field(ans, 0) = Val_int(stream->index);
+  Field(ans, 1) = unused;
+
+  CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_new_video_stream_byte(value *argv, int argn)
+static inline stream_t *new_subtitle_stream(av_t *av, AVCodec *codec, value _opts, value *unused)
 {
-  return ocaml_av_new_video_stream(argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6], argv[7]);
-}
-
-
-static inline stream_t * new_subtitle_stream(av_t *av, value _codec_name, AVRational time_base)
-{
-  stream_t * stream = new_stream(av, _codec_name);
-  if( ! stream) return NULL;
+  stream_t * stream = new_stream(av, codec);
+  if (!stream) return NULL;
 
   int ret = subtitle_header_default(stream->codec_context);
   if (ret < 0) ocaml_avutil_raise_error(ret);
 
-  stream->codec_context->time_base = time_base;
-
-  init_stream_encoder(av, stream, NULL);
+  init_stream_encoder(av, stream, _opts, unused);
 
   return stream;
 }
 
-CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _subtitle_codec_name, value _time_base)
+CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec, value _opts)
 {
-  CAMLparam3(_av, _subtitle_codec_name, _time_base);
+  CAMLparam2(_av, _opts);
+  CAMLlocal2(ans, unused);
+  AVCodec *codec = (AVCodec *)_codec;
 
-  stream_t * stream = new_subtitle_stream(Av_val(_av),
-                                          _subtitle_codec_name,
-                                          rational_of_value(_time_base));
+  stream_t * stream = new_subtitle_stream(Av_val(_av),codec,_opts,&unused);
 
-  CAMLreturn(Val_int(stream->index));
+  ans = caml_alloc_tuple(2);
+  Field(ans, 0) = Val_int(stream->index);
+  Field(ans, 1) = unused;
+
+  CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet)

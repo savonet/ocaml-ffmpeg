@@ -17,9 +17,9 @@ let () =
   
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in let frame_size = 512 in
 
-  let codec_id = Audio.find_encoder_id Sys.argv.(2) in
-  let encoder = Audio.create_encoder codec_id in
-  let out_sample_format = Audio.find_best_sample_format codec_id `Dbl in
+  let codec = Audio.find_encoder Sys.argv.(2) in
+  let encoder = Audio.create_encoder codec in
+  let out_sample_format = Audio.find_best_sample_format codec `Dbl in
 
   let rsp = Resampler.create `Mono sample_rate
       `Stereo ~out_sample_format sample_rate in

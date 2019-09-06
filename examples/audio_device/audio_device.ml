@@ -22,12 +22,14 @@ let () =
 
   let (_, ias, _) = Av.find_best_audio_stream src in
 
+  let codec = Avcodec.Audio.find_encoder "flac" in
+
   let dst = try
       if Array.length Sys.argv < 3 then Avdevice.open_default_audio_output()
        else Avdevice.open_audio_output Sys.argv.(2)
     with Avutil.Error _ ->
       Av.open_output Sys.argv.(2)
-      |> Av.new_audio_stream ~codec_id:`Flac |> Av.get_output in
+      |> Av.new_audio_stream ~codec|> Av.get_output in
 
   Avdevice.Dev_to_app.(set_control_message_callback (function
       | Volume_level_changed v ->
