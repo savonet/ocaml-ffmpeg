@@ -187,6 +187,7 @@ val new_audio_stream : ?opts:opts -> ?sample_format:Avutil.Sample_format.t -> co
 
 val mk_video_opts :
   ?pixel_format:Avutil.Pixel_format.t ->
+  ?size:(int*int) ->
   ?bit_rate:int ->
   ?frame_rate:int ->
   ?time_base:Avutil.rational ->
@@ -194,7 +195,7 @@ val mk_video_opts :
   ?stream:(_, video) stream -> unit -> opts
 (** Utility to convert video params to options. *)
 
-val new_video_stream : ?opts:opts -> size:(int*int) -> codec:[`Encoder] Avcodec.Video.t -> output container -> (output, video) stream
+val new_video_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Video.t -> output container -> (output, video) stream
 (** Add a new video stream to the given container. *)
 
 val mk_subtitle_opts :

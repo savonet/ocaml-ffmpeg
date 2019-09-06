@@ -1556,29 +1556,27 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt, value _co
   CAMLreturn(ans);
 }
 
-static inline stream_t *new_video_stream(av_t *av, AVCodec *codec, int w, int h, value _opts, value *unused)
+static inline stream_t *new_video_stream(av_t *av, AVCodec *codec, value _opts, value *unused)
 {
   stream_t *stream = new_stream(av, codec);
   if (!stream) return NULL;
   
   AVCodecContext * enc_ctx = stream->codec_context;
 
-printf("w: %d. h: %d\n", w, h); fflush(stdout);
-  enc_ctx->width = w;
-  enc_ctx->height = h;
-
   init_stream_encoder(av, stream, _opts, unused);
+
+printf("c size: %dx%d\n", enc_ctx->width, enc_ctx->height); fflush(stdout);
 
   return stream;
 }
 
-CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _w, value _h, value _opts)
+CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _opts)
 {
   CAMLparam2(_av, _opts);
   CAMLlocal2(ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
 
-  stream_t * stream = new_video_stream(Av_val(_av),codec,Int_val(_w),Int_val(_h),_opts,&unused);
+  stream_t * stream = new_video_stream(Av_val(_av),codec,_opts,&unused);
 
   ans = caml_alloc_tuple(2);
   Field(ans, 0) = Val_int(stream->index);

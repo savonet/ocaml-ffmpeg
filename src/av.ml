@@ -303,7 +303,7 @@ let new_audio_stream ?opts ?sample_format ~codec container =
   filter_opts unused opts;
   mk_stream container ret
 
-let mk_video_opts ?pixel_format ?bit_rate ?frame_rate ?time_base ?params ?stream () =
+let mk_video_opts ?pixel_format ?size ?bit_rate ?frame_rate ?time_base ?params ?stream () =
   let if_opt v d =
     match v with
       | None -> Some d
@@ -317,13 +317,14 @@ let mk_video_opts ?pixel_format ?bit_rate ?frame_rate ?time_base ?params ?stream
           Some (get_codec_params s)
       | _ -> None
   in
-  let pixel_format, bit_rate =
+  let pixel_format, bit_rate, size =
     match params with
       | None ->
-          pixel_format, bit_rate
+          pixel_format, bit_rate, size
       | Some p ->
           if_opt pixel_format (Avcodec.Video.get_pixel_format p),
-          if_opt bit_rate (Avcodec.Video.get_bit_rate p)
+          if_opt bit_rate (Avcodec.Video.get_bit_rate p),
+          if_opt size (Avcodec.Video.get_width p, Avcodec.Video.get_height p)
   in
   let frame_rate =
     match frame_rate with
@@ -340,14 +341,16 @@ let mk_video_opts ?pixel_format ?bit_rate ?frame_rate ?time_base ?params ?stream
       (`String (Pixel_format.to_string pf)));
   on_opt bit_rate (fun br ->
     Hashtbl.add opts "b" (`Int br));
+  on_opt size (fun (w,h) ->
+    Hashtbl.add opts "size"
+      (`String (Printf.sprintf "%dx%d" w h)));
   opts
 
-external new_video_stream : output container -> [`Encoder] Avcodec.Video.t -> int -> int -> (string*string) array -> int*(string array) = "ocaml_av_new_video_stream"
+external new_video_stream : output container -> [`Encoder] Avcodec.Video.t -> (string*string) array -> int*(string array) = "ocaml_av_new_video_stream"
 
-let new_video_stream ?opts ~size ~codec container =
-  let w, h = size in
+let new_video_stream ?opts ~codec container =
   let ret, unused =
-    new_video_stream container codec w h (mk_opts opts)
+    new_video_stream container codec (mk_opts opts)
   in
   filter_opts unused opts;
   mk_stream container ret
