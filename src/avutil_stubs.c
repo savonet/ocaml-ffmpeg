@@ -342,7 +342,17 @@ CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels)
 {
   CAMLparam1(_nb_channels);
-  CAMLreturn(Val_ChannelLayout(av_get_default_channel_layout(Int_val(_nb_channels))));
+  int64_t ret = av_get_default_channel_layout(Int_val(_nb_channels));
+
+  if (ret == 0) caml_raise_not_found(); 
+
+  CAMLreturn(Val_ChannelLayout(ret));
+}
+
+CAMLprim value ocaml_avutil_get_channel_layout_id(value _channel_layout)
+{
+  CAMLparam1(_channel_layout);
+  CAMLreturn(Val_int(ChannelLayout_val(_channel_layout)));
 }
 
 
@@ -388,6 +398,24 @@ enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf)
   return CAML_BA_KIND_MASK;
 }
 
+CAMLprim value ocaml_avutil_find_sample_fmt(value _name)
+{
+  CAMLparam1(_name);
+  CAMLlocal1(ans);
+  char *name = strndup(String_val(_name), caml_string_length(_name));
+  if (!name) caml_raise_out_of_memory();
+
+  caml_release_runtime_system();
+  enum AVSampleFormat ret = av_get_sample_fmt(name);
+  caml_acquire_runtime_system();
+
+  free(name);
+
+  if (ret == AV_SAMPLE_FMT_NONE) caml_raise_not_found();
+
+  CAMLreturn(Val_SampleFormat(ret));
+}
+
 CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 {
   CAMLparam1(_sample_fmt);
@@ -406,6 +434,16 @@ CAMLprim value ocaml_avutil_get_sample_fmt_id(value _sample_fmt)
 {
   CAMLparam1(_sample_fmt);
   CAMLreturn(Val_int(SampleFormat_val(_sample_fmt)));
+}
+
+CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id)
+{
+  CAMLparam0();
+  value ret = Val_SampleFormat(Int_val(_id));
+
+  if (ret == VALUE_NOT_FOUND) caml_raise_not_found();
+
+  CAMLreturn(ret);
 }
 
 /***** AVPixelFormat *****/

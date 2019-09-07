@@ -168,6 +168,7 @@ module Channel_layout = struct
 
   external get_nb_channels : t -> int = "ocaml_avutil_get_channel_layout_nb_channels"
   external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
+  external get_id : t -> int = "ocaml_avutil_get_channel_layout_id"
 end
 
 module Sample_format = struct
@@ -175,6 +176,8 @@ module Sample_format = struct
 
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
   external get_id : t -> int = "ocaml_avutil_get_sample_fmt_id"
+  external find : string -> t = "ocaml_avutil_find_sample_fmt"
+  external find_id : int -> t = "ocaml_avutil_find_sample_fmt_from_id"
 end
 
 module Video = struct

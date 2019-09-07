@@ -1492,9 +1492,12 @@ static inline void init_stream_encoder(av_t *av, stream_t *stream, value _opts, 
 
   AVStream *avstream = av->format_context->streams[stream->index];
   avstream->time_base = enc_ctx->time_base;
-  
 
+  ret = avcodec_parameters_from_context(avstream->codecpar, enc_ctx);
+  
   caml_acquire_runtime_system();
+
+  if (ret < 0) ocaml_avutil_raise_error(ret);
 }
 
 static inline stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt, AVCodec *codec, value _opts, value *unused)
@@ -1513,7 +1516,7 @@ static inline stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fm
 
     // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
     stream->enc_frame = av_frame_alloc();
-    if( ! stream->enc_frame) {
+    if (!stream->enc_frame) {
       caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
@@ -1529,7 +1532,7 @@ static inline stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fm
       caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
      }
-  
+
     // Create the FIFO buffer based on the specified output sample format.
     stream->audio_fifo = av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->channels, 1);
 
@@ -1561,11 +1564,7 @@ static inline stream_t *new_video_stream(av_t *av, AVCodec *codec, value _opts, 
   stream_t *stream = new_stream(av, codec);
   if (!stream) return NULL;
   
-  AVCodecContext * enc_ctx = stream->codec_context;
-
   init_stream_encoder(av, stream, _opts, unused);
-
-printf("c size: %dx%d\n", enc_ctx->width, enc_ctx->height); fflush(stdout);
 
   return stream;
 }

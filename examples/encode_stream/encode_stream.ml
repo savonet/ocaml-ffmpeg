@@ -48,11 +48,11 @@ let () =
 
   let output = Av.open_output_stream ~opts:output_opt ~seek write format in
 
-  let opts = Av.mk_audio_opts ~channels:2 ~sample_rate:out_sample_rate () in
+  let opts = Av.mk_audio_opts ~channels:2 ~sample_format:out_sample_format ~sample_rate:out_sample_rate () in
   Hashtbl.add opts "lpc_type" (`String "none");
   Hashtbl.add opts "foo" (`String "bla");
 
-  let stream = Av.new_audio_stream ~codec ~sample_format:out_sample_format ~opts output in 
+  let stream = Av.new_audio_stream ~codec ~opts output in 
 
   assert(Hashtbl.mem opts "foo");
   if Sys.argv.(2) = "flac" then

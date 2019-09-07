@@ -175,6 +175,7 @@ val mk_audio_opts :
   ?channel_layout:Channel_layout.t ->
   ?bit_rate:int ->
   ?sample_rate:int ->
+  ?sample_format:Avutil.Sample_format.t ->
   ?time_base:Avutil.rational -> 
   ?params:(audio Avcodec.params) ->
   ?stream:(_, audio) stream -> unit -> opts
@@ -182,7 +183,7 @@ val mk_audio_opts :
     from named arguments or from passed codec_params, if it exists,
     or from passed stream, if it exists. *)
 
-val new_audio_stream : ?opts:opts -> ?sample_format:Avutil.Sample_format.t -> codec:[`Encoder] Avcodec.Audio.t -> output container -> (output, audio) stream
+val new_audio_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Audio.t -> output container -> (output, audio) stream
 (** Add a new audio stream to the given container. *)
 
 val mk_video_opts :

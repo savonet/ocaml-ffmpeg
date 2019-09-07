@@ -123,8 +123,12 @@ module Channel_layout : sig
   (** Return the number of channels in the channel layout. *)
   val get_nb_channels : t -> int
 
-  (** Return default channel layout for a given number of channels. *)
+  (** Return default channel layout for a given number of channels.
+      Raises [Not_found] if not found. *)
   val get_default : int -> t
+
+  (** Return the internal ID for a channel layout. *)
+  val get_id : t -> int
 end
 
 (** Formats for audio samples. *)
@@ -136,8 +140,14 @@ module Sample_format : sig
   (** Return the name of the sample format. *)
   val get_name : t -> string
 
+  (** Find a sample format by its name. Raises [Not_found] when none exist. *)
+  val find : string -> t
+
   (** Return the internal ID of the sample format. *)
   val get_id : t -> int
+
+  (** Find a sample format from its ID. Raises [Not_found] when none exist. *)
+  val find_id : int -> t
 end
 
 
