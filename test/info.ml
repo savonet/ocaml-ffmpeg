@@ -11,7 +11,7 @@ let test() =
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
           Avcodec.Audio.(
             printf"\tAudio stream %d : %s %s, %s %s, %s %d, %s %d, %s %d, %s %Ld\n"
-              idx "codec" (get_id cd |> get_name)
+              idx "codec" (get_params_id cd |> string_of_id)
               "sample format" (get_sample_format cd |> Sample_format.get_name)
               "channels" (get_nb_channels cd)
               "bit rate" (get_bit_rate cd)
@@ -23,7 +23,7 @@ let test() =
           Avcodec.Video.(
             let sar = get_sample_aspect_ratio cd in
             printf"\tVideo stream %d : %s %s, %s %d, %s %d, %s %d / %d, %s %d, %s %Ld\n"
-              idx "codec" (get_id cd |> get_name)
+              idx "codec" (get_params_id cd |> string_of_id)
               "width" (get_width cd)
               "height" (get_height cd)
               "sample aspect ratio" sar.num sar.den
@@ -34,7 +34,7 @@ let test() =
           Av.get_metadata stm |> List.iter(fun(k, v) -> printf"\t%s : %s\n" k v);
           Avcodec.Subtitle.(
             printf"\tSubtitle stream %d : %s %s, %s %Ld\n"
-              idx "codec" (get_id cd |> get_name)
+              idx "codec" (get_params_id cd |> string_of_id)
               "duration (µs)" (Av.get_duration ~format:`Microsecond stm)
           ));
       printf"\n";
