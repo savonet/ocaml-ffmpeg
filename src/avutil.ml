@@ -166,6 +166,7 @@ module Channel_layout = struct
   let get_description ?(channels=(-1)) ch =
     get_description ch channels
 
+  external find : string -> t = "ocaml_avutil_get_channel_layout"
   external get_nb_channels : t -> int = "ocaml_avutil_get_channel_layout_nb_channels"
   external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
   external get_id : t -> int = "ocaml_avutil_get_channel_layout_id"

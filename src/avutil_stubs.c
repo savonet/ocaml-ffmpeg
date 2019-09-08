@@ -328,7 +328,9 @@ CAMLprim value ocaml_avutil_get_channel_layout_description(value _channel_layout
   char buf[1024];
   uint64_t channel_layout = ChannelLayout_val(_channel_layout);
 
+  caml_release_runtime_system();
   av_get_channel_layout_string(buf, sizeof(buf), Int_val(channels), channel_layout);
+  caml_acquire_runtime_system();
 
   CAMLreturn(caml_copy_string(buf));
 }
@@ -341,10 +343,31 @@ CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout
 
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels)
 {
-  CAMLparam1(_nb_channels);
+  CAMLparam0();
+
+  caml_release_runtime_system();
   int64_t ret = av_get_default_channel_layout(Int_val(_nb_channels));
+  caml_acquire_runtime_system();
 
   if (ret == 0) caml_raise_not_found(); 
+
+  CAMLreturn(Val_ChannelLayout(ret));
+}
+
+CAMLprim value ocaml_avutil_get_channel_layout(value _name)
+{
+  CAMLparam1(_name);
+  char *name = strndup(String_val(_name), caml_string_length(_name));
+
+  if (!name) caml_raise_out_of_memory();
+
+  caml_release_runtime_system();
+  int64_t ret = av_get_channel_layout(name);
+  caml_acquire_runtime_system();
+
+  free(name);
+
+  if (ret == 0) caml_raise_not_found();
 
   CAMLreturn(Val_ChannelLayout(ret));
 }
