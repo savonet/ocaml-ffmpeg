@@ -156,10 +156,13 @@ val reuse_output : input container -> bool -> unit
 (** {5 Output} *)
 
 val open_output : ?opts:opts -> string -> output container
-(** [Av.open_output filename] open the output file named [filename]. @raise Error if the opening failed. *)
+(** [Av.open_output ?opts filename] open the output file named [filename]. [opts] may contain any option settable on
+    the stream's internal AVFormat. After returning, if [opts] was passed, unused options are left in the hash table.
+    @raise Error if the opening failed. *)
 
 val open_output_stream : ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
-(** [Av.open_stream callbacks] open the output container with the given callbacks. @raise Error if the opening failed. *)
+(** [Av.open_stream callbacks] open the output container with the given callbacks. [opts] may contain any option settable on
+    Ffmpeg avformat. After returning, if [opts] was passed, unused options are left in the hash table. @raise Error if the opening failed. *) 
 
 val set_output_metadata : output container -> (string * string) list -> unit
 (** [Av.set_output_metadata dst tags] set the metadata of the [dst] output with the [tags] tag list. This must be set before starting writing streams. @raise Error if a writing already taken place or if the setting failed. *)
@@ -184,7 +187,9 @@ val mk_audio_opts :
     or from passed stream, if it exists. *)
 
 val new_audio_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Audio.t -> output container -> (output, audio) stream
-(** Add a new audio stream to the given container. *)
+(** Add a new audio stream to the given container. [opts] may contain any option settable on
+    the stream's internal AVCodec. After returning, if [opts] was passed, unused options are left in the hash table.
+    @raise Error if the opening failed. *)
 
 val mk_video_opts :
   ?pixel_format:Avutil.Pixel_format.t ->
@@ -197,7 +202,9 @@ val mk_video_opts :
 (** Utility to convert video params to options. *)
 
 val new_video_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Video.t -> output container -> (output, video) stream
-(** Add a new video stream to the given container. *)
+(** Add a new video stream to the given container. [opts] may contain any option settable on
+    the stream's internal AVCodec. After returning, if [opts] was passed, unused options are left in the hash table.
+    @raise Error if the opening failed. *)
 
 val mk_subtitle_opts :
   ?time_base:Avutil.rational ->
@@ -205,7 +212,9 @@ val mk_subtitle_opts :
 (** Utility to convert subtitle params to options. *)
 
 val new_subtitle_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Subtitle.t -> output container -> (output, subtitle) stream
-(** Add a new subtitle stream to the given container. *)
+(** Add a new subtitle stream to the given container. [opts] may contain any option settable on
+    the stream's internal AVCodec. After returning, if [opts] was passed, unused options are left in the hash table.
+    @raise Error if the opening failed. *)
 
 val write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit
 (** [Av.write_packet os pkt] write the [pkt] packet to the [os] output stream. @raise Error if the writing failed. *)
