@@ -27,15 +27,15 @@ module Make (I : AudioData) (O : AudioData) : sig
 If a sample format parameter is not provided, the sample format defined by the associated AudioData module is used.
 @raise Error "Swresample input/output sample format undefined" if a sample format parameter is not provided and the associated AudioData module does not define a sample format as is the case for Bytes and Frame. *)
 
-  val from_codec : ?options:options list -> audio Avcodec.t -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
+  val from_codec : ?options:options list -> audio Avcodec.params -> Channel_layout.t -> ?out_sample_format:Sample_format.t -> int -> t
   (** [Swresample.from_codec in_ac out_cl ~out_sample_format:out_sf out_sr] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format. *)
 
 
-  val to_codec : ?options:options list -> Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> audio Avcodec.t -> t
+  val to_codec : ?options:options list -> Channel_layout.t -> ?in_sample_format:Sample_format.t -> int -> audio Avcodec.params -> t
   (** [Swresample.to_codec in_cl ~in_sample_format:in_sf in_sr out_ac] do the same as {!Swresample.create} with the [out_ac] audio codec properties as output format. *)
 
 
-  val from_codec_to_codec : ?options:options list -> audio Avcodec.t -> audio Avcodec.t -> t
+  val from_codec_to_codec : ?options:options list -> audio Avcodec.params -> audio Avcodec.params -> t
   (** [Swresample.from_codec_to_codec in_ac out_ac] do the same as {!Swresample.create} with the [in_ac] audio codec properties as input format and the [out_ac] audio codec properties as output format. *)
 
   val reuse_output : t -> bool -> unit

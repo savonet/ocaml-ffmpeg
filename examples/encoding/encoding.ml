@@ -54,12 +54,15 @@ let () =
 
   let pi = 4.0 *. atan 1.0 in let sample_rate = 44100 in
 
-  let oas = Av.new_audio_stream ~codec_name:Sys.argv.(2)
-      ~channel_layout:`Stereo ~sample_rate dst in
+  let codec = Avcodec.Audio.find_encoder Sys.argv.(2) in
+
+  let opts = Av.mk_audio_opts ~channel_layout:`Stereo ~sample_rate () in
+
+  let oas = Av.new_audio_stream ~codec ~opts dst in
 
   Av.set_metadata oas ["Media", "Audio"];
 
-  let rsp = Resampler.to_codec `Mono sample_rate (Av.get_codec oas) in
+  let rsp = Resampler.to_codec `Mono sample_rate (Av.get_codec_params oas) in
 
   let c = (2. *. pi *. 440.) /. (float_of_int sample_rate) in
 
@@ -69,8 +72,10 @@ let () =
   let width = 352 in let height = 288 in let pixel_format = `Yuv420p in
   let frame_rate = 25 in
 
-  let ovs = Av.new_video_stream ~codec_name:Sys.argv.(3)
-      ~width ~height ~pixel_format ~frame_rate dst in
+  let codec = Avcodec.Video.find_encoder Sys.argv.(3) in
+  let opts = Av.mk_video_opts ~size:(width,height)  ~pixel_format ~frame_rate () in
+
+  let ovs = Av.new_video_stream ~codec ~opts dst in
 
   Av.set_metadata ovs ["Media", "Video"];
 

@@ -9,6 +9,7 @@ clean:
 test: all
 	$(MAKE) -C encode_audio $@
 	$(MAKE) -C encode_video $@
+	$(MAKE) -C encode_stream $@
 	$(MAKE) -C encoding $@
 	$(MAKE) -C decode_audio $@
 	$(MAKE) -C decode_stream $@

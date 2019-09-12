@@ -69,16 +69,22 @@ static int Flag_val(value v)
 
 #define Context_val(v) (*(struct SwsContext**)Data_custom_val(v))
 
-static void finalize_context(value v)
+CAMLprim value ocaml_swscale_finalize_context(value v)
 {
+  CAMLparam1(v);
+  caml_register_generational_global_root(&v);
   struct SwsContext *c = Context_val(v);
+  caml_release_runtime_system();
   sws_freeContext(c);
+  caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations context_ops =
   {
     "ocaml_swscale_context",
-    finalize_context,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -110,6 +116,9 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_, value src_h
 
   ans = caml_alloc_custom(&context_ops, sizeof(struct SwsContext*), 0, 1);
   Context_val(ans) = c;
+
+  Finalize("ocaml_swscale_finalize_context", ans);
+
   CAMLreturn(ans);
 }
 
@@ -249,12 +258,12 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector)
 
 static int alloc_out_frame(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
   int ret;
+
 #ifndef HAS_FRAME
   caml_failwith("Not implemented.");
 #else
+
   do {
     caml_release_runtime_system();
     AVFrame * frame = av_frame_alloc();
@@ -273,27 +282,27 @@ static int alloc_out_frame(sws_t *sws)
 
     if (ret < 0) {
       av_frame_free(&frame);
-      caml_release_runtime_system();
+      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
-    caml_release_runtime_system();
+    caml_acquire_runtime_system();
 
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
 
-    v = value_of_frame(frame);
-    caml_modify_generational_global_root(&sws->out_vector, v);
+    caml_modify_generational_global_root(&sws->out_vector, value_of_frame(frame));
   } while(0);
 #endif
-  CAMLreturnT(int, ret);
+  return ret;
 }
 
 static int alloc_out_string(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
+  value v;
   int i;
+
+  caml_register_generational_global_root(&v);
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
@@ -312,7 +321,9 @@ static int alloc_out_string(sws_t *sws)
     Store_field(sws->out_vector, i, v);
   }
 
-  CAMLreturnT(int, 0);
+  caml_remove_generational_global_root(&v);
+
+  return 0;
 }
 
 static int copy_out_string(sws_t *sws)
@@ -332,9 +343,10 @@ static int copy_out_string(sws_t *sws)
 
 static int alloc_out_ba(sws_t *sws)
 {
-  CAMLparam0();
-  CAMLlocal1(v);
+  value v;
   int i;
+
+  caml_register_generational_global_root(&v);
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
@@ -351,7 +363,9 @@ static int alloc_out_ba(sws_t *sws)
     Store_field(sws->out_vector, i, v);
   }
 
-  CAMLreturnT(int, 0);
+  caml_remove_generational_global_root(&v);
+
+  return 0;
 }
 
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
@@ -406,15 +420,21 @@ void swscale_free(sws_t *sws)
   free(sws);
 }
 
-static void finalize_swscale(value v)
+CAMLprim value ocaml_swscale_finalize_swscale(value v)
 {
+  CAMLparam1(v);
+  caml_register_generational_global_root(&v);
+  caml_release_runtime_system();
   swscale_free(Sws_val(v));
+  caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations sws_ops =
   {
     "ocaml_swscale_context",
-    finalize_swscale,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -513,6 +533,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t*), 0, 1);
   Sws_val(ans) = sws;
+
+  Finalize("ocaml_swscale_finalize_swscale", ans);
 
   CAMLreturn(ans);
 }

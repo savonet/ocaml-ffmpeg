@@ -27,6 +27,9 @@
     caml_callback(*caml_named_value("ffmpeg_exn_failure"), caml_copy_string(ocaml_av_exn_msg)); \
   }
 
+#define Finalize(f,v) \
+  caml_callback2(*caml_named_value("ffmpeg_gc_finalise"),*caml_named_value(f),v)
+
 void ocaml_avutil_raise_error(int err);
 
 extern char ocaml_av_exn_msg[];

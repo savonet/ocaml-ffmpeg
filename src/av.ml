@@ -6,18 +6,25 @@ let () = init ()
 
 (* Format *)
 module Format = struct
-  external get_input_name : (input, _)format -> string = "ocaml_av_input_format_get_name"
-  external get_input_long_name : (input, _)format -> string = "ocaml_av_input_format_get_long_name"
+  external get_input_name : (input, _) format -> string = "ocaml_av_input_format_get_name"
+  external get_input_long_name : (input, _) format -> string = "ocaml_av_input_format_get_long_name"
 
-  external get_output_name : (output, _)format -> string = "ocaml_av_output_format_get_name"
-  external get_output_long_name : (output, _)format -> string = "ocaml_av_output_format_get_long_name"
-  external get_audio_codec_id : (output, audio)format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
-  external get_video_codec_id : (output, video)format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
-  external get_subtitle_codec_id : (output, subtitle)format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
+  external get_output_name : (output, _) format -> string = "ocaml_av_output_format_get_name"
+  external get_output_long_name : (output, _) format -> string = "ocaml_av_output_format_get_long_name"
+  external get_audio_codec_id : (output, audio) format -> Avcodec.Audio.id = "ocaml_av_output_format_get_audio_codec_id"
+  external get_video_codec_id : (output, video) format -> Avcodec.Video.id = "ocaml_av_output_format_get_video_codec_id"
+  external get_subtitle_codec_id : (output, subtitle) format -> Avcodec.Subtitle.id = "ocaml_av_output_format_get_subtitle_codec_id"
+
+  external guess_output_format : string -> string -> string -> (output, 'a) format option = "ocaml_av_output_format_guess"
+  let guess_output_format ?(short_name="") ?(filename="") ?(mime="") () =
+    guess_output_format short_name filename mime
 end
 
 
+external finalize_av : _ container -> unit = "ocaml_av_finalize_av"
 
+let () =
+  Callback.register "ocaml_av_finalize_av" finalize_av
 
 (* Input *)
 external open_input : string -> input container = "ocaml_av_open_input"
@@ -25,10 +32,10 @@ external open_input_format : (input, _)format -> input container = "ocaml_av_ope
 
 type avio
 
-type _read_callbacks = {
-  _read : bytes -> int -> int -> int;
-  _seek : (int -> int -> int) option
-}
+type read = bytes -> int -> int -> int
+type write = bytes -> int -> int -> int
+type _seek = int -> int -> int
+type seek = int -> Unix.seek_command -> int
 
 let seek_of_int = function
   | 0 -> Unix.SEEK_SET
@@ -36,27 +43,20 @@ let seek_of_int = function
   | 2 -> Unix.SEEK_END
   | _ -> assert false;
 
-type read_callbacks = {
-  read : bytes -> int -> int -> int;
-  seek : (int -> Unix.seek_command -> int) option
-}
+external ocaml_av_create_io : int -> read option -> write option -> _seek option -> avio = "ocaml_av_create_io"
 
-external ocaml_av_create_io : int -> _read_callbacks -> avio = "ocaml_av_create_io"
+let _seek_of_seek = function
+  | None    -> None
+  | Some fn -> Some (fun a m -> fn a (seek_of_int m))
 
-let ocaml_av_create_io len {read;seek} =
-  let _seek = match seek with
-    | None ->
-         None
-    | Some fn ->
-         Some (fun a m -> fn a (seek_of_int m))
- in
- ocaml_av_create_io len {_read=read;_seek}
+let ocaml_av_create_read_io len ?seek read =
+ ocaml_av_create_io len (Some read) None (_seek_of_seek seek)
 
 external ocaml_av_open_input_stream : avio -> input container = "ocaml_av_open_input_stream"
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 
-let open_input_stream read_callbacks =
-  let avio = ocaml_av_create_io 4096 read_callbacks in
+let open_input_stream ?seek read =
+  let avio = ocaml_av_create_read_io 4096 ?seek read in
   let cleanup () = caml_av_input_io_finalise avio in
   let input =
     ocaml_av_open_input_stream avio
@@ -79,7 +79,7 @@ type media_type = MT_audio | MT_video | MT_subtitle
 
 let mk_stream container index = {container; index}
 
-external get_codec : (_, 'm)stream -> 'm Avcodec.t = "ocaml_av_get_stream_codec_parameters"
+external get_codec_params : (_, 'm)stream -> 'm Avcodec.params = "ocaml_av_get_stream_codec_parameters"
 external get_time_base : (_, _)stream -> Avutil.rational = "ocaml_av_get_stream_time_base"
 external set_time_base : (_, _)stream -> Avutil.rational -> unit = "ocaml_av_set_stream_time_base"
 
@@ -88,7 +88,7 @@ external _get_streams : input container -> media_type -> int list = "ocaml_av_ge
 
 let get_streams input media_type =
   _get_streams input media_type
-  |> List.rev_map(fun i -> let s = mk_stream input i in (i, s, get_codec s))
+  |> List.rev_map(fun i -> let s = mk_stream input i in (i, s, get_codec_params s))
 
 
 let get_audio_streams input = get_streams input MT_audio
@@ -99,7 +99,7 @@ let get_subtitle_streams input = get_streams input MT_subtitle
 external _find_best_stream : input container -> media_type -> int = "ocaml_av_find_best_stream"
 
 let find_best_stream c t =
-  let i = _find_best_stream c t in let s = mk_stream c i in (i, s, get_codec s)
+  let i = _find_best_stream c t in let s = mk_stream c i in (i, s, get_codec_params s)
 
 let find_best_audio_stream c = find_best_stream c MT_audio
 let find_best_video_stream c = find_best_stream c MT_video
@@ -179,12 +179,44 @@ external seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array 
 
 external reuse_output : input container -> bool -> unit = "ocaml_av_reuse_output"
 
+let _opt_val = function
+  | `String s -> s
+  | `Int i -> string_of_int i
+  | `Float f -> string_of_float f
+
+let opts_default = function
+  | None -> Hashtbl.create 0
+  | Some opts -> opts
+
+let mk_opts opts =
+  Array.of_list (Hashtbl.fold (fun opt_name opt_val cur ->
+    (opt_name, _opt_val opt_val)::cur) opts [])
+
+let filter_opts unused opts =
+  Hashtbl.filter_map_inplace (fun k v ->
+    if (Array.mem k unused) then Some v else None) opts
 
 (* Output *)
-external open_output : string -> output container = "ocaml_av_open_output"
-external open_output_format : (output, _)format -> output container = "ocaml_av_open_output_format"
-external open_output_format_name : string -> output container = "ocaml_av_open_output_format_name"
+external open_output : string -> (string*string) array -> (output container)*(string array) = "ocaml_av_open_output"
 
+let open_output ?opts fname =
+  let opts = opts_default opts in
+  let ret, unused = open_output fname (mk_opts opts) in
+  filter_opts unused opts;
+  ret
+
+external ocaml_av_open_output_stream : (output, _) format -> avio -> (string*string) array -> (output container)*(string array) = "ocaml_av_open_output_stream"
+
+let open_output_stream ?opts ?seek write format =
+  let opts = opts_default opts in
+  let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
+  let cleanup () = caml_av_input_io_finalise avio in
+  let output, unused =
+    ocaml_av_open_output_stream format avio (mk_opts opts)
+  in
+  filter_opts unused opts;
+  Gc.finalise_last cleanup output;
+  output
 
 external _set_metadata : output container -> int -> (string * string) array -> unit = "ocaml_av_set_metadata"
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
@@ -193,135 +225,182 @@ let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 
 let get_output s = s.container
 
+let on_opt v fn =
+  match v with
+    | None -> ()
+    | Some v -> fn v
 
-external new_audio_stream : output container -> Avcodec.Audio.id -> Channel_layout.t -> Sample_format.t -> int -> int -> Avutil.rational -> int = "ocaml_av_new_audio_stream_byte" "ocaml_av_new_audio_stream"
+let mk_base_opts ?bit_rate ?time_base () =
+  let opts = Hashtbl.create 0 in
+  on_opt bit_rate (fun b ->
+    Hashtbl.add opts "b" (`Int b));
+  on_opt time_base (fun {num;den} ->
+    Hashtbl.add opts "time_base"
+      (`String (Printf.sprintf "%d/%d" num den)));
+  opts 
 
-let new_audio_stream ?codec_id ?codec_name ?channel_layout ?sample_format ?bit_rate ?sample_rate ?codec ?time_base ?stream o =
-
-  let codec = match codec with
-    | Some _ -> codec
-    | None -> match stream with
-      | Some stm -> Some(get_codec stm)
-      | None -> codec
+let mk_audio_opts ?channels ?channel_layout ?bit_rate ?sample_rate ?sample_format ?time_base ?params ?stream () =
+  let if_opt v d = 
+    match v with
+      | None -> Some d
+      | Some _ -> v
   in
-  let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Audio.find_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Audio.get_id cp
-        | None -> raise (Error (`Failure "Audio codec undefined"))
+  let params =
+    match params, stream with
+      | Some _, _ ->
+          params
+      | None, Some s ->
+          Some (get_codec_params s)
+      | _ -> None
   in
-  let cl = match channel_layout with
-    | Some cl -> cl
-    | None -> match codec with
-      | Some cp -> Avcodec.Audio.get_channel_layout cp
-      | None -> `Stereo
+  let channels, channel_layout,
+      bit_rate, sample_rate,
+      sample_format =
+    match params with
+      | None ->
+          channels, channel_layout,
+          bit_rate, sample_rate,
+          sample_format
+      | Some p ->
+          if_opt channels (Avcodec.Audio.get_nb_channels p),
+          if_opt channel_layout (Avcodec.Audio.get_channel_layout p),
+          if_opt bit_rate (Avcodec.Audio.get_bit_rate p),
+          if_opt sample_rate (Avcodec.Audio.get_sample_rate p),
+          if_opt sample_format (Avcodec.Audio.get_sample_format p)
   in
-  let sf = match sample_format with
-    | Some sf -> sf
-    | None -> match codec with
-      | Some cp -> Avcodec.Audio.get_sample_format cp
-      | None -> Avcodec.Audio.find_best_sample_format ci `Dbl
-  in
-  let br = match bit_rate with
-    | Some br -> br
-    | None -> match codec with
-      | Some cp -> Avcodec.Audio.get_bit_rate cp
-      | None -> 192000
-  in
-  let sr = match sample_rate with
-    | Some sr -> sr
-    | None -> match codec with
-      | Some cp -> Avcodec.Audio.get_sample_rate cp
+  let sample_rate =
+    match sample_rate with
+      | Some r -> r
       | None -> 44100
   in
-  let tb = match time_base with
-    | Some tb -> tb
-    | None -> match stream with
-      | Some stm -> get_time_base stm
-      | None -> {num = 1; den = sr}
+  let channels =
+    match channels with
+      | Some c -> c
+      | None -> 
+         match channel_layout with
+           | Some l -> Avutil.Channel_layout.get_nb_channels l
+           | None   -> 2
   in
-  mk_stream o (new_audio_stream o ci cl sf br sr tb)
+  let channel_layout =
+    match channel_layout with
+      | Some cl -> cl
+      | None ->
+         try
+           Avutil.Channel_layout.get_default channels
+         with
+           | Not_found ->
+               raise (Error (`Failure
+                 (Printf.sprintf "Could not find a suitable channel layout for %d channels" channels)))
+  in
+  let time_base =
+    if_opt time_base {num = 1; den = sample_rate}
+  in
+  let opts = mk_base_opts ?bit_rate ?time_base () in
+  Hashtbl.add opts "ar" (`Int sample_rate);
+  Hashtbl.add opts "ac" (`Int channels);
+  Hashtbl.add opts "channel_layout"
+      (`Int (Channel_layout.get_id channel_layout));
+  on_opt bit_rate (fun br ->
+    Hashtbl.add opts "b" (`Int br));
+  on_opt sample_format (fun sf ->
+    Hashtbl.add opts "sample_fmt" (`Int (Avutil.Sample_format.get_id sf)));
+  opts
 
+external new_audio_stream : output container -> int -> [`Encoder] Avcodec.Audio.t -> (string*string) array -> int*(string array) = "ocaml_av_new_audio_stream"
 
-external new_video_stream : output container -> Avcodec.Video.id -> int -> int -> Pixel_format.t -> int -> int -> Avutil.rational -> int = "ocaml_av_new_video_stream_byte" "ocaml_av_new_video_stream"
+let new_audio_stream ?opts ~codec container =
+  let opts =
+    match opts with
+      | Some opts -> opts
+      | None -> mk_audio_opts ()
+  in
+  let sample_format =
+    try
+      let ret = Hashtbl.find opts "sample_fmt" in
+      Hashtbl.filter_map_inplace (fun k v ->
+        if k = "sample_fmt" then None else Some v) opts;
+      match ret  with
+        | `String name -> Avutil.Sample_format.find name
+        | `Int id -> Avutil.Sample_format.find_id id
+        | `Float id -> Avutil.Sample_format.find_id (int_of_float id)
+    with Not_found ->
+      Avcodec.Audio.find_best_sample_format codec `Dbl
+  in
+  let ret, unused =
+    new_audio_stream container (Sample_format.get_id sample_format) codec (mk_opts opts)
+  in
+  filter_opts unused opts;
+  mk_stream container ret
 
-let new_video_stream ?codec_id ?codec_name ?width ?height ?pixel_format ?bit_rate ?(frame_rate=25) ?codec ?time_base ?stream o =
+let mk_video_opts ?pixel_format ?size ?bit_rate ?frame_rate ?time_base ?params ?stream () =
+  let if_opt v d =
+    match v with
+      | None -> Some d
+      | Some _ -> v
+  in
+  let params =
+    match params, stream with
+      | Some _, _ ->
+          params
+      | None, Some s ->
+          Some (get_codec_params s)
+      | _ -> None
+  in
+  let pixel_format, bit_rate, size =
+    match params with
+      | None ->
+          pixel_format, bit_rate, size
+      | Some p ->
+          if_opt pixel_format (Avcodec.Video.get_pixel_format p),
+          if_opt bit_rate (Avcodec.Video.get_bit_rate p),
+          if_opt size (Avcodec.Video.get_width p, Avcodec.Video.get_height p)
+  in
+  let frame_rate =
+    match frame_rate with
+      | Some r -> r
+      | None -> 25
+  in
+  let time_base =
+    if_opt time_base {num = 1; den = 25}
+  in
+  let opts = mk_base_opts ?bit_rate ?time_base () in
+  Hashtbl.add opts "r" (`Int frame_rate);
+  on_opt pixel_format (fun pf ->
+    Hashtbl.add opts "pixel_format"
+      (`String (Pixel_format.to_string pf)));
+  on_opt bit_rate (fun br ->
+    Hashtbl.add opts "b" (`Int br));
+  on_opt size (fun (w,h) ->
+    Hashtbl.add opts "video_size"
+      (`String (Printf.sprintf "%dx%d" w h)));
+  opts
 
-  let codec = match codec with
-    | Some _ -> codec
-    | None -> match stream with
-      | Some stm -> Some(get_codec stm)
-      | None -> codec
-  in
-  let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Video.find_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Video.get_id cp
-        | None -> raise (Error (`Failure "Video codec undefined"))
-  in
-  let w = match width with
-    | Some w -> w
-    | None -> match codec with
-      | Some cp -> Avcodec.Video.get_width cp
-      | None -> raise (Error (`Failure "Video width undefined"))
-  in
-  let h = match height with
-    | Some h -> h
-    | None -> match codec with
-      | Some cp -> Avcodec.Video.get_height cp
-      | None -> raise (Error (`Failure "Video height undefined"))
-  in
-  let pf = match pixel_format with
-    | Some pf -> pf
-    | None -> match codec with
-      | Some cp -> Avcodec.Video.get_pixel_format cp
-      | None -> Avcodec.Video.find_best_pixel_format ci `Yuv420p
-  in
-  let br = match bit_rate with
-    | Some br -> br
-    | None -> match codec with
-      | Some cp -> Avcodec.Video.get_bit_rate cp
-      | None -> w * h * 4
-  in
-  let tb = match time_base with
-    | Some tb -> tb
-    | None -> match stream with
-      | Some stm -> get_time_base stm
-      | None -> {num = 1; den = frame_rate}
-  in
-  mk_stream o (new_video_stream o ci w h pf br frame_rate tb)
+external new_video_stream : output container -> [`Encoder] Avcodec.Video.t -> (string*string) array -> int*(string array) = "ocaml_av_new_video_stream"
 
-
-external new_subtitle_stream : output container -> Avcodec.Subtitle.id -> Avutil.rational -> int = "ocaml_av_new_subtitle_stream"
-
-let new_subtitle_stream ?codec_id ?codec_name ?codec ?time_base ?stream o =
-
-  let codec = match codec with
-    | Some _ -> codec
-    | None -> match stream with
-      | Some stm -> Some(get_codec stm)
-      | None -> codec
+let new_video_stream ?opts ~codec container =
+  let opts =
+    match opts with
+      | Some opts -> opts
+      | None -> mk_audio_opts ()
   in
-  let ci = match codec_id with
-    | Some ci -> ci
-    | None -> match codec_name with
-      | Some cn -> Avcodec.Subtitle.find_id cn
-      | None -> match codec with
-        | Some cp -> Avcodec.Subtitle.get_id cp
-        | None -> raise (Error (`Failure "Subtitle codec undefined"))
+  let ret, unused =
+    new_video_stream container codec (mk_opts opts)
   in
-  let tb = match time_base with
-    | Some tb -> tb
-    | None -> match stream with
-      | Some stm -> get_time_base stm
-      | None -> Subtitle.time_base()
-  in
-  mk_stream o (new_subtitle_stream o ci tb)
+  filter_opts unused opts;
+  mk_stream container ret
 
+let mk_subtitle_opts ?time_base () =
+  mk_base_opts ?time_base ()
+
+external new_subtitle_stream : output container -> [`Encoder] Avcodec.Subtitle.t -> (string*string) array -> int*(string array) = "ocaml_av_new_subtitle_stream"
+
+let new_subtitle_stream ?opts ~codec container =
+  let opts = opts_default opts in
+  let ret, unused =
+    new_subtitle_stream container codec (mk_opts opts)
+  in
+  filter_opts unused opts;
+  mk_stream container ret
 
 external write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit = "ocaml_av_write_stream_packet"
 

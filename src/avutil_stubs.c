@@ -322,6 +322,19 @@ CAMLprim value ocaml_avutil_time_base()
 }
 
 /**** Channel layout ****/
+CAMLprim value ocaml_avutil_get_channel_layout_description(value _channel_layout, value channels)
+{
+  CAMLparam1(_channel_layout);
+  char buf[1024];
+  uint64_t channel_layout = ChannelLayout_val(_channel_layout);
+
+  caml_release_runtime_system();
+  av_get_channel_layout_string(buf, sizeof(buf), Int_val(channels), channel_layout);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(caml_copy_string(buf));
+}
+
 CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout)
 {
   CAMLparam1(_channel_layout);
@@ -330,8 +343,39 @@ CAMLprim value ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout
 
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels)
 {
-  CAMLparam1(_nb_channels);
-  CAMLreturn(Val_ChannelLayout(av_get_default_channel_layout(Int_val(_nb_channels))));
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  int64_t ret = av_get_default_channel_layout(Int_val(_nb_channels));
+  caml_acquire_runtime_system();
+
+  if (ret == 0) caml_raise_not_found(); 
+
+  CAMLreturn(Val_ChannelLayout(ret));
+}
+
+CAMLprim value ocaml_avutil_get_channel_layout(value _name)
+{
+  CAMLparam1(_name);
+  char *name = strndup(String_val(_name), caml_string_length(_name));
+
+  if (!name) caml_raise_out_of_memory();
+
+  caml_release_runtime_system();
+  int64_t ret = av_get_channel_layout(name);
+  caml_acquire_runtime_system();
+
+  free(name);
+
+  if (ret == 0) caml_raise_not_found();
+
+  CAMLreturn(Val_ChannelLayout(ret));
+}
+
+CAMLprim value ocaml_avutil_get_channel_layout_id(value _channel_layout)
+{
+  CAMLparam1(_channel_layout);
+  CAMLreturn(Val_int(ChannelLayout_val(_channel_layout)));
 }
 
 
@@ -377,6 +421,24 @@ enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf)
   return CAML_BA_KIND_MASK;
 }
 
+CAMLprim value ocaml_avutil_find_sample_fmt(value _name)
+{
+  CAMLparam1(_name);
+  CAMLlocal1(ans);
+  char *name = strndup(String_val(_name), caml_string_length(_name));
+  if (!name) caml_raise_out_of_memory();
+
+  caml_release_runtime_system();
+  enum AVSampleFormat ret = av_get_sample_fmt(name);
+  caml_acquire_runtime_system();
+
+  free(name);
+
+  if (ret == AV_SAMPLE_FMT_NONE) caml_raise_not_found();
+
+  CAMLreturn(Val_SampleFormat(ret));
+}
+
 CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
 {
   CAMLparam1(_sample_fmt);
@@ -391,6 +453,21 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt)
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avutil_get_sample_fmt_id(value _sample_fmt)
+{
+  CAMLparam1(_sample_fmt);
+  CAMLreturn(Val_int(SampleFormat_val(_sample_fmt)));
+}
+
+CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id)
+{
+  CAMLparam0();
+  value ret = Val_SampleFormat(Int_val(_id));
+
+  if (ret == VALUE_NOT_FOUND) caml_raise_not_found();
+
+  CAMLreturn(ret);
+}
 
 /***** AVPixelFormat *****/
 CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel)
@@ -433,18 +510,24 @@ CAMLprim value ocaml_avutil_pixelformat_of_string(value name)
 
 /***** AVFrame *****/
 
-static void finalize_frame(value v)
+CAMLprim value ocaml_avutil_finalize_frame(value v)
 {
+  CAMLparam1(v);
+  caml_register_generational_global_root(&v);
 #ifdef HAS_FRAME
   AVFrame *frame = Frame_val(v);
+  caml_release_runtime_system();
   av_frame_free(&frame);
+  caml_acquire_runtime_system();
 #endif
+  caml_remove_generational_global_root(&v);
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations frame_ops =
   {
     "ocaml_avframe",
-    finalize_frame,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -458,6 +541,8 @@ value value_of_frame(AVFrame *frame)
 
   ret = caml_alloc_custom(&frame_ops, sizeof(AVFrame*), 0, 1);
   Frame_val(ret) = frame;
+
+  Finalize("ocaml_avutil_finalize_frame",ret);
 
   return ret;
 }
@@ -549,8 +634,12 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
 
 /***** AVSubtitle *****/
 
-static void finalize_subtitle(value v)
+CAMLprim value ocaml_avutil_finalize_subtitle(value v)
 {
+  CAMLparam1(v);
+  
+  caml_register_generational_global_root(&v);
+
   struct AVSubtitle *subtitle = Subtitle_val(v);
 
   caml_release_runtime_system();
@@ -558,12 +647,16 @@ static void finalize_subtitle(value v)
   caml_acquire_runtime_system();
 
   free(subtitle);
+
+  caml_remove_generational_global_root(&v);
+ 
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations subtitle_ops =
   {
     "ocaml_avsubtitle",
-    finalize_subtitle,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -577,6 +670,8 @@ value value_of_subtitle(AVSubtitle *subtitle)
 
   ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle*), 0, 1);
   Subtitle_val(ret) = subtitle;
+
+  Finalize("ocaml_avutil_finalize_subtitle", ret);
 
   return ret;
 }
@@ -654,4 +749,3 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle)
 
   CAMLreturn(ans);
 }
-

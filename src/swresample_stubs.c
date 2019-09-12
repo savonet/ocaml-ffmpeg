@@ -401,7 +401,7 @@ static inline void convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_n
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
     alloc_out_planar_ba(swr, out_nb_samples);
-  }
+  }	
 
   caml_release_runtime_system();
   int ret = swr_convert(swr->context, swr->out.data, swr->out.nb_samples,
@@ -465,20 +465,30 @@ void swresample_free(swr_t *swr)
     free(swr->out.data);
   }
   
-  if(swr->out_vector) caml_remove_generational_global_root(&swr->out_vector);
+  if(swr->out_vector) {
+    caml_acquire_runtime_system();
+    caml_remove_generational_global_root(&swr->out_vector);
+    caml_release_runtime_system();
+  } 
 
   free(swr);
 }
 
-static void finalize_swresample(value v)
+CAMLprim value ocaml_swresample_finalize_swresample(value v)
 {
+  CAMLparam1(v);
+  caml_register_generational_global_root(&v);
+  caml_release_runtime_system();
   swresample_free(Swr_val(v));
+  caml_acquire_runtime_system();
+  caml_remove_generational_global_root(&v);
+  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations swr_ops =
   {
     "ocaml_swresample_context",
-    finalize_swresample,
+    custom_finalize_default,
     custom_compare_default,
     custom_hash_default,
     custom_serialize_default,
@@ -680,6 +690,8 @@ CAMLprim value ocaml_swresample_create(value _in_vector_kind, value _in_channel_
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t*), 0, 1);
   Swr_val(ans) = swr;
+
+  Finalize("ocaml_swresample_finalize_swresample", ans);
 
   CAMLreturn(ans);
 }

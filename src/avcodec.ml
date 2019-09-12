@@ -1,13 +1,18 @@
 open Avutil
 module Ba = Bigarray.Array1
 
-type 'a t
+type 'a params
 type 'media decoder
 type 'media encoder
 
 external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
 
 let () = init ()
+
+external finalize_codec_parameters : 'a params -> unit = "ocaml_avcodec_finalize_codec_parameters"
+
+let () =
+  Callback.register "ocaml_avcodec_finalize_codec_parameters" finalize_codec_parameters
 
 
 external get_input_buffer_padding_size : unit -> int = "ocaml_avcodec_get_input_buffer_padding_size"
@@ -20,6 +25,11 @@ module Packet = struct
   (** Packet type *)
   type 'a t
 
+  external finalize : 'a t -> unit = "ocaml_avcodec_finalize_packet"
+
+  let () =
+    Callback.register "ocaml_avcodec_finalize_packet" finalize
+
   external get_size : 'a t -> int = "ocaml_avcodec_get_packet_size"
 
   external get_stream_index : 'a t -> int = "ocaml_avcodec_get_packet_stream_index"
@@ -31,10 +41,16 @@ module Packet = struct
   type parser_t
   type 'a parser = {mutable buf:data; mutable remainder:data; parser:parser_t}
 
-  external create_parser : int -> parser_t = "ocaml_avcodec_create_parser"
+  external finalize_parser : parser_t -> unit = "ocaml_avcodec_finalize_parser"
 
-  let create_parser id = {buf = empty_data; remainder = empty_data;
-                          parser = create_parser id}
+  let () =
+    Callback.register "ocaml_avcodec_finalize_parser" finalize_parser
+
+  (* This is an internal function, which receives any type of AVCodec in the C code. *)
+  external create_parser : 'a -> parser_t = "ocaml_avcodec_create_parser"
+
+  let create_parser codec = {buf = empty_data; remainder = empty_data;
+                          parser = create_parser codec}
 
   external parse_packet : parser_t -> data -> int -> int -> ('m t * int)option = "ocaml_avcodec_parse_packet"
 
@@ -78,130 +94,142 @@ module Packet = struct
     parse_data ctx f data
 end
 
-external create_decoder : int -> bool -> int option -> int option -> _ decoder = "ocaml_avcodec_create_context"
-external create_encoder : int -> bool -> int option -> int option -> _ encoder = "ocaml_avcodec_create_context"
+(* These functions receive a AVCodec on the C side. *)
+external create_decoder : 'a -> bool -> int option -> int option -> _ decoder = "ocaml_avcodec_create_context"
+external create_encoder : 'a -> bool -> int option -> int option -> _ encoder = "ocaml_avcodec_create_context"
+
+(* There isn't much choice here.. *)
+external finalize_codec_context : 'a -> unit = "ocaml_avcodec_finalize_codec_context"
+let () =
+  Callback.register "ocaml_avcodec_finalize_codec_context" finalize_codec_context
 
 
 (** Audio codecs. *)
 module Audio = struct
   (** Audio codec ids *)
+  type 'a t
   type id = Codec_id.audio
 
-  external id_to_int : id -> int = "ocaml_avcodec_audio_codec_id_to_AVCodecID"
+  external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
 
-  external get_name : id -> string = "ocaml_avcodec_get_audio_codec_name"
+  external string_of_id : id -> string = "ocaml_avcodec_get_audio_codec_id_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_audio_codec_id"
+  external find_encoder : string -> [`Encoder] t = "ocaml_avcodec_find_audio_encoder"
 
-  
-  external get_supported_channel_layouts : id -> Avutil.Channel_layout.t list = "ocaml_avcodec_get_supported_channel_layouts"
-  let get_supported_channel_layouts id = List.rev(get_supported_channel_layouts id)
+  external find_decoder : string -> [`Decoder] t = "ocaml_avcodec_find_audio_decoder"
 
   
-  let find_best_channel_layout id default =
-
-    match get_supported_channel_layouts id with
-    | h::_ -> h
-    | [] -> default
+  external get_supported_channel_layouts : _ t -> Avutil.Channel_layout.t list = "ocaml_avcodec_get_supported_channel_layouts"
+  let get_supported_channel_layouts codec = List.rev(get_supported_channel_layouts codec)
 
   
-  external get_supported_sample_formats : id -> Avutil.Sample_format.t list = "ocaml_avcodec_get_supported_sample_formats"
-  let get_supported_sample_formats id = List.rev(get_supported_sample_formats id)
+  let find_best_channel_layout codec default =
+    match get_supported_channel_layouts codec with
+      | h::_ -> h
+      | [] -> default
 
   
-  let find_best_sample_format id default =
-
-    match get_supported_sample_formats id with
-    | h::_ -> h
-    | [] -> default
+  external get_supported_sample_formats : _ t -> Avutil.Sample_format.t list = "ocaml_avcodec_get_supported_sample_formats"
+  let get_supported_sample_formats codec =
+    List.rev (get_supported_sample_formats codec)
 
   
-  external get_supported_sample_rates : id -> int list = "ocaml_avcodec_get_supported_sample_rates"
-  let get_supported_sample_rates id = List.rev(get_supported_sample_rates id)
+  let find_best_sample_format codec default =
+    match get_supported_sample_formats codec with
+      | h::_ -> h
+      | [] -> default
 
   
-  let find_best_sample_rate id default =
+  external get_supported_sample_rates : _ t -> int list = "ocaml_avcodec_get_supported_sample_rates"
+  let get_supported_sample_rates codec = List.rev(get_supported_sample_rates codec)
 
-    match get_supported_sample_rates id with
-    | h::_ -> h
-    | [] -> default
+  
+  let find_best_sample_rate codec default =
+    match get_supported_sample_rates codec with
+      | h::_ -> h
+      | [] -> default
       
 
-  external get_id : audio t -> id = "ocaml_avcodec_parameters_get_audio_codec_id"
-  external get_channel_layout : audio t -> Avutil.Channel_layout.t = "ocaml_avcodec_parameters_get_channel_layout"
-  external get_nb_channels : audio t -> int = "ocaml_avcodec_parameters_get_nb_channels"
-  external get_sample_format : audio t -> Avutil.Sample_format.t = "ocaml_avcodec_parameters_get_sample_format"
-  external get_bit_rate : audio t -> int = "ocaml_avcodec_parameters_get_bit_rate"
-  external get_sample_rate : audio t -> int = "ocaml_avcodec_parameters_get_sample_rate"
+  external get_params_id : audio params -> id = "ocaml_avcodec_parameters_get_audio_codec_id"
+  external get_channel_layout : audio params -> Avutil.Channel_layout.t = "ocaml_avcodec_parameters_get_channel_layout"
+  external get_nb_channels : audio params -> int = "ocaml_avcodec_parameters_get_nb_channels"
+  external get_sample_format : audio params -> Avutil.Sample_format.t = "ocaml_avcodec_parameters_get_sample_format"
+  external get_bit_rate : audio params -> int = "ocaml_avcodec_parameters_get_bit_rate"
+  external get_sample_rate : audio params -> int = "ocaml_avcodec_parameters_get_sample_rate"
 
 
-  let create_parser id = Packet.create_parser(id_to_int id)
+  let create_parser = Packet.create_parser
 
-  let create_decoder id = create_decoder (id_to_int id) true None None
+  let create_decoder codec = create_decoder codec true None None
 
-  let create_encoder ?bit_rate id = create_encoder (id_to_int id) false bit_rate None
+  let create_encoder ?bit_rate codec = create_encoder codec false bit_rate None
 end
 
 
 (** Video codecs. *)
 module Video = struct
-  (** Video codec ids *)
+  type 'a t
   type id = Codec_id.video
 
-  external id_to_int : id -> int = "ocaml_avcodec_video_codec_id_to_AVCodecID"
+  external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
 
-  external get_name : id -> string = "ocaml_avcodec_get_video_codec_name"
+  external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_video_codec_id"
+  external find_encoder : string -> [`Encoder] t = "ocaml_avcodec_find_video_encoder"
 
-  external get_supported_frame_rates : id -> Avutil.rational list = "ocaml_avcodec_get_supported_frame_rates"
-  let get_supported_frame_rates id = List.rev(get_supported_frame_rates id)
+  external find_decoder : string -> [`Decoder] t = "ocaml_avcodec_find_video_decoder"
 
-  
-  let find_best_frame_rate id default =
-
-    match get_supported_frame_rates id with
-    | h::_ -> h
-    | [] -> default
+  external get_supported_frame_rates : _ t-> Avutil.rational list = "ocaml_avcodec_get_supported_frame_rates"
+  let get_supported_frame_rates codec =
+    List.rev  (get_supported_frame_rates codec)
 
   
-  external get_supported_pixel_formats : id -> Avutil.Pixel_format.t list = "ocaml_avcodec_get_supported_pixel_formats"
-  let get_supported_pixel_formats id = List.rev(get_supported_pixel_formats id)
-
-
-  let find_best_pixel_format id default =
-
-    match get_supported_pixel_formats id with
-    | h::_ -> h
-    | [] -> default
+  let find_best_frame_rate codec default =
+    match get_supported_frame_rates codec with
+      | h::_ -> h
+      | [] -> default
 
   
-  external get_id : video t -> id = "ocaml_avcodec_parameters_get_video_codec_id"
-  external get_width : video t -> int = "ocaml_avcodec_parameters_get_width"
-  external get_height : video t -> int = "ocaml_avcodec_parameters_get_height"
-  external get_sample_aspect_ratio : video t -> Avutil.rational = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
-  external get_pixel_format : video t -> Avutil.Pixel_format.t = "ocaml_avcodec_parameters_get_pixel_format"
-  external get_bit_rate : video t -> int = "ocaml_avcodec_parameters_get_bit_rate"
+  external get_supported_pixel_formats : _ t -> Avutil.Pixel_format.t list = "ocaml_avcodec_get_supported_pixel_formats"
+  let get_supported_pixel_formats codec =
+    List.rev (get_supported_pixel_formats codec)
 
-  let create_parser id = Packet.create_parser(id_to_int id)
 
-  let create_decoder id = create_decoder (id_to_int id) true None None
+  let find_best_pixel_format codec default =
+    match get_supported_pixel_formats codec with
+      | h::_ -> h
+      | [] -> default
 
-  let create_encoder ?bit_rate ?(frame_rate=25) id = create_encoder (id_to_int id) false bit_rate (Some frame_rate)
+  
+  external get_params_id : video params -> id = "ocaml_avcodec_parameters_get_video_codec_id"
+  external get_width : video params -> int = "ocaml_avcodec_parameters_get_width"
+  external get_height : video params -> int = "ocaml_avcodec_parameters_get_height"
+  external get_sample_aspect_ratio : video params -> Avutil.rational = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
+  external get_pixel_format : video params -> Avutil.Pixel_format.t = "ocaml_avcodec_parameters_get_pixel_format"
+  external get_bit_rate : video params -> int = "ocaml_avcodec_parameters_get_bit_rate"
+
+  let create_parser = Packet.create_parser
+
+  let create_decoder codec = create_decoder codec true None None
+
+  let create_encoder ?bit_rate ?(frame_rate=25) codec =
+    create_encoder codec false bit_rate (Some frame_rate)
 end
 
 (** Subtitle codecs. *)
 module Subtitle = struct
-  (** Subtitle codec ids *)
+  type 'a t
   type id = Codec_id.subtitle
 
-  (* external id_to_int : id -> int = "ocaml_avcodec_subtitle_codec_id_to_AVCodecID" *)
+  external get_id : _ t -> id = "ocaml_avcodec_get_subtitle_codec_id"
 
-  external get_name : id -> string = "ocaml_avcodec_get_subtitle_codec_name"
+  external string_of_id : id -> string = "ocaml_avcodec_get_subtitle_codec_id_name"
 
-  external find_id : string -> id = "ocaml_avcodec_find_subtitle_codec_id"
+  external find_encoder : string -> [`Encoder] t = "ocaml_avcodec_find_subtitle_encoder"
 
-  external get_id : subtitle t -> id = "ocaml_avcodec_parameters_get_subtitle_codec_id"
+  external find_decoder : string -> [`Decoder] t = "ocaml_avcodec_find_subtitle_decoder"
+
+  external get_params_id : subtitle params -> id = "ocaml_avcodec_parameters_get_subtitle_codec_id"
 end
 
 

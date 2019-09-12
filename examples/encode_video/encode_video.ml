@@ -1,6 +1,9 @@
 open FFmpeg
 open Avutil
 
+let () =
+  Printexc.record_backtrace true
+
 let fill_yuv_image width height frame_index planes =
   (* Y *)
   let data_y, linesize_y = planes.(0) in
@@ -34,11 +37,13 @@ let () =
   Avutil.Log.set_callback print_string;
   
   let width = 352 in let height = 288 in let pixel_format = `Yuv420p in
-  let codec_name = Sys.argv.(2) in
+  let codec = Avcodec.Video.find_encoder Sys.argv.(2) in
 
   let dst = Av.open_output Sys.argv.(1) in
 
-  let ovs = Av.new_video_stream ~codec_name ~width ~height ~pixel_format dst in
+  let opts = Av.mk_video_opts ~size:(width,height) ~pixel_format () in
+
+  let ovs = Av.new_video_stream ~codec ~opts dst in
 
   let frame = Video.create_frame width height pixel_format in
 

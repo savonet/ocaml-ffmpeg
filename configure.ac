@@ -1,4 +1,4 @@
-AC_INIT([ocaml-ffmpeg],[0.3.0],[savonet-users@lists.sourceforge.net])
+AC_INIT([ocaml-ffmpeg],[0.4.0],[savonet-users@lists.sourceforge.net])
 
 VERSION=$PACKAGE_VERSION
 requires="bigarray threads"
@@ -26,14 +26,18 @@ AC_SUBST(HAS_AV)
 
 AC_CHECK_HEADERS([libswresample/swresample.h],[HAS_SWRESAMPLE="yes"],[HAS_SWRESAMPLE=""])
 if test "x$HAS_SWRESAMPLE" = "xyes" ; then
-  LIBS="$LIBS -lswresample"
+  LIBS="$LIBS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-l libswresample`"
+  LDFLAGS="$LDFLAGS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-other libswresample`"
+  LIBDIRS="$LIBDIRS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-L libswresample`"
 fi
 AC_SUBST(HAS_SWRESAMPLE)
 
 
 AC_CHECK_HEADERS([libavdevice/avdevice.h],[HAS_AVDEVICE="yes"],[HAS_AVDEVICE=""])
 if test "x$HAS_AVDEVICE" = "xyes" ; then
-  LIBS="$LIBS -lavdevice"
+  LIBS="$LIBS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-l libavdevice`"
+  LDFLAGS="$LDFLAGS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-other libavdevice`"
+  LIBDIRS="$LIBDIRS `$PKG_CONFIG $PKG_CONFIG_OPTIONS --libs-only-L libavdevice`"
 fi
 AC_SUBST(HAS_AVDEVICE)
 
@@ -51,6 +55,7 @@ fi
 AC_SUBST(VERSION)
 AC_SUBST(INC)
 AC_SUBST(requires)
+AC_SUBST(LIBDIRS)
 
 # Finally create the Makefile and samples
 AC_CONFIG_FILES([Makefile],[chmod a-w Makefile])

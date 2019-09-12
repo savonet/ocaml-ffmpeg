@@ -1,6 +1,7 @@
-0.3.1 (unreleased)
+0.4.0 (unreleased)
 =====
-* Fix a couple of segfaults.
+* Added support for stream output.
+* Updated stream and container creation API to be able to use any arbitrary FFmpeg parameter.
 
 0.3.0 (08-22-2019)
 =====

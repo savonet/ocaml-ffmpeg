@@ -1,4 +1,4 @@
-(** This module contains input and output devices for grabbing from and rendering to many common multimedia input/output software frameworks. *)
+(** Tits module contains input and output devices for grabbing from and rendering to many common multimedia input/output software frameworks. *)
 
 open Avutil
 
@@ -28,28 +28,28 @@ val get_default_video_output_format : unit -> (output, video)format
 
 
 val open_audio_input : string -> input container
-(** Open the audio input device from his name. @raise Error if the device is not found. *)
+(** Open the audio input device from its name. @raise Error if the device is not found. *)
 
 val open_default_audio_input : unit -> input container
-(** Open the default audio input device from his name. @raise Error if the device is not found. *)
+(** Open the default audio input device from its name. @raise Error if the device is not found. *)
 
 val open_video_input : string -> input container
-(** Open the video input device from his name. @raise Error if the device is not found. *)
+(** Open the video input device from its name. @raise Error if the device is not found. *)
 
 val open_default_video_input : unit -> input container
-(** Open the default video input device from his name. @raise Error if the device is not found. *)
+(** Open the default video input device from its name. @raise Error if the device is not found. *)
 
-val open_audio_output : string -> output container
-(** Open the audio output device from his name. @raise Error if the device is not found. *)
+val open_audio_output : ?opts:opts -> string -> output container
+(** Open the audio output device from its name. @raise Error if the device is not found. *)
 
-val open_default_audio_output : unit -> output container
-(** Open the default audio output device from his name. @raise Error if the device is not found. *)
+val open_default_audio_output : ?opts:opts -> unit -> output container
+(** Open the default audio output device from its name. @raise Error if the device is not found. *)
 
-val open_video_output : string -> output container
-(** Open the video output device from his name. @raise Error if the device is not found. *)
+val open_video_output : ?opts:opts -> string -> output container
+(** Open the video output device from its name. @raise Error if the device is not found. *)
 
-val open_default_video_output : unit -> output container
-(** Open the default video output device from his name. @raise Error if the device is not found. *)
+val open_default_video_output : ?opts:opts -> unit -> output container
+(** Open the default video output device from its name. @raise Error if the device is not found. *)
 
 
 (** Application to device communication *)

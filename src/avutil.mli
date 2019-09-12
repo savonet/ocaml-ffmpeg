@@ -1,10 +1,19 @@
 (** Common code shared across all FFmpeg libraries. *)
 
+(* {1 Options } *)
+
+type opt_val = [
+  | `String of string
+  | `Int of int
+  | `Float of float
+]
+
+type opts = (string, opt_val) Hashtbl.t
+
 (** {1 Line} *)
 
 type input
 type output
-
 
 (** {1 Container} *)
 
@@ -108,11 +117,27 @@ module Channel_layout : sig
   (** Channel layout formats. *)
   type t = Channel_layout.t
 
+  (** Return a channel layout id that matches name. @raises [Not_found] otherwise. 
+      name can be one or several of the following notations, separated by '+' or '|':
+      - the name of an usual channel layout (mono, stereo, 4.0, quad, 5.0, 5.0(side), 5.1, 5.1(side), 7.1, 7.1(wide), downmix);
+      - the name of a single channel (FL, FR, FC, LFE, BL, BR, FLC, FRC, BC, SL, SR, TC, TFL, TFC, TFR, TBL, TBC, TBR, DL, DR);
+      - a number of channels, in decimal, optionally followed by 'c', yielding the default channel layout for that number of channels;
+      - a channel layout mask, in hexadecimal starting with "0x" (see the AV_CH_* macros). *)
+  val find : string -> t
+
+  (* Return a description of the channel layout. *)
+  val get_description : ?channels:int -> t -> string
+
   (** Return the number of channels in the channel layout. *)
   val get_nb_channels : t -> int
 
-  (** Return default channel layout for a given number of channels. *)
+  (** Return default channel layout for a given number of channels.
+      @raises [Not_found] if not found. *)
   val get_default : int -> t
+
+  (** Return the internal ID for a channel layout. This number should be passed as the
+      "channel_layout" [opts] in [Av.new_audio_stream] .*)
+  val get_id : t -> int
 end
 
 (** Formats for audio samples. *)
@@ -123,6 +148,15 @@ module Sample_format : sig
 
   (** Return the name of the sample format. *)
   val get_name : t -> string
+
+  (** Find a sample format by its name. @aises [Not_found] when none exist. *)
+  val find : string -> t
+
+  (** Return the internal ID of the sample format. *)
+  val get_id : t -> int
+
+  (** Find a sample format from its ID. Raises [Not_found] when none exist. *)
+  val find_id : int -> t
 end
 
 

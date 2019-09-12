@@ -1,4 +1,13 @@
 
+(* Options *)
+type opt_val = [
+  | `String of string
+  | `Int of int
+  | `Float of float
+]
+
+type opts = (string, opt_val) Hashtbl.t
+
 (* Line *)
 type input
 type output
@@ -11,11 +20,19 @@ type audio
 type video
 type subtitle
 
+external finalize_subtitle : subtitle -> unit = "ocaml_avutil_finalize_subtitle"
+let () =
+  Callback.register "ocaml_avutil_finalize_subtitle" finalize_subtitle
+
 (* Format *)
 type ('line, 'media) format
 
 (* Frame *)
 type 'media frame
+
+external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
+let () =
+  Callback.register "ocaml_avutil_finalize_frame" finalize_frame
 
 type error = [
   | `Bsf_not_found
@@ -51,7 +68,8 @@ let () =
 
 let () =
   Callback.register_exception "ffmpeg_exn_error" (Error `Unknown);
-  Callback.register "ffmpeg_exn_failure" (fun s -> raise (Error (`Failure s))) 
+  Callback.register "ffmpeg_exn_failure" (fun s -> raise (Error (`Failure s)));
+  Callback.register "ffmpeg_gc_finalise" Gc.finalise
 
 external ocaml_avutil_register_lock_manager : unit -> bool = "ocaml_avutil_register_lock_manager" [@@noalloc]
 
@@ -143,14 +161,24 @@ end
 module Channel_layout = struct
   type t = Channel_layout.t
 
+  external get_description : t -> int -> string = "ocaml_avutil_get_channel_layout_description"
+
+  let get_description ?(channels=(-1)) ch =
+    get_description ch channels
+
+  external find : string -> t = "ocaml_avutil_get_channel_layout"
   external get_nb_channels : t -> int = "ocaml_avutil_get_channel_layout_nb_channels"
   external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
+  external get_id : t -> int = "ocaml_avutil_get_channel_layout_id"
 end
 
 module Sample_format = struct
   type t = Sample_format.t
 
   external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
+  external get_id : t -> int = "ocaml_avutil_get_sample_fmt_id"
+  external find : string -> t = "ocaml_avutil_find_sample_fmt"
+  external find_id : int -> t = "ocaml_avutil_find_sample_fmt_from_id"
 end
 
 module Video = struct
