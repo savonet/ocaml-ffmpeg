@@ -18,6 +18,7 @@ test: all
 	$(MAKE) -C transcode_aac $@
 	$(MAKE) -C transcoding $@
 	$(MAKE) -C demuxing_decoding $@
+	$(MAKE) -C read_metadata $@
 
 interactive-test:
 	$(MAKE) -C audio_device $@

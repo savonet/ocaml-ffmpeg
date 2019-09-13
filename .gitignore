@@ -53,6 +53,7 @@ examples/remuxing/out.mp4
 examples/decode_stream/A4.ogg
 examples/decode_stream/A4.mp3
 examples/decode_stream/decode_stream
+examples/read_metadata/read_metadata
 *.mp3
 *.flac
 *.ogg
