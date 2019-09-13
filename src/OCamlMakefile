@@ -1018,12 +1018,12 @@ $(LIB_PACK_NAME).cmi: $(REAL_IMPL_INTF)
 endif
 ifdef BYTE_OCAML
 $(LIB_PACK_NAME_CMI) $(LIB_PACK_NAME).cmo: $(REAL_IMPL_INTF)
-			$(REAL_OCAMLFIND) $(REAL_OCAMLC) -pack -o $(LIB_PACK_NAME).cmo $(OCAMLLDFLAGS) $(REAL_IMPL)
+			$(REAL_OCAMLFIND) $(REAL_OCAMLC) $(ANNOT_FLAG) -pack -o $(LIB_PACK_NAME).cmo $(OCAMLLDFLAGS) $(REAL_IMPL)
 # Packing into a unit which can be transformed into a library
 # Remember the .ml's must have been compiled with -for-pack $(LIB_PACK_NAME)
 else
 $(LIB_PACK_NAME_CMI) $(LIB_PACK_NAME).cmx: $(REAL_IMPL_INTF)
-			$(REAL_OCAMLFIND) $(OCAMLOPT) -pack -o $(LIB_PACK_NAME).cmx  $(OCAMLLDFLAGS) $(REAL_IMPL)
+			$(REAL_OCAMLFIND) $(OCAMLOPT) $(ANNOT_FLAG) -pack -o $(LIB_PACK_NAME).cmx  $(OCAMLLDFLAGS) $(REAL_IMPL)
 endif
 
 $(RESULT).cma:		$(LIB_PACK_NAME).cmi $(LIB_PACK_NAME).cmo $(MAKEDLL) $(EXTRADEPS) $(RESULTDEPS)

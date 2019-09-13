@@ -54,6 +54,7 @@ INCDIRS = @INC@
 NO_CUSTOM = yes
 OCAMLFLAGS = @OCAMLFLAGS@
 PRE_TARGETS = gen-code
+ANNOT_FLAG = -annot -bin-annot
 
 all: $(OCAMLBEST)
 
