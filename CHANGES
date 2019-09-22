@@ -1,4 +1,4 @@
-0.4.0 (unreleased)
+0.4.0 (09-22-2019)
 =====
 * Added support for stream output.
 * Updated stream and container creation API to be able to use any arbitrary FFmpeg parameter.
