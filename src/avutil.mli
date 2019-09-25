@@ -181,6 +181,11 @@ module Pixel_format : sig
   val of_string : string -> t
 end
 
+module Audio : sig
+  val frame_get_sample_format : audio frame -> Sample_format.t
+  (** [Avutil.Audio.frame_get_sample_format frame] returns the sample format of the current frame. *)
+end
+
 module Video : sig
   type planes = (data * int) array
 

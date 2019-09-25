@@ -577,6 +577,19 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avutil_video_frame_get_sample_format(value _frame)
+{
+  CAMLparam1(_frame);
+#ifdef HAS_FRAME
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_SampleFormat((enum AVSampleFormat)frame->format));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
+}
+
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 {
   CAMLparam1(_frame);

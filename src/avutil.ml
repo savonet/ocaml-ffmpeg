@@ -181,6 +181,10 @@ module Sample_format = struct
   external find_id : int -> t = "ocaml_avutil_find_sample_fmt_from_id"
 end
 
+module Audio = struct
+  external frame_get_sample_format : audio frame -> Sample_format.t = "ocaml_avutil_video_frame_get_sample_format"
+end
+
 module Video = struct
   type planes = (data * int) array
 
