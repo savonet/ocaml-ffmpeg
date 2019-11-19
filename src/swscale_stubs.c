@@ -478,7 +478,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
                                 flags, NULL, NULL, NULL);
   caml_acquire_runtime_system();
 
-  if( ! sws->context) {
+  if (!sws->context) {
     free(sws);
     Fail("Failed to create Swscale context");
   }
@@ -522,14 +522,13 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   for(sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes]; sws->out.nb_planes++);
 
+  caml_acquire_runtime_system();
+
   ret = sws->alloc_out(sws);
   if(ret < 0) {
     swscale_free(sws);
-    caml_acquire_runtime_system();
     Fail( "Failed to create Swscale context");
   }
-
-  caml_acquire_runtime_system();
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t*), 0, 1);
   Sws_val(ans) = sws;
