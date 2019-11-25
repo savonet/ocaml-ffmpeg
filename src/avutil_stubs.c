@@ -644,6 +644,19 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avutil_video_frame_pts(value _frame)
+{
+  CAMLparam1(_frame);
+#ifdef HAS_FRAME
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(caml_copy_int64(frame->pts));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
+}
+
 
 /***** AVSubtitle *****/
 

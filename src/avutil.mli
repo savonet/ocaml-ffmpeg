@@ -197,6 +197,9 @@ module Video : sig
 
   val frame_visit : make_writable:bool -> (planes -> unit) -> video frame -> video frame
   (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Error if the make frame writable operation failed. *)
+
+  val frame_pts : video frame -> Int64.t
+  (** [Avutil.Video.frame_pts frame] returns the presentation timestamp in time_base units (time when frame should be shown to user). *)
 end
 
 

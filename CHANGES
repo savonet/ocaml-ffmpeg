@@ -1,3 +1,7 @@
+0.4.2 ()
+=====
+* Added Avutil.Video.frame_pts
+
 0.4.1 (2019-09-26)
 =====
 * Added Avutil.Audio.frame_get_sample_format.
