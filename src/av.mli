@@ -77,16 +77,16 @@ val find_best_subtitle_stream : input container -> (int * (input, subtitle)strea
 val get_input : (input, _)stream -> input container
 (** Return the input container of the input stream. *)
 
-val get_index : (_, _)stream -> int
+val get_index : (_, _) stream -> int
 (** Return the index of the stream. *)
 
 val get_codec_params : (_, 'media)stream -> 'media Avcodec.params
 (** [Av.get_codec stream] return the codec of the [stream]. @raise Error if the codec allocation failed. *)
 
-val get_time_base : (_, _)stream -> Avutil.rational
+val get_time_base : (_, _) stream -> Avutil.rational
 (** [Av.get_time_base stream] return the time base of the [stream]. *)
 
-val set_time_base : (_, _)stream -> Avutil.rational -> unit
+val set_time_base : (_, _) stream -> Avutil.rational -> unit
 (** [Av.set_time_base stream time_base] set the [stream] time base to [time_base]. *)
 
 val get_duration : ?format:Time_format.t -> (input, _)stream -> Int64.t
@@ -98,16 +98,16 @@ val get_metadata : (input, _)stream -> (string * string) list
 val select : (input, _)stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Error if the selection failed. *)
 
-val read_packet : (input, 'media)stream -> 'media Avcodec.Packet.t
+val read_packet : (input, 'media) stream -> 'media Avcodec.Packet.t
 (** [Av.read_packet stream] read the input [stream]. Return the next packet of the [stream] or raises [Error `Eof] if the end of the stream is reached. @raise Error if the reading failed. *)
 
-val iter_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media)stream -> unit
+val iter_packet : ('media Avcodec.Packet.t -> unit) -> (input, 'media) stream -> unit
 (** [Av.iter_packet f is] applies function [f] in turn to all the packets of the input stream [is]. @raise Error if the reading failed. *)
 
-val read_frame : (input, 'media)stream -> 'media frame
+val read_frame : (input, 'media) stream -> 'media frame
 (** [Av.read_frame stream] read the input [stream]. Return the next frame of the [stream] or raises [Error `Eof] if the end of the stream is reached. @raise Error if the reading failed. *)
 
-val iter_frame : ('media frame -> unit) -> (input, 'media)stream -> unit
+val iter_frame : ('media frame -> unit) -> (input, 'media) stream -> unit
 (** [Av.iter_frame f is] applies function [f] in turn to all the frames of the input stream [is]. @raise Error if the reading failed. *)
 
 
