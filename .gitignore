@@ -62,3 +62,4 @@ examples/read_metadata/read_metadata
 *.mp4
 *.raw
 test/test
+*.annot

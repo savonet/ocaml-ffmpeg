@@ -55,23 +55,23 @@ val get_input_metadata : input container -> (string * string) list
 (** Input/output, audio/video/subtitle stream type *)
 type ('line, 'media) stream
 
-val get_audio_streams : input container -> (int * (input, audio)stream * audio Avcodec.params) list
+val get_audio_streams : input container -> (int * (input, audio) stream * audio Avcodec.params) list
 (** Return the audio stream list of the input. The result is a list of tuple containing the index of the stream in the container, the stream and the codec of the stream. *)
 
-val get_video_streams : input container -> (int * (input, video)stream * video Avcodec.params) list
+val get_video_streams : input container -> (int * (input, video) stream * video Avcodec.params) list
 (** Same as {!Av.get_audio_streams} for the video streams. *)
 
-val get_subtitle_streams : input container -> (int * (input, subtitle)stream * subtitle Avcodec.params) list
+val get_subtitle_streams : input container -> (int * (input, subtitle) stream * subtitle Avcodec.params) list
 (** Same as {!Av.get_audio_streams} for the subtitle streams. *)
 
 
-val find_best_audio_stream : input container -> (int * (input, audio)stream * audio Avcodec.params)
+val find_best_audio_stream : input container -> (int * (input, audio) stream * audio Avcodec.params)
 (** Return the best audio stream of the input. The result is a tuple containing the index of the stream in the container, the stream and the codec of the stream. @raise Error if no stream could be found. *)
 
-val find_best_video_stream : input container -> (int * (input, video)stream * video Avcodec.params)
+val find_best_video_stream : input container -> (int * (input, video) stream * video Avcodec.params)
 (** Same as {!Av.find_best_audio_stream} for the video streams. *)
 
-val find_best_subtitle_stream : input container -> (int * (input, subtitle)stream * subtitle Avcodec.params)
+val find_best_subtitle_stream : input container -> (int * (input, subtitle) stream * subtitle Avcodec.params)
 (** Same as {!Av.find_best_audio_stream} for the subtitle streams. *)
 
 val get_input : (input, _) stream -> input container
@@ -80,7 +80,7 @@ val get_input : (input, _) stream -> input container
 val get_index : (_, _) stream -> int
 (** Return the index of the stream. *)
 
-val get_codec_params : (_, 'media)stream -> 'media Avcodec.params
+val get_codec_params : (_, 'media) stream -> 'media Avcodec.params
 (** [Av.get_codec stream] return the codec of the [stream]. @raise Error if the codec allocation failed. *)
 
 val get_time_base : (_, _) stream -> Avutil.rational
@@ -88,6 +88,9 @@ val get_time_base : (_, _) stream -> Avutil.rational
 
 val set_time_base : (_, _) stream -> Avutil.rational -> unit
 (** [Av.set_time_base stream time_base] set the [stream] time base to [time_base]. *)
+
+val get_pixel_aspect : (_, video) stream -> Avutil.rational
+(** [Av.get_pixel_aspect stream] return the pixel aspect of the [stream]. *)
 
 val get_duration : ?format:Time_format.t -> (input, _) stream -> Int64.t
 (** Same as {!Av.get_input_duration} for the input streams. *)
@@ -167,10 +170,10 @@ val open_output_stream : ?opts:opts -> ?seek:seek -> write -> (output, _) format
 val set_output_metadata : output container -> (string * string) list -> unit
 (** [Av.set_output_metadata dst tags] set the metadata of the [dst] output with the [tags] tag list. This must be set before starting writing streams. @raise Error if a writing already taken place or if the setting failed. *)
 
-val set_metadata : (output, _)stream -> (string * string) list -> unit
+val set_metadata : (output, _) stream -> (string * string) list -> unit
 (** Same as {!Av.set_output_metadata} for the output streams. *)
 
-val get_output : (output, _)stream -> output container
+val get_output : (output, _) stream -> output container
 (** Return the output container of the output stream. *)
 
 val mk_audio_opts :
@@ -216,10 +219,10 @@ val new_subtitle_stream : ?opts:opts -> codec:[`Encoder] Avcodec.Subtitle.t -> o
     the stream's internal AVCodec. After returning, if [opts] was passed, unused options are left in the hash table.
     @raise Error if the opening failed. *)
 
-val write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit
+val write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit
 (** [Av.write_packet os pkt] write the [pkt] packet to the [os] output stream. @raise Error if the writing failed. *)
 
-val write_frame : (output, 'media)stream -> 'media frame -> unit
+val write_frame : (output, 'media) stream -> 'media frame -> unit
 (** [Av.write_frame os frm] write the [frm] frame to the [os] output stream. @raise Error if the writing failed. *)
 
 val write_audio_frame : output container -> audio frame -> unit

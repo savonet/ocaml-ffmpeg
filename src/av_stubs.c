@@ -23,9 +23,6 @@
 #include "avcodec_stubs.h"
 #include "av_stubs.h"
 
-#define Val_none Val_int(0)
-#define Some_val(v) Field(v,0)
-
 /**** Init ****/
 
 value ocaml_av_init(value unit) {
@@ -247,6 +244,17 @@ CAMLprim value ocaml_av_set_stream_time_base(value _stream, value _time_base) {
   av->format_context->streams[index]->time_base = rational_of_value(_time_base);
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_get_stream_pixel_aspect(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal1(ans);
+  av_t * av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  value_of_rational(&av->format_context->streams[index]->sample_aspect_ratio, &ans);
+
+  CAMLreturn(ans);
 }
 
 value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx) {

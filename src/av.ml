@@ -79,10 +79,11 @@ type media_type = MT_audio | MT_video | MT_subtitle
 
 let mk_stream container index = {container; index}
 
-external get_codec_params : (_, 'm)stream -> 'm Avcodec.params = "ocaml_av_get_stream_codec_parameters"
-external get_time_base : (_, _)stream -> Avutil.rational = "ocaml_av_get_stream_time_base"
-external set_time_base : (_, _)stream -> Avutil.rational -> unit = "ocaml_av_set_stream_time_base"
+external get_codec_params : (_, 'm) stream -> 'm Avcodec.params = "ocaml_av_get_stream_codec_parameters"
+external get_time_base : (_, _) stream -> Avutil.rational = "ocaml_av_get_stream_time_base"
+external set_time_base : (_, _) stream -> Avutil.rational -> unit = "ocaml_av_set_stream_time_base"
 
+external get_pixel_aspect : (_, video) stream -> Avutil.rational = "ocaml_av_get_stream_pixel_aspect" 
 
 external _get_streams : input container -> media_type -> int list = "ocaml_av_get_streams"
 
@@ -111,9 +112,9 @@ let get_index s = s.index
 let get_duration ?(format=`Second) s = _get_duration s.container s.index format
 let get_metadata s = List.rev(_get_metadata s.container s.index)
 
-external select : (input, _)stream -> unit = "ocaml_av_select_stream"
+external select : (input, _) stream -> unit = "ocaml_av_select_stream"
 
-external read_packet : (input, 'm)stream -> 'm Avcodec.Packet.t = "ocaml_av_read_stream_packet"
+external read_packet : (input, 'm) stream -> 'm Avcodec.Packet.t = "ocaml_av_read_stream_packet"
 
 let rec iter_packet f stream =
   try
@@ -122,7 +123,7 @@ let rec iter_packet f stream =
   with
     | Error `Eof -> ()
 
-external read_frame : (input, 'm)stream -> 'm frame = "ocaml_av_read_stream_frame"
+external read_frame : (input, 'm) stream -> 'm frame = "ocaml_av_read_stream_frame"
 
 let rec iter_frame f s =
   try
@@ -175,7 +176,7 @@ let iter_input_frame ?(audio=(fun _ _->())) ?(video=(fun _ _->())) ?(subtitle=(f
 
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
 
-external seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
+external seek : (input, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit = "ocaml_av_seek_frame"
 
 external reuse_output : input container -> bool -> unit = "ocaml_av_reuse_output"
 
@@ -402,9 +403,9 @@ let new_subtitle_stream ?opts ~codec container =
   filter_opts unused opts;
   mk_stream container ret
 
-external write_packet : (output, 'media)stream -> 'media Avcodec.Packet.t -> unit = "ocaml_av_write_stream_packet"
+external write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit = "ocaml_av_write_stream_packet"
 
-external write_frame : (output, 'media)stream -> 'media frame -> unit = "ocaml_av_write_stream_frame"
+external write_frame : (output, 'media) stream -> 'media frame -> unit = "ocaml_av_write_stream_frame"
 
 external write_audio_frame : output container -> audio frame -> unit = "ocaml_av_write_audio_frame"
 external write_video_frame : output container -> video frame -> unit = "ocaml_av_write_video_frame"

@@ -1,6 +1,7 @@
 0.4.2 ()
 =====
 * Added Avutil.Video.frame_pts
+* Added Avfilter
 
 0.4.1 (2019-09-26)
 =====

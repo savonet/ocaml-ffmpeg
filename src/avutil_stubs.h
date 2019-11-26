@@ -19,6 +19,9 @@
 
 #include "polymorphic_variant_values_stubs.h"
 
+#define Val_none Val_int(0)
+#define Some_val(v) Field(v,0)
+
 #define ERROR_MSG_SIZE 256
 #define EXN_ERROR "ffmpeg_exn_error"
 

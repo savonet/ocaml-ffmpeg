@@ -28,7 +28,7 @@ OCAMLLIBPATH = @CAMLLIBPATH@
 
 GEN_CODE_INCLUDE = @GEN_CODE_INCLUDE@
 
-SOURCES = pixel_format.mli pixel_format.ml channel_layout.mli channel_layout.ml sample_format.mli sample_format.ml avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml
+SOURCES = pixel_format.mli pixel_format.ml channel_layout.mli channel_layout.ml sample_format.mli sample_format.ml avutil_stubs.h avutil_stubs.c avutil.mli avutil.ml swscale_stubs.c swscale.mli swscale.ml avfilter.mli avfilter.ml avfilter_stubs.c
 ifeq "@HAS_AV@" "yes"
 ifeq "@HAS_SWRESAMPLE@" "yes"
 	SOURCES += avcodec_stubs.h avcodec_stubs.c codec_id.mli codec_id.ml avcodec.mli avcodec.ml
