@@ -13,6 +13,7 @@ src/Makefile
 ._d/
 ._ncdi/
 *.a
+*.annot
 *.cm*
 *.o
 *.so

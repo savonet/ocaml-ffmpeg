@@ -14,6 +14,7 @@ PKG_CONFIG_CHECK_MODULE([libavutil])
 PKG_CONFIG_CHECK_MODULE([libswscale])
 PKG_CONFIG_CHECK_MODULE([libavformat])
 PKG_CONFIG_CHECK_MODULE([libavcodec])
+PKG_CONFIG_CHECK_MODULE([libavfilter])
 #PKG_CONFIG_CHECK_MODULE([libswresample])
 #PKG_CONFIG_CHECK_MODULE([libavdevice])
 
