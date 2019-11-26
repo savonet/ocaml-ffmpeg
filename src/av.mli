@@ -74,7 +74,7 @@ val find_best_video_stream : input container -> (int * (input, video)stream * vi
 val find_best_subtitle_stream : input container -> (int * (input, subtitle)stream * subtitle Avcodec.params)
 (** Same as {!Av.find_best_audio_stream} for the subtitle streams. *)
 
-val get_input : (input, _)stream -> input container
+val get_input : (input, _) stream -> input container
 (** Return the input container of the input stream. *)
 
 val get_index : (_, _) stream -> int
@@ -89,13 +89,13 @@ val get_time_base : (_, _) stream -> Avutil.rational
 val set_time_base : (_, _) stream -> Avutil.rational -> unit
 (** [Av.set_time_base stream time_base] set the [stream] time base to [time_base]. *)
 
-val get_duration : ?format:Time_format.t -> (input, _)stream -> Int64.t
+val get_duration : ?format:Time_format.t -> (input, _) stream -> Int64.t
 (** Same as {!Av.get_input_duration} for the input streams. *)
 
-val get_metadata : (input, _)stream -> (string * string) list
+val get_metadata : (input, _) stream -> (string * string) list
 (** Same as {!Av.get_input_metadata} for the input streams. *)
 
-val select : (input, _)stream -> unit
+val select : (input, _) stream -> unit
 (** [Av.select stream] select the input [stream] for reading. @raise Error if the selection failed. *)
 
 val read_packet : (input, 'media) stream -> 'media Avcodec.Packet.t
@@ -146,7 +146,7 @@ val iter_input_frame : ?audio:(int -> audio frame -> unit) ->
 (** Seek mode. *)
 type seek_flag = Seek_flag_backward | Seek_flag_byte | Seek_flag_any | Seek_flag_frame
 
-val seek : (input, _)stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
+val seek : (input, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
 (** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t] in the [fmt] time format according to the method indicated by the [flags]. @raise Error if the seeking failed. *)
 
 val reuse_output : input container -> bool -> unit

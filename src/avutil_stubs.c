@@ -547,6 +547,19 @@ value value_of_frame(AVFrame *frame)
   return ret;
 }
 
+CAMLprim value ocaml_avutil_frame_pts(value _frame)
+{
+  CAMLparam1(_frame);
+#ifdef HAS_FRAME
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(caml_copy_int64(frame->pts));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
+}
+
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format)
 {
   CAMLparam1(_format);
@@ -643,20 +656,6 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(value _frame, value 
 #endif
   CAMLreturn(ans);
 }
-
-CAMLprim value ocaml_avutil_video_frame_pts(value _frame)
-{
-  CAMLparam1(_frame);
-#ifdef HAS_FRAME
-  AVFrame *frame = Frame_val(_frame);
-
-  CAMLreturn(caml_copy_int64(frame->pts));
-#else
-  caml_failwith("Not implemented.");
-  CAMLreturn(Val_unit);
-#endif
-}
-
 
 /***** AVSubtitle *****/
 

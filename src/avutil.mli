@@ -19,13 +19,11 @@ type output
 
 type 'a container
 
-
 (** {1 Media} *)
 
 type audio
 type video
 type subtitle
-
 
 (** {1 Format} *)
 
@@ -36,6 +34,8 @@ type ('line, 'media) format
 
 type 'media frame
 
+val frame_pts : _ frame -> Int64.t
+(** [Avutil.frame_pts frame] returns the presentation timestamp in time_base units (time when frame should be shown to user). *)
 
 (** {1 Exception} *)
 
@@ -77,7 +77,6 @@ type rational = {num : int; den : int}
 
 (** Formats for time. *)
 module Time_format : sig
-
   (** Time formats. *)
   type t = [
     | `Second
@@ -197,9 +196,6 @@ module Video : sig
 
   val frame_visit : make_writable:bool -> (planes -> unit) -> video frame -> video frame
   (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function with planes wrapping the [vf] video frame data. The make_writable:[wrt] parameter must be set to true if the [f] function writes in the planes. Access to the frame through the planes is safe as long as it occurs in the [f] function and the frame is not sent to an encoder. The same frame is returned for convenience. @raise Error if the make frame writable operation failed. *)
-
-  val frame_pts : video frame -> Int64.t
-  (** [Avutil.Video.frame_pts frame] returns the presentation timestamp in time_base units (time when frame should be shown to user). *)
 end
 
 

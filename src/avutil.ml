@@ -29,6 +29,7 @@ type ('line, 'media) format
 
 (* Frame *)
 type 'media frame
+external frame_pts : _ frame -> Int64.t = "ocaml_avutil_frame_pts"
 
 external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
 let () =
@@ -195,8 +196,6 @@ module Video = struct
   external get_frame_planes : video frame -> bool -> planes = "ocaml_avutil_video_get_frame_bigarray_planes"
 
   let frame_visit ~make_writable visit frame = visit(get_frame_planes frame make_writable); frame
-
-  external frame_pts : video frame -> Int64.t = "ocaml_avutil_video_frame_pts"
 end
 
 module Subtitle = struct
