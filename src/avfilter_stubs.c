@@ -30,3 +30,30 @@ CAMLprim value ocaml_avfilter_get_by_name(value name)
 
   CAMLreturn(ans);
 }
+
+static void finalize_inout(value v)
+{
+  AVFilterInOut** io = (struct AVFilterInOut**)Data_custom_val(v);
+  avfilter_inout_free(io);
+}
+
+static struct custom_operations inout_ops =
+  {
+   "ocaml_avfilter_filter",
+   finalize_inout,
+   custom_compare_default,
+   custom_hash_default,
+   custom_serialize_default,
+   custom_deserialize_default
+  };
+
+CAMLprim value ocaml_avfilter_inout_alloc(value unit)
+{
+  CAMLparam0();
+  CAMLlocal1(ans);
+
+  AVFilterInOut* io = avfilter_inout_alloc();
+  if (io == NULL) caml_raise_out_of_memory();
+  ans = caml_alloc_custom(&inout_ops, sizeof(AVFilterInOut*), 0, 1);
+  CAMLreturn(ans);
+}
