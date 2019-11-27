@@ -198,11 +198,11 @@ let filter_opts unused opts =
     if (Array.mem k unused) then Some v else None) opts
 
 (* Output *)
-external open_output : string -> (string*string) array -> (output container)*(string array) = "ocaml_av_open_output"
+external open_output : ?format:(output, _) format -> string -> (string*string) array -> (output container)*(string array) = "ocaml_av_open_output"
 
-let open_output ?opts fname =
+let open_output ?format ?opts fname =
   let opts = opts_default opts in
-  let ret, unused = open_output fname (mk_opts opts) in
+  let ret, unused = open_output ?format fname (mk_opts opts) in
   filter_opts unused opts;
   ret
 

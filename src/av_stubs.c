@@ -1337,14 +1337,18 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
   return av;
 }
 
-CAMLprim value ocaml_av_open_output(value _filename, value _opts)
+CAMLprim value ocaml_av_open_output(value _format, value _filename, value _opts)
 {
   CAMLparam2(_filename, _opts);
   CAMLlocal3(ans, ret, unused);
   char * filename = strndup(String_val(_filename), caml_string_length(_filename));
+  AVOutputFormat *format = NULL;
+
+  if (_format != Val_none)
+    format = OutputFormat_val(Some_val(_format));
 
   // open output file
-  av_t *av = open_output(NULL, filename, NULL, _opts, &unused);
+  av_t *av = open_output(format, filename, NULL, _opts, &unused);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);

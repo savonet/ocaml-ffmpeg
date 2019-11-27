@@ -158,10 +158,10 @@ val reuse_output : input container -> bool -> unit
 
 (** {5 Output} *)
 
-val open_output : ?opts:opts -> string -> output container
-(** [Av.open_output ?opts filename] open the output file named [filename]. [opts] may contain any option settable on
-    the stream's internal AVFormat. After returning, if [opts] was passed, unused options are left in the hash table.
-    @raise Error if the opening failed. *)
+val open_output : ?format:(output, _) format -> ?opts:opts -> string -> output container
+(** [Av.open_output ?format ?opts filename] open the output file named [filename]. [format] may contain an optional format,
+    [opts] may contain any option settable on the stream's internal AVFormat. After returning, if [opts] was passed, unused
+    options are left in the hash table. @raise Error if the opening failed. *)
 
 val open_output_stream : ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
 (** [Av.open_stream callbacks] open the output container with the given callbacks. [opts] may contain any option settable on
