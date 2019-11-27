@@ -33,7 +33,7 @@ CAMLprim value ocaml_avfilter_get_by_name(value name)
 
 static void finalize_inout(value v)
 {
-  AVFilterInOut** io = (struct AVFilterInOut**)Data_custom_val(v);
+  AVFilterInOut** io = InOut_val_ptr(v);
   avfilter_inout_free(io);
 }
 
@@ -57,3 +57,5 @@ CAMLprim value ocaml_avfilter_inout_alloc(value unit)
   ans = caml_alloc_custom(&inout_ops, sizeof(AVFilterInOut*), 0, 1);
   CAMLreturn(ans);
 }
+
+CAMLprim value ocaml_avfilter_graph_create_filter(value vfilter, value name, value args, value vgraph
