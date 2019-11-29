@@ -15,10 +15,21 @@ type output
 (* Container *)
 type 'a container
 
-(* Media *)
-type audio
-type video
-type subtitle
+(** {1 Media types} *)
+
+type audio = [`Audio]
+type video = [`Video]
+type subtitle = [`Subtitle]
+
+type media_type = [
+  | audio
+  | video
+  | subtitle
+  | `Unknown
+  | `Data
+  | `Attachment
+  | `Nb
+]
 
 external finalize_subtitle : subtitle -> unit = "ocaml_avutil_finalize_subtitle"
 let () =

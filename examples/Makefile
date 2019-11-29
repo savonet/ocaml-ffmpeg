@@ -7,6 +7,7 @@ clean:
 	for i in $(DIRS); do $(MAKE) -C $$i $@; done
 
 test: all
+	$(MAKE) -C list_filters $@
 	$(MAKE) -C encode_audio $@
 	$(MAKE) -C encode_video $@
 	$(MAKE) -C encode_stream $@

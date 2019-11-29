@@ -19,11 +19,21 @@ type output
 
 type 'a container
 
-(** {1 Media} *)
+(** {1 Media types} *)
 
-type audio
-type video
-type subtitle
+type audio = [`Audio]
+type video = [`Video]
+type subtitle = [`Subtitle]
+
+type media_type = [
+  | audio
+  | video
+  | subtitle
+  | `Unknown
+  | `Data
+  | `Attachment
+  | `Nb
+]
 
 (** {1 Format} *)
 

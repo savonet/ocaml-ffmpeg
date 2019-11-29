@@ -1,3 +1,4 @@
+#include <caml/alloc.h>
 #include <caml/memory.h>
 #include <caml/custom.h>
 #include <caml/fail.h>
@@ -8,6 +9,7 @@
 #include <libavfilter/buffersrc.h>
 #include <libavfilter/buffersink.h>
 #include "avutil_stubs.h"
+#include "polymorphic_variant_values_stubs.h"
 
 CAMLprim value ocaml_avfilter_register_all(value unit) {
   CAMLparam0();
@@ -15,6 +17,116 @@ CAMLprim value ocaml_avfilter_register_all(value unit) {
   avfilter_register_all();
 #endif
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
+  CAMLparam0();
+  CAMLlocal4(pad,pads,cur,ret);
+  int c = 0;
+  int i, pad_count;
+  const AVFilter *f = NULL;
+  int pad_type;
+
+#if LIBAVFILTER_VERSION_INT >= AV_VERSION_INT(7, 14, 100)
+  void *opaque = 0;
+#endif
+ 
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(7, 14, 100)
+  while ((f = avfilter_next(f))) c++;
+#else
+  while ((f = av_filter_iterate(&opaque))) c++;
+#endif
+
+  ret = caml_alloc_tuple(c);
+
+  c = 0;
+  f = NULL;
+
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(7, 14, 100)
+  while ((f = avfilter_next(f))) {
+#else
+  opaque = 0;
+  while ((f = av_filter_iterate(&opaque))) {
+#endif
+    cur = caml_alloc_tuple(4);
+    Store_field(cur, 0, caml_copy_string(f->name));
+    Store_field(cur, 1, caml_copy_string(f->description));
+
+    pad_count = avfilter_pad_count(f->inputs);
+    pads = caml_alloc_tuple(pad_count);
+    for (i = 0; i < pad_count; i++) {
+      pad = caml_alloc_tuple(5);
+      Store_field(pad, 0, caml_copy_string(avfilter_pad_get_name(f->inputs, i)));
+
+      switch (avfilter_pad_get_type(f->inputs, i)) {
+        case AVMEDIA_TYPE_VIDEO:
+          pad_type = PVV_Video;
+          break;
+        case AVMEDIA_TYPE_AUDIO:
+          pad_type = PVV_Audio;
+          break;
+        case AVMEDIA_TYPE_DATA:
+          pad_type = PVV_Data;
+          break;
+        case AVMEDIA_TYPE_SUBTITLE:
+          pad_type = PVV_Subtitle;
+          break;
+        case AVMEDIA_TYPE_ATTACHMENT:
+          pad_type = PVV_Attachment;
+          break;
+        default:
+          pad_type = PVV_Unknown;
+      }
+
+      Store_field(pad, 1, pad_type);
+      Store_field(pad, 2, Val_int(i));
+      Store_field(pad, 3, Val_none);
+      Store_field(pad, 4, Val_none);
+
+      Store_field(pads, i, pad);
+    }
+    Store_field(cur, 2, pads);
+
+    pad_count = avfilter_pad_count(f->outputs);
+    pads = caml_alloc_tuple(pad_count);
+    for (i = 0; i < pad_count; i++) {
+      pad = caml_alloc_tuple(5);
+      Store_field(pad, 0, caml_copy_string(avfilter_pad_get_name(f->outputs, i)));
+
+      switch (avfilter_pad_get_type(f->outputs, i)) {
+        case AVMEDIA_TYPE_VIDEO:
+          pad_type = PVV_Video;
+          break;
+        case AVMEDIA_TYPE_AUDIO:
+          pad_type = PVV_Audio;
+          break;
+        case AVMEDIA_TYPE_DATA:
+          pad_type = PVV_Data;
+          break;
+        case AVMEDIA_TYPE_SUBTITLE:
+          pad_type = PVV_Subtitle;
+          break;
+        case AVMEDIA_TYPE_ATTACHMENT:
+          pad_type = PVV_Attachment;
+          break;
+        default:
+          pad_type = PVV_Unknown;
+      }
+
+      Store_field(pad, 1, pad_type);
+      Store_field(pad, 2, Val_int(i));
+      Store_field(pad, 3, Val_none);
+      Store_field(pad, 4, Val_none);
+
+      Store_field(pads, i, pad);
+    }
+    Store_field(cur, 3, pads);
+
+    Store_field(ret, c, cur);
+    c++;
+  }
+  
+  CAMLreturn(ret);
 }
 
 #define Filter_graph_val(v) (*(AVFilterGraph**)Data_custom_val(v))

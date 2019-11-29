@@ -116,8 +116,9 @@ let () =
   let pvv_oc = open_out "polymorphic_variant_values_stubs.h" in
 
   List.iter(print_define_polymorphic_variant_value pvv_oc)
-    ["Audio"; "Video"; "Subtitle"; "Packet"; "Frame";
-     "Ok"; "Again"; "Second"; "Millisecond"; "Microsecond"; "Nanosecond";
+    ["Audio"; "Video"; "Subtitle"; "Data"; "Attachment";
+     "Nb"; "Packet"; "Frame";"Ok"; "Again"; "Second"; "Millisecond";
+     "Microsecond"; "Nanosecond"; "Buffer"; "Link"; "Sink";
      (* Errors *)
      "Bsf_not_found"; "Decoder_not_found"; "Demuxer_not_found";
      "Encoder_not_found"; "Eof"; "Exit"; "Filter_not_found"; "Invalid_data";
