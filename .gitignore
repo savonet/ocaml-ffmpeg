@@ -49,6 +49,7 @@ examples/player/player
 examples/remuxing/remuxing
 examples/transcode_aac/transcode_aac
 examples/transcoding/transcoding
+examples/fps/fps
 examples/audio_decoding/flac.raw
 examples/remuxing/out.mp4
 examples/decode_stream/A4.ogg

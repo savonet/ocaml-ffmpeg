@@ -19,7 +19,8 @@ let string_of_pad {audio;video} =
 
 let () =
   let print_filters cat =
-    List.iter (fun ({name;description;inputs;outputs}) ->
+    List.iter (fun ({name;description;io}) ->
+      let {inputs;outputs} = io in
       Printf.printf "%s name: %s\n\
         description: %s\n\
         inputs:%s\n\

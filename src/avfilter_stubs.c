@@ -169,7 +169,7 @@ CAMLprim value ocaml_avfilter_init(value unit) {
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_avfilter_create_filter(value _instance_name, value _args, value _name, value _graph) {
+CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name, value _name, value _graph) {
   CAMLparam4(_instance_name, _args, _name, _graph);
   CAMLlocal1(ret);
 
@@ -182,10 +182,8 @@ CAMLprim value ocaml_avfilter_create_filter(value _instance_name, value _args, v
 
   if (!filter) caml_raise_not_found();
 
-  if (_instance_name != Val_none) {
-    name = strndup(String_val(Some_val(_instance_name)), caml_string_length(Some_val(_instance_name)));
-    if (!name) caml_raise_out_of_memory();
-  }
+  name = strndup(String_val(_instance_name), caml_string_length(_instance_name));
+  if (!name) caml_raise_out_of_memory();
 
   if (_args != Val_none) {
     args = strndup(String_val(Some_val(_args)), caml_string_length(Some_val(_args)));

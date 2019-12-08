@@ -1,11 +1,6 @@
-(** This module provides filters. *)
+(** This module provides an API to AVfilter. *)
 
-type graph_state = [
-  | `Unconfigured
-  | `Configured
-]
-
-type 'a t
+type config
 
 type filter_type = [
   | `Buffer
@@ -13,20 +8,58 @@ type filter_type = [
   | `Sink
 ]
 
+type valued_arg = [
+  | `String of string
+  | `Int of int
+  | `Float of float
+  | `Rational of Avutil.rational
+]
+
+type args = [
+  | `Key of string
+  | `Pair of (string * valued_arg) 
+]
+
+type ('a, 'b) av = {
+  audio: 'a;
+  video: 'b
+}
+
+type ('a, 'b) io = {
+  inputs: 'a;
+  outputs: 'b
+}
+
 (** (attached/unattached, pad_type, input/output, audio/video) pad *)
 type ('a, 'b, 'c, 'd) pad
 
-type ('a,'b, 'c) pads = {
-  video: ('a, 'b, 'c, [`Video]) pad list;
-  audio: ('a, 'b, 'c, [`Audio]) pad list
-}
+type ('a,'b, 'c) pads =
+  (('a, 'b, 'c, [`Audio]) pad list,
+   ('a, 'b, 'c, [`Video]) pad list) av
 
 type ('a,'b) filter = {
   name:        string;
   description: string;
-  inputs:  ('a, 'b, [`Input]) pads;
-  outputs: ('a, 'b, [`Output]) pads;
+  io:          (('a, 'b, [`Input]) pads,
+                ('a, 'b, [`Output]) pads) io
 }
+
+type 'a input = 'a Avutil.frame -> unit 
+type 'a output = unit -> 'a Avutil.frame
+
+type 'a entries = (string * 'a) list
+
+type inputs =
+  ([`Audio] input entries,
+   [`Video] input entries) av
+
+type outputs =
+  ([`Audio] output entries,
+   [`Video] output entries) av
+
+type t = (inputs, outputs) io
+
+exception Exists
 
 (** Filter list. *)
 val filters : ([`Unattached], [`Link]) filter list
@@ -40,21 +73,14 @@ val sinks : ([`Unattached], [`Sink]) filter list
 (** Pad name. *)
 val pad_name : _ pad -> string
 
-(** Initiate a filter graph. *)
-val init : unit -> [`Unconfigured] t
+(** Initiate a filter graph configuration. *)
+val init : unit -> config
 
-(** Attach a filter to a filter graph. *)
-val attach : ?name:string -> ?args:string -> ([`Unattached], 'a) filter -> [`Unconfigured] t -> ([`Attached], 'a) filter
+(** Attach a filter to a filter graph configuration. Raises [Exists] if there is already a filter by that name in the graph. *)
+val attach : ?args:args list -> name:string -> ([`Unattached], 'a) filter -> config-> ([`Attached], 'a) filter
 
 (** Link two filter pads. *)
 val link : ([`Attached], [<`Buffer|`Link], [`Output], 'a) pad -> ([`Attached], [<`Link|`Sink], [`Input], 'a) pad -> unit
 
-(** Check validity and configure all the links and formats in the graph. *)
-val config : [`Unconfigured] t -> [`Configured] t
-
-(** Submit a frame to the filter graph. *)
-val write_frame : [`Configured] t -> ([`Attached], [`Buffer], [`Input], 'a) pad -> 'a Avutil.frame -> unit
-
-(** Retrieve a frame from the filter graph. Raises [Avutil.Error `Eagain] if no frames are ready. *)
-val get_frame : [`Configured] t -> ([`Attached], [`Sink], [`Output], 'a) pad -> 'a Avutil.frame
-
+(** Check validity and configure all the links and formats in the graph and return its outputs and outputs. *)
+val launch : config -> t
