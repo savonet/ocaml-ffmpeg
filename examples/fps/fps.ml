@@ -16,9 +16,9 @@ let () =
   let audio_codec = Avcodec.Audio.find_encoder "aac" in
   let video_codec = Avcodec.Video.find_encoder "mpeg4" in
 
-  let audio_params, audio_input, oass = Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
+  let oass = Av.find_best_audio_stream src |> fun (i, _, params) ->
       let opts = Av.mk_audio_opts ~params () in
-      params, audio_input, (i, Av.new_audio_stream ~codec:audio_codec ~opts dst) in
+      (i, Av.new_audio_stream ~codec:audio_codec ~opts dst) in
 
   let video_params, video_input, ovss = Av.find_best_video_stream src |> fun (i, video_input, params) ->
       let opts = Av.mk_video_opts ~params () in
@@ -72,51 +72,6 @@ let () =
    Avfilter.link
         (List.hd Avfilter.(fps.io.outputs.video))
         (List.hd Avfilter.(sink.io.inputs.video));
-(*
-   let abuffer =
-     let time_base =
-        Av.get_time_base audio_input
-     in
-     let sample_rate =
-       Avcodec.Audio.get_sample_rate audio_params
-     in
-     let sample_format =
-       Avcodec.Audio.get_sample_format audio_params
-     in
-     let channels =
-       Avcodec.Audio.get_nb_channels audio_params
-     in
-     let args = [
-       `Pair ("time_base", `Rational time_base);
-       `Pair ("sample_rate", `Int sample_rate);
-       `Pair ("sample_fmt", `String (Avutil.Sample_format.get_name sample_format));
-       `Pair ("channels", `Int channels)
-     ] in
-     let abuffer = List.find (fun ({Avfilter.name}) ->
-       name = "abuffer") Avfilter.buffers
-     in
-     FFmpeg.Avfilter.attach ~args ~name:"abuffer" abuffer config
-   in
-   let aresample =
-     let args = [`Key "22050"] in
-     let aresample = List.find (fun ({Avfilter.name}) ->
-       name = "aresample") Avfilter.filters
-     in
-     FFmpeg.Avfilter.attach ~args ~name:"aresample" aresample config
-   in
-   let asink =
-     let asink = List.find (fun ({Avfilter.name}) ->
-       name = "abuffersink") Avfilter.sinks
-     in
-     FFmpeg.Avfilter.attach ~name:"asink" asink config
-   in
-   Avfilter.link
-        (List.hd Avfilter.(abuffer.io.outputs.audio))
-        (List.hd Avfilter.(aresample.io.inputs.audio));
-   Avfilter.link
-        (List.hd Avfilter.(aresample.io.outputs.audio))
-        (List.hd Avfilter.(asink.io.inputs.audio));
-*)
    Avfilter.launch config
   in
 

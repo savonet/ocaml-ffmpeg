@@ -55,8 +55,9 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
     pad_count = avfilter_pad_count(f->inputs);
     pads = caml_alloc_tuple(pad_count);
     for (i = 0; i < pad_count; i++) {
-      pad = caml_alloc_tuple(5);
+      pad = caml_alloc_tuple(6);
       Store_field(pad, 0, caml_copy_string(avfilter_pad_get_name(f->inputs, i)));
+      Store_field(pad, 1, caml_copy_string(f->name));
 
       switch (avfilter_pad_get_type(f->inputs, i)) {
         case AVMEDIA_TYPE_VIDEO:
@@ -78,10 +79,10 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
           pad_type = PVV_Unknown;
       }
 
-      Store_field(pad, 1, pad_type);
-      Store_field(pad, 2, Val_int(i));
-      Store_field(pad, 3, Val_none);
+      Store_field(pad, 2, pad_type);
+      Store_field(pad, 3, Val_int(i));
       Store_field(pad, 4, Val_none);
+      Store_field(pad, 5, Val_none);
 
       Store_field(pads, i, pad);
     }
@@ -90,8 +91,9 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
     pad_count = avfilter_pad_count(f->outputs);
     pads = caml_alloc_tuple(pad_count);
     for (i = 0; i < pad_count; i++) {
-      pad = caml_alloc_tuple(5);
+      pad = caml_alloc_tuple(6);
       Store_field(pad, 0, caml_copy_string(avfilter_pad_get_name(f->outputs, i)));
+      Store_field(pad, 1, caml_copy_string(f->name));
 
       switch (avfilter_pad_get_type(f->outputs, i)) {
         case AVMEDIA_TYPE_VIDEO:
@@ -113,10 +115,10 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
           pad_type = PVV_Unknown;
       }
 
-      Store_field(pad, 1, pad_type);
-      Store_field(pad, 2, Val_int(i));
-      Store_field(pad, 3, Val_none);
+      Store_field(pad, 2, pad_type);
+      Store_field(pad, 3, Val_int(i));
       Store_field(pad, 4, Val_none);
+      Store_field(pad, 5, Val_none);
 
       Store_field(pads, i, pad);
     }
@@ -205,6 +207,85 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name, v
     ocaml_avutil_raise_error(err);
 
   CAMLreturn((value)context);
+}
+
+static inline void append_avfilter_in_out(AVFilterInOut **filter, char *name, AVFilterContext *filter_ctx, int pad_idx) {
+  AVFilterInOut *cur;
+
+  if (*filter) {
+    cur = *filter;
+    while (cur) cur = cur->next;
+    cur->next = avfilter_inout_alloc();
+    cur = cur->next;
+  } else {
+    *filter = avfilter_inout_alloc();
+    cur = *filter;
+  }
+
+  if (!cur) {
+    avfilter_inout_free(filter);
+    caml_raise_out_of_memory();
+  }
+
+  cur->name = name;
+  cur->filter_ctx = filter_ctx;
+  cur->pad_idx = pad_idx;
+  cur->next = NULL;
+};
+
+CAMLprim value ocaml_avfilter_parse(value _inputs, value _outputs, value _filters, value _graph) {
+  CAMLparam4(_inputs, _outputs, _filters, _graph);
+  CAMLlocal1(_pad);
+
+  int c, err, idx;
+  AVFilterInOut *inputs = NULL;
+  AVFilterInOut *outputs = NULL; 
+  AVFilterGraph *graph = Filter_graph_val(_graph);
+  AVFilterContext *filter_ctx;
+  char *filters, *name;
+
+  for (c = 0; c < Wosize_val(_inputs); c++) {
+    _pad = Field(_inputs,c);
+    name = av_strdup(String_val(Field(_pad,0)));
+    filter_ctx = (AVFilterContext *)Field(_pad,1);
+    idx = Int_val(Field(_pad,2));
+
+    append_avfilter_in_out(&inputs, name, filter_ctx, idx);
+  }
+
+  for (c = 0; c < Wosize_val(_outputs); c++) {
+    _pad = Field(_outputs,c);
+    name = av_strdup(String_val(Field(_pad,0)));
+    filter_ctx = (AVFilterContext *)Field(_pad,1);
+    idx = Int_val(Field(_pad,2));
+
+    append_avfilter_in_out(&outputs, name, filter_ctx, idx);
+  }
+
+  filters = strndup(String_val(_filters), caml_string_length(_filters));
+
+  if (!filters) {
+    if (inputs) avfilter_inout_free(&inputs);
+    if (outputs) avfilter_inout_free(&outputs);
+    caml_raise_out_of_memory();
+  }
+
+  caml_release_runtime_system();
+  err = avfilter_graph_parse_ptr(graph, filters, &inputs, &outputs, NULL);
+  caml_acquire_runtime_system();
+
+  free(filters);
+
+  if (inputs)
+    avfilter_inout_free(&inputs);
+
+  if (outputs)
+    avfilter_inout_free(&outputs);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_avfilter_link(value _src, value _srcpad, value _dst, value _dstpad) {
