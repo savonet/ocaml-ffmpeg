@@ -134,7 +134,7 @@ module Channel_layout : sig
       - a channel layout mask, in hexadecimal starting with "0x" (see the AV_CH_* macros). *)
   val find : string -> t
 
-  (* Return a description of the channel layout. *)
+  (** Return a description of the channel layout. *)
   val get_description : ?channels:int -> t -> string
 
   (** Return the number of channels in the channel layout. *)
