@@ -317,24 +317,28 @@ let parse ({inputs;outputs}:[`Unattached] parse_io) filters graph =
 
 external config : _config -> unit = "ocaml_avfilter_config"
 
-external write_frame : filter_ctx -> 'a Avutil.frame -> unit = "ocaml_avfilter_write_frame"
+(* First argument is not used but here to make sure that _config is not GCed while
+   using the filters. *)
+external write_frame : _config -> filter_ctx -> 'a Avutil.frame -> unit = "ocaml_avfilter_write_frame"
 
-external get_frame : filter_ctx -> 'b Avutil.frame = "ocaml_avfilter_get_frame"
+(* First argument is not used but here to make sure that _config is not GCed while
+   using the filters. *)
+external get_frame : _config -> filter_ctx -> 'b Avutil.frame = "ocaml_avfilter_get_frame"
 
 let launch graph =
   config graph.c;
   let audio = List.map (fun (name, filter_ctx) ->
-    name, write_frame filter_ctx) graph.audio_inputs
+    name, write_frame graph.c filter_ctx) graph.audio_inputs
   in
   let video = List.map (fun (name, filter_ctx) ->
-    name, write_frame filter_ctx) graph.video_inputs
+    name, write_frame graph.c filter_ctx) graph.video_inputs
   in
   let inputs = {audio;video} in
   let audio = List.map (fun (name, filter_ctx) ->
-    name, fun () -> get_frame filter_ctx) graph.audio_outputs
+    name, fun () -> get_frame graph.c filter_ctx) graph.audio_outputs
   in
   let video = List.map (fun (name, filter_ctx) ->
-    name, fun () -> get_frame filter_ctx) graph.video_outputs
+    name, fun () -> get_frame graph.c filter_ctx) graph.video_outputs
   in
   let outputs = {audio;video} in
   {outputs;inputs}

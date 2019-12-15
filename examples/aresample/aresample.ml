@@ -99,6 +99,8 @@ let () =
    with Not_found -> ()
   in
 
+  Gc.full_major (); Gc.full_major ();
+
   src |> Av.iter_input_frame
     ~audio:process_audio;
 

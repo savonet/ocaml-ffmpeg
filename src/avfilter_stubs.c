@@ -314,8 +314,8 @@ CAMLprim value ocaml_avfilter_config(value _graph) {
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_avfilter_write_frame(value _filter, value _frame) {
-  CAMLparam1(_frame);
+CAMLprim value ocaml_avfilter_write_frame(value _config, value _filter, value _frame) {
+  CAMLparam2(_config, _frame);
 
   caml_release_runtime_system();
   int err = av_buffersrc_write_frame((AVFilterContext *)_filter, Frame_val(_frame));
@@ -327,8 +327,8 @@ CAMLprim value ocaml_avfilter_write_frame(value _filter, value _frame) {
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_avfilter_get_frame(value _filter) {
-  CAMLparam0();
+CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
+  CAMLparam1(_config);
   CAMLlocal1(frame_value);
 
   caml_release_runtime_system();
