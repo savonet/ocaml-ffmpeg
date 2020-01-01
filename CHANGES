@@ -1,4 +1,4 @@
-0.4.2 ()
+0.4.2 (unreleased)
 =====
 * Added Avutil.Video.frame_pts
 * Added Avfilter
