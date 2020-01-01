@@ -28,15 +28,15 @@ type filter_ctx
 type ('a, 'b, 'c) pad = {
   pad_name:       string;
   filter_name:    string;
-  media_type:     'c;
+  media_type:     'b;
   idx:            int;
   filter_ctx:     filter_ctx option;
   _config:        _config option
 }
 
 type ('a,'b) pads =
-  (('a, 'b, [`Audio]) pad list,
-   ('a, 'b, [`Video]) pad list) av
+  (('a, [`Audio], 'b) pad list,
+   ('a, [`Video], 'b) pad list) av
 
 type 'a filter = {
   name:        string;
@@ -99,10 +99,10 @@ let filters, buffers, sinks =
   let split_pads pads =
     let audio, video = Array.fold_left (fun (a,v) pad ->
       if pad.media_type = `Audio then
-        let pad : (_, _, [`Audio]) pad = {pad with media_type = `Audio} in
+        let pad : (_, [`Audio], _) pad = {pad with media_type = `Audio} in
         pad::a, v
       else
-        let pad : (_, _, [`Video]) pad = {pad with media_type = `Video} in
+        let pad : (_, [`Video], _) pad = {pad with media_type = `Video} in
         a, pad::v) ([],[]) pads
     in
 
@@ -250,8 +250,8 @@ type ('a, 'b, 'c) parse_node = {
 }
 
 type ('a, 'b) parse_av =
-  (('a, 'b, [`Audio]) parse_node list,
-   ('a, 'b, [`Video]) parse_node list) av
+  (('a, [`Audio], 'b) parse_node list,
+   ('a, [`Video], 'b) parse_node list) av
 
 type 'a parse_io =
   (('a, [`Input])  parse_av,

@@ -24,12 +24,12 @@ type ('a, 'b) io = {
   outputs: 'b
 }
 
-(** (attached/unattached, input/output, audio/video) pad *)
+(** (attached/unattached, audio/video, input/output) pad *)
 type ('a, 'b, 'c) pad
 
 type ('a,'b) pads =
-  (('a, 'b, [`Audio]) pad list,
-   ('a, 'b, [`Video]) pad list) av
+  (('a, [`Audio], 'b) pad list,
+   ('a, [`Video], 'b) pad list) av
 
 type 'a filter = {
   name:        string;
@@ -74,7 +74,7 @@ val init : unit -> config
 val attach : ?args:args list -> name:string -> [`Unattached] filter -> config-> [`Attached] filter
 
 (** Link two filter pads. *)
-val link : ([`Attached], [`Output], 'a) pad -> ([`Attached], [`Input], 'a) pad -> unit
+val link : ([`Attached], 'a, [`Output]) pad -> ([`Attached], 'a, [`Input]) pad -> unit
 
 (** Parse a graph described by a string and attach outputs/inputs to it. *)
 type ('a, 'b, 'c) parse_node = {
@@ -84,8 +84,8 @@ type ('a, 'b, 'c) parse_node = {
 }
 
 type ('a, 'b) parse_av =
-  (('a, 'b, [`Audio]) parse_node list,
-   ('a, 'b, [`Video]) parse_node list) av
+  (('a, [`Audio], 'b) parse_node list,
+   ('a, [`Video], 'b) parse_node list) av
 
 type 'a parse_io =
   (('a, [`Input])  parse_av,
