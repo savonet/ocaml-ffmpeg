@@ -17,6 +17,6 @@ jobs:
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
-      run: opam depext -y -i ffmpeg
+      run: opam depext -u -y -i ffmpeg
     - name: Run tests locally
       run: eval $(opam env) && dune runtest
