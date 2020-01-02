@@ -9,7 +9,7 @@ let () =
         match C.Pkg_config.get c with
           | None -> default
           | Some pc -> (
-              match C.Pkg_config.query pc ~package:"avfilter" with
+              match C.Pkg_config.query pc ~package:"libavfilter" with
                 | None -> default
                 | Some deps -> deps )
       in

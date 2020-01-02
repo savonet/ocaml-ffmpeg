@@ -12,7 +12,9 @@ let () =
           | None -> default
           | Some pc -> (
               match
-                C.Pkg_config.query pc ~package:(String.concat " " packages)
+                C.Pkg_config.query pc
+                  ~package:
+                    (String.concat " " (List.map (fun p -> "lib" ^ p) packages))
               with
                 | None -> default
                 | Some deps -> deps )

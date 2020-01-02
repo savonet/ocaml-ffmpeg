@@ -13,15 +13,17 @@ let rec find_line ic line_re =
     else find_line ic line_re
   with End_of_file -> false
 
+exception Found of string
+
 let get_path filename =
-  ["-I/usr/include"; "-I/usr/include/i386-linux-gnu"; "-I/usr/local/include"]
-  |> List.fold_left
-       (fun path param ->
-         if path = None && "-I" = String.sub param 0 2 then (
-           let p = String.sub param 2 (String.length param - 2) ^ filename in
-           if Sys.file_exists p then Some p else None )
-         else path)
-       None
+  try
+    List.iter
+      (fun path ->
+        let p = path ^ filename in
+        if Sys.file_exists p then raise (Found p))
+      Config.paths;
+    None
+  with Found p -> Some p
 
 let rec id_to_pv_value id values =
   let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in

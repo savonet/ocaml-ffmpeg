@@ -9,7 +9,7 @@ let () =
         match C.Pkg_config.get c with
           | None -> default
           | Some pc -> (
-              match C.Pkg_config.query pc ~package:"swscale" with
+              match C.Pkg_config.query pc ~package:"libswscale" with
                 | None -> default
                 | Some deps -> deps )
       in
