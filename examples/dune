@@ -92,4 +92,3 @@
  (name transcoding)
  (modules transcoding)
  (libraries ffmpeg-av))
-

@@ -10,6 +10,7 @@ bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
   "ocaml" {>= "4.05.0"}
   "dune"
+  "dune-configurator"
 ]
 build: [
   ["dune" "subst"] {pinned}

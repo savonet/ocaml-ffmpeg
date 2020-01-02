@@ -42,7 +42,9 @@ let () =
         ]
       in
       let buffer =
-        List.find (fun { Avfilter.name; _ } -> name = "abuffer") Avfilter.buffers
+        List.find
+          (fun { Avfilter.name; _ } -> name = "abuffer")
+          Avfilter.buffers
       in
       {
         Avfilter.node_name = "in";
@@ -53,7 +55,9 @@ let () =
     let outputs = { Avfilter.audio = [abuffer]; video = [] } in
     let sink =
       let sink =
-        List.find (fun { Avfilter.name; _ } -> name = "abuffersink") Avfilter.sinks
+        List.find
+          (fun { Avfilter.name; _ } -> name = "abuffersink")
+          Avfilter.sinks
       in
       {
         Avfilter.node_name = "out";

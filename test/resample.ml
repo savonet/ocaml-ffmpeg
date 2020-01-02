@@ -22,7 +22,7 @@ module Converter = ConverterInput (Swresample.PlanarFloatArray)
 
 let logStep step v =
   Gc.full_major ();
-  Printf.printf"%s done\n%!" step;
+  Printf.printf "%s done\n%!" step;
   v
 
 let write_bytes = output_bytes

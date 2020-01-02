@@ -55,7 +55,9 @@ let () =
     in
     let sink =
       let sink =
-        List.find (fun { Avfilter.name; _ } -> name = "buffersink") Avfilter.sinks
+        List.find
+          (fun { Avfilter.name; _ } -> name = "buffersink")
+          Avfilter.sinks
       in
       Avfilter.attach ~name:"sink" sink config
     in

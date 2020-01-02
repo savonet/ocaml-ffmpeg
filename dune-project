@@ -15,6 +15,7 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
+  dune-configurator
   base-threads)
 )
 
@@ -24,6 +25,7 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
+  dune-configurator
   ffmpeg-avutil)
 )
 
@@ -33,6 +35,7 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
+  dune-configurator
   ffmpeg-avutil)
 )
 
@@ -42,6 +45,7 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
+  dune-configurator
   ffmpeg-avutil)
 )
 
@@ -50,7 +54,8 @@
  (synopsis "Bindings for the ffmpeg swscale library")
  (depends
   (ocaml (>= 4.05.0))
-  dune)
+  dune
+  dune-configurator)
 )
 
 (package
@@ -58,7 +63,8 @@
  (synopsis "Bindings for the ffmpeg swresample library")
  (depends
   (ocaml (>= 4.05.0))
-  dune)
+  dune
+  dune-configurator)
 )
 
 (package
@@ -67,6 +73,7 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
+  dune-configurator
   ffmpeg-avutil
   ffmpeg-avcodec)
 )
