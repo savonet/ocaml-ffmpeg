@@ -5,11 +5,14 @@
  (foreign_stubs
   (language c)
   (names avdevice_stubs)
+  (include_dirs
+   (lib ffmpeg-avutil)
+   (lib ffmpeg-av))
   (flags
    (:include c_flags.sexp)))
  (c_library_flags
   (:include c_library_flags.sexp))
- (libraries avutil av))
+ (libraries ffmpeg-av))
 
 (rule
  (targets c_flags.sexp c_library_flags.sexp)

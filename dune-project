@@ -30,16 +30,6 @@
 )
 
 (package
- (name ffmpeg-avdevice)
- (synopsis "Bindings for the ffmpeg avdevice library")
- (depends
-  (ocaml (>= 4.05.0))
-  dune
-  dune-configurator
-  ffmpeg-avutil)
-)
-
-(package
  (name ffmpeg-avfilter)
  (synopsis "Bindings for the ffmpeg avfilter library")
  (depends
@@ -55,7 +45,8 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
-  dune-configurator)
+  dune-configurator
+  ffmpeg-avutil)
 )
 
 (package
@@ -64,7 +55,9 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
-  dune-configurator)
+  dune-configurator
+  ffmpeg-avutil
+  ffmpeg-avcodec)
 )
 
 (package
@@ -76,6 +69,16 @@
   dune-configurator
   ffmpeg-avutil
   ffmpeg-avcodec)
+)
+
+(package
+ (name ffmpeg-avdevice)
+ (synopsis "Bindings for the ffmpeg avdevice library")
+ (depends
+  (ocaml (>= 4.05.0))
+  dune
+  dune-configurator
+  ffmpeg-av)
 )
 
 (package
