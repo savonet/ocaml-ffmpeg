@@ -11,8 +11,8 @@ let packages =
     "libswscale";
   ]
 
-let default_path package =
-  ["/usr/local/include" ^ package; "/usr/include" ^ package]
+let default_paths =
+  ["/usr/local/include"; "/usr/include"]
 
 let trim s =
   match String.split_on_char '\n' (String.trim s) with s :: _ -> s | _ -> s
@@ -30,16 +30,14 @@ let add_path c pkg_config cur package =
   match C.Process.run c pkg_config ["--cflags-only-I"; package] with
     | { C.Process.exit_code; stdout; _ } when exit_code = 0 ->
         split_flags stdout @ cur
-    | _ -> default_path package @ cur
+    | _ -> default_paths @ cur
 
 let () =
   C.main ~name:"ffmpeg-gen_code-pkg-config" (fun c ->
       let paths =
         match C.which c "pkg-config" with
           | None ->
-              List.fold_left
-                (fun cur package -> default_path package @ cur)
-                [] packages
+              default_paths
           | Some pkg_config ->
               List.fold_left (add_path c pkg_config) [] packages
       in
