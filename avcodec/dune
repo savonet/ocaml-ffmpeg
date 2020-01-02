@@ -1,0 +1,28 @@
+(library
+ (name avcodec)
+ (public_name ffmpeg-avcodec)
+ (synopsis "Bindings to ffmpeg's avcodec library")
+ (foreign_stubs
+  (language c)
+  (names avcodec_stubs)
+  (flags
+   (:include c_flags.sexp)))
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (libraries avutil))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))
+
+(rule
+ (targets codec_id_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe codec_id h)))
+
+(rule
+ (targets codec_id.ml)
+ (deps codec_id_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe codec_id ml)))

@@ -5,9 +5,15 @@ ocaml-ffmpeg is an OCaml interface for the [FFmpeg](http://ffmpeg.org/) Multimed
 
 The modules currently available are :
 
-`Av` : the module containing demuxers and muxers for reading and writing multimedia container formats.
+`Avutil` : base module containing the share types and utilities
 
 `Avcodec` : the module containing decoders and encoders for audio, video and subtitle codecs.
+
+`Av` : the module containing demuxers and muxers for reading and writing multimedia container formats.
+
+`Avdevice` : the module containing input and output devices for grabbing from and rendering to many common multimedia input/output software frameworks.
+
+`Avfilter` : the module containing audio and video filters.
 
 `Swresample` : the module performing audio resampling, rematrixing and sample format conversion operations.
 	
@@ -23,16 +29,14 @@ Prerequisites:
 ==============
 
 - ocaml >= 4.05.0
-- FFmpeg >= 3.0*
+- FFmpeg >= 3.0
+- dune >= 2.0
 - findlib >= 0.8.1
-
-(*) The Swscale module can however be used with FFmpeg 2.0.
-
 
 Compilation:
 ============
 
-	$ make all
+	$ dune build
 
 This should build both the native and the byte-code version of the
 extension library.
@@ -41,7 +45,7 @@ extension library.
 Installation:
 =============
 
-	$ make install
+	$ dune install
 
 This should install the library file (using ocamlfind) in the
 appropriate place.

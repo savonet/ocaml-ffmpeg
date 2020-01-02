@@ -1,0 +1,6 @@
+(executable
+ (name gen_code)
+ (foreign_stubs
+  (language c)
+  (names gen_code_stubs))
+ (libraries str))

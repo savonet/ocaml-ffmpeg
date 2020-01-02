@@ -1,0 +1,17 @@
+(library
+ (name avdevice)
+ (public_name ffmpeg-avdevice)
+ (synopsis "Bindings to ffmpeg's avdevice library")
+ (foreign_stubs
+  (language c)
+  (names avdevice_stubs)
+  (flags
+   (:include c_flags.sexp)))
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (libraries avutil av))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))
