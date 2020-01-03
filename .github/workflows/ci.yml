@@ -19,9 +19,9 @@ jobs:
       # opam dexpext update fails on macos for some reason
     - name: Update packages and install locally
       run: opam depext -u -y -i ffmpeg
-      if: ${{ matrix.os == "linux-latest" }}
+      if: matrix.os == "linux-latest"
     - name: Install locally
       run: opam depext -y -i ffmpeg
-      if: ${{ matrix.os == "macos-latest" }}
+      if: matrix.os == "macos-latest"
     - name: Run tests locally
       run: eval $(opam env) && dune runtest
