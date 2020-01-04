@@ -1,0 +1,94 @@
+(env
+ (dev
+  (flags
+   (:standard -warn-error -A))))
+
+(executable
+ (name aresample)
+ (modules aresample)
+ (libraries ffmpeg-av ffmpeg-avfilter))
+
+(executable
+ (name audio_decoding)
+ (modules audio_decoding)
+ (libraries ffmpeg-av ffmpeg-swresample))
+
+(executable
+ (name audio_device)
+ (modules audio_device)
+ (libraries ffmpeg-avdevice))
+
+(executable
+ (name decode_audio)
+ (modules decode_audio)
+ (libraries ffmpeg-av))
+
+(executable
+ (name decode_stream)
+ (modules decode_stream)
+ (libraries ffmpeg-av))
+
+(executable
+ (name demuxing_decoding)
+ (modules demuxing_decoding)
+ (libraries ffmpeg-av ffmpeg-swresample ffmpeg-swscale))
+
+(executable
+ (name encode_audio)
+ (modules encode_audio)
+ (libraries ffmpeg-avcodec ffmpeg-swresample))
+
+(executable
+ (name encode_stream)
+ (modules encode_stream)
+ (libraries ffmpeg-av ffmpeg-swresample))
+
+(executable
+ (name encode_video)
+ (modules encode_video)
+ (libraries ffmpeg-av))
+
+(executable
+ (name encoding)
+ (modules encoding)
+ (libraries ffmpeg-av ffmpeg-swresample))
+
+(executable
+ (name fps)
+ (modules fps)
+ (libraries ffmpeg-av ffmpeg-avfilter))
+
+(executable
+ (name fps_samplerate)
+ (modules fps_samplerate)
+ (libraries ffmpeg-av ffmpeg-avfilter))
+
+(executable
+ (name list_filters)
+ (modules list_filters)
+ (libraries ffmpeg-avfilter))
+
+(executable
+ (name player)
+ (modules player)
+ (libraries ffmpeg-av ffmpeg-avdevice))
+
+(executable
+ (name read_metadata)
+ (modules read_metadata)
+ (libraries ffmpeg-av))
+
+(executable
+ (name remuxing)
+ (modules remuxing)
+ (libraries ffmpeg-av))
+
+(executable
+ (name transcode_aac)
+ (modules transcode_aac)
+ (libraries ffmpeg-av))
+
+(executable
+ (name transcoding)
+ (modules transcoding)
+ (libraries ffmpeg-av))

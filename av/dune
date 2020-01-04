@@ -1,0 +1,20 @@
+(library
+ (name av)
+ (public_name ffmpeg-av)
+ (synopsis "Bindings to ffmpeg's av library")
+ (foreign_stubs
+  (language c)
+  (names av_stubs)
+  (include_dirs
+   (lib ffmpeg-avcodec))
+  (flags
+   (:include c_flags.sexp)))
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (install_c_headers av_stubs)
+ (libraries ffmpeg-avutil ffmpeg-avcodec))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))

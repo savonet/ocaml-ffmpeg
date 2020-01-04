@@ -1,0 +1,61 @@
+(library
+ (name avutil)
+ (public_name ffmpeg-avutil)
+ (synopsis "Bindings to ffmpeg's avutil library")
+ (foreign_stubs
+  (language c)
+  (names avutil_stubs)
+  (flags
+   (:include c_flags.sexp)))
+ (c_library_flags
+  (:include c_library_flags.sexp))
+ (install_c_headers avutil_stubs polymorphic_variant_values_stubs)
+ (libraries threads))
+
+(rule
+ (targets c_flags.sexp c_library_flags.sexp)
+ (action
+  (run ./config/discover.exe)))
+
+(rule
+ (targets avutil_stubs.c)
+ (mode fallback)
+ (deps polymorphic_variant_values_stubs.h pixel_format_stubs.h
+   sample_format_stubs.h channel_layout_stubs.h)
+ (action
+  (echo "this should not happen")))
+
+(rule
+ (targets polymorphic_variant_values_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe polymorphic_variant h)))
+
+(rule
+ (targets pixel_format_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe pixel_format h)))
+
+(rule
+ (targets pixel_format.ml)
+ (action
+  (run ../gen_code/gen_code.exe pixel_format ml)))
+
+(rule
+ (targets sample_format_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe sample_format h)))
+
+(rule
+ (targets sample_format.ml)
+ (action
+  (run ../gen_code/gen_code.exe sample_format ml)))
+
+(rule
+ (targets channel_layout_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe channel_layout h)))
+
+(rule
+ (targets channel_layout.ml)
+ (action
+  (run ../gen_code/gen_code.exe channel_layout ml)))
