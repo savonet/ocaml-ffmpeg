@@ -20,11 +20,6 @@ module R10 = Swresample.Make (Swresample.S32Bytes) (Swresample.S32Bytes)
 module ConverterInput = Swresample.Make (Swresample.Frame)
 module Converter = ConverterInput (Swresample.PlanarFloatArray)
 
-let logStep step v =
-  Gc.full_major ();
-  Printf.printf "%s done\n%!" step;
-  v
-
 let write_bytes = output_bytes
 
 (* let write_bytes dst bytes = () *)
@@ -56,34 +51,21 @@ let test () =
   R4.reuse_output r4 true;
   R10.reuse_output r10 true;
 
-  logStep "R.create" ();
-
   for note = 0 to 95 do
     let freq = 22.5 *. (2. ** (foi note /. 12.)) in
     let len = int_of_float (frate /. freq *. floor (freq /. 4.)) in
     let c = 2. *. pi *. freq /. frate in
-    let src =
-      Array.init len (fun t -> sin (foi t *. c))
-      |> logStep ("src of len " ^ string_of_int len)
-    in
+    let src = Array.init len (fun t -> sin (foi t *. c)) in
 
-    src |> R.convert r |> logStep "convert r" |> write_bytes dst1
-    |> logStep "write_bytes dst1";
+    src |> R.convert r |> write_bytes dst1;
 
-    src |> R0.convert r0 |> logStep "convert r0" |> R1.convert r1
-    |> logStep "convert r1" |> R2.convert r2 |> logStep "convert r2"
-    |> R3.convert r3 |> logStep "convert r3" |> R4.convert r4
-    |> logStep "convert r4" |> R5.convert r5 |> logStep "convert r5"
-    |> R6.convert r6 |> logStep "convert r6" |> R7.convert r7
-    |> logStep "convert r7" |> R8.convert r8 |> logStep "convert r8"
-    |> R9.convert r9 |> logStep "convert r9" |> R10.convert r10
-    |> logStep "convert r10" |> write_bytes dst2 |> logStep "write_bytes dst2";
-
-    logStep ("note " ^ string_of_int note) ()
+    src |> R0.convert r0 |> R1.convert r1 |> R2.convert r2 |> R3.convert r3
+    |> R4.convert r4 |> R5.convert r5 |> R6.convert r6 |> R7.convert r7
+    |> R8.convert r8 |> R9.convert r9 |> R10.convert r10 |> write_bytes dst2
   done;
 
-  close_out dst1 |> logStep "close_out dst1";
-  close_out dst2 |> logStep "close_out dst2";
+  close_out dst1;
+  close_out dst2;
 
   let output_planar_float_to_s16le audio_output_file planes =
     let nb_chan = Array.length planes in

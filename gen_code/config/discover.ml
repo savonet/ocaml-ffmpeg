@@ -11,8 +11,7 @@ let packages =
     "libswscale";
   ]
 
-let default_paths =
-  ["/usr/local/include"; "/usr/include"]
+let default_paths = ["/usr/local/include"; "/usr/include"]
 
 let trim s =
   match String.split_on_char '\n' (String.trim s) with s :: _ -> s | _ -> s
@@ -36,8 +35,7 @@ let () =
   C.main ~name:"ffmpeg-gen_code-pkg-config" (fun c ->
       let paths =
         match C.which c "pkg-config" with
-          | None ->
-              default_paths
+          | None -> default_paths
           | Some pkg_config ->
               List.fold_left (add_path c pkg_config) [] packages
       in
