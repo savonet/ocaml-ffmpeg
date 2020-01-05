@@ -26,7 +26,7 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-avutil (= :version))
+  (ffmpeg-avutil (= :version)))
 )
 
 (package
@@ -36,7 +36,7 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-avutil (= :version))
+  (ffmpeg-avutil (= :version)))
 )
 
 (package
@@ -46,7 +46,7 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-avutil (= :version))
+  (ffmpeg-avutil (= :version)))
 )
 
 (package
@@ -56,8 +56,8 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-avutil (= :version)
-  ffmpeg-avcodec (= :version))
+  (ffmpeg-avutil (= :version))
+  (ffmpeg-avcodec (= :version)))
 )
 
 (package
@@ -67,8 +67,8 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-avutil (= :version)
-  ffmpeg-avcodec (= :version))
+  (ffmpeg-avutil (= :version))
+  (ffmpeg-avcodec (= :version)))
 )
 
 (package
@@ -78,7 +78,7 @@
   (ocaml (>= 4.05.0))
   dune
   dune-configurator
-  ffmpeg-av (= :version))
+  (ffmpeg-av (= :version)))
 )
 
 (package
@@ -87,10 +87,10 @@
  (depends
   (ocaml (>= 4.05.0))
   dune
-  ffmpeg-avutil (= :version)
-  ffmpeg-avcodec (= :version)
-  ffmpeg-avfilter (= :version)
-  ffmpeg-avdevice (= :version)
-  ffmpeg-swscale (= :version)
-  ffmpeg-swresample (= :version))
+  (ffmpeg-avutil (= :version))
+  (ffmpeg-avcodec (= :version))
+  (ffmpeg-avfilter (= :version))
+  (ffmpeg-avdevice (= :version))
+  (ffmpeg-swscale (= :version))
+  (ffmpeg-swresample (= :version)))
 )

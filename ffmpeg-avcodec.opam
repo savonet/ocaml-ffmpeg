@@ -11,8 +11,7 @@ depends: [
   "ocaml" {>= "4.05.0"}
   "dune"
   "dune-configurator"
-  "ffmpeg-avutil"
-  "=" {version}
+  "ffmpeg-avutil" {= version}
 ]
 build: [
   ["dune" "subst"] {pinned}
