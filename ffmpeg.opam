@@ -11,11 +11,17 @@ depends: [
   "ocaml" {>= "4.05.0"}
   "dune"
   "ffmpeg-avutil"
+  "=" {version}
   "ffmpeg-avcodec"
+  "=" {version}
   "ffmpeg-avfilter"
+  "=" {version}
   "ffmpeg-avdevice"
+  "=" {version}
   "ffmpeg-swscale"
+  "=" {version}
   "ffmpeg-swresample"
+  "=" {version}
 ]
 build: [
   ["dune" "subst"] {pinned}

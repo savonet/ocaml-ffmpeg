@@ -12,7 +12,9 @@ depends: [
   "dune"
   "dune-configurator"
   "ffmpeg-avutil"
+  "=" {version}
   "ffmpeg-avcodec"
+  "=" {version}
 ]
 build: [
   ["dune" "subst"] {pinned}
