@@ -14,7 +14,7 @@
  (synopsis "Bindings for the ffmpeg avutil libraries")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   base-threads)
 )
@@ -24,7 +24,7 @@
  (synopsis "Bindings for the ffmpeg avcodec library")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
 )
@@ -34,7 +34,7 @@
  (synopsis "Bindings for the ffmpeg avfilter library")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
 )
@@ -44,7 +44,7 @@
  (synopsis "Bindings for the ffmpeg swscale library")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
 )
@@ -54,7 +54,7 @@
  (synopsis "Bindings for the ffmpeg swresample library")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
@@ -65,7 +65,7 @@
  (synopsis "Bindings for the ffmpeg libraries -- top-level helpers")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
@@ -76,7 +76,7 @@
  (synopsis "Bindings for the ffmpeg avdevice library")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   dune-configurator
   (ffmpeg-av (= :version)))
 )
@@ -86,7 +86,7 @@
  (synopsis "Bindings for the ffmpeg libraries")
  (depends
   (ocaml (>= 4.05.0))
-  dune
+  (dune (>= 2.0))
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version))
   (ffmpeg-avfilter (= :version))
