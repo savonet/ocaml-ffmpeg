@@ -68,11 +68,10 @@ let () =
 
   let c = 2. *. pi *. 440. /. float_of_int sample_rate in
 
-  let audio =
-    let pos = ref 0 in
-    fun () ->
-      pos := !pos + 1804;
-      Array.init 1804 (fun t -> sin (float_of_int (t + !pos) *. c))
+  let audio_on_off =
+    [|
+      Array.init 1804 (fun t -> sin (float_of_int t *. c)); Array.make 1804 0.;
+    |]
   in
 
   let width = 352 in
@@ -104,9 +103,10 @@ let () =
   done;
 *)
   for i = 0 to (frame_rate * duration) - 1 do
-    audio () |> Resampler.convert rsp |> Av.write_frame oas;
-
     let b = i mod frame_rate / 13 in
+
+    audio_on_off.(b) |> Resampler.convert rsp |> Av.write_frame oas;
+
     Video.frame_visit ~make_writable:true
       (video_on_off.(b) width height i)
       frame
