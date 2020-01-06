@@ -4,6 +4,7 @@ let () = Printexc.record_backtrace true
 
 module Compat = struct
   let map_file _ _ _ _ _ = assert false
+  let () = ignore map_file
 
   include Bigarray.Genarray
   include Unix

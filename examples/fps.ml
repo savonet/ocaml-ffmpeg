@@ -49,13 +49,15 @@ let () =
     let fps =
       let args = [`Pair ("fps", `Int 25)] in
       let buffer =
-        List.find (fun { Avfilter.name } -> name = "fps") Avfilter.filters
+        List.find (fun { Avfilter.name; _ } -> name = "fps") Avfilter.filters
       in
       Avfilter.attach ~args ~name:"fps" buffer config
     in
     let sink =
       let sink =
-        List.find (fun { Avfilter.name } -> name = "buffersink") Avfilter.sinks
+        List.find
+          (fun { Avfilter.name; _ } -> name = "buffersink")
+          Avfilter.sinks
       in
       Avfilter.attach ~name:"sink" sink config
     in

@@ -28,12 +28,12 @@ let () =
   Av.get_input_metadata src
   |> List.iter (fun (k, v) -> print_endline (k ^ " : " ^ v));
 
-  let audio_index, audio_stream, audio_codec = Av.find_best_audio_stream src in
+  let audio_index, _, audio_codec = Av.find_best_audio_stream src in
 
   let a_ctx = AudioConverter.from_codec audio_codec `Stereo 44100 in
   let audio_output_file = open_out_bin audio_output_filename in
 
-  let video_index, video_stream, video_codec = Av.find_best_video_stream src in
+  let video_index, _, _ = Av.find_best_video_stream src in
 
   (* let v_ctx = VideoConverter.from_codec video_codec 800 600 `Yuv420p in *)
   let v_ctx = VideoConverter.create [] 352 288 `Yuv420p 800 600 `Yuv420p in
@@ -49,7 +49,7 @@ let () =
           if idx = video_index then VideoConverter.convert v_ctx vf |> ignore
             (*output_video video_output_file*);
           decode ()
-      | `Subtitle (idx, sf) ->
+      | `Subtitle (_, sf) ->
           let _, _, lines = Subtitle.frame_to_lines sf in
           lines |> List.iter print_endline;
           decode ()
