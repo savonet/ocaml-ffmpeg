@@ -93,4 +93,6 @@
   (ffmpeg-avdevice (= :version))
   (ffmpeg-swscale (= :version))
   (ffmpeg-swresample (= :version)))
+ (conflicts
+  (liquidsoap (< 1.5.0)))
 )
