@@ -289,7 +289,7 @@ static int alloc_out_frame(sws_t *sws)
 
     caml_modify_generational_global_root(&sws->out_vector, value_of_frame(frame));
   } while(0);
-#endif
+
   return ret;
 }
 
