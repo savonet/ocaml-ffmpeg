@@ -260,10 +260,6 @@ static int alloc_out_frame(sws_t *sws)
 {
   int ret;
 
-#ifndef HAS_FRAME
-  caml_failwith("Not implemented.");
-#else
-
   do {
     caml_release_runtime_system();
     AVFrame * frame = av_frame_alloc();
