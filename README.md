@@ -1,6 +1,10 @@
 ocaml-ffmpeg
 ============
 
+![GitHub](https://img.shields.io/github/license/savonet/ocaml-ffmpeg)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/savonet/ocaml-ffmpeg/CI)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/savonet/ocaml-ffmpeg)
+
 ocaml-ffmpeg is an OCaml interface for the [FFmpeg](http://ffmpeg.org/) Multimedia framework.
 
 The modules currently available are :
