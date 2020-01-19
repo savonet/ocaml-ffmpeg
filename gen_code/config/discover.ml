@@ -28,7 +28,8 @@ let split_flags flags =
 let add_path c pkg_config cur package =
   match C.Process.run c pkg_config ["--cflags-only-I"; package] with
     | { C.Process.exit_code; stdout; _ } when exit_code = 0 ->
-        split_flags stdout @ cur
+        let paths = split_flags stdout in
+        (if paths = [] then default_paths else paths) @ cur
     | _ -> default_paths @ cur
 
 let () =
