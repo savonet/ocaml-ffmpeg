@@ -185,7 +185,7 @@ let attach ?args ~name filter graph =
   let io = { inputs; outputs } in
   let filter = { filter with io } in
   graph.names <- name :: graph.names;
-  append_io graph filter.name filter_ctx;
+  append_io graph name filter_ctx;
   filter
 
 external link : filter_ctx -> int -> filter_ctx -> int -> unit
