@@ -149,16 +149,16 @@ let args_of_args = function
 let attach_pad filter_ctx graph pad =
   { pad with filter_ctx = Some filter_ctx; _config = Some graph.c }
 
-let append_io graph name filter_ctx =
+let append_io graph ~name filter filter_ctx =
   begin
-    match List.assoc_opt name _buffers with
+    match List.assoc_opt filter _buffers with
     | Some `Audio ->
         graph.audio_inputs <- (name, filter_ctx) :: graph.audio_inputs
     | Some `Video ->
         graph.video_inputs <- (name, filter_ctx) :: graph.video_inputs
     | None -> ()
   end;
-  match List.assoc_opt name _sinks with
+  match List.assoc_opt filter _sinks with
     | Some `Audio ->
         graph.audio_outputs <- (name, filter_ctx) :: graph.audio_outputs
     | Some `Video ->
@@ -185,7 +185,7 @@ let attach ?args ~name filter graph =
   let io = { inputs; outputs } in
   let filter = { filter with io } in
   graph.names <- name :: graph.names;
-  append_io graph name filter_ctx;
+  append_io graph ~name filter.name filter_ctx;
   filter
 
 external link : filter_ctx -> int -> filter_ctx -> int -> unit
@@ -225,7 +225,7 @@ let parse ({ inputs; outputs } : [ `Unattached ] parse_io) filters graph =
     let args = args_of_args node_args in
     let filter_ctx = create_filter ?args ~name:node_name filter_name graph.c in
     graph.names <- node_name :: graph.names;
-    append_io graph filter_name filter_ctx;
+    append_io graph ~name:node_name filter_name filter_ctx;
     (node, filter_ctx)
   in
   let audio_inputs = List.map get_pad inputs.audio in
