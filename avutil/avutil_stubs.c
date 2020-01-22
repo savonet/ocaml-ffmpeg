@@ -587,6 +587,22 @@ CAMLprim value ocaml_avutil_video_frame_get_sample_format(value _frame)
   CAMLreturn(Val_SampleFormat((enum AVSampleFormat)frame->format));
 }
 
+CAMLprim value ocaml_avutil_video_frame_get_sample_rate(value _frame)
+{
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->sample_rate));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_channels(value _frame)
+{
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->channels));
+}
+
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 {
   CAMLparam1(_frame);
