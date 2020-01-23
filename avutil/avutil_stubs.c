@@ -579,7 +579,7 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h, value _format
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_avutil_video_frame_get_sample_format(value _frame)
+CAMLprim value ocaml_avutil_audio_frame_get_sample_format(value _frame)
 {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
@@ -587,7 +587,7 @@ CAMLprim value ocaml_avutil_video_frame_get_sample_format(value _frame)
   CAMLreturn(Val_SampleFormat((enum AVSampleFormat)frame->format));
 }
 
-CAMLprim value ocaml_avutil_video_frame_get_sample_rate(value _frame)
+CAMLprim value ocaml_avutil_audio_frame_get_sample_rate(value _frame)
 {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
@@ -595,12 +595,38 @@ CAMLprim value ocaml_avutil_video_frame_get_sample_rate(value _frame)
   CAMLreturn(Val_int(frame->sample_rate));
 }
 
-CAMLprim value ocaml_avutil_video_frame_get_channels(value _frame)
+CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame)
 {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_int(frame->channels));
+}
+
+CAMLprim value ocaml_avutil_video_frame_width(value _frame)
+{
+  CAMLparam1(_frame);
+
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->width));
+}
+
+CAMLprim value ocaml_avutil_video_frame_height(value _frame)
+{
+  CAMLparam1(_frame);
+
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->height));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_pixel_format(value _frame)
+{
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_PixelFormat(frame->format));
 }
 
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)

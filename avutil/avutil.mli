@@ -173,12 +173,12 @@ module Audio : sig
       the current frame. *)
   val frame_get_sample_format : audio frame -> Sample_format.t
 
-  (** [Avutil.Audio.frame_get_sample_rate frame] returns the sample rate of
-      the current frame. *)
+  (** [Avutil.Audio.frame_get_sample_rate frame] returns the sample rate of the
+      current frame. *)
   val frame_get_sample_rate : audio frame -> int
 
-  (** [Avutil.Audio.frame_get_channels frame] returns the number of audio channels
-      in the current frame. *)
+  (** [Avutil.Audio.frame_get_channels frame] returns the number of audio
+      channels in the current frame. *)
   val frame_get_channels : audio frame -> int
 end
 
@@ -202,6 +202,15 @@ module Video : sig
       operation failed. *)
   val frame_visit :
     make_writable:bool -> (planes -> unit) -> video frame -> video frame
+
+  (** [Avutil.Video.frame_get_width frame] returns the frame width *)
+  val frame_get_width : video frame -> int
+
+  (** [Avutil.Video.frame_get_height frame] returns the frame height *)
+  val frame_get_height : video frame -> int
+
+  (** [Avutil.Video.frame_get_pixel_format frame] returns frame's pixel format. *)
+  val frame_get_pixel_format : video frame -> Pixel_format.t
 end
 
 (** {5 Subtitle utilities} *)

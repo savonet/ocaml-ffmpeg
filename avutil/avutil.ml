@@ -171,13 +171,13 @@ end
 
 module Audio = struct
   external frame_get_sample_format : audio frame -> Sample_format.t
-    = "ocaml_avutil_video_frame_get_sample_format"
+    = "ocaml_avutil_audio_frame_get_sample_format"
 
   external frame_get_sample_rate : audio frame -> int
-    = "ocaml_avutil_video_frame_get_sample_rate"
+    = "ocaml_avutil_audio_frame_get_sample_rate"
 
   external frame_get_channels : audio frame -> int
-    = "ocaml_avutil_video_frame_get_channels"
+    = "ocaml_avutil_audio_frame_get_channels"
 end
 
 module Video = struct
@@ -195,6 +195,15 @@ module Video = struct
   let frame_visit ~make_writable visit frame =
     visit (get_frame_planes frame make_writable);
     frame
+
+  external frame_get_width : video frame -> int
+    = "ocaml_avutil_video_frame_width"
+
+  external frame_get_height : video frame -> int
+    = "ocaml_avutil_video_frame_height"
+
+  external frame_get_pixel_format : video frame -> Pixel_format.t
+    = "ocaml_avutil_video_frame_get_pixel_format"
 end
 
 module Subtitle = struct
