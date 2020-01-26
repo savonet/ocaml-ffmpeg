@@ -204,6 +204,12 @@ module Video = struct
 
   external frame_get_pixel_format : video frame -> Pixel_format.t
     = "ocaml_avutil_video_frame_get_pixel_format"
+
+  external frame_get_pts : video frame -> int64
+    = "ocaml_avutil_video_frame_pts"
+
+  external frame_set_pts : video frame -> int64 -> unit
+    = "ocaml_avutil_video_frame_set_pts"
 end
 
 module Subtitle = struct

@@ -629,6 +629,25 @@ CAMLprim value ocaml_avutil_video_frame_get_pixel_format(value _frame)
   CAMLreturn(Val_PixelFormat(frame->format));
 }
 
+CAMLprim value ocaml_avutil_video_frame_pts(value _frame)
+{
+  CAMLparam1(_frame);
+
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(caml_copy_int64(frame->pts));
+}
+
+CAMLprim value ocaml_avutil_video_frame_set_pts(value _frame, value _pts)
+{
+  CAMLparam2(_frame, _pts);
+
+  AVFrame *frame = Frame_val(_frame);
+  frame->pts = Int64_val(_pts);
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 {
   CAMLparam1(_frame);
