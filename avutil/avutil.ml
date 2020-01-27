@@ -29,6 +29,7 @@ type ('line, 'media) format
 type 'media frame
 
 external frame_pts : _ frame -> Int64.t = "ocaml_avutil_frame_pts"
+external frame_set_pts : _ frame -> Int64.t -> unit = "ocaml_avutil_frame_set_pts"
 external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
 
 let () = Callback.register "ocaml_avutil_finalize_frame" finalize_frame
@@ -204,12 +205,6 @@ module Video = struct
 
   external frame_get_pixel_format : video frame -> Pixel_format.t
     = "ocaml_avutil_video_frame_get_pixel_format"
-
-  external frame_get_pts : video frame -> int64
-    = "ocaml_avutil_video_frame_pts"
-
-  external frame_set_pts : video frame -> int64 -> unit
-    = "ocaml_avutil_video_frame_set_pts"
 end
 
 module Subtitle = struct

@@ -35,6 +35,9 @@ type 'media frame
     units (time when frame should be shown to user). *)
 val frame_pts : _ frame -> Int64.t
 
+(** Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
+val frame_set_pts : _ frame -> Int64.t -> unit
+
 (** {1 Exception} *)
 
 (** Internal errors. *)
@@ -211,12 +214,6 @@ module Video : sig
 
   (** [Avutil.Video.frame_get_pixel_format frame] returns frame's pixel format. *)
   val frame_get_pixel_format : video frame -> Pixel_format.t
-
-  (** Avutil.Video.frame_set_pts frame pts] sets the presentation time for this frame. *)
-  val frame_set_pts : video frame -> int64 -> unit
-
-  (** Avutil.Video.frame_get_pts frame pts] gets the presentation time for this frame. *)
-  val frame_get_pts : video frame -> int64
 end
 
 (** {5 Subtitle utilities} *)
