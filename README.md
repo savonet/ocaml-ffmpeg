@@ -23,8 +23,6 @@ The modules currently available are :
 	
 `Swscale` : the module performing image scaling and color space/pixel format conversion operations.
 
-`Avdevice` : the module containing input and output devices for grabbing from and rendering to many common multimedia input/output software frameworks.
-
 
 Please read the COPYING file before using this software.
 
