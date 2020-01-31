@@ -7,7 +7,7 @@ type config
 type valued_arg =
   [ `String of string | `Int of int | `Float of float | `Rational of rational ]
 
-type args = [ `Key of string | `Pair of string * valued_arg ]
+type args = [ `Flag of string | `Pair of string * valued_arg ]
 type ('a, 'b) av = { audio : 'a; video : 'b }
 type ('a, 'b) io = { inputs : 'a; outputs : 'b }
 

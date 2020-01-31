@@ -6,7 +6,7 @@ type valued_arg =
   | `Float of float
   | `Rational of Avutil.rational ]
 
-type args = [ `Key of string | `Pair of string * valued_arg ]
+type args = [ `Flag of string | `Pair of string * valued_arg ]
 type ('a, 'b) av = { audio : 'a; video : 'b }
 type ('a, 'b) io = { inputs : 'a; outputs : 'b }
 type _config
@@ -132,7 +132,7 @@ external create_filter :
 
 let rec args_of_args cur = function
   | [] -> cur
-  | `Key s :: args -> args_of_args (s :: cur) args
+  | `Flag s :: args -> args_of_args (s :: cur) args
   | `Pair (lbl, `String s) :: args ->
       args_of_args (Printf.sprintf "%s=%s" lbl s :: cur) args
   | `Pair (lbl, `Int i) :: args ->
