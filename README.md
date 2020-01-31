@@ -34,23 +34,36 @@ Prerequisites:
 - dune >= 2.0
 - findlib >= 0.8.1
 
-Compilation:
-============
-
-	$ dune build
-
-This should build both the native and the byte-code version of the
-extension library.
-
-
 Installation:
 =============
 
-	$ dune install
+The preferred installation method is via [opam](http://opam.ocaml.org/):
 
-This should install the library file (using ocamlfind) in the
-appropriate place.
+```
+opam install ffmpeg
+```
 
+This will install the latest release of all ffmpeg-related modules. You can also
+install individual modules, for instance:
+
+```
+opam install ffmpeg-avcodec ffmpeg-avfilter
+```
+
+If you wish to install the latest code from this repository, you can do:
+
+```
+opam install .
+```
+
+From within this repository.
+
+Compilation:
+============
+
+```
+dune build
+```
 
 Documentation:
 =============
