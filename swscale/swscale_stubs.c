@@ -201,7 +201,7 @@ struct sws_t {
   int release_out_vector;
 
   int (*get_in_pixels)(sws_t *, value *);
-  int (*alloc_out)(sws_t *);
+  int (*alloc_out)(sws_t *, value *);
   int (*copy_out)(sws_t *);
 };
 
@@ -256,7 +256,7 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector)
 }
 
 
-static int alloc_out_frame(sws_t *sws)
+static inline int alloc_out_frame(sws_t *sws, value *v)
 {
   int ret;
 
@@ -293,31 +293,26 @@ static int alloc_out_frame(sws_t *sws)
   return ret;
 }
 
-static int alloc_out_string(sws_t *sws)
+static inline int alloc_out_string(sws_t *sws, value *v)
 {
-  value v;
-  int i;
-
-  caml_register_generational_global_root(&v);
+  int i, len;
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
   for(i = 0; i < sws->out.nb_planes; i++) {
-    int len = sws->out.stride[i] * sws->out.height;
+    len = sws->out.stride[i] * sws->out.height;
 
     if(sws->out.sizes_tab[i] < len) {
       sws->out.slice[i] = (uint8_t*)realloc(sws->out.slice[i], len + 16);
       sws->out.sizes_tab[i] = len;
     }
 
-    v = caml_alloc_tuple(2);
-    Store_field(v, 0, caml_alloc_string(len));
-    Store_field(v, 1, Val_int(sws->out.stride[i]));
+    *v = caml_alloc_tuple(2);
+    Store_field(*v, 0, caml_alloc_string(len));
+    Store_field(*v, 1, Val_int(sws->out.stride[i]));
 
-    Store_field(sws->out_vector, i, v);
+    Store_field(sws->out_vector, i, *v);
   }
-
-  caml_remove_generational_global_root(&v);
 
   return 0;
 }
@@ -337,29 +332,25 @@ static int copy_out_string(sws_t *sws)
   CAMLreturnT(int, 0);
 }
 
-static int alloc_out_ba(sws_t *sws)
+static inline int alloc_out_ba(sws_t *sws, value *v)
 {
-  value v;
   int i;
-
-  caml_register_generational_global_root(&v);
+  intnat out_size;
 
   caml_modify_generational_global_root(&sws->out_vector, caml_alloc_tuple(sws->out.nb_planes));
 
   for(i = 0; i < sws->out.nb_planes; i++) {
     // Some filters and swscale can read up to 16 bytes beyond the planes, 16 extra bytes must be allocated.
-    intnat out_size = sws->out.stride[i] * sws->out.height + 16;
+    out_size = sws->out.stride[i] * sws->out.height + 16;
 
-    v = caml_alloc_tuple(2);
-    Store_field(v, 0, caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
-    Store_field(v, 1, Val_int(sws->out.stride[i]));
+    *v = caml_alloc_tuple(2);
+    Store_field(*v, 0, caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
+    Store_field(*v, 1, Val_int(sws->out.stride[i]));
 
-    sws->out.slice[i] = Caml_ba_data_val(Field(v, 0));
+    sws->out.slice[i] = Caml_ba_data_val(Field(*v, 0));
 
-    Store_field(sws->out_vector, i, v);
+    Store_field(sws->out_vector, i, *v);
   }
-
-  caml_remove_generational_global_root(&v);
 
   return 0;
 }
@@ -367,6 +358,7 @@ static int alloc_out_ba(sws_t *sws)
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
 {
   CAMLparam2(_sws, _in_vector);
+  CAMLlocal1(tmp);
   sws_t *sws = Sws_val(_sws);
 
   // acquisition of the input pixels
@@ -375,7 +367,7 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector)
 
   // Allocate out data if needed
   if (sws->release_out_vector) {
-    ret = sws->alloc_out(sws);
+    ret = sws->alloc_out(sws, &tmp);
     if(ret < 0) ocaml_avutil_raise_error(ret);
   }
 
@@ -440,7 +432,7 @@ static struct custom_operations sws_ops =
 CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value in_width_, value in_height_, value in_pixel_format_, value out_vector_kind_, value out_width_, value out_height_, value out_pixel_format_)
 {
   CAMLparam1(flags_);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, tmp);
   vector_kind in_vector_kind = Int_val(in_vector_kind_);
   vector_kind out_vector_kind = Int_val(out_vector_kind_);
   int flags = 0, i;
@@ -520,7 +512,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_, value i
 
   caml_acquire_runtime_system();
 
-  ret = sws->alloc_out(sws);
+  ret = sws->alloc_out(sws, &tmp);
   if(ret < 0) {
     swscale_free(sws);
     Fail( "Failed to create Swscale context");
