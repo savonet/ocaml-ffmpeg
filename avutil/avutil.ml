@@ -112,21 +112,6 @@ module Log = struct
   external set_callback : (string -> unit) -> unit
     = "ocaml_avutil_set_log_callback"
 
-  let set_callback fn =
-    let m = Mutex.create () in
-    let fn msg =
-      try fn msg
-      with exn ->
-        Printf.printf "Error while calling custom log function: %s\n%!"
-          (Printexc.to_string exn)
-    in
-    let fn s =
-      Mutex.lock m;
-      fn s;
-      Mutex.unlock m
-    in
-    set_callback fn
-
   external clear_callback : unit -> unit = "ocaml_avutil_clear_log_callback"
 end
 
