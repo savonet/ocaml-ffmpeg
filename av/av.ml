@@ -272,6 +272,8 @@ let open_output_stream ?opts ?seek write format =
   Gc.finalise_last cleanup output;
   output
 
+external output_started : output container -> bool = "ocaml_av_header_written"
+
 external _set_metadata :
   output container -> int -> (string * string) array -> unit
   = "ocaml_av_set_metadata"

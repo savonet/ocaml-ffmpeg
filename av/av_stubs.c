@@ -1407,6 +1407,13 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio, value _op
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_av_header_written(value _av) {
+  CAMLparam1(_av);
+  av_t * av = Av_val(_av);
+
+  CAMLreturn(Val_bool(av->header_written));
+}
+
 CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags) {
   CAMLparam2(_av, _tags);
   CAMLlocal1(pair);
@@ -1414,8 +1421,8 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index, value _tags
   int index = Int_val(_stream_index);
   AVDictionary * metadata = NULL;
 
-  if( ! av->format_context) Fail("Failed to set metadata to closed output");
-  if(av->header_written) Fail("Failed to set metadata : header already written");
+  if (!av->format_context) Fail("Failed to set metadata to closed output");
+  if (av->header_written) Fail("Failed to set metadata : header already written");
 
   int i, ret, len = Wosize_val(_tags);
   

@@ -224,6 +224,10 @@ val open_output :
 val open_output_stream :
   ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
 
+(** Returns [true] if the output has already started, in which case no new *
+    stream or metadata can be added. *)
+val output_started : output container -> bool
+
 (** [Av.set_output_metadata dst tags] set the metadata of the [dst] output with
     the [tags] tag list. This must be set before starting writing streams. Raise
     Error if a writing already taken place or if the setting failed. *)
