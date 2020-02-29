@@ -1288,23 +1288,16 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
   if (av->format_context->priv_data)
     ret = av_opt_set_dict(av->format_context->priv_data, &options);
 
-  // Return unused keys
-  int count = av_dict_count(options);
-  *unused = caml_alloc_tuple(count);
-  AVDictionaryEntry *entry = NULL;
-  for (i = 0; i < count; i++) {
-    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
-    Store_field(*unused, i, caml_copy_string(entry->key));
+  if (ret < 0) {
+    av_dict_free(&options);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
   }
-
-  av_dict_free(&options);
-  caml_acquire_runtime_system();
-  if (ret < 0) ocaml_avutil_raise_error(ret);
-  caml_release_runtime_system();
 
   // open the output file, if needed
   if (avio_context) {
     if (av->format_context->oformat->flags & AVFMT_NOFILE) {
+      av_dict_free(&options);
       free_av(av);
       if (file_name) free(file_name);
 
@@ -1316,9 +1309,10 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
     av->custom_io = 1;
   } else {
     if(!(av->format_context->oformat->flags & AVFMT_NOFILE)) {
-      int err = avio_open(&av->format_context->pb, file_name, AVIO_FLAG_WRITE);
+      int err = avio_open2(&av->format_context->pb, file_name, AVIO_FLAG_WRITE, NULL, &options);
 
       if (err < 0) {
+        av_dict_free(&options);
         free_av(av);
         if (file_name) free(file_name);
 
@@ -1329,6 +1323,17 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
       av->custom_io = 0;
     }
   }
+
+  // Return unused keys
+  int count = av_dict_count(options);
+  *unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(*unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
 
   if (file_name) free(file_name);
 
