@@ -68,7 +68,7 @@ dune build
 Documentation:
 =============
 
-The [API documentation is available here](https://www.liquidsoap.info/ocaml-ffmpeg/docs/api/index.html).
+The [API documentation is available here](https://www.liquidsoap.info/modules/ocaml-ffmpeg/index.html).
 
 
 Examples:
