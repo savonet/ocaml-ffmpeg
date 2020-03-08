@@ -1265,7 +1265,7 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
   AVDictionary *options = NULL;
   char *key, *val;
   int len = Wosize_val(_opts);
-  int i;
+  int i, ret;
 
   caml_acquire_runtime_system();
 
@@ -1273,11 +1273,16 @@ static inline av_t *open_output(AVOutputFormat *format, char *file_name, AVIOCon
     // Dictionaries copy key/values by default!
     key = String_val(Field(Field(_opts, i), 0));
     val = String_val(Field(Field(_opts, i), 1));
-    av_dict_set(&options, key, val, 0);
+    ret = av_dict_set(&options, key, val, 0);
+    if (ret < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(ret);
+    }
   }
 
   caml_release_runtime_system();
-  int ret = av_opt_set_dict(av->format_context, &options);
+
+  ret = av_opt_set_dict(av->format_context, &options);
 
   if (ret < 0) {
     av_dict_free(&options);
@@ -1476,7 +1481,7 @@ static inline void init_stream_encoder(av_t *av, stream_t *stream, value _opts, 
   AVDictionary *options = NULL;
   char *key, *val;
   int len = Wosize_val(_opts);
-  int i;
+  int i, ret;
 
   // Some formats want stream headers to be separate.
   if (av->format_context->oformat->flags & AVFMT_GLOBALHEADER)
@@ -1486,12 +1491,16 @@ static inline void init_stream_encoder(av_t *av, stream_t *stream, value _opts, 
     // Dictionaries copy key/values by default!
     key = String_val(Field(Field(_opts, i), 0));
     val = String_val(Field(Field(_opts, i), 1));
-    av_dict_set(&options, key, val, 0);
+    ret = av_dict_set(&options, key, val, 0);
+    if (ret < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(ret);
+    }
   }
 
   caml_release_runtime_system();
 
-  int ret = avcodec_open2(enc_ctx, enc_ctx->codec, &options);
+  ret = avcodec_open2(enc_ctx, enc_ctx->codec, &options);
 
   // Return unused keys
   int count = av_dict_count(options);
@@ -1574,7 +1583,7 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt, value _co
   CAMLlocal2(ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
 
-  stream_t * stream = new_audio_stream(Av_val(_av),Int_val(_sample_fmt), codec,_opts,&unused);
+  stream_t * stream = new_audio_stream(Av_val(_av), Int_val(_sample_fmt), codec, _opts, &unused);
 
   ans = caml_alloc_tuple(2);
   Field(ans, 0) = Val_int(stream->index);
