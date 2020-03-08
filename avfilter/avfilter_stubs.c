@@ -209,7 +209,7 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name, v
   CAMLreturn((value)context);
 }
 
-static inline void append_avfilter_in_out(AVFilterInOut **filter, char *name, AVFilterContext *filter_ctx, int pad_idx) {
+static void append_avfilter_in_out(AVFilterInOut **filter, char *name, AVFilterContext *filter_ctx, int pad_idx) {
   AVFilterInOut *cur;
 
   if (*filter) {

@@ -49,7 +49,7 @@ struct swr_t {
 
 #define Swr_val(v) (*(swr_t**)Data_custom_val(v))
 
-static inline void alloc_data(struct audio_t * audio, int nb_samples)
+static void alloc_data(struct audio_t * audio, int nb_samples)
 {
   caml_release_runtime_system();
 
@@ -223,7 +223,7 @@ static void alloc_out_frame(swr_t *swr, int nb_samples)
   swr->out.nb_samples = nb_samples;
 }
 
-static inline void convert_to_frame(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_frame(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector)
@@ -239,7 +239,7 @@ static inline void convert_to_frame(swr_t *swr, int in_nb_samples, int out_nb_sa
   Frame_val(swr->out_vector)->nb_samples = ret;
 }
 
-static inline void convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples)
@@ -262,7 +262,7 @@ static inline void convert_to_string(swr_t *swr, int in_nb_samples, int out_nb_s
   memcpy(String_val(swr->out_vector), swr->out.data[0], len);
 }
 
-static inline void convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_planar_string(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples)
@@ -290,7 +290,7 @@ static inline void convert_to_planar_string(swr_t *swr, int in_nb_samples, int o
   }
 }
 
-static inline void convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples)
@@ -319,7 +319,7 @@ static inline void convert_to_float_array(swr_t *swr, int in_nb_samples, int out
   }
 }
 
-static inline void convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_planar_float_array(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples)
@@ -363,7 +363,7 @@ static void alloc_out_ba(swr_t *swr, int nb_samples)
   swr->out.nb_samples = nb_samples;
 }
 
-static inline void convert_to_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
@@ -396,7 +396,7 @@ static void alloc_out_planar_ba(swr_t *swr, int nb_samples)
   swr->out.nb_samples = nb_samples;
 }
 
-static inline void convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
+static void convert_to_planar_ba(swr_t *swr, int in_nb_samples, int out_nb_samples)
 {
   // Allocate out data if needed
   if (out_nb_samples > swr->out.nb_samples || swr->release_out_vector) {
@@ -498,7 +498,7 @@ static struct custom_operations swr_ops =
 #define NB_OPTIONS_TYPES 3
 
 
-static inline SwrContext * swresample_set_context(swr_t * swr,
+static SwrContext * swresample_set_context(swr_t * swr,
                                            int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt, int in_sample_rate,
                                            int64_t out_channel_layout, enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[])
 {

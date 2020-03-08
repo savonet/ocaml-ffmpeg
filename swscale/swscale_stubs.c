@@ -256,7 +256,7 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector)
 }
 
 
-static inline int alloc_out_frame(sws_t *sws, value *v)
+static int alloc_out_frame(sws_t *sws, value *v)
 {
   int ret;
 
@@ -293,7 +293,7 @@ static inline int alloc_out_frame(sws_t *sws, value *v)
   return ret;
 }
 
-static inline int alloc_out_string(sws_t *sws, value *v)
+static int alloc_out_string(sws_t *sws, value *v)
 {
   int i, len;
 
@@ -332,7 +332,7 @@ static int copy_out_string(sws_t *sws)
   CAMLreturnT(int, 0);
 }
 
-static inline int alloc_out_ba(sws_t *sws, value *v)
+static int alloc_out_ba(sws_t *sws, value *v)
 {
   int i;
   intnat out_size;

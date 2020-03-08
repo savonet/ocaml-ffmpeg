@@ -21,19 +21,19 @@ value ocaml_avcodec_init(value unit) {
   return Val_unit;
 }
 
-static inline value value_of_audio_codec_id(enum AVCodecID id) {
+static value value_of_audio_codec_id(enum AVCodecID id) {
   value ret = Val_AudioCodecID(id);
   if (ret == VALUE_NOT_FOUND) caml_raise_not_found();
   return ret; 
 }
 
-static inline value value_of_video_codec_id(enum AVCodecID id) {
+static value value_of_video_codec_id(enum AVCodecID id) {
   value ret = Val_VideoCodecID(id);
   if (ret == VALUE_NOT_FOUND) caml_raise_not_found();
   return ret;
 }
 
-static inline value value_of_subtitle_codec_id(enum AVCodecID id) {
+static value value_of_subtitle_codec_id(enum AVCodecID id) {
   value ret = Val_SubtitleCodecID(id);
   if (ret == VALUE_NOT_FOUND) caml_raise_not_found();
   return ret;
@@ -52,7 +52,7 @@ CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
 
 /***** AVCodecContext *****/
 
-static inline AVCodecContext *create_AVCodecContext(AVCodec *codec)
+static AVCodecContext *create_AVCodecContext(AVCodec *codec)
 {
   AVCodecContext *codec_context = NULL;
 
@@ -240,7 +240,7 @@ static struct custom_operations parser_ops =
     custom_deserialize_default
   };
 
-static inline parser_t *create_parser(AVCodec *codec)
+static parser_t *create_parser(AVCodec *codec)
 {
   parser_t * parser = (parser_t*)calloc(1, sizeof(parser_t));
   if ( ! parser) caml_raise_out_of_memory();
@@ -390,7 +390,7 @@ static struct custom_operations codec_context_ops =
     custom_deserialize_default
   };
 
-static inline codec_context_t * create_codec_context(AVCodec *codec, int decoder)
+static codec_context_t * create_codec_context(AVCodec *codec, int decoder)
 {
   codec_context_t * ctx = (codec_context_t*)calloc(1, sizeof(codec_context_t));
   if ( ! ctx) caml_raise_out_of_memory();
@@ -431,7 +431,7 @@ CAMLprim value ocaml_avcodec_create_context(value _codec, value _decoder, value 
 }
 
 
-static inline void open_codec(codec_context_t *ctx, AVFrame *frame)
+static void open_codec(codec_context_t *ctx, AVFrame *frame)
 {
   if( ! frame) Fail( "Failed to open encoder without frame");
   
@@ -562,7 +562,7 @@ CAMLprim value ocaml_avcodec_flush_decoder(value _ctx) {
   return Val_unit;
 }
 
-static inline void send_audio_fifo_frame(codec_context_t *ctx)
+static void send_audio_fifo_frame(codec_context_t *ctx)
 {
   AVFrame * frame = ctx->enc_frame;
   int frame_size = ctx->codec_context->frame_size;
@@ -607,7 +607,7 @@ static inline void send_audio_fifo_frame(codec_context_t *ctx)
   if (ret < 0) ocaml_avutil_raise_error(ret);
 }
 
-static inline int send_frame(codec_context_t *ctx, AVFrame *frame)
+static int send_frame(codec_context_t *ctx, AVFrame *frame)
 {
   int ret;
 
