@@ -1261,6 +1261,7 @@ static av_t *open_output(AVOutputFormat *format, char *file_name, AVIOContext *a
     free_av(av);
     if (file_name) free(file_name);
 
+    av_dict_free(options);
     caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
@@ -1585,6 +1586,7 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt, AVCo
     // Allocate the buffer frame and audio fifo if the codec doesn't support variable frame size
     stream->enc_frame = av_frame_alloc();
     if (!stream->enc_frame) {
+      av_dict_free(options);
       caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
@@ -1597,6 +1599,7 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt, AVCo
     int ret = av_frame_get_buffer(stream->enc_frame, 0);
 
     if (ret < 0) {
+      av_dict_free(options);
       caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
      }
@@ -1604,9 +1607,13 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt, AVCo
     // Create the FIFO buffer based on the specified output sample format.
     stream->audio_fifo = av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->channels, 1);
 
-    caml_acquire_runtime_system();
+    if(!stream->audio_fifo) {
+      av_dict_free(options);
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
 
-    if(!stream->audio_fifo) caml_raise_out_of_memory();
+    caml_acquire_runtime_system();
   }
 
   return stream;
@@ -1719,7 +1726,12 @@ static stream_t *new_subtitle_stream(av_t *av, AVCodec *codec, AVDictionary **op
   if (!stream) return NULL;
 
   int ret = subtitle_header_default(stream->codec_context);
-  if (ret < 0) ocaml_avutil_raise_error(ret);
+  if (ret < 0) {
+    caml_release_runtime_system();
+    av_dict_free(options);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
 
   init_stream_encoder(av, stream, options);
 
