@@ -12,6 +12,9 @@ module Format : sig
   (** Return the long name of the input format *)
   val get_input_long_name : (input, _) format -> string
 
+  (** Guess input format based on its short name. *)
+  val find_input_format : string -> (input, 'a) format option
+
   (** Return the name of the output format *)
   val get_output_name : (output, _) format -> string
 
@@ -38,19 +41,22 @@ end
 
 (** {5 Input} *)
 
-(** [Av.open_input url] open the input [url] (a file name or http URL). Raise
-    Error if the opening failed. *)
-val open_input : string -> input container
-
-(** [Av.open_input_format format] open the input [format]. Raise Error if the
-    opening failed. *)
-val open_input_format : (input, _) format -> input container
+(** [Av.open_input url] open the input [url] (a file name or http URL). After
+    returning, if [opts] was passed, unused options are left in the hash table.
+    Raise Error if the opening failed. *)
+val open_input :
+  ?format:(input, _) format -> ?opts:opts -> string -> input container
 
 type read = bytes -> int -> int -> int
 type write = bytes -> int -> int -> int
 type seek = int -> Unix.seek_command -> int
 
-val open_input_stream : ?seek:seek -> read -> input container
+val open_input_stream :
+  ?format:(input, _) format ->
+  ?opts:opts ->
+  ?seek:seek ->
+  read ->
+  input container
 
 (** [Av.get_input_duration ~format:fmt input] return the duration of an [input]
     in the [fmt] time format (in second by default). *)

@@ -44,15 +44,15 @@ let find_output name fmts =
 
 let find_audio_output name = find_output name (get_audio_output_formats ())
 let find_video_output name = find_output name (get_video_output_formats ())
-let open_audio_input name = Av.open_input_format (find_audio_input name)
+let open_audio_input name = Av.open_input ~format:(find_audio_input name) ""
 
 let open_default_audio_input () =
-  Av.open_input_format (get_default_audio_input_format ())
+  Av.open_input ~format:(get_default_audio_input_format ()) ""
 
-let open_video_input name = Av.open_input_format (find_video_input name)
+let open_video_input name = Av.open_input ~format:(find_video_input name) ""
 
 let open_default_video_input () =
-  Av.open_input_format (get_default_video_input_format ())
+  Av.open_input ~format:(get_default_video_input_format ()) ""
 
 external open_output_format :
   (output, _) format ->

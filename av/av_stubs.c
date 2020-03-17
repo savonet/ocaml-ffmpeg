@@ -512,6 +512,26 @@ void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value)
   InputFormat_val((*p_value)) = inputFormat;
 }
 
+CAMLprim value ocaml_av_find_input_format(value _short_name) {
+  CAMLparam1(_short_name);
+  CAMLlocal1(ret);
+  char *short_name = strndup(String_val(_short_name), caml_string_length(_short_name));
+
+  if (!short_name) caml_raise_out_of_memory();
+
+  caml_release_runtime_system();
+  AVInputFormat *format = av_find_input_format(short_name);
+  caml_acquire_runtime_system();
+
+  free(short_name);
+
+  if (!format) caml_raise_not_found();
+
+  value_of_inputFormat(format, &ret);
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_av_input_format_get_name(value _format)
 {
   CAMLparam1(_format);
@@ -527,7 +547,7 @@ CAMLprim value ocaml_av_input_format_get_long_name(value _format)
 }
 
 
-static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *format_context)
+static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *format_context, AVDictionary **options)
 {
   int err;
 
@@ -544,12 +564,13 @@ static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *form
   av->streams = NULL;
   
   caml_release_runtime_system();
-  err = avformat_open_input(&av->format_context, url, format, NULL);
+  err = avformat_open_input(&av->format_context, url, format, options);
   caml_acquire_runtime_system();
   
   if (err < 0) {
     free(av);
     if (url) free(url);
+    av_dict_free(options);
     ocaml_avutil_raise_error(err);
   }
 
@@ -561,64 +582,124 @@ static av_t * open_input(char *url, AVInputFormat *format, AVFormatContext *form
   if (err < 0) {
     free(av);
     if (url) free(url);
+    av_dict_free(options);
     ocaml_avutil_raise_error(err);
   }
-
-  free(url);
 
   return av;
 }
 
-CAMLprim value ocaml_av_open_input(value _url)
+CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts)
 {
-  CAMLparam1(_url);
-  CAMLlocal1(ans);
-  char * url = strndup(String_val(_url), caml_string_length(_url));
+  CAMLparam3(_url, _format, _opts);
+  CAMLlocal3(ret, ans, unused);
+  char *url = NULL;
+  AVInputFormat *format = NULL;
+  int ulen = caml_string_length(_url);
+  AVDictionary *options = NULL;
+  char *key, *val;
+  int len = Wosize_val(_opts);
+  int i, err, count;
+
+  for (i = 0; i < len; i++) {
+    // Dictionaries copy key/values by default!
+    key = String_val(Field(Field(_opts, i), 0));
+    val = String_val(Field(Field(_opts, i), 1));
+    err = av_dict_set(&options, key, val, 0);
+    if (err < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(err);
+    }
+  }
+
+  if (ulen > 0) url = strndup(String_val(_url), ulen);
+
+  if (_format != Val_none)
+    format = InputFormat_val(Some_val(_format));
 
   // open input url
-  av_t *av = open_input(url, NULL, NULL);
+  av_t *av = open_input(url, format, NULL, &options);
+
+  if (url) free(url);
+
+  // Return unused keys
+  caml_release_runtime_system();
+  count = av_dict_count(options);
+  caml_acquire_runtime_system();
+
+  unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
   Av_val(ans) = av;
 
-  Finalize("ocaml_av_finalize_av",ans);
+  Finalize("ocaml_av_finalize_av", ans);
 
-  CAMLreturn(ans);
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, ans);
+  Store_field(ret, 1, unused);
+
+  CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_av_open_input_format(value _format)
+CAMLprim value ocaml_av_open_input_stream(value _avio, value _format, value _opts)
 {
-  CAMLparam1(_format);
-  CAMLlocal1(ans);
-  AVInputFormat *format = InputFormat_val(_format);
-
-  // open input format
-  av_t *av = open_input(NULL, format, NULL);
-
-  // allocate format context
-  ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
-  Av_val(ans) = av;
-
-  Finalize("ocaml_av_finalize_av",ans);
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_open_input_stream(value _avio)
-{
-  CAMLparam1(_avio);
-  CAMLlocal1(ans);
+  CAMLparam3(_avio, _format, _opts);
+  CAMLlocal3(ret, ans, unused);
   avio_t *avio = Avio_val(_avio);
+  AVInputFormat *format = NULL;
+  AVDictionary *options = NULL;
+  char *key, *val;
+  int len = Wosize_val(_opts);
+  int i, err, count;
+
+  for (i = 0; i < len; i++) {
+    // Dictionaries copy key/values by default!
+    key = String_val(Field(Field(_opts, i), 0));
+    val = String_val(Field(Field(_opts, i), 1));
+    err = av_dict_set(&options, key, val, 0);
+    if (err < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(err);
+    }
+  }
+
+  if (_format != Val_none)
+    format = InputFormat_val(Some_val(_format));
 
   // open input format
-  av_t *av = open_input(NULL, NULL, avio->format_context);
+  av_t *av = open_input(NULL, format, avio->format_context, &options);
+
+  // Return unused keys
+  caml_release_runtime_system();
+  count = av_dict_count(options);
+  caml_acquire_runtime_system();
+
+  unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t*), 0, 1);
   Av_val(ans) = av;
 
-  CAMLreturn(ans);
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, ans);
+  Store_field(ret, 1, unused);
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index)

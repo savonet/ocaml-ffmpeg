@@ -4,9 +4,9 @@ module FrameToS32Bytes =
   Swresample.Make (Swresample.Frame) (Swresample.S32Bytes)
 
 let () =
-  if Array.length Sys.argv < 3 then (
+  if Array.length Sys.argv < 4 then (
     Printf.eprintf
-      "      usage: %s input_file audio_output_file\n\
+      "      usage: %s input_file format audio_output_file\n\
       \      API example program to show how to read audio frames from an \
        input file.\n\
       \      This program reads best audio frames from a file, decodes them, \
@@ -18,11 +18,17 @@ let () =
   Log.set_level `Debug;
   Log.set_callback print_string;
 
-  let audio_output_filename = Sys.argv.(2) ^ ".raw" in
+  let audio_output_filename = Sys.argv.(3) ^ ".raw" in
   let audio_output_file = open_out_bin audio_output_filename in
 
+  let format =
+    match Av.Format.find_input_format Sys.argv.(2) with
+      | Some f -> f
+      | None -> failwith ("Could not find format: " ^ Sys.argv.(2))
+  in
+
   let _, istream, icodec =
-    Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream
+    Av.open_input ~format Sys.argv.(1) |> Av.find_best_audio_stream
   in
 
   let options = [`Engine_soxr] in

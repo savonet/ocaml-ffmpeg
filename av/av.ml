@@ -4,6 +4,24 @@ external init : unit -> unit = "ocaml_av_init" [@@noalloc]
 
 let () = init ()
 
+let _opt_val = function
+  | `String s -> s
+  | `Int i -> string_of_int i
+  | `Float f -> string_of_float f
+
+let opts_default = function None -> Hashtbl.create 0 | Some opts -> opts
+
+let mk_opts opts =
+  Array.of_list
+    (Hashtbl.fold
+       (fun opt_name opt_val cur -> (opt_name, _opt_val opt_val) :: cur)
+       opts [])
+
+let filter_opts unused opts =
+  Hashtbl.filter_map_inplace
+    (fun k v -> if Array.mem k unused then Some v else None)
+    opts
+
 (* Format *)
 module Format = struct
   external get_input_name : (input, _) format -> string
@@ -11,6 +29,12 @@ module Format = struct
 
   external get_input_long_name : (input, _) format -> string
     = "ocaml_av_input_format_get_long_name"
+
+  external find_input_format : string -> (input, 'a) format
+    = "ocaml_av_find_input_format"
+
+  let find_input_format name =
+    try Some (find_input_format name) with Not_found -> None
 
   external get_output_name : (output, _) format -> string
     = "ocaml_av_output_format_get_name"
@@ -41,10 +65,17 @@ external finalize_av : _ container -> unit = "ocaml_av_finalize_av"
 let () = Callback.register "ocaml_av_finalize_av" finalize_av
 
 (* Input *)
-external open_input : string -> input container = "ocaml_av_open_input"
+external open_input :
+  string ->
+  (input, _) format option ->
+  (string * string) array ->
+  input container * string array = "ocaml_av_open_input"
 
-external open_input_format : (input, _) format -> input container
-  = "ocaml_av_open_input_format"
+let open_input ?format ?opts url =
+  let opts = opts_default opts in
+  let ret, unused = open_input url format (mk_opts opts) in
+  filter_opts unused opts;
+  ret
 
 type avio
 type read = bytes -> int -> int -> int
@@ -69,15 +100,24 @@ let _seek_of_seek = function
 let ocaml_av_create_read_io len ?seek read =
   ocaml_av_create_io len (Some read) None (_seek_of_seek seek)
 
-external ocaml_av_open_input_stream : avio -> input container
-  = "ocaml_av_open_input_stream"
+external ocaml_av_open_input_stream :
+  avio ->
+  (input, _) format option ->
+  (string * string) array ->
+  input container * string array = "ocaml_av_open_input_stream"
+
+let ocaml_av_open_input_stream ?format ?opts avio =
+  let opts = opts_default opts in
+  let ret, unused = ocaml_av_open_input_stream avio format (mk_opts opts) in
+  filter_opts unused opts;
+  ret
 
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 
-let open_input_stream ?seek read =
+let open_input_stream ?format ?opts ?seek read =
   let avio = ocaml_av_create_read_io 4096 ?seek read in
   let cleanup () = caml_av_input_io_finalise avio in
-  let input = ocaml_av_open_input_stream avio in
+  let input = ocaml_av_open_input_stream ?format ?opts avio in
   Gc.finalise_last cleanup input;
   input
 
@@ -225,24 +265,6 @@ external seek :
 
 external reuse_output : input container -> bool -> unit
   = "ocaml_av_reuse_output"
-
-let _opt_val = function
-  | `String s -> s
-  | `Int i -> string_of_int i
-  | `Float f -> string_of_float f
-
-let opts_default = function None -> Hashtbl.create 0 | Some opts -> opts
-
-let mk_opts opts =
-  Array.of_list
-    (Hashtbl.fold
-       (fun opt_name opt_val cur -> (opt_name, _opt_val opt_val) :: cur)
-       opts [])
-
-let filter_opts unused opts =
-  Hashtbl.filter_map_inplace
-    (fun k v -> if Array.mem k unused then Some v else None)
-    opts
 
 (* Output *)
 external open_output :
