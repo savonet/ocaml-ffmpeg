@@ -41,28 +41,18 @@ let () =
           `Pair ("channel_layout", `Int channel_layout);
         ]
       in
-      let buffer =
-        List.find
-          (fun { Avfilter.name; _ } -> name = "abuffer")
-          Avfilter.buffers
-      in
       {
         Avfilter.node_name = "in";
         node_args = Some args;
-        node_pad = List.hd Avfilter.(buffer.io.outputs.audio);
+        node_pad = List.hd Avfilter.(abuffer.io.outputs.audio);
       }
     in
     let outputs = { Avfilter.audio = [abuffer]; video = [] } in
     let sink =
-      let sink =
-        List.find
-          (fun { Avfilter.name; _ } -> name = "abuffersink")
-          Avfilter.sinks
-      in
       {
         Avfilter.node_name = "out";
         node_args = None;
-        node_pad = List.hd Avfilter.(sink.io.inputs.audio);
+        node_pad = List.hd Avfilter.(abuffersink.io.inputs.audio);
       }
     in
     let inputs = { Avfilter.audio = [sink]; video = [] } in

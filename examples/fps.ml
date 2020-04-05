@@ -27,7 +27,7 @@ let () =
 
   let filter =
     let config = Avfilter.init () in
-    let buffer =
+    let _buffer =
       let time_base = Av.get_time_base video_input in
       let pixel_aspect = Av.get_pixel_aspect video_input in
       let pixel_format = Avcodec.Video.get_pixel_format video_params in
@@ -41,10 +41,7 @@ let () =
           `Pair ("time_base", `Rational time_base);
         ]
       in
-      let buffer =
-        List.find (fun { Avfilter.name; _ } -> name = "buffer") Avfilter.buffers
-      in
-      Avfilter.attach ~args ~name:"buffer" buffer config
+      Avfilter.(attach ~args ~name:"buffer" buffer config)
     in
     let fps =
       let args = [`Pair ("fps", `Int 25)] in
@@ -53,16 +50,9 @@ let () =
       in
       Avfilter.attach ~args ~name:"fps" buffer config
     in
-    let sink =
-      let sink =
-        List.find
-          (fun { Avfilter.name; _ } -> name = "buffersink")
-          Avfilter.sinks
-      in
-      Avfilter.attach ~name:"sink" sink config
-    in
+    let sink = Avfilter.(attach ~name:"sink" buffersink config) in
     Avfilter.link
-      (List.hd Avfilter.(buffer.io.outputs.video))
+      (List.hd Avfilter.(_buffer.io.outputs.video))
       (List.hd Avfilter.(fps.io.inputs.video));
     Avfilter.link
       (List.hd Avfilter.(fps.io.outputs.video))

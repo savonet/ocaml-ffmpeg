@@ -17,7 +17,7 @@ type ('a, 'b, 'c) pad
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
-type 'a filter = {
+type ('a, 'b) filter = {
   name : string;
   description : string;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
@@ -33,13 +33,17 @@ type t = (inputs, outputs) io
 exception Exists
 
 (** Filter list. *)
-val filters : [ `Unattached ] filter list
+val filters : ([ `Unattached ], [ `Filter ]) filter list
 
-(** Buffers (input) list. *)
-val buffers : [ `Unattached ] filter list
+(** Buffers (input). *)
+val abuffer : ([ `Unattached ], [ `ABuffer ]) filter
 
-(** Sink (output) list. *)
-val sinks : [ `Unattached ] filter list
+val buffer : ([ `Unattached ], [ `Buffer ]) filter
+
+(** Sinks (output). *)
+val abuffersink : ([ `Unattached ], [ `ASink ]) filter
+
+val buffersink : ([ `Unattached ], [ `Sink ]) filter
 
 (** Pad name. *)
 val pad_name : _ pad -> string
@@ -52,9 +56,9 @@ val init : unit -> config
 val attach :
   ?args:args list ->
   name:string ->
-  [ `Unattached ] filter ->
+  ([ `Unattached ], _) filter ->
   config ->
-  [ `Attached ] filter
+  ([ `Attached ], _) filter
 
 (** Link two filter pads. *)
 val link :

@@ -31,10 +31,12 @@ let () =
   in
 
   Printf.printf "## Buffers (inputs) ##\n\n";
-  print_filters "Buffer" buffers;
+  print_filters "Buffer" [abuffer];
+  print_filters "Buffer" [buffer];
 
   Printf.printf "## Sinks (oututs):\n\n";
-  print_filters "Sink" sinks;
+  print_filters "Sink" [abuffersink];
+  print_filters "Sink" [buffersink];
 
   Printf.printf "## Filters ##\n\n";
   print_filters "Filter" filters;

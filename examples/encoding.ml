@@ -95,13 +95,13 @@ let () =
   Av.set_metadata oas ["Media", "Subtitle"];
 *)
   let duration = 10 in
-  (*  
-  for i = 0 to duration - 1 do
-    let s = float_of_int i in
-    Subtitle_frame.from_lines s (s +. 0.5) [string_of_int i]
-    |> Av.write oss;
-  done;
-*)
+  (*
+     for i = 0 to duration - 1 do
+       let s = float_of_int i in
+       Subtitle_frame.from_lines s (s +. 0.5) [string_of_int i]
+       |> Av.write oss;
+     done;
+  *)
   for i = 0 to (frame_rate * duration) - 1 do
     let b = i mod frame_rate / 13 in
 

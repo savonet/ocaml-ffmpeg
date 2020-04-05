@@ -24,7 +24,7 @@ type ('a, 'b, 'c) pad = {
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
-type 'a filter = {
+type ('a, 'b) filter = {
   name : string;
   description : string;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
@@ -67,10 +67,7 @@ let () = Callback.register "ocaml_avfilter_finalize_filter_graph" finalize_graph
 external get_all_filters : unit -> ([ `Unattached ], 'a, 'c) _filter array
   = "ocaml_avfilter_get_all_filters"
 
-let _buffers = [("buffer", `Video); ("abuffer", `Audio)]
-let _sinks = [("buffersink", `Video); ("abuffersink", `Audio)]
-
-let filters, buffers, sinks =
+let filters, abuffer, buffer, abuffersink, buffersink =
   let split_pads pads =
     let audio, video =
       Array.fold_left
@@ -94,23 +91,40 @@ let filters, buffers, sinks =
     { audio; video }
   in
 
-  let filters, buffers, sinks =
+  let filters, abuffer, buffer, abuffersink, buffersink =
     Array.fold_left
-      (fun (filters, buffers, sinks) { _name; _description; _inputs; _outputs } ->
+      (fun (filters, abuffer, buffer, abuffersink, buffersink)
+           { _name; _description; _inputs; _outputs } ->
         let io =
           { inputs = split_pads _inputs; outputs = split_pads _outputs }
         in
         let filter = { name = _name; description = _description; io } in
-        if List.mem_assoc _name _buffers then (filters, filter :: buffers, sinks)
-        else if List.mem_assoc _name _sinks then
-          (filters, buffers, filter :: sinks)
-        else (filter :: filters, buffers, sinks))
-      ([], [], []) (get_all_filters ())
+        match _name with
+          | s when s = "abuffer" ->
+              (filters, Some filter, buffer, abuffersink, buffersink)
+          | s when s = "buffer" ->
+              (filters, abuffer, Some filter, abuffersink, buffersink)
+          | s when s = "abuffersink" ->
+              (filters, abuffer, buffer, Some filter, buffersink)
+          | s when s = "buffersink" ->
+              (filters, abuffer, buffer, abuffersink, Some filter)
+          | _ -> (filter :: filters, abuffer, buffer, abuffersink, buffersink))
+      ([], None, None, None, None)
+      (get_all_filters ())
   in
 
   let sort = List.sort (fun f1 f2 -> compare f1.name f2.name) in
 
-  (sort filters, sort buffers, sort sinks)
+  let get_some = function
+    | Some f -> f
+    | None -> failwith "ffmpeg API error: missing buffer or sink!"
+  in
+
+  ( sort filters,
+    get_some abuffer,
+    get_some buffer,
+    get_some abuffersink,
+    get_some buffersink )
 
 let pad_name { pad_name; _ } = pad_name
 
@@ -149,21 +163,16 @@ let args_of_args = function
 let attach_pad filter_ctx graph pad =
   { pad with filter_ctx = Some filter_ctx; _config = Some graph.c }
 
-let append_io graph ~name filter filter_ctx =
-  begin
-    match List.assoc_opt filter _buffers with
-    | Some `Audio ->
+let append_io graph ~name filter_name filter_ctx =
+  match filter_name with
+    | "abuffer" ->
         graph.audio_inputs <- (name, filter_ctx) :: graph.audio_inputs
-    | Some `Video ->
-        graph.video_inputs <- (name, filter_ctx) :: graph.video_inputs
-    | None -> ()
-  end;
-  match List.assoc_opt filter _sinks with
-    | Some `Audio ->
+    | "buffer" -> graph.video_inputs <- (name, filter_ctx) :: graph.video_inputs
+    | "abuffersink" ->
         graph.audio_outputs <- (name, filter_ctx) :: graph.audio_outputs
-    | Some `Video ->
+    | "buffersink" ->
         graph.video_outputs <- (name, filter_ctx) :: graph.video_outputs
-    | None -> ()
+    | _ -> ()
 
 let attach ?args ~name filter graph =
   if List.mem name graph.names then raise Exists;
