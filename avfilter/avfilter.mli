@@ -17,33 +17,44 @@ type ('a, 'b, 'c) pad
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
-type ('a, 'b) filter = {
+type 'a filter = {
   name : string;
   description : string;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
 type 'a input = 'a frame -> unit
-type 'a output = unit -> 'a frame
+type 'a context
+type 'a output = { context : 'a context; handler : unit -> 'a frame }
 type 'a entries = (string * 'a) list
 type inputs = ([ `Audio ] input entries, [ `Video ] input entries) av
 type outputs = ([ `Audio ] output entries, [ `Video ] output entries) av
 type t = (inputs, outputs) io
 
+(* Output context. *)
+val time_base : _ context -> Avutil.rational
+val frame_rate : [ `Video ] context -> Avutil.rational
+val width : [ `Video ] context -> int
+val height : [ `Video ] context -> int
+val sample_aspect_ratio : [ `Video ] context -> Avutil.rational
+val channels : [ `Audio ] context -> int
+val channel_layout : [ `Audio ] context -> Avutil.Channel_layout.t
+val sample_rate : [ `Audio ] context -> int
+
 exception Exists
 
 (** Filter list. *)
-val filters : ([ `Unattached ], [ `Filter ]) filter list
+val filters : [ `Unattached ] filter list
 
 (** Buffers (input). *)
-val abuffer : ([ `Unattached ], [ `ABuffer ]) filter
+val abuffer : [ `Unattached ] filter
 
-val buffer : ([ `Unattached ], [ `Buffer ]) filter
+val buffer : [ `Unattached ] filter
 
 (** Sinks (output). *)
-val abuffersink : ([ `Unattached ], [ `ASink ]) filter
+val abuffersink : [ `Unattached ] filter
 
-val buffersink : ([ `Unattached ], [ `Sink ]) filter
+val buffersink : [ `Unattached ] filter
 
 (** Pad name. *)
 val pad_name : _ pad -> string
@@ -56,9 +67,9 @@ val init : unit -> config
 val attach :
   ?args:args list ->
   name:string ->
-  ([ `Unattached ], _) filter ->
+  [ `Unattached ] filter ->
   config ->
-  ([ `Attached ], _) filter
+  [ `Attached ] filter
 
 (** Link two filter pads. *)
 val link :

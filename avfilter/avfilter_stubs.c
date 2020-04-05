@@ -301,6 +301,95 @@ CAMLprim value ocaml_avfilter_link(value _src, value _srcpad, value _dst, value 
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avfilter_buffersink_get_time_base(value _src) {
+  CAMLparam0();
+  CAMLlocal1(ret);
+
+  caml_release_runtime_system();
+  AVRational time_base = av_buffersink_get_time_base((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  value_of_rational(&time_base, &ret);
+  
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_frame_rate(value _src) {
+  CAMLparam0();
+  CAMLlocal1(ret);
+
+  caml_release_runtime_system();
+  AVRational frame_rate = av_buffersink_get_frame_rate((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  value_of_rational(&frame_rate, &ret);
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_w(value _src) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  int w = av_buffersink_get_w((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_int(w));
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_h(value _src) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  int h = av_buffersink_get_h((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_int(h));
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_sample_aspect_ratio(value _src) {
+  CAMLparam0();
+  CAMLlocal1(ret);
+
+  caml_release_runtime_system();
+  AVRational sample_aspect_ratio = av_buffersink_get_sample_aspect_ratio((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  value_of_rational(&sample_aspect_ratio, &ret);
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_channels(value _src) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  int channels = av_buffersink_get_channels((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_int(channels));
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_channel_layout(value _src) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  uint64_t layout = av_buffersink_get_channel_layout((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_ChannelLayout(layout));
+}
+
+CAMLprim value ocaml_avfilter_buffersink_get_sample_rate(value _src) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  int sample_rate = av_buffersink_get_sample_rate((AVFilterContext *)_src);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_int(sample_rate));
+}
+
 CAMLprim value ocaml_avfilter_config(value _graph) {
   CAMLparam1(_graph);
 

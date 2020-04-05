@@ -60,15 +60,30 @@ let () =
     Avfilter.launch config
   in
 
+  let _, output = List.hd Avfilter.(filter.outputs.video) in
+  let context = output.context in
+  let time_base = Avfilter.time_base context in
+  let frame_rate = Avfilter.frame_rate context in
+  let sample_aspect_ratio = Avfilter.sample_aspect_ratio context in
+  Printf.printf
+    "Sink info:\n\
+     time_base: %d/%d\n\
+     frame_rate: %d/%d\n\
+     width: %d\n\
+     height: %d\n\
+     sample_aspect_ratio: %d/%d\n"
+    time_base.Avutil.num time_base.Avutil.den frame_rate.Avutil.num
+    frame_rate.Avutil.den (Avfilter.width context) (Avfilter.height context)
+    sample_aspect_ratio.Avutil.num sample_aspect_ratio.Avutil.den;
+
   let process_video i frm =
     try
       let stream = List.assoc i [ovss] in
       let _, input = List.hd Avfilter.(filter.inputs.video) in
       input frm;
-      let _, output = List.hd Avfilter.(filter.outputs.video) in
       let rec flush () =
         try
-          Av.write_frame stream (output ());
+          Av.write_frame stream (output.handler ());
           flush ()
         with Avutil.Error `Eagain -> ()
       in

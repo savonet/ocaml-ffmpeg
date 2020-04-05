@@ -63,15 +63,28 @@ let () =
     Avfilter.launch config
   in
 
+  let _, output = List.hd Avfilter.(filter.outputs.audio) in
+  let context = output.context in
+  let time_base = Avfilter.time_base context in
+  Printf.printf
+    "Sink info:\n\
+     time_base: %d/%d\n\
+     channels: %d\n\
+     channel_layout: %s\n\
+     sample_rate: %d\n"
+    time_base.Avutil.num time_base.Avutil.den
+    (Avfilter.channels context)
+    (Avutil.Channel_layout.get_description (Avfilter.channel_layout context))
+    (Avfilter.sample_rate context);
+
   let process_audio i frm =
     try
       let stream = List.assoc i [oass] in
       let _, input = List.hd Avfilter.(filter.inputs.audio) in
       input frm;
-      let _, output = List.hd Avfilter.(filter.outputs.audio) in
       let rec flush () =
         try
-          Av.write_frame stream (output ());
+          Av.write_frame stream (output.handler ());
           flush ()
         with Avutil.Error `Eagain -> ()
       in

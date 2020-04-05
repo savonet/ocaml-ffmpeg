@@ -24,14 +24,15 @@ type ('a, 'b, 'c) pad = {
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
-type ('a, 'b) filter = {
+type 'a filter = {
   name : string;
   description : string;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
 type 'a input = 'a Avutil.frame -> unit
-type 'a output = unit -> 'a Avutil.frame
+type 'a context = filter_ctx
+type 'a output = { context : 'a context; handler : unit -> 'a Avutil.frame }
 type 'a entries = (string * 'a) list
 type inputs = ([ `Audio ] input entries, [ `Video ] input entries) av
 type outputs = ([ `Audio ] output entries, [ `Video ] output entries) av
@@ -45,6 +46,26 @@ type config = {
   mutable video_outputs : filter_ctx entries;
   mutable audio_outputs : filter_ctx entries;
 }
+
+external time_base : filter_ctx -> Avutil.rational
+  = "ocaml_avfilter_buffersink_get_time_base"
+
+external frame_rate : filter_ctx -> Avutil.rational
+  = "ocaml_avfilter_buffersink_get_frame_rate"
+
+external width : filter_ctx -> int = "ocaml_avfilter_buffersink_get_w"
+external height : filter_ctx -> int = "ocaml_avfilter_buffersink_get_h"
+
+external sample_aspect_ratio : filter_ctx -> Avutil.rational
+  = "ocaml_avfilter_buffersink_get_sample_aspect_ratio"
+
+external channels : filter_ctx -> int = "ocaml_avfilter_buffersink_get_channels"
+
+external channel_layout : filter_ctx -> Avutil.Channel_layout.t
+  = "ocaml_avfilter_buffersink_get_channel_layout"
+
+external sample_rate : filter_ctx -> int
+  = "ocaml_avfilter_buffersink_get_sample_rate"
 
 exception Exists
 
@@ -292,12 +313,22 @@ let launch graph =
   let inputs = { audio; video } in
   let audio =
     List.map
-      (fun (name, filter_ctx) -> (name, fun () -> get_frame graph.c filter_ctx))
+      (fun (name, filter_ctx) ->
+        ( name,
+          {
+            context = filter_ctx;
+            handler = (fun () -> get_frame graph.c filter_ctx);
+          } ))
       graph.audio_outputs
   in
   let video =
     List.map
-      (fun (name, filter_ctx) -> (name, fun () -> get_frame graph.c filter_ctx))
+      (fun (name, filter_ctx) ->
+        ( name,
+          {
+            context = filter_ctx;
+            handler = (fun () -> get_frame graph.c filter_ctx);
+          } ))
       graph.video_outputs
   in
   let outputs = { audio; video } in
