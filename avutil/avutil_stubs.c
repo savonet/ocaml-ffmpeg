@@ -251,40 +251,73 @@ CAMLprim value ocaml_avutil_set_log_level(value level) {
 
 #define LINE_SIZE 1024
 
-static value ocaml_log_callback = (value)NULL;
+typedef struct {
+  char msg[LINE_SIZE];
+  void *next;
+} log_msg_t;
+
+static pthread_cond_t log_condition = PTHREAD_COND_INITIALIZER;
+static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
+static log_msg_t top_level_log_msg = {"", NULL};
+
+CAMLprim value ocaml_ffmpeg_process_log(value cb) {
+  CAMLparam1(cb);
+  CAMLlocal1(buffer);
+  log_msg_t *log_msg, *next_log_msg;
+
+  while (1) {
+    caml_release_runtime_system();
+    pthread_mutex_lock(&log_mutex);
+
+    while (top_level_log_msg.next == NULL)
+      pthread_cond_wait(&log_condition, &log_mutex);
+
+    log_msg = top_level_log_msg.next;
+    top_level_log_msg.next = NULL;
+    pthread_mutex_unlock(&log_mutex);
+
+    caml_acquire_runtime_system();
+
+    while (log_msg != NULL) {
+      buffer = caml_copy_string(log_msg->msg);
+      caml_callback(cb, buffer);
+
+      next_log_msg = log_msg->next;
+      free(log_msg);
+      log_msg = next_log_msg;
+    }
+  }
+
+  CAMLreturn(Val_unit);
+}
 
 static void av_log_ocaml_callback(void *ptr, int level, const char *fmt,
                                   va_list vl) {
   static int print_prefix = 1;
-  char line[LINE_SIZE];
-  value buffer;
+  log_msg_t *log_msg;
 
-  av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
+  pthread_mutex_lock(&log_mutex);
 
-  ocaml_ffmpeg_register_thread();
+  log_msg = &top_level_log_msg;
 
-  caml_acquire_runtime_system();
+  while (log_msg->next != NULL) {
+    log_msg = log_msg->next;
+  }
 
-  buffer = caml_copy_string(line);
+  // TODO: check for NULL here
+  log_msg->next = malloc(sizeof(log_msg_t));
 
-  caml_register_generational_global_root(&buffer);
+  log_msg = (log_msg_t *)log_msg->next;
+  log_msg->next = NULL;
+  av_log_format_line2(ptr, level, fmt, vl, log_msg->msg, LINE_SIZE,
+                      &print_prefix);
 
-  caml_callback(ocaml_log_callback, buffer);
-
-  caml_remove_generational_global_root(&buffer);
-
-  caml_release_runtime_system();
+  pthread_cond_signal(&log_condition);
+  pthread_mutex_unlock(&log_mutex);
 }
 
-CAMLprim value ocaml_avutil_set_log_callback(value callback) {
-  CAMLparam1(callback);
-
-  if (ocaml_log_callback == (value)NULL) {
-    ocaml_log_callback = callback;
-    caml_register_generational_global_root(&ocaml_log_callback);
-  } else {
-    caml_modify_generational_global_root(&ocaml_log_callback, callback);
-  }
+CAMLprim value ocaml_avutil_setup_log_callback(value unit) {
+  CAMLparam0();
 
   caml_release_runtime_system();
   av_log_set_callback(&av_log_ocaml_callback);
@@ -295,11 +328,6 @@ CAMLprim value ocaml_avutil_set_log_callback(value callback) {
 
 CAMLprim value ocaml_avutil_clear_log_callback() {
   CAMLparam0();
-
-  if (ocaml_log_callback != (value)NULL) {
-    caml_remove_generational_global_root(&ocaml_log_callback);
-    ocaml_log_callback = (value)NULL;
-  }
 
   caml_release_runtime_system();
   av_log_set_callback(&av_log_default_callback);
