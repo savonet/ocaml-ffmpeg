@@ -166,18 +166,12 @@ static void free_av(av_t *av) {
   free(av);
 }
 
-CAMLprim value ocaml_av_finalize_av(value v) {
-  CAMLparam1(v);
-  caml_register_generational_global_root(&v);
-  caml_release_runtime_system();
+static void finalize_av(value v) {
   free_av(Av_val(v));
-  caml_acquire_runtime_system();
-  caml_remove_generational_global_root(&v);
-  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations av_ops = {
-    "ocaml_av_context",  custom_finalize_default,  custom_compare_default,
+    "ocaml_av_context",  finalize_av,  custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 AVFormatContext *ocaml_av_get_format_context(value *p_av) {
@@ -631,8 +625,6 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
   Av_val(ans) = av;
-
-  Finalize("ocaml_av_finalize_av", ans);
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);

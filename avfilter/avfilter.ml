@@ -80,11 +80,6 @@ external register_all : unit -> unit = "ocaml_avfilter_register_all"
 
 let () = register_all ()
 
-external finalize_graph : _config -> unit
-  = "ocaml_avfilter_finalize_filter_graph"
-
-let () = Callback.register "ocaml_avfilter_finalize_filter_graph" finalize_graph
-
 external get_all_filters : unit -> ([ `Unattached ], 'a, 'c) _filter array
   = "ocaml_avfilter_get_all_filters"
 

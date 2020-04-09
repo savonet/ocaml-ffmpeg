@@ -8,10 +8,6 @@ type pixel_format = Avutil.Pixel_format.t
 type flag = Fast_bilinear | Bilinear | Bicubic | Print_info
 type t
 
-external finalize : t -> unit = "ocaml_swscale_finalize_context"
-
-let () = Callback.register "ocaml_swscale_finalize_context" finalize
-
 external create :
   flag array -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
   = "ocaml_swscale_get_context_byte" "ocaml_swscale_get_context"
@@ -50,10 +46,6 @@ module Bytes = struct
 end
 
 type ('i, 'o) ctx
-
-external finalize_ctx : _ ctx -> unit = "ocaml_swscale_finalize_swscale"
-
-let () = Callback.register "ocaml_swscale_finalize_swscale" finalize_ctx
 
 module Make (I : VideoData) (O : VideoData) = struct
   type t = (I.t, O.t) ctx

@@ -512,19 +512,13 @@ CAMLprim value ocaml_avutil_pixelformat_of_string(value name) {
 
 /***** AVFrame *****/
 
-CAMLprim value ocaml_avutil_finalize_frame(value v) {
-  CAMLparam1(v);
-  caml_register_generational_global_root(&v);
+static void finalize_frame(value v) {
   AVFrame *frame = Frame_val(v);
-  caml_release_runtime_system();
   av_frame_free(&frame);
-  caml_acquire_runtime_system();
-  caml_remove_generational_global_root(&v);
-  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations frame_ops = {
-    "ocaml_avframe",     custom_finalize_default,  custom_compare_default,
+    "ocaml_avframe",     finalize_frame,  custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 value value_of_frame(AVFrame *frame) {
@@ -534,8 +528,6 @@ value value_of_frame(AVFrame *frame) {
 
   ret = caml_alloc_custom(&frame_ops, sizeof(AVFrame *), 0, 1);
   Frame_val(ret) = frame;
-
-  Finalize("ocaml_avutil_finalize_frame", ret);
 
   return ret;
 }
@@ -682,26 +674,14 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(
 
 /***** AVSubtitle *****/
 
-CAMLprim value ocaml_avutil_finalize_subtitle(value v) {
-  CAMLparam1(v);
-
-  caml_register_generational_global_root(&v);
-
+void static finalize_subtitle(value v) {
   struct AVSubtitle *subtitle = Subtitle_val(v);
-
-  caml_release_runtime_system();
   avsubtitle_free(subtitle);
-  caml_acquire_runtime_system();
-
   free(subtitle);
-
-  caml_remove_generational_global_root(&v);
-
-  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations subtitle_ops = {
-    "ocaml_avsubtitle",  custom_finalize_default,  custom_compare_default,
+    "ocaml_avsubtitle",  finalize_subtitle,  custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 value value_of_subtitle(AVSubtitle *subtitle) {
@@ -711,8 +691,6 @@ value value_of_subtitle(AVSubtitle *subtitle) {
 
   ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle *), 0, 1);
   Subtitle_val(ret) = subtitle;
-
-  Finalize("ocaml_avutil_finalize_subtitle", ret);
 
   return ret;
 }

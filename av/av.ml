@@ -60,10 +60,6 @@ module Format = struct
     guess_output_format short_name filename mime
 end
 
-external finalize_av : _ container -> unit = "ocaml_av_finalize_av"
-
-let () = Callback.register "ocaml_av_finalize_av" finalize_av
-
 (* Input *)
 external open_input :
   string ->

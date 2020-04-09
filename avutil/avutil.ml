@@ -18,10 +18,6 @@ type subtitle = [ `Subtitle ]
 type media_type =
   [ audio | video | subtitle | `Unknown | `Data | `Attachment | `Nb ]
 
-external finalize_subtitle : subtitle -> unit = "ocaml_avutil_finalize_subtitle"
-
-let () = Callback.register "ocaml_avutil_finalize_subtitle" finalize_subtitle
-
 (* Format *)
 type ('line, 'media) format
 
@@ -32,10 +28,6 @@ external frame_pts : _ frame -> Int64.t = "ocaml_avutil_frame_pts"
 
 external frame_set_pts : _ frame -> Int64.t -> unit
   = "ocaml_avutil_frame_set_pts"
-
-external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
-
-let () = Callback.register "ocaml_avutil_finalize_frame" finalize_frame
 
 type error =
   [ `Bsf_not_found

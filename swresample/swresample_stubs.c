@@ -485,26 +485,18 @@ void swresample_free(swr_t *swr) {
   }
 
   if (swr->out_vector) {
-    caml_acquire_runtime_system();
     caml_remove_generational_global_root(&swr->out_vector);
-    caml_release_runtime_system();
   }
 
   free(swr);
 }
 
-CAMLprim value ocaml_swresample_finalize_swresample(value v) {
-  CAMLparam1(v);
-  caml_register_generational_global_root(&v);
-  caml_release_runtime_system();
+static void finalize_swresample(value v) {
   swresample_free(Swr_val(v));
-  caml_acquire_runtime_system();
-  caml_remove_generational_global_root(&v);
-  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations swr_ops = {
-    "ocaml_swresample_context", custom_finalize_default,
+    "ocaml_swresample_context", finalize_swresample,
     custom_compare_default,     custom_hash_default,
     custom_serialize_default,   custom_deserialize_default};
 
@@ -710,8 +702,6 @@ CAMLprim value ocaml_swresample_create(
 
   ans = caml_alloc_custom(&swr_ops, sizeof(swr_t *), 0, 1);
   Swr_val(ans) = swr;
-
-  Finalize("ocaml_swresample_finalize_swresample", ans);
 
   CAMLreturn(ans);
 }

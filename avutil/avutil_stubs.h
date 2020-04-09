@@ -23,23 +23,6 @@
     caml_callback(*caml_named_value("ffmpeg_exn_failure"), caml_copy_string(ocaml_av_exn_msg)); \
   }
 
-/* ffmpeg logs are routed through an OCaml callback, which requires
- * unlocking/locking the runtime.
- *
- * Calling avfilter_graph_free and pretty much any function causes 
- * logs to be written so, in turn, they also need to unlock/lock the
- * runtime around them.
- *
- * Final brick of this cluster fuck, finalizers registered on the C
- * side cannot release the runtime or register global roots so we have
- * to send the finalizer to the OCaml side and register it here.
- *
- * The Finalize macro is used to register OCaml finalizers for custom
- * values that are instantiated on the C side without ever being
- * surfaced on the OCaml side. */
-#define Finalize(f,v) \
-  caml_callback2(*caml_named_value("ffmpeg_gc_finalise"),*caml_named_value(f),v)
-
 void ocaml_avutil_raise_error(int err);
 
 extern char ocaml_av_exn_msg[];

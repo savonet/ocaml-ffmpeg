@@ -137,19 +137,13 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
 
 #define Filter_graph_val(v) (*(AVFilterGraph **)Data_custom_val(v))
 
-CAMLprim value ocaml_avfilter_finalize_filter_graph(value v) {
-  CAMLparam1(v);
-  caml_register_generational_global_root(&v);
+static void finalize_filter_graph(value v) {
   AVFilterGraph *graph = Filter_graph_val(v);
-  caml_release_runtime_system();
   avfilter_graph_free(&graph);
-  caml_acquire_runtime_system();
-  caml_remove_generational_global_root(&v);
-  CAMLreturn(Val_unit);
 }
 
 static struct custom_operations filter_graph_ops = {
-    "ocaml_avfilter_filter_graph", custom_finalize_default,
+    "ocaml_avfilter_filter_graph", finalize_filter_graph,
     custom_compare_default,        custom_hash_default,
     custom_serialize_default,      custom_deserialize_default};
 
@@ -164,8 +158,6 @@ CAMLprim value ocaml_avfilter_init(value unit) {
   ret = caml_alloc_custom(&filter_graph_ops, sizeof(AVFilterGraph *), 1, 0);
 
   Filter_graph_val(ret) = graph;
-
-  Finalize("ocaml_avfilter_finalize_filter_graph", ret);
 
   CAMLreturn(ret);
 }
