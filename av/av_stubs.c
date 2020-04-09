@@ -2166,7 +2166,7 @@ static void scale_video_frame(stream_t *stream, AVFrame *frame) {
     // create scale context
     stream->sws_ctx = sws_getContext(
         frame->width, frame->height, (enum AVPixelFormat)frame->format,
-        enc_ctx->width, enc_ctx->height, enc_ctx->pix_fmt, SWS_BICUBIC, NULL,
+        enc_ctx->width, enc_ctx->height, (enum AVPixelFormat)frame->format, SWS_BICUBIC, NULL,
         NULL, NULL);
     if (!stream->sws_ctx)
       caml_raise_out_of_memory();
@@ -2217,11 +2217,8 @@ static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
   AVCodecContext *enc_ctx = stream->codec_context;
 
   if (frame &&
-      (frame->width != enc_ctx->width || frame->height != enc_ctx->height ||
-       ((enum AVPixelFormat)frame->format) != enc_ctx->pix_fmt)) {
-
+      (frame->width != enc_ctx->width || frame->height != enc_ctx->height))
     scale_video_frame(stream, frame);
-  }
 
   if (frame) {
     frame->pts = stream->pts++;
