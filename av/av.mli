@@ -114,6 +114,9 @@ val get_time_base : (_, _) stream -> Avutil.rational
     [time_base]. *)
 val set_time_base : (_, _) stream -> Avutil.rational -> unit
 
+(** [Av.get_frame_size stream] return the frame size for the given audio stream. *)
+val get_frame_size : (output, audio) stream -> int
+
 (** [Av.get_pixel_aspect stream] return the pixel aspect of the [stream]. *)
 val get_pixel_aspect : (_, video) stream -> Avutil.rational
 
@@ -313,6 +316,10 @@ val new_subtitle_stream :
 val write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit
 
 (** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
+
+    Frame PTS, if set, are using the stream's [time_base], which can be grabbed
+    via [get_time_base].
+
     Raise Error if the writing failed. *)
 val write_frame : (output, 'media) stream -> 'media frame -> unit
 

@@ -15,6 +15,13 @@ external get_input_buffer_padding_size : unit -> int
 let input_buffer_padding_size = get_input_buffer_padding_size ()
 let empty_data = create_data 0
 
+type capability = Codec_capabilities.t
+
+(* To be used with Audio.t and Video.t *)
+external capabilities : 'a -> capability array = "ocaml_avcodec_capabilities"
+
+let capabilities c = Array.to_list (capabilities c)
+
 (** Packet. *)
 module Packet = struct
   (** Packet type *)
@@ -87,11 +94,7 @@ module Packet = struct
 end
 
 (* These functions receive a AVCodec on the C side. *)
-external create_decoder : 'a -> bool -> int option -> int option -> _ decoder
-  = "ocaml_avcodec_create_context"
-
-external create_encoder : 'a -> bool -> int option -> int option -> _ encoder
-  = "ocaml_avcodec_create_context"
+external create_decoder : 'a -> _ decoder = "ocaml_avcodec_create_decoder"
 
 (** Audio codecs. *)
 module Audio = struct
@@ -100,6 +103,9 @@ module Audio = struct
 
   type id = Codec_id.audio
 
+  let capabilities = capabilities
+
+  external frame_size : audio encoder -> int = "ocaml_avcodec_frame_size"
   external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_audio_codec_id_name"
 
@@ -155,14 +161,25 @@ module Audio = struct
     = "ocaml_avcodec_parameters_get_sample_rate"
 
   let create_parser = Packet.create_parser
-  let create_decoder codec = create_decoder codec true None None
-  let create_encoder ?bit_rate codec = create_encoder codec false bit_rate None
+  let create_decoder = create_decoder
+
+  external create_encoder :
+    ?bit_rate:int ->
+    channel_layout:Avutil.Channel_layout.t ->
+    channels:int ->
+    sample_format:Avutil.Sample_format.t ->
+    sample_rate:int ->
+    [ `Encoder ] t ->
+    audio encoder
+    = "ocaml_avcodec_create_audio_encoder_bytecode" "ocaml_avcodec_create_audio_encoder_native"
 end
 
 (** Video codecs. *)
 module Video = struct
   type 'a t
   type id = Codec_id.video
+
+  let capabilities = capabilities
 
   external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
@@ -210,10 +227,22 @@ module Video = struct
     = "ocaml_avcodec_parameters_get_bit_rate"
 
   let create_parser = Packet.create_parser
-  let create_decoder codec = create_decoder codec true None None
+  let create_decoder = create_decoder
 
-  let create_encoder ?bit_rate ?(frame_rate = 25) codec =
-    create_encoder codec false bit_rate (Some frame_rate)
+  external create_encoder :
+    ?bit_rate:int ->
+    width:int ->
+    height:int ->
+    pixel_format:Avutil.Pixel_format.t ->
+    int ->
+    int ->
+    [ `Encoder ] t ->
+    video encoder
+    = "ocaml_avcodec_create_video_encoder_bytecode" "ocaml_avcodec_create_video_encoder_native"
+
+  let create_encoder ?bit_rate ~width ~height ~pixel_format ~framerate enc =
+    create_encoder ?bit_rate ~width ~height ~pixel_format framerate.Avutil.num
+      framerate.Avutil.den enc
 end
 
 (** Subtitle codecs. *)

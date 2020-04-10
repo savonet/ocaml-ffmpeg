@@ -183,6 +183,10 @@ module Audio : sig
   (** [Avutil.Audio.frame_get_channels frame] returns the number of audio
       channels in the current frame. *)
   val frame_get_channels : audio frame -> int
+
+  (** [Avutil.Audio.frame_nb_samples frame] returns the number of audio samples
+      per channel in the current frame. *)
+  val frame_nb_samples : audio frame -> int
 end
 
 module Video : sig

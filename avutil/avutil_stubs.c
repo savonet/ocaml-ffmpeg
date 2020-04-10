@@ -537,7 +537,8 @@ CAMLprim value ocaml_avutil_frame_pts(value _frame) {
   CAMLlocal1(ret);
   AVFrame *frame = Frame_val(_frame);
 
-  if (frame->pts == AV_NOPTS_VALUE) CAMLreturn(Val_none);
+  if (frame->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
 
   ret = caml_alloc_tuple(1);
   Store_field(ret, 0, caml_copy_int64(frame->pts));
@@ -603,6 +604,13 @@ CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame) {
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_int(frame->channels));
+}
+
+CAMLprim value ocaml_avutil_audio_frame_nb_samples(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->nb_samples));
 }
 
 CAMLprim value ocaml_avutil_video_frame_width(value _frame) {

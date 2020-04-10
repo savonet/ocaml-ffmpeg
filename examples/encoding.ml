@@ -58,7 +58,11 @@ let () =
 
   let codec = Avcodec.Audio.find_encoder Sys.argv.(2) in
 
-  let opts = Av.mk_audio_opts ~channel_layout:`Stereo ~sample_rate () in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
+  let audio_pts = ref 0L in
+  let opts =
+    Av.mk_audio_opts ~channel_layout:`Stereo ~time_base ~sample_rate ()
+  in
 
   let oas = Av.new_audio_stream ~codec ~opts dst in
 
@@ -78,10 +82,13 @@ let () =
   let height = 288 in
   let pixel_format = `Yuv420p in
   let frame_rate = 25 in
+  let time_base = { Avutil.num = 1; den = frame_rate } in
+  let video_pts = ref 0L in
 
   let codec = Avcodec.Video.find_encoder Sys.argv.(3) in
   let opts =
-    Av.mk_video_opts ~size:(width, height) ~pixel_format ~frame_rate ()
+    Av.mk_video_opts ~time_base ~size:(width, height) ~pixel_format ~frame_rate
+      ()
   in
 
   let ovs = Av.new_video_stream ~codec ~opts dst in
@@ -105,12 +112,20 @@ let () =
   for i = 0 to (frame_rate * duration) - 1 do
     let b = i mod frame_rate / 13 in
 
-    audio_on_off.(b) |> Resampler.convert rsp |> Av.write_frame oas;
+    ( audio_on_off.(b) |> Resampler.convert rsp |> fun frame ->
+      Avutil.frame_set_pts frame (Some !audio_pts);
+      audio_pts :=
+        Int64.add !audio_pts
+          (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+      Av.write_frame oas frame );
 
     Video.frame_visit ~make_writable:true
       (video_on_off.(b) width height i)
       frame
-    |> Av.write_frame ovs
+    |> fun frame ->
+    Avutil.frame_set_pts frame (Some !video_pts);
+    video_pts := Int64.succ !video_pts;
+    Av.write_frame ovs frame
   done;
 
   Av.close dst;

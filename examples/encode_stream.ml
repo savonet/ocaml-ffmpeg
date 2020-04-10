@@ -14,7 +14,6 @@ let () =
 
   let pi = 4.0 *. atan 1.0 in
   let sample_rate = 44100 in
-  let frame_size = 512 in
 
   let codec = Audio.find_encoder Sys.argv.(2) in
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
@@ -44,14 +43,22 @@ let () =
 
   let output = Av.open_output_stream ~opts:output_opt ~seek write format in
 
+  let pts = ref 0L in
+  let time_base = { Avutil.num = 1; den = out_sample_rate } in
+
   let opts =
-    Av.mk_audio_opts ~channels:2 ~sample_format:out_sample_format
+    Av.mk_audio_opts ~channels:2 ~time_base ~sample_format:out_sample_format
       ~sample_rate:out_sample_rate ()
   in
   Hashtbl.add opts "lpc_type" (`String "none");
   Hashtbl.add opts "foo" (`String "bla");
 
   let stream = Av.new_audio_stream ~codec ~opts output in
+
+  let frame_size =
+    if List.mem `Variable_frame_size (Audio.capabilities codec) then 512
+    else Av.get_frame_size stream
+  in
 
   assert (Hashtbl.mem opts "foo");
   if Sys.argv.(2) = "flac" then assert (not (Hashtbl.mem opts "lpc_type"))
@@ -63,7 +70,11 @@ let () =
   for i = 0 to 2000 do
     Array.init frame_size (fun t ->
         sin (float_of_int (t + (i * frame_size)) *. c))
-    |> Resampler.convert rsp |> Av.write_frame stream
+    |> Resampler.convert rsp
+    |> fun frame ->
+    Avutil.frame_set_pts frame (Some !pts);
+    pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+    Av.write_frame stream frame
   done;
 
   Av.close output;

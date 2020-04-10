@@ -20,6 +20,17 @@
   (run ./config/discover.exe)))
 
 (rule
+ (targets codec_capabilities_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe codec_capabilities h)))
+
+(rule
+ (targets codec_capabilities.ml)
+ (deps codec_capabilities_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe codec_capabilities ml)))
+
+(rule
  (targets codec_id_stubs.h)
  (action
   (run ../gen_code/gen_code.exe codec_id h)))

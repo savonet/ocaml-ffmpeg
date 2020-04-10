@@ -175,6 +175,9 @@ module Audio = struct
 
   external frame_get_channels : audio frame -> int
     = "ocaml_avutil_audio_frame_get_channels"
+
+  external frame_nb_samples : audio frame -> int
+    = "ocaml_avutil_audio_frame_nb_samples"
 end
 
 module Video = struct
