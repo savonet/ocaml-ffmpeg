@@ -17,6 +17,8 @@
   (dune (>= 2.0))
   dune-configurator
   base-threads)
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -27,6 +29,8 @@
   (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -37,6 +41,8 @@
   (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -47,6 +53,8 @@
   (dune (>= 2.0))
   dune-configurator
   (ffmpeg-avutil (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -58,6 +66,8 @@
   dune-configurator
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -69,6 +79,8 @@
   dune-configurator
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
@@ -79,6 +91,8 @@
   (dune (>= 2.0))
   dune-configurator
   (ffmpeg-av (= :version)))
+ (conflicts
+  (ffmpeg (< 0.5.0)))
 )
 
 (package
