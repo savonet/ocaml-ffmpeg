@@ -9,9 +9,12 @@ let () =
         match C.Pkg_config.get c with
           | None -> default
           | Some pc -> (
-              match C.Pkg_config.query pc ~package:"libavcodec" with
-                | None -> default
-                | Some deps -> deps )
+              match
+                C.Pkg_config.query_expr_err pc ~package:"libavcodec"
+                  ~expr:"libavcodec >= 58.18.100"
+              with
+                | Error msg -> failwith msg
+                | Ok deps -> deps )
       in
       C.Flags.write_sexp "c_flags.sexp" conf.cflags;
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs)
