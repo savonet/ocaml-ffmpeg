@@ -24,9 +24,9 @@ type ('line, 'media) format
 (* Frame *)
 type 'media frame
 
-external frame_pts : _ frame -> Int64.t = "ocaml_avutil_frame_pts"
+external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 
-external frame_set_pts : _ frame -> Int64.t -> unit
+external frame_set_pts : _ frame -> Int64.t option -> unit
   = "ocaml_avutil_frame_set_pts"
 
 type error =

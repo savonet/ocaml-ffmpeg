@@ -534,16 +534,25 @@ value value_of_frame(AVFrame *frame) {
 
 CAMLprim value ocaml_avutil_frame_pts(value _frame) {
   CAMLparam1(_frame);
+  CAMLlocal1(ret);
   AVFrame *frame = Frame_val(_frame);
 
-  CAMLreturn(caml_copy_int64(frame->pts));
+  if (frame->pts == AV_NOPTS_VALUE) CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(frame->pts));
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLparam2(_frame, _pts);
-
   AVFrame *frame = Frame_val(_frame);
-  frame->pts = Int64_val(_pts);
+
+  if (_pts == Val_none)
+    frame->pts = AV_NOPTS_VALUE;
+  else
+    frame->pts = Int64_val(Field(_pts, 0));
 
   CAMLreturn(Val_unit);
 }

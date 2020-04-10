@@ -33,10 +33,10 @@ type 'media frame
 
 (** [Avutil.frame_pts frame] returns the presentation timestamp in time_base
     units (time when frame should be shown to user). *)
-val frame_pts : _ frame -> Int64.t
+val frame_pts : _ frame -> Int64.t option
 
 (** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
-val frame_set_pts : _ frame -> Int64.t -> unit
+val frame_set_pts : _ frame -> Int64.t option -> unit
 
 (** {1 Exception} *)
 
