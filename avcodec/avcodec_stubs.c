@@ -8,7 +8,6 @@
 #include <caml/threads.h>
 
 #include "avutil_stubs.h"
-#include <libavformat/avformat.h>
 
 #include "avcodec_stubs.h"
 #include "codec_capabilities_stubs.h"
