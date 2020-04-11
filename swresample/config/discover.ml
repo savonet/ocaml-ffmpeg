@@ -11,7 +11,7 @@ let () =
           | Some pc -> (
               match
                 C.Pkg_config.query_expr_err pc ~package:"libswresample"
-                  ~expr:"libswresample >= 3.1.100"
+                  ~expr:"libswresample >= 2.9.100"
               with
                 | Error msg -> failwith msg
                 | Ok deps -> deps )
