@@ -1,6 +1,6 @@
 module C = Configurator.V1
 
-let packages = [("avutil", "56.14.100"); ("avformat", "58.12.100")]
+let packages = [("avutil", "55.78.100"); ("avformat", "58.12.100")]
 
 let () =
   C.main ~name:"ffmpeg-av-pkg-config" (fun c ->
