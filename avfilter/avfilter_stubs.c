@@ -397,6 +397,17 @@ CAMLprim value ocaml_avfilter_buffersink_get_sample_rate(value _src) {
   CAMLreturn(Val_int(sample_rate));
 }
 
+CAMLprim value ocaml_avfilter_buffersink_set_frame_size(value _src,
+                                                        value _size) {
+  CAMLparam0();
+
+  caml_release_runtime_system();
+  av_buffersink_set_frame_size((AVFilterContext *)_src, Int_val(_size));
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avfilter_config(value _graph) {
   CAMLparam1(_graph);
 

@@ -60,6 +60,12 @@ let () =
     else Av.get_frame_size stream
   in
 
+  let filter_in, filter_out =
+    Avfilter.Utils.split_frame_size ~sample_rate:out_sample_rate ~time_base
+      ~channels:2 ~channel_layout:`Stereo ~sample_format:out_sample_format
+      frame_size
+  in
+
   assert (Hashtbl.mem opts "foo");
   if Sys.argv.(2) = "flac" then assert (not (Hashtbl.mem opts "lpc_type"))
   else assert (Hashtbl.mem opts "lpc_type");
@@ -67,14 +73,22 @@ let () =
   assert (Hashtbl.mem output_opt "foo");
   assert (not (Hashtbl.mem output_opt "packetsize"));
 
+  let rec flush () =
+    try
+      filter_out () |> fun frame ->
+      Avutil.frame_set_pts frame (Some !pts);
+      pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+      Av.write_frame stream frame;
+      flush ()
+    with Avutil.Error `Eagain -> ()
+  in
+
   for i = 0 to 2000 do
     Array.init frame_size (fun t ->
         sin (float_of_int (t + (i * frame_size)) *. c))
-    |> Resampler.convert rsp
-    |> fun frame ->
-    Avutil.frame_set_pts frame (Some !pts);
-    pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
-    Av.write_frame stream frame
+    |> Resampler.convert rsp |> filter_in;
+
+    flush ()
   done;
 
   Av.close output;

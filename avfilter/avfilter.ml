@@ -67,6 +67,9 @@ external channel_layout : filter_ctx -> Avutil.Channel_layout.t
 external sample_rate : filter_ctx -> int
   = "ocaml_avfilter_buffersink_get_sample_rate"
 
+external set_frame_size : filter_ctx -> int -> unit
+  = "ocaml_avfilter_buffersink_set_frame_size"
+
 exception Exists
 
 type ('a, 'b, 'c) _filter = {
@@ -328,3 +331,35 @@ let launch graph =
   in
   let outputs = { audio; video } in
   { outputs; inputs }
+
+module Utils = struct
+  let split_frame_size ~sample_rate ~time_base ~channels ~channel_layout
+      ~sample_format frame_size =
+    let args =
+      [
+        `Pair ("sample_rate", `Int sample_rate);
+        `Pair ("time_base", `Rational time_base);
+        `Pair ("channels", `Int channels);
+        `Pair
+          ("channel_layout", `Int (Avutil.Channel_layout.get_id channel_layout));
+        `Pair ("sample_fmt", `Int (Avutil.Sample_format.get_id sample_format));
+      ]
+    in
+
+    let graph = init () in
+    let abuffer = attach ~args ~name:"abuffer" abuffer graph in
+    let abuffersink = attach ~name:"sink" abuffersink graph in
+    let () =
+      match (abuffer.io.outputs.audio, abuffersink.io.inputs.audio) with
+        | o :: _, i :: _ -> link o i
+        | _ -> assert false
+    in
+    let filter = launch graph in
+    let filter_in, filter_out =
+      match (filter.inputs.audio, filter.outputs.audio) with
+        | (_, i) :: _, (_, o) :: _ -> (i, o)
+        | _ -> assert false
+    in
+    set_frame_size filter_out.context frame_size;
+    (filter_in, filter_out.handler)
+end

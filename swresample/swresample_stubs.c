@@ -7,6 +7,10 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
+#ifndef Bytes_val
+#define Bytes_val String_val
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
@@ -267,7 +271,7 @@ static void convert_to_string(swr_t *swr, int in_nb_samples,
     swr->out_vector_nb_samples = ret;
   }
 
-  memcpy(String_val(swr->out_vector), swr->out.data[0], len);
+  memcpy(Bytes_val(swr->out_vector), swr->out.data[0], len);
 }
 
 static void convert_to_planar_string(swr_t *swr, int in_nb_samples,
@@ -295,7 +299,7 @@ static void convert_to_planar_string(swr_t *swr, int in_nb_samples,
   }
 
   for (i = 0; i < swr->out.nb_channels; i++) {
-    memcpy(String_val(Field(swr->out_vector, i)), swr->out.data[i], len);
+    memcpy(Bytes_val(Field(swr->out_vector, i)), swr->out.data[i], len);
   }
 }
 

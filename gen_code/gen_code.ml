@@ -186,6 +186,7 @@ let gen_polymorphic_variant_h () =
       "Eagain";
       "Unknown";
       "Experimental";
+      "Other";
       "Failure";
     ];
 

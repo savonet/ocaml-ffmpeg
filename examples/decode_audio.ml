@@ -36,12 +36,51 @@ let () =
   let out_codec = Avcodec.Audio.find_encoder Sys.argv.(4) in
   let out_stream = Av.new_audio_stream ~codec:out_codec out_file in
 
+  let frame_size =
+    if List.mem `Variable_frame_size (Audio.capabilities out_codec) then 512
+    else Av.get_frame_size out_stream
+  in
+
+  let filters = ref None in
+  let get_filters frame =
+    match !filters with
+      | Some f -> f
+      | None ->
+          let sample_rate = Avutil.Audio.frame_get_sample_rate frame in
+          let time_base = { Avutil.num = 1; den = sample_rate } in
+          let channels = Avutil.Audio.frame_get_channels frame in
+          let channel_layout = Avutil.Audio.frame_get_channel_layout frame in
+          let sample_format = Avutil.Audio.frame_get_sample_format frame in
+          let f =
+            Avfilter.Utils.split_frame_size ~sample_rate ~time_base ~channels
+              ~channel_layout ~sample_format frame_size
+          in
+          filters := Some f;
+          f
+  in
+
+  let pts = ref 0L in
+  let rec flush filter_out =
+    try
+      filter_out () |> fun frame ->
+      Avutil.frame_set_pts frame (Some !pts);
+      pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+      Av.write_frame out_stream frame;
+      flush filter_out
+    with Avutil.Error `Eagain -> ()
+  in
+
+  let write_frame frame =
+    let filter_in, filter_out = get_filters frame in
+    filter_in frame;
+    flush filter_out
+  in
+
   Compat.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [| -1 |]
   |> Bigarray.array1_of_genarray
-  |> Packet.parse_data parser @@ Avcodec.decode decoder
-     @@ Av.write_frame out_stream;
+  |> Packet.parse_data parser @@ Avcodec.decode decoder @@ write_frame;
 
-  Avcodec.flush_decoder decoder @@ Av.write_frame out_stream;
+  Avcodec.flush_decoder decoder @@ write_frame;
 
   Unix.close in_fd;
   Av.close out_file;

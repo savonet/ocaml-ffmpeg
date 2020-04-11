@@ -18,6 +18,12 @@ let () =
     (params, audio_input, (i, Av.new_audio_stream ~codec:audio_codec ~opts dst))
   in
 
+  let frame_size =
+    if List.mem `Variable_frame_size (Avcodec.Audio.capabilities audio_codec)
+    then 512
+    else Av.get_frame_size (snd oass)
+  in
+
   let filter =
     let config = Avfilter.init () in
     let abuffer =
@@ -65,6 +71,7 @@ let () =
 
   let _, output = List.hd Avfilter.(filter.outputs.audio) in
   let context = output.context in
+  Avfilter.set_frame_size context frame_size;
   let time_base = Avfilter.time_base context in
   Printf.printf
     "Sink info:\n\

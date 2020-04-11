@@ -47,6 +47,7 @@ type error =
   | `Eagain
   | `Unknown
   | `Experimental
+  | `Other of int
   | `Failure of string ]
 
 external string_of_error : error -> string = "ocaml_avutil_string_of_error"
@@ -175,6 +176,9 @@ module Audio = struct
 
   external frame_get_channels : audio frame -> int
     = "ocaml_avutil_audio_frame_get_channels"
+
+  external frame_get_channel_layout : audio frame -> Channel_layout.t
+    = "ocaml_avutil_audio_frame_get_channel_layout"
 
   external frame_nb_samples : audio frame -> int
     = "ocaml_avutil_audio_frame_nb_samples"

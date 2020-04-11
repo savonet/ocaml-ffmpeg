@@ -9,6 +9,10 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
+#ifndef Bytes_val
+#define Bytes_val String_val
+#endif
+
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/audio_fifo.h>
@@ -296,7 +300,7 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
 
   caml_register_generational_global_root(&buffer);
 
-  memcpy(String_val(buffer), buf, buf_size);
+  memcpy(Bytes_val(buffer), buf, buf_size);
 
   res =
       caml_callback3_exn(avio->write_cb, buffer, Val_int(0), Val_int(buf_size));
@@ -564,8 +568,8 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -623,8 +627,8 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1394,8 +1398,8 @@ CAMLprim value ocaml_av_open_output(value _format, value _filename,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1444,8 +1448,8 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1496,8 +1500,8 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1661,8 +1665,8 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1718,8 +1722,8 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1782,8 +1786,8 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);

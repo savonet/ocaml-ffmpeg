@@ -65,6 +65,7 @@ let () =
   in
 
   let oas = Av.new_audio_stream ~codec ~opts dst in
+  let audio_frame_size = Av.get_frame_size oas in
 
   Av.set_metadata oas [("Media", "Audio")];
 
@@ -74,7 +75,8 @@ let () =
 
   let audio_on_off =
     [|
-      Array.init 1804 (fun t -> sin (float_of_int t *. c)); Array.make 1804 0.;
+      Array.init audio_frame_size (fun t -> sin (float_of_int t *. c));
+      Array.make audio_frame_size 0.;
     |]
   in
 
