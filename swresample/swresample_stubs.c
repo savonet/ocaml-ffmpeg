@@ -347,7 +347,7 @@ static void convert_to_planar_float_array(swr_t *swr, int in_nb_samples,
   double *pcm;
 
   if (ret != swr->out_vector_nb_samples || swr->release_out_vector) {
-    for (int i = 0; i < swr->out.nb_channels; i++) {
+    for (i = 0; i < swr->out.nb_channels; i++) {
       Store_field(swr->out_vector, i,
                   caml_alloc(ret * Double_wosize, Double_array_tag));
     }
