@@ -254,7 +254,7 @@ val get_output : (output, _) stream -> output container
 
     At least one of [channels] or [channel_layout] must be passed.
 
-    Frames passed to this stream for encoding must have a PTS set accoring to
+    Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/sample_rate] is usually a good value for the
     [time_base].
 
@@ -282,7 +282,7 @@ val new_audio_stream :
     settable on the stream's internal AVCodec. After returning, if [opts] was
     passed, unused options are left in the hash table.
 
-    Frames passed to this stream for encoding must have a PTS set accoring to
+    Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/frame_rate] is usually a good value for the
     [time_base].
 
@@ -316,8 +316,8 @@ val write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit
 
 (** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
 
-    Frame PTS, if set, are using the stream's [time_base], which can be grabbed
-    via [get_time_base].
+    Frame PTS should be set and counted in units of [time_base], as passed
+    when creating the stream
 
     Raise Error if the writing failed. *)
 val write_frame : (output, 'media) stream -> 'media frame -> unit
