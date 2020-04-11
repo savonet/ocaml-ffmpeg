@@ -491,9 +491,7 @@ void swresample_free(swr_t *swr) {
   free(swr);
 }
 
-static void finalize_swresample(value v) {
-  swresample_free(Swr_val(v));
-}
+static void finalize_swresample(value v) { swresample_free(Swr_val(v)); }
 
 static struct custom_operations swr_ops = {
     "ocaml_swresample_context", finalize_swresample,

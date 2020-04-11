@@ -166,13 +166,12 @@ static void free_av(av_t *av) {
   free(av);
 }
 
-static void finalize_av(value v) {
-  free_av(Av_val(v));
-}
+static void finalize_av(value v) { free_av(Av_val(v)); }
 
 static struct custom_operations av_ops = {
-    "ocaml_av_context",  finalize_av,  custom_compare_default,
-    custom_hash_default, custom_serialize_default, custom_deserialize_default};
+    "ocaml_av_context",       finalize_av,
+    custom_compare_default,   custom_hash_default,
+    custom_serialize_default, custom_deserialize_default};
 
 AVFormatContext *ocaml_av_get_format_context(value *p_av) {
   return Av_val(*p_av)->format_context;
@@ -2158,8 +2157,8 @@ static void scale_video_frame(stream_t *stream, AVFrame *frame) {
     // create scale context
     stream->sws_ctx = sws_getContext(
         frame->width, frame->height, (enum AVPixelFormat)frame->format,
-        enc_ctx->width, enc_ctx->height, (enum AVPixelFormat)frame->format, SWS_BICUBIC, NULL,
-        NULL, NULL);
+        enc_ctx->width, enc_ctx->height, (enum AVPixelFormat)frame->format,
+        SWS_BICUBIC, NULL, NULL, NULL);
     if (!stream->sws_ctx)
       caml_raise_out_of_memory();
 

@@ -125,7 +125,7 @@ static void finalize_packet(value v) {
 }
 
 static struct custom_operations packet_ops = {
-    "ocaml_packet",      finalize_packet,  custom_compare_default,
+    "ocaml_packet",      finalize_packet,          custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 value value_of_ffmpeg_packet(AVPacket *packet) {
@@ -193,9 +193,7 @@ static void free_parser(parser_t *parser) {
   free(parser);
 }
 
-static void finalize_parser(value v) {
-  free_parser(Parser_val(v));
-}
+static void finalize_parser(value v) { free_parser(Parser_val(v)); }
 
 static struct custom_operations parser_ops = {
     "ocaml_avcodec_parser",   finalize_parser,
@@ -331,9 +329,7 @@ static void free_codec_context(codec_context_t *ctx) {
   free(ctx);
 }
 
-static void codec_context(value v) {
-  free_codec_context(CodecContext_val(v));
-}
+static void codec_context(value v) { free_codec_context(CodecContext_val(v)); }
 
 static struct custom_operations codec_context_ops = {
     "ocaml_codec_context",    codec_context,

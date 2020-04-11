@@ -395,9 +395,7 @@ void swscale_free(sws_t *sws) {
   free(sws);
 }
 
-static void finalize_swscale(value v) {
-  swscale_free(Sws_val(v));
-}
+static void finalize_swscale(value v) { swscale_free(Sws_val(v)); }
 
 static struct custom_operations sws_ops = {
     "ocaml_swscale_context",  finalize_swscale,
@@ -418,7 +416,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
 
   sws_t *sws = (sws_t *)calloc(1, sizeof(sws_t));
 
-  if (!sws) caml_raise_out_of_memory();
+  if (!sws)
+    caml_raise_out_of_memory();
 
   sws->in.slice = sws->in.slice_tab;
   sws->in.stride = sws->in.stride_tab;

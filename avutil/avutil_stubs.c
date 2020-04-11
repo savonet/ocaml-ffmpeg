@@ -518,7 +518,7 @@ static void finalize_frame(value v) {
 }
 
 static struct custom_operations frame_ops = {
-    "ocaml_avframe",     finalize_frame,  custom_compare_default,
+    "ocaml_avframe",     finalize_frame,           custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 value value_of_frame(AVFrame *frame) {
@@ -681,7 +681,7 @@ void static finalize_subtitle(value v) {
 }
 
 static struct custom_operations subtitle_ops = {
-    "ocaml_avsubtitle",  finalize_subtitle,  custom_compare_default,
+    "ocaml_avsubtitle",  finalize_subtitle,        custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
 value value_of_subtitle(AVSubtitle *subtitle) {
