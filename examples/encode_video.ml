@@ -40,16 +40,14 @@ let () =
 
   let dst = Av.open_output Sys.argv.(1) in
 
-  let frame_rate = 25 in
-  let time_base = { Avutil.num = 1; den = frame_rate } in
+  let frame_rate = { Avutil.num = 25; den = 1 } in
+  let time_base = { Avutil.num = 1; den = 25 } in
   let pts = ref 0L in
 
-  let opts =
-    Av.mk_video_opts ~size:(width, height) ~frame_rate ~time_base ~pixel_format
-      ()
+  let ovs =
+    Av.new_video_stream ~width ~height ~frame_rate ~time_base ~pixel_format
+      ~codec dst
   in
-
-  let ovs = Av.new_video_stream ~codec ~opts dst in
 
   let frame = Video.create_frame width height pixel_format in
 

@@ -47,6 +47,9 @@ exception Exists
 (** Filter list. *)
 val filters : [ `Unattached ] filter list
 
+val find : string -> [ `Unattached ] filter
+val find_opt : string -> [ `Unattached ] filter option
+
 (** Buffers (input). *)
 val abuffer : [ `Unattached ] filter
 
@@ -100,14 +103,17 @@ val parse :
 val launch : config -> t
 
 module Utils : sig
-  (** Returns a pair of input/output functions that can be used to split frames
-      into fixed sizes. *)
-  val split_frame_size :
-    sample_rate:int ->
-    time_base:Avutil.rational ->
-    channels:int ->
-    channel_layout:Avutil.Channel_layout.t ->
-    sample_format:Avutil.Sample_format.t ->
-    int ->
+  type audio_params = {
+    sample_rate : int;
+    channel_layout : Avutil.Channel_layout.t;
+    sample_format : Avutil.Sample_format.t;
+  }
+
+  val convert_audio :
+    ?out_params:audio_params ->
+    ?out_frame_size:int ->
+    in_time_base:Avutil.rational ->
+    in_params:audio_params ->
+    unit ->
     ('a Avutil.frame -> unit) * (unit -> 'b Avutil.frame)
 end

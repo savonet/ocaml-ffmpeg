@@ -46,24 +46,30 @@ let () =
   let pts = ref 0L in
   let time_base = { Avutil.num = 1; den = out_sample_rate } in
 
-  let opts =
-    Av.mk_audio_opts ~channels:2 ~time_base ~sample_format:out_sample_format
-      ~sample_rate:out_sample_rate ()
-  in
+  let opts = Hashtbl.create 2 in
   Hashtbl.add opts "lpc_type" (`String "none");
   Hashtbl.add opts "foo" (`String "bla");
 
-  let stream = Av.new_audio_stream ~codec ~opts output in
+  let stream =
+    Av.new_audio_stream ~channels:2 ~time_base ~sample_format:out_sample_format
+      ~sample_rate:out_sample_rate ~codec ~opts output
+  in
 
-  let frame_size =
+  let out_frame_size =
     if List.mem `Variable_frame_size (Audio.capabilities codec) then 512
     else Av.get_frame_size stream
   in
 
   let filter_in, filter_out =
-    Avfilter.Utils.split_frame_size ~sample_rate:out_sample_rate ~time_base
-      ~channels:2 ~channel_layout:`Stereo ~sample_format:out_sample_format
-      frame_size
+    let in_params =
+      {
+        Avfilter.Utils.sample_rate = out_sample_rate;
+        channel_layout = `Stereo;
+        sample_format = out_sample_format;
+      }
+    in
+    Avfilter.Utils.convert_audio ~in_params ~in_time_base:time_base
+      ~out_frame_size ()
   in
 
   assert (Hashtbl.mem opts "foo");
@@ -84,8 +90,8 @@ let () =
   in
 
   for i = 0 to 2000 do
-    Array.init frame_size (fun t ->
-        sin (float_of_int (t + (i * frame_size)) *. c))
+    Array.init out_frame_size (fun t ->
+        sin (float_of_int (t + (i * out_frame_size)) *. c))
     |> Resampler.convert rsp |> filter_in;
 
     flush ()

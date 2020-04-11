@@ -74,6 +74,8 @@ val create_data : int -> data
 
 type rational = { num : int; den : int }
 
+val string_of_rational : rational -> string
+
 (** {9 Timestamp} *)
 
 (** Formats for time. *)

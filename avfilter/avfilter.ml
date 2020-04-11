@@ -145,6 +145,8 @@ let filters, abuffer, buffer, abuffersink, buffersink =
     get_some abuffersink,
     get_some buffersink )
 
+let find name = List.find (fun f -> f.name = name) filters
+let find_opt name = List.find_opt (fun f -> f.name = name) filters
 let pad_name { pad_name; _ } = pad_name
 
 external init : unit -> _config = "ocaml_avfilter_init"
@@ -333,25 +335,76 @@ let launch graph =
   { outputs; inputs }
 
 module Utils = struct
-  let split_frame_size ~sample_rate ~time_base ~channels ~channel_layout
-      ~sample_format frame_size =
-    let args =
+  type audio_params = {
+    sample_rate : int;
+    channel_layout : Avutil.Channel_layout.t;
+    sample_format : Avutil.Sample_format.t;
+  }
+
+  let convert_audio ?out_params ?out_frame_size ~in_time_base ~in_params () =
+    let abuffer_args =
       [
-        `Pair ("sample_rate", `Int sample_rate);
-        `Pair ("time_base", `Rational time_base);
-        `Pair ("channels", `Int channels);
+        `Pair ("sample_rate", `Int in_params.sample_rate);
+        `Pair ("time_base", `Rational in_time_base);
         `Pair
-          ("channel_layout", `Int (Avutil.Channel_layout.get_id channel_layout));
-        `Pair ("sample_fmt", `Int (Avutil.Sample_format.get_id sample_format));
+          ( "channel_layout",
+            `Int (Avutil.Channel_layout.get_id in_params.channel_layout) );
+        `Pair
+          ( "sample_fmt",
+            `Int (Avutil.Sample_format.get_id in_params.sample_format) );
       ]
     in
 
     let graph = init () in
-    let abuffer = attach ~args ~name:"abuffer" abuffer graph in
+    let abuffer = attach ~args:abuffer_args ~name:"abuffer" abuffer graph in
+
+    let output =
+      match abuffer.io.outputs.audio with o :: _ -> o | _ -> assert false
+    in
+
+    let output =
+      match out_params with
+        | None -> output
+        | Some out_params ->
+            let aresample = find "aresample" in
+            let args =
+              [
+                `Pair ("in_sample_rate", `Int in_params.sample_rate);
+                `Pair
+                  ( "in_channel_layout",
+                    `Int (Avutil.Channel_layout.get_id in_params.channel_layout)
+                  );
+                `Pair
+                  ( "in_sample_fmt",
+                    `Int (Avutil.Sample_format.get_id in_params.sample_format)
+                  );
+                `Pair ("out_sample_rate", `Int out_params.sample_rate);
+                `Pair
+                  ( "out_channel_layout",
+                    `Int
+                      (Avutil.Channel_layout.get_id out_params.channel_layout)
+                  );
+                `Pair
+                  ( "out_sample_fmt",
+                    `Int (Avutil.Sample_format.get_id out_params.sample_format)
+                  );
+              ]
+            in
+            let aresample = attach ~args ~name:"aresample" aresample graph in
+            let ainput, aoutput =
+              match (aresample.io.inputs.audio, aresample.io.outputs.audio) with
+                | i :: _, o :: _ -> (i, o)
+                | _ -> assert false
+            in
+            link output ainput;
+            aoutput
+    in
+
     let abuffersink = attach ~name:"sink" abuffersink graph in
+
     let () =
-      match (abuffer.io.outputs.audio, abuffersink.io.inputs.audio) with
-        | o :: _, i :: _ -> link o i
+      match abuffersink.io.inputs.audio with
+        | input :: _ -> link output input
         | _ -> assert false
     in
     let filter = launch graph in
@@ -360,6 +413,10 @@ module Utils = struct
         | (_, i) :: _, (_, o) :: _ -> (i, o)
         | _ -> assert false
     in
-    set_frame_size filter_out.context frame_size;
+    let () =
+      match out_frame_size with
+        | None -> ()
+        | Some frame_size -> set_frame_size filter_out.context frame_size
+    in
     (filter_in, filter_out.handler)
 end

@@ -81,6 +81,8 @@ let create_data len =
 
 type rational = { num : int; den : int }
 
+let string_of_rational { num; den } = Printf.sprintf "%d/%d" num den
+
 external time_base : unit -> rational = "ocaml_avutil_time_base"
 
 module Time_format = struct

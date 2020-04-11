@@ -12,10 +12,15 @@ let () =
 
   let codec = Avcodec.Audio.find_encoder "aac" in
 
-  let opts = Av.mk_audio_opts ~params () in
+  let channel_layout = Avcodec.Audio.get_channel_layout params in
+  let sample_format = Avcodec.Audio.get_sample_format params in
+  let sample_rate = Avcodec.Audio.get_sample_rate params in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
 
   let ostream =
-    Av.open_output Sys.argv.(2) |> Av.new_audio_stream ~codec ~opts
+    Av.open_output Sys.argv.(2)
+    |> Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate
+         ~time_base ~codec
   in
 
   istream |> Av.iter_frame (Av.write_frame ostream);

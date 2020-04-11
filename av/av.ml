@@ -304,64 +304,16 @@ let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 let get_output s = s.container
 let on_opt v fn = match v with None -> () | Some v -> fn v
 
-let mk_base_opts ?bit_rate ?time_base () =
-  let opts = Hashtbl.create 0 in
-  on_opt bit_rate (fun b -> Hashtbl.add opts "b" (`Int b));
-  on_opt time_base (fun { num; den } ->
-      Hashtbl.add opts "time_base" (`String (Printf.sprintf "%d/%d" num den)));
-  opts
-
-let mk_audio_opts ?channels ?channel_layout ?bit_rate ?sample_rate
-    ?sample_format ?time_base ?params ?stream () =
-  let if_opt v d = match v with None -> Some d | Some _ -> v in
-  let params =
-    match (params, stream) with
-      | Some _, _ -> params
-      | None, Some s -> Some (get_codec_params s)
-      | _ -> None
-  in
-  let channels, channel_layout, bit_rate, sample_rate, sample_format =
-    match params with
-      | None -> (channels, channel_layout, bit_rate, sample_rate, sample_format)
-      | Some p ->
-          ( if_opt channels (Avcodec.Audio.get_nb_channels p),
-            if_opt channel_layout (Avcodec.Audio.get_channel_layout p),
-            if_opt bit_rate (Avcodec.Audio.get_bit_rate p),
-            if_opt sample_rate (Avcodec.Audio.get_sample_rate p),
-            if_opt sample_format (Avcodec.Audio.get_sample_format p) )
-  in
-  let sample_rate = match sample_rate with Some r -> r | None -> 44100 in
-  let channels =
-    match channels with
-      | Some c -> c
-      | None -> (
-          match channel_layout with
-            | Some l -> Avutil.Channel_layout.get_nb_channels l
-            | None -> 2 )
-  in
-  let channel_layout =
-    match channel_layout with
-      | Some cl -> cl
-      | None -> (
-          try Avutil.Channel_layout.get_default channels
-          with Not_found ->
-            raise
-              (Error
-                 (`Failure
-                   (Printf.sprintf
-                      "Could not find a suitable channel layout for %d channels"
-                      channels))) )
-  in
-  let time_base = if_opt time_base { num = 1; den = sample_rate } in
-  let opts = mk_base_opts ?bit_rate ?time_base () in
+let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts =
   Hashtbl.add opts "ar" (`Int sample_rate);
-  Hashtbl.add opts "ac" (`Int channels);
-  Hashtbl.add opts "channel_layout"
-    (`Int (Channel_layout.get_id channel_layout));
-  on_opt bit_rate (fun br -> Hashtbl.add opts "b" (`Int br));
-  on_opt sample_format (fun sf ->
-      Hashtbl.add opts "sample_fmt" (`Int (Avutil.Sample_format.get_id sf)));
-  opts
+  on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
+  on_opt channel_layout (fun channel_layout ->
+      Hashtbl.add opts "channel_layout"
+        (`Int (Channel_layout.get_id channel_layout)));
+  Hashtbl.add opts "sample_fmt"
+    (`Int (Avutil.Sample_format.get_id sample_format));
+  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base))
 
 external new_audio_stream :
   output container ->
@@ -370,20 +322,20 @@ external new_audio_stream :
   (string * string) array ->
   int * string array = "ocaml_av_new_audio_stream"
 
-let new_audio_stream ?opts ~codec container =
-  let opts = match opts with Some opts -> opts | None -> mk_audio_opts () in
-  let sample_format =
-    try
-      let ret = Hashtbl.find opts "sample_fmt" in
-      Hashtbl.filter_map_inplace
-        (fun k v -> if k = "sample_fmt" then None else Some v)
-        opts;
-      match ret with
-        | `String name -> Avutil.Sample_format.find name
-        | `Int id -> Avutil.Sample_format.find_id id
-        | `Float id -> Avutil.Sample_format.find_id (int_of_float id)
-    with Not_found -> Avcodec.Audio.find_best_sample_format codec `Dbl
+let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base ~codec container =
+  let () =
+    match (channels, channel_layout) with
+      | None, None ->
+          raise
+            (Avutil.Error
+               (`Failure
+                 "At least one of channels or channel_layout must be passed!"))
+      | _ -> ()
   in
+  let opts = opts_default opts in
+  add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts;
   let ret, unused =
     new_audio_stream container
       (Sample_format.get_id sample_format)
@@ -392,34 +344,14 @@ let new_audio_stream ?opts ~codec container =
   filter_opts unused opts;
   mk_stream container ret
 
-let mk_video_opts ?pixel_format ?size ?bit_rate ?frame_rate ?time_base ?params
-    ?stream () =
-  let if_opt v d = match v with None -> Some d | Some _ -> v in
-  let params =
-    match (params, stream) with
-      | Some _, _ -> params
-      | None, Some s -> Some (get_codec_params s)
-      | _ -> None
-  in
-  let pixel_format, bit_rate, size =
-    match params with
-      | None -> (pixel_format, bit_rate, size)
-      | Some p ->
-          ( if_opt pixel_format (Avcodec.Video.get_pixel_format p),
-            if_opt bit_rate (Avcodec.Video.get_bit_rate p),
-            if_opt size (Avcodec.Video.get_width p, Avcodec.Video.get_height p)
-          )
-  in
-  let frame_rate = match frame_rate with Some r -> r | None -> 25 in
-  let time_base = if_opt time_base { num = 1; den = 25 } in
-  let opts = mk_base_opts ?bit_rate ?time_base () in
-  Hashtbl.add opts "r" (`Int frame_rate);
-  on_opt pixel_format (fun pf ->
-      Hashtbl.add opts "pixel_format" (`String (Pixel_format.to_string pf)));
-  on_opt bit_rate (fun br -> Hashtbl.add opts "b" (`Int br));
-  on_opt size (fun (w, h) ->
-      Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" w h)));
-  opts
+let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
+  Hashtbl.add opts "pixel_format"
+    (`String (Pixel_format.to_string pixel_format));
+  Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" width height));
+  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base));
+  match frame_rate with
+    | Some r -> Hashtbl.add opts "r" (`String (Avutil.string_of_rational r))
+    | None -> ()
 
 external new_video_stream :
   output container ->
@@ -427,13 +359,13 @@ external new_video_stream :
   (string * string) array ->
   int * string array = "ocaml_av_new_video_stream"
 
-let new_video_stream ?opts ~codec container =
-  let opts = match opts with Some opts -> opts | None -> mk_audio_opts () in
+let new_video_stream ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+    ~codec container =
+  let opts = opts_default opts in
+  add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
   let ret, unused = new_video_stream container codec (mk_opts opts) in
   filter_opts unused opts;
   mk_stream container ret
-
-let mk_subtitle_opts ?time_base () = mk_base_opts ?time_base ()
 
 external new_subtitle_stream :
   output container ->
@@ -441,8 +373,9 @@ external new_subtitle_stream :
   (string * string) array ->
   int * string array = "ocaml_av_new_subtitle_stream"
 
-let new_subtitle_stream ?opts ~codec container =
+let new_subtitle_stream ?opts ~time_base ~codec container =
   let opts = opts_default opts in
+  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base));
   let ret, unused = new_subtitle_stream container codec (mk_opts opts) in
   filter_opts unused opts;
   mk_stream container ret

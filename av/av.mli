@@ -248,57 +248,55 @@ val set_metadata : (output, _) stream -> (string * string) list -> unit
 (** Return the output container of the output stream. *)
 val get_output : (output, _) stream -> output container
 
-(** Utility to convert audio params to options. Sets value first from named
-    arguments or from passed codec_params, if it exists, or from passed stream,
-    if it exists. *)
-val mk_audio_opts :
-  ?channels:int ->
-  ?channel_layout:Channel_layout.t ->
-  ?bit_rate:int ->
-  ?sample_rate:int ->
-  ?sample_format:Avutil.Sample_format.t ->
-  ?time_base:Avutil.rational ->
-  ?params:audio Avcodec.params ->
-  ?stream:(_, audio) stream ->
-  unit ->
-  opts
-
 (** Add a new audio stream to the given container. [opts] may contain any option
     settable on the stream's internal AVCodec. After returning, if [opts] was
     passed, unused options are left in the hash table.
 
+    At least one of [channels] or [channel_layout] must be passed.
+
+    Frames passed to this stream for encoding must have a PTS set accoring to
+    the given [time_base]. [1/sample_rate] is usually a good value for the
+    [time_base].
+
+    Please note that some codec require a fixed frame size, denoted by the
+    absence of the [`Variable_frame_size] codec capabilities. In this case, the
+    user is expected to pass frames containing exactly
+    [Av.get_frame_size stream].
+
+    [Avfilter] can be used to slice frames into frames of fixed size. See
+    [Avfilter.Utils.convert_audio] for an example.
+
     Raise Error if the opening failed. *)
 val new_audio_stream :
   ?opts:opts ->
+  ?channels:int ->
+  ?channel_layout:Channel_layout.t ->
+  sample_rate:int ->
+  sample_format:Avutil.Sample_format.t ->
+  time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Audio.t ->
   output container ->
   (output, audio) stream
-
-(** Utility to convert video params to options. *)
-val mk_video_opts :
-  ?pixel_format:Avutil.Pixel_format.t ->
-  ?size:int * int ->
-  ?bit_rate:int ->
-  ?frame_rate:int ->
-  ?time_base:Avutil.rational ->
-  ?params:video Avcodec.params ->
-  ?stream:(_, video) stream ->
-  unit ->
-  opts
 
 (** Add a new video stream to the given container. [opts] may contain any option
     settable on the stream's internal AVCodec. After returning, if [opts] was
     passed, unused options are left in the hash table.
 
+    Frames passed to this stream for encoding must have a PTS set accoring to
+    the given [time_base]. [1/frame_rate] is usually a good value for the
+    [time_base].
+
     Raise Error if the opening failed. *)
 val new_video_stream :
   ?opts:opts ->
+  ?frame_rate:Avutil.rational ->
+  pixel_format:Avutil.Pixel_format.t ->
+  width:int ->
+  height:int ->
+  time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Video.t ->
   output container ->
   (output, video) stream
-
-(** Utility to convert subtitle params to options. *)
-val mk_subtitle_opts : ?time_base:Avutil.rational -> unit -> opts
 
 (** Add a new subtitle stream to the given container. [opts] may contain any
     option settable on the stream's internal AVCodec. After returning, if [opts]
@@ -307,6 +305,7 @@ val mk_subtitle_opts : ?time_base:Avutil.rational -> unit -> opts
     Raise Error if the opening failed. *)
 val new_subtitle_stream :
   ?opts:opts ->
+  time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Subtitle.t ->
   output container ->
   (output, subtitle) stream

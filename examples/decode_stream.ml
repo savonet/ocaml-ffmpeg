@@ -17,11 +17,13 @@ let () =
   let in_fd = Unix.openfile Sys.argv.(1) [Unix.O_RDONLY] 0 in
   let out_file = Av.open_output Sys.argv.(2) in
   let codec = Avcodec.Audio.find_encoder Sys.argv.(3) in
-  let out_stream = Av.new_audio_stream ~codec out_file in
-
-  let frame_size =
-    if List.mem `Variable_frame_size (Avcodec.Audio.capabilities codec) then 512
-    else Av.get_frame_size out_stream
+  let channel_layout = Avcodec.Audio.find_best_channel_layout codec `Stereo in
+  let sample_format = Avcodec.Audio.find_best_sample_format codec `Dbl in
+  let sample_rate = Avcodec.Audio.find_best_sample_rate codec 44100 in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
+  let out_stream =
+    Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
+      ~codec out_file
   in
 
   let filters = ref None in
@@ -29,14 +31,26 @@ let () =
     match !filters with
       | Some f -> f
       | None ->
-          let sample_rate = Avutil.Audio.frame_get_sample_rate frame in
-          let time_base = { Avutil.num = 1; den = sample_rate } in
-          let channels = Avutil.Audio.frame_get_channels frame in
-          let channel_layout = Avutil.Audio.frame_get_channel_layout frame in
-          let sample_format = Avutil.Audio.frame_get_sample_format frame in
+          let in_params =
+            {
+              Avfilter.Utils.sample_rate =
+                Avutil.Audio.frame_get_sample_rate frame;
+              channel_layout = Avutil.Audio.frame_get_channel_layout frame;
+              sample_format = Avutil.Audio.frame_get_sample_format frame;
+            }
+          in
+          let in_time_base = { Avutil.num = 1; den = sample_rate } in
+          let out_frame_size =
+            if List.mem `Variable_frame_size (Avcodec.Audio.capabilities codec)
+            then 512
+            else Av.get_frame_size out_stream
+          in
+          let out_params =
+            { Avfilter.Utils.sample_rate; sample_format; channel_layout }
+          in
           let f =
-            Avfilter.Utils.split_frame_size ~sample_rate ~time_base ~channels
-              ~channel_layout ~sample_format frame_size
+            Avfilter.Utils.convert_audio ~in_params ~in_time_base ~out_params
+              ~out_frame_size ()
           in
           filters := Some f;
           f

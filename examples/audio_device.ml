@@ -27,16 +27,24 @@ let () =
     with Avutil.Error _ -> Av.open_input Sys.argv.(1)
   in
 
-  let _, ias, _ = Av.find_best_audio_stream src in
+  let _, ias, params = Av.find_best_audio_stream src in
 
   let codec = Avcodec.Audio.find_encoder "flac" in
+  let channel_layout = Avcodec.Audio.get_channel_layout params in
+  let channels = Avcodec.Audio.get_nb_channels params in
+  let sample_format = Avcodec.Audio.get_sample_format params in
+  let sample_rate = Avcodec.Audio.get_sample_rate params in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
 
   let dst =
     try
       if Array.length Sys.argv < 3 then Avdevice.open_default_audio_output ()
       else Avdevice.open_audio_output Sys.argv.(2)
     with Avutil.Error _ ->
-      Av.open_output Sys.argv.(2) |> Av.new_audio_stream ~codec |> Av.get_output
+      Av.open_output Sys.argv.(2)
+      |> Av.new_audio_stream ~channels ~channel_layout ~sample_format
+           ~sample_rate ~time_base ~codec
+      |> Av.get_output
   in
 
   Avdevice.Dev_to_app.(

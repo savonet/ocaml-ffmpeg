@@ -15,14 +15,29 @@ let () =
 
   let oass =
     Av.find_best_audio_stream src |> fun (i, _, params) ->
-    let opts = Av.mk_audio_opts ~params () in
-    (i, Av.new_audio_stream ~codec:audio_codec ~opts dst)
+    let channel_layout = Avcodec.Audio.get_channel_layout params in
+    let channels = Avcodec.Audio.get_nb_channels params in
+    let sample_format = Avcodec.Audio.get_sample_format params in
+    let sample_rate = Avcodec.Audio.get_sample_rate params in
+    let time_base = { Avutil.num = 1; den = sample_rate } in
+    ( i,
+      Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
+        ~time_base ~codec:audio_codec dst )
   in
+
+  let frame_rate = { Avutil.num = 25; den = 1 } in
+  let time_base = { Avutil.num = 1; den = 25 } in
 
   let video_params, video_input, ovss =
     Av.find_best_video_stream src |> fun (i, video_input, params) ->
-    let opts = Av.mk_video_opts ~params () in
-    (params, video_input, (i, Av.new_video_stream ~codec:video_codec ~opts dst))
+    let width = Avcodec.Video.get_width params in
+    let height = Avcodec.Video.get_height params in
+    let pixel_format = Avcodec.Video.get_pixel_format params in
+    ( params,
+      video_input,
+      ( i,
+        Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width ~height
+          ~codec:video_codec dst ) )
   in
 
   let filter =
@@ -44,11 +59,11 @@ let () =
       Avfilter.(attach ~args ~name:"buffer" buffer config)
     in
     let fps =
-      let args = [`Pair ("fps", `Int 25)] in
-      let buffer =
-        List.find (fun { Avfilter.name; _ } -> name = "fps") Avfilter.filters
+      let args =
+        [`Pair ("fps", `String (Avutil.string_of_rational frame_rate))]
       in
-      Avfilter.attach ~args ~name:"fps" buffer config
+      let fps = Avfilter.find "fps" in
+      Avfilter.attach ~args ~name:"fps" fps config
     in
     let sink = Avfilter.(attach ~name:"sink" buffersink config) in
     Avfilter.link

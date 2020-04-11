@@ -16,15 +16,27 @@ let () =
   let oass =
     Av.get_audio_streams src
     |> List.map (fun (i, _, params) ->
-           let opts = Av.mk_audio_opts ~params () in
-           (i, Av.new_audio_stream ~codec:audio_codec ~opts dst))
+           let channel_layout = Avcodec.Audio.get_channel_layout params in
+           let sample_format = Avcodec.Audio.get_sample_format params in
+           let sample_rate = Avcodec.Audio.get_sample_rate params in
+           let time_base = { Avutil.num = 1; den = sample_rate } in
+           ( i,
+             Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate
+               ~time_base ~codec:audio_codec dst ))
   in
+
+  let frame_rate = { Avutil.num = 25; den = 1 } in
+  let time_base = { Avutil.num = 1; den = 25 } in
 
   let ovss =
     Av.get_video_streams src
     |> List.map (fun (i, _, params) ->
-           let opts = Av.mk_video_opts ~params () in
-           (i, Av.new_video_stream ~codec:video_codec ~opts dst))
+           let width = Avcodec.Video.get_width params in
+           let height = Avcodec.Video.get_height params in
+           let pixel_format = Avcodec.Video.get_pixel_format params in
+           ( i,
+             Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
+               ~height ~codec:video_codec dst ))
   in
 
   let osss =
@@ -35,7 +47,7 @@ let () =
                (Avcodec.Subtitle.string_of_id
                   (Avcodec.Subtitle.get_params_id params))
            in
-           (i, Av.new_subtitle_stream ~codec dst))
+           (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in
 
   src
