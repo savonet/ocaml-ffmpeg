@@ -175,9 +175,9 @@ static int get_in_samples_planar_ba(swr_t *swr, value *in_vector)
 {
   CAMLparam0();
   CAMLlocal1(ba);
-  int nb_samples = Caml_ba_array_val(Field(*in_vector, 0))->dim[0];
+  int i, nb_samples = Caml_ba_array_val(Field(*in_vector, 0))->dim[0];
 
-  for (int i = 0; i < swr->in.nb_channels; i++) {
+  for (i = 0; i < swr->in.nb_channels; i++) {
     ba = Field(*in_vector, i);
     
     if(nb_samples != Caml_ba_array_val(ba)->dim[0]) Fail( "Swresample failed to convert channel %d's %ld bytes : %d bytes were expected", i, Caml_ba_array_val(ba)->dim[0], nb_samples);
@@ -336,7 +336,7 @@ static inline void convert_to_planar_float_array(swr_t *swr, int in_nb_samples, 
   double *pcm;
 
   if(ret != swr->out_vector_nb_samples || swr->release_out_vector) {
-    for(int i = 0; i < swr->out.nb_channels; i++) {
+    for(i = 0; i < swr->out.nb_channels; i++) {
       Store_field(swr->out_vector, i,
                   caml_alloc(ret * Double_wosize, Double_array_tag));
     }
