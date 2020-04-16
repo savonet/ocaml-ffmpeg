@@ -323,6 +323,5 @@ module Make (I : AudioData) (O : AudioData) = struct
       ~out_sample_format:(Avcodec.Audio.get_sample_format out_codec)
       (Avcodec.Audio.get_sample_rate out_codec)
 
-  external reuse_output : t -> bool -> unit = "ocaml_swresample_reuse_output"
   external convert : t -> I.t -> O.t = "ocaml_swresample_convert"
 end

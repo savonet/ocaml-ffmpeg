@@ -180,7 +180,6 @@ struct sws_t {
   struct video_t in;
   struct video_t out;
   value out_vector;
-  int release_out_vector;
 
   int (*get_in_pixels)(sws_t *, value *);
   int (*alloc_out)(sws_t *, value *);
@@ -347,12 +346,9 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
   if (ret < 0)
     Fail("Failed to get input pixels");
 
-  // Allocate out data if needed
-  if (sws->release_out_vector) {
-    ret = sws->alloc_out(sws, &tmp);
-    if (ret < 0)
-      ocaml_avutil_raise_error(ret);
-  }
+  ret = sws->alloc_out(sws, &tmp);
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
 
   // Scale and convert input data to output data
   caml_release_runtime_system();
@@ -449,8 +445,6 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
     Fail("Failed to create Swscale context");
   }
 
-  sws->release_out_vector = 1;
-
   if (in_vector_kind == Frm) {
     sws->get_in_pixels = get_in_pixels_frame;
   } else if (in_vector_kind == Str) {
@@ -504,10 +498,4 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
 CAMLprim value ocaml_swscale_create_byte(value *argv, int argn) {
   return ocaml_swscale_create(argv[0], argv[1], argv[2], argv[3], argv[4],
                               argv[5], argv[6], argv[7], argv[8]);
-}
-
-CAMLprim value ocaml_swscale_reuse_output(value _sws, value _reuse_output) {
-  CAMLparam2(_sws, _reuse_output);
-  Sws_val(_sws)->release_out_vector = !Bool_val(_reuse_output);
-  CAMLreturn(Val_unit);
 }

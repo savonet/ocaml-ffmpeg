@@ -207,15 +207,6 @@ type seek_flag =
 val seek :
   (input, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
 
-(** [Av.reuse_output ro] enables or disables the reuse of {!Av.read_packet},
-    {!Av.iter_packet}, {!Av.read_frame}, {!Av.iter_frame},
-    {!Av.read_input_packet}, {!Av.iter_input_packet}, {!Av.read_input_frame} and
-    {!Av.iter_input_frame} output according to the value of [ro]. Reusing the
-    output reduces the number of memory allocations. In this cas, the data
-    returned by a reading function is invalidated by a new call to this
-    function. *)
-val reuse_output : input container -> bool -> unit
-
 (** {5 Output} *)
 
 (** [Av.open_output ?format ?opts filename] open the output file named

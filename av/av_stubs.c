@@ -62,7 +62,6 @@ typedef struct av_t {
 
   // output
   int header_written;
-  int release_out;
   int custom_io;
 } av_t;
 
@@ -522,7 +521,6 @@ static av_t *open_input(char *url, AVInputFormat *format,
   }
 
   av->is_input = 1;
-  av->release_out = 1;
   av->frames_pending = 0;
   av->format_context = format_context;
   av->streams = NULL;
@@ -726,12 +724,6 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index,
   ans = caml_copy_int64((duration * second_fractions * num) / den);
 
   CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_reuse_output(value _av, value _reuse_output) {
-  CAMLparam2(_av, _reuse_output);
-  Av_val(_av)->release_out = !Bool_val(_reuse_output);
-  CAMLreturn(Val_unit);
 }
 
 static stream_t **allocate_input_context(av_t *av) {

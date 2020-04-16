@@ -262,9 +262,6 @@ external seek :
   (input, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
   = "ocaml_av_seek_frame"
 
-external reuse_output : input container -> bool -> unit
-  = "ocaml_av_reuse_output"
-
 (* Output *)
 external open_output :
   ?format:(output, _) format ->

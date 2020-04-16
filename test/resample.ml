@@ -47,10 +47,6 @@ let test () =
   let r9 = R9.create `Stereo 96000 `Stereo 44100 in
   let r10 = R10.create `Stereo 44100 `Mono 44100 in
 
-  R0.reuse_output r0 true;
-  R4.reuse_output r4 true;
-  R10.reuse_output r10 true;
-
   for note = 0 to 95 do
     let freq = 22.5 *. (2. ** (foi note /. 12.)) in
     let len = int_of_float (frate /. freq *. floor (freq /. 4.)) in
