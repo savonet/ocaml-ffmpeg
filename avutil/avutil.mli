@@ -33,10 +33,10 @@ type 'media frame
 
 (** [Avutil.frame_pts frame] returns the presentation timestamp in time_base
     units (time when frame should be shown to user). *)
-val frame_pts : _ frame -> Int64.t
+val frame_pts : _ frame -> Int64.t option
 
 (** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
-val frame_set_pts : _ frame -> Int64.t -> unit
+val frame_set_pts : _ frame -> Int64.t option -> unit
 
 (** {1 Exception} *)
 
@@ -59,6 +59,7 @@ type error =
   | `Eagain
   | `Unknown
   | `Experimental
+  | `Other of int
   | (* `Failure is for errors from the binding code itself. *)
     `Failure of string ]
 
@@ -72,6 +73,8 @@ type data =
 val create_data : int -> data
 
 type rational = { num : int; den : int }
+
+val string_of_rational : rational -> string
 
 (** {9 Timestamp} *)
 
@@ -183,6 +186,14 @@ module Audio : sig
   (** [Avutil.Audio.frame_get_channels frame] returns the number of audio
       channels in the current frame. *)
   val frame_get_channels : audio frame -> int
+
+  (** [Avutil.Audio.frame_get_channel_layout frame] returns the channel layout
+      for the current frame. *)
+  val frame_get_channel_layout : audio frame -> Channel_layout.t
+
+  (** [Avutil.Audio.frame_nb_samples frame] returns the number of audio samples
+      per channel in the current frame. *)
+  val frame_nb_samples : audio frame -> int
 end
 
 module Video : sig

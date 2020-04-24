@@ -75,13 +75,6 @@ module Make (I : AudioData) (O : AudioData) : sig
   val from_codec_to_codec :
     ?options:options list -> audio Avcodec.params -> audio Avcodec.params -> t
 
-  (** [Swresample.reuse_output ro] enables or disables the reuse of
-      {!Swresample.convert} output according to the value of [ro]. Reusing the
-      output reduces the number of memory allocations. In this cas, the data
-      returned by {!Swresample.convert} is invalidated by a new call to this
-      function. *)
-  val reuse_output : t -> bool -> unit
-
   (** [Swresample.convert rsp iad] resample and convert the [iad] input audio
       data to the output audio data according to the [rsp] resampler context
       format.

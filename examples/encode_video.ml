@@ -40,15 +40,23 @@ let () =
 
   let dst = Av.open_output Sys.argv.(1) in
 
-  let opts = Av.mk_video_opts ~size:(width, height) ~pixel_format () in
+  let frame_rate = { Avutil.num = 25; den = 1 } in
+  let time_base = { Avutil.num = 1; den = 25 } in
+  let pts = ref 0L in
 
-  let ovs = Av.new_video_stream ~codec ~opts dst in
+  let ovs =
+    Av.new_video_stream ~width ~height ~frame_rate ~time_base ~pixel_format
+      ~codec dst
+  in
 
   let frame = Video.create_frame width height pixel_format in
 
   for i = 0 to 240 do
     Video.frame_visit ~make_writable:true (fill_yuv_image width height i) frame
-    |> Av.write_frame ovs
+    |> fun frame ->
+    Avutil.frame_set_pts frame (Some !pts);
+    pts := Int64.succ !pts;
+    Av.write_frame ovs frame
   done;
 
   Av.close dst;

@@ -24,9 +24,9 @@ type ('line, 'media) format
 (* Frame *)
 type 'media frame
 
-external frame_pts : _ frame -> Int64.t = "ocaml_avutil_frame_pts"
+external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 
-external frame_set_pts : _ frame -> Int64.t -> unit
+external frame_set_pts : _ frame -> Int64.t option -> unit
   = "ocaml_avutil_frame_set_pts"
 
 type error =
@@ -47,6 +47,7 @@ type error =
   | `Eagain
   | `Unknown
   | `Experimental
+  | `Other of int
   | `Failure of string ]
 
 external string_of_error : error -> string = "ocaml_avutil_string_of_error"
@@ -79,6 +80,8 @@ let create_data len =
   Bigarray.Array1.create Bigarray.int8_unsigned Bigarray.c_layout len
 
 type rational = { num : int; den : int }
+
+let string_of_rational { num; den } = Printf.sprintf "%d/%d" num den
 
 external time_base : unit -> rational = "ocaml_avutil_time_base"
 
@@ -175,6 +178,12 @@ module Audio = struct
 
   external frame_get_channels : audio frame -> int
     = "ocaml_avutil_audio_frame_get_channels"
+
+  external frame_get_channel_layout : audio frame -> Channel_layout.t
+    = "ocaml_avutil_audio_frame_get_channel_layout"
+
+  external frame_nb_samples : audio frame -> int
+    = "ocaml_avutil_audio_frame_nb_samples"
 end
 
 module Video = struct

@@ -17,7 +17,61 @@ let () =
   let in_fd = Unix.openfile Sys.argv.(1) [Unix.O_RDONLY] 0 in
   let out_file = Av.open_output Sys.argv.(2) in
   let codec = Avcodec.Audio.find_encoder Sys.argv.(3) in
-  let out_stream = Av.new_audio_stream ~codec out_file in
+  let channel_layout = Avcodec.Audio.find_best_channel_layout codec `Stereo in
+  let sample_format = Avcodec.Audio.find_best_sample_format codec `Dbl in
+  let sample_rate = Avcodec.Audio.find_best_sample_rate codec 44100 in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
+  let out_stream =
+    Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
+      ~codec out_file
+  in
+
+  let filters = ref None in
+  let get_filters frame =
+    match !filters with
+      | Some f -> f
+      | None ->
+          let in_params =
+            {
+              Avfilter.Utils.sample_rate =
+                Avutil.Audio.frame_get_sample_rate frame;
+              channel_layout = Avutil.Audio.frame_get_channel_layout frame;
+              sample_format = Avutil.Audio.frame_get_sample_format frame;
+            }
+          in
+          let in_time_base = { Avutil.num = 1; den = sample_rate } in
+          let out_frame_size =
+            if List.mem `Variable_frame_size (Avcodec.Audio.capabilities codec)
+            then 512
+            else Av.get_frame_size out_stream
+          in
+          let out_params =
+            { Avfilter.Utils.sample_rate; sample_format; channel_layout }
+          in
+          let f =
+            Avfilter.Utils.convert_audio ~in_params ~in_time_base ~out_params
+              ~out_frame_size ()
+          in
+          filters := Some f;
+          f
+  in
+
+  let pts = ref 0L in
+  let rec flush filter_out =
+    try
+      filter_out () |> fun frame ->
+      Avutil.frame_set_pts frame (Some !pts);
+      pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+      Av.write_frame out_stream frame;
+      flush filter_out
+    with Avutil.Error `Eagain -> ()
+  in
+
+  let write_frame frame =
+    let filter_in, filter_out = get_filters frame in
+    filter_in frame;
+    flush filter_out
+  in
 
   let read = Unix.read in_fd in
   let seek = Unix.lseek in_fd in
@@ -47,7 +101,7 @@ let () =
     sample_format;
   let rec f () =
     try
-      Av.write_frame out_stream (Av.read_frame stream);
+      write_frame (Av.read_frame stream);
       f ()
     with
       | Avutil.Error `Eof -> ()

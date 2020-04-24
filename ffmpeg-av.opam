@@ -33,8 +33,7 @@ build: [
 ]
 dev-repo: "git+https://github.com/savonet/ocaml-ffmpeg.git"
 depexts: [
-  ["libavutil-dev" "libavformat-dev" "libswresample-dev" "libswscale-dev"]
-    {os-family = "debian"}
+  ["libavutil-dev" "libavformat-dev"] {os-family = "debian"}
   ["ffmpeg-dev"] {os-distribution = "alpine"}
   ["ffmpeg"] {os-distribution = "arch"}
   ["ffmpeg-devel"] {os-distribution = "centos"}

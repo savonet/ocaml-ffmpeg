@@ -22,7 +22,7 @@
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
 void ocaml_avutil_raise_error(int err) {
-  int _err = 0;
+  value _err;
 
   switch (err) {
   case AVERROR_BSF_NOT_FOUND:
@@ -77,7 +77,9 @@ void ocaml_avutil_raise_error(int err) {
     _err = PVV_Experimental;
     break;
   default:
-    Fail("%s", av_err2str(err));
+    _err = caml_alloc_tuple(2);
+    Store_field(_err, 0, PVV_Other);
+    Store_field(_err, 1, Val_int(err));
   }
 
   caml_raise_with_arg(*caml_named_value(EXN_ERROR), _err);
@@ -140,8 +142,11 @@ CAMLprim value ocaml_avutil_string_of_error(value error) {
     err = AVERROR_EXPERIMENTAL;
     break;
   default:
-    // Failure error is a 2-uple with string as second entry.
-    CAMLreturn(Field(error, 1));
+    if (Field(error, 0) == PVV_Other)
+      err = Int_val(Field(error, 1));
+    else
+      // Failure
+      CAMLreturn(Field(error, 1));
   }
 
   CAMLreturn(caml_copy_string(av_err2str(err)));
@@ -534,16 +539,26 @@ value value_of_frame(AVFrame *frame) {
 
 CAMLprim value ocaml_avutil_frame_pts(value _frame) {
   CAMLparam1(_frame);
+  CAMLlocal1(ret);
   AVFrame *frame = Frame_val(_frame);
 
-  CAMLreturn(caml_copy_int64(frame->pts));
+  if (frame->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(frame->pts));
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLparam2(_frame, _pts);
-
   AVFrame *frame = Frame_val(_frame);
-  frame->pts = Int64_val(_pts);
+
+  if (_pts == Val_none)
+    frame->pts = AV_NOPTS_VALUE;
+  else
+    frame->pts = Int64_val(Field(_pts, 0));
 
   CAMLreturn(Val_unit);
 }
@@ -594,6 +609,20 @@ CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame) {
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_int(frame->channels));
+}
+
+CAMLprim value ocaml_avutil_audio_frame_get_channel_layout(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ChannelLayout((frame->channel_layout)));
+}
+
+CAMLprim value ocaml_avutil_audio_frame_nb_samples(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->nb_samples));
 }
 
 CAMLprim value ocaml_avutil_video_frame_width(value _frame) {

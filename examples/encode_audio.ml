@@ -14,10 +14,19 @@ let () =
 
   let pi = 4.0 *. atan 1.0 in
   let sample_rate = 44100 in
-  let frame_size = 512 in
 
   let codec = Audio.find_encoder Sys.argv.(2) in
-  let encoder = Audio.create_encoder codec in
+  let out_sample_format = Audio.find_best_sample_format codec `Dbl in
+  let encoder =
+    Audio.create_encoder ~channel_layout:`Stereo ~channels:2
+      ~sample_format:out_sample_format ~sample_rate codec
+  in
+
+  let frame_size =
+    if List.mem `Variable_frame_size (Audio.capabilities codec) then 512
+    else Audio.frame_size encoder
+  in
+
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
 
   let rsp =

@@ -186,6 +186,7 @@ let gen_polymorphic_variant_h () =
       "Eagain";
       "Unknown";
       "Experimental";
+      "Other";
       "Failure";
     ];
 
@@ -250,6 +251,19 @@ let gen_channel_layout mode =
     ]
     mode
 
+let gen_codec_capabilities mode =
+  translate_enums "/libavcodec/avcodec.h" "codec_capabilities"
+    [
+      ( "",
+        "#define AV_CODEC_CAP_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_CODEC_CAP_",
+        "uint64_t",
+        "CodecCapabilities",
+        "t" );
+    ]
+    mode
+
 let gen_sample_format mode =
   translate_enums "/libavutil/samplefmt.h" "sample_format"
     [
@@ -299,4 +313,5 @@ let () =
     | "channel_layout" -> gen_channel_layout mode
     | "sample_format" -> gen_sample_format mode
     | "swresample_options" -> gen_swresample_options mode
+    | "codec_capabilities" -> gen_codec_capabilities mode
     | _ -> assert false

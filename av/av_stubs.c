@@ -9,14 +9,16 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
+#ifndef Bytes_val
+#define Bytes_val String_val
+#endif
+
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/audio_fifo.h>
 #include <libavutil/avstring.h>
 #include <libavutil/opt.h>
 #include <libavutil/timestamp.h>
-#include <libswresample/swresample.h>
-#include <libswscale/swscale.h>
 
 #include "av_stubs.h"
 #include "avcodec_stubs.h"
@@ -42,14 +44,6 @@ typedef struct {
 
   // input
   int got_frame;
-
-  // output
-  struct SwsContext *sws_ctx;
-  struct SwrContext *swr_ctx;
-  AVFrame *sw_frame;
-  AVAudioFifo *audio_fifo;
-  AVFrame *enc_frame;
-  int64_t pts;
 } stream_t;
 
 typedef struct av_t {
@@ -68,7 +62,6 @@ typedef struct av_t {
 
   // output
   int header_written;
-  int release_out;
   int custom_io;
 } av_t;
 
@@ -93,26 +86,6 @@ static void free_stream(stream_t *stream) {
 
   if (stream->codec_context)
     avcodec_free_context(&stream->codec_context);
-
-  if (stream->swr_ctx) {
-    swr_free(&stream->swr_ctx);
-  }
-
-  if (stream->sws_ctx) {
-    sws_freeContext(stream->sws_ctx);
-  }
-
-  if (stream->sw_frame) {
-    av_frame_free(&stream->sw_frame);
-  }
-
-  if (stream->audio_fifo) {
-    av_audio_fifo_free(stream->audio_fifo);
-  }
-
-  if (stream->enc_frame) {
-    av_frame_free(&stream->enc_frame);
-  }
 
   free(stream);
 }
@@ -227,6 +200,14 @@ CAMLprim value ocaml_av_set_stream_time_base(value _stream, value _time_base) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_av_get_stream_frame_size(value _stream) {
+  CAMLparam1(_stream);
+  av_t *av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  CAMLreturn(Val_int(av->streams[index]->codec_context->frame_size));
+}
+
 CAMLprim value ocaml_av_get_stream_pixel_aspect(value _stream) {
   CAMLparam1(_stream);
   CAMLlocal1(ans);
@@ -318,7 +299,7 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
 
   caml_register_generational_global_root(&buffer);
 
-  memcpy(String_val(buffer), buf, buf_size);
+  memcpy(Bytes_val(buffer), buf, buf_size);
 
   res =
       caml_callback3_exn(avio->write_cb, buffer, Val_int(0), Val_int(buf_size));
@@ -540,7 +521,6 @@ static av_t *open_input(char *url, AVInputFormat *format,
   }
 
   av->is_input = 1;
-  av->release_out = 1;
   av->frames_pending = 0;
   av->format_context = format_context;
   av->streams = NULL;
@@ -586,8 +566,8 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -645,8 +625,8 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -744,12 +724,6 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index,
   ans = caml_copy_int64((duration * second_fractions * num) / den);
 
   CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_av_reuse_output(value _av, value _reuse_output) {
-  CAMLparam2(_av, _reuse_output);
-  Av_val(_av)->release_out = !Bool_val(_reuse_output);
-  CAMLreturn(Val_unit);
 }
 
 static stream_t **allocate_input_context(av_t *av) {
@@ -1416,8 +1390,8 @@ CAMLprim value ocaml_av_open_output(value _format, value _filename,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1466,8 +1440,8 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1518,8 +1492,8 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1667,45 +1641,6 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
 
   init_stream_encoder(av, stream, options);
 
-  if (enc_ctx->frame_size > 0 ||
-      !(enc_ctx->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)) {
-    caml_release_runtime_system();
-
-    // Allocate the buffer frame and audio fifo if the codec doesn't support
-    // variable frame size
-    stream->enc_frame = av_frame_alloc();
-    if (!stream->enc_frame) {
-      av_dict_free(options);
-      caml_acquire_runtime_system();
-      caml_raise_out_of_memory();
-    }
-
-    stream->enc_frame->nb_samples = enc_ctx->frame_size;
-    stream->enc_frame->channel_layout = enc_ctx->channel_layout;
-    stream->enc_frame->format = enc_ctx->sample_fmt;
-    stream->enc_frame->sample_rate = enc_ctx->sample_rate;
-
-    int ret = av_frame_get_buffer(stream->enc_frame, 0);
-
-    if (ret < 0) {
-      av_dict_free(options);
-      caml_acquire_runtime_system();
-      ocaml_avutil_raise_error(ret);
-    }
-
-    // Create the FIFO buffer based on the specified output sample format.
-    stream->audio_fifo =
-        av_audio_fifo_alloc(enc_ctx->sample_fmt, enc_ctx->channels, 1);
-
-    if (!stream->audio_fifo) {
-      av_dict_free(options);
-      caml_acquire_runtime_system();
-      caml_raise_out_of_memory();
-    }
-
-    caml_acquire_runtime_system();
-  }
-
   return stream;
 }
 
@@ -1722,8 +1657,8 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1779,8 +1714,8 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _opts) {
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1843,8 +1778,8 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
 
   for (i = 0; i < len; i++) {
     // Dictionaries copy key/values by default!
-    key = String_val(Field(Field(_opts, i), 0));
-    val = String_val(Field(Field(_opts, i), 1));
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
     err = av_dict_set(&options, key, val, 0);
     if (err < 0) {
       av_dict_free(&options);
@@ -1982,91 +1917,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     ocaml_avutil_raise_error(ret);
 }
 
-static AVFrame *resample_audio_frame(stream_t *stream, AVFrame *frame) {
-  AVCodecContext *enc_ctx = stream->codec_context;
-
-  caml_release_runtime_system();
-
-  if (!stream->swr_ctx) {
-    // create resampler context
-    struct SwrContext *swr_ctx = swr_alloc();
-
-    if (!swr_ctx) {
-      caml_acquire_runtime_system();
-      caml_raise_out_of_memory();
-    }
-    stream->swr_ctx = swr_ctx;
-
-    // set options
-    av_opt_set_channel_layout(swr_ctx, "in_channel_layout",
-                              frame->channel_layout, 0);
-    av_opt_set_int(swr_ctx, "in_sample_rate", frame->sample_rate, 0);
-    av_opt_set_sample_fmt(swr_ctx, "in_sample_fmt",
-                          (enum AVSampleFormat)frame->format, 0);
-    av_opt_set_channel_layout(swr_ctx, "out_channel_layout",
-                              enc_ctx->channel_layout, 0);
-    av_opt_set_int(swr_ctx, "out_sample_rate", enc_ctx->sample_rate, 0);
-    av_opt_set_sample_fmt(swr_ctx, "out_sample_fmt", enc_ctx->sample_fmt, 0);
-
-    // initialize the resampling context
-    int ret = swr_init(swr_ctx);
-
-    if (ret < 0) {
-      caml_acquire_runtime_system();
-      ocaml_avutil_raise_error(ret);
-    }
-  }
-
-  int out_nb_samples = swr_get_out_samples(stream->swr_ctx, frame->nb_samples);
-
-  if (!stream->sw_frame || out_nb_samples > stream->sw_frame->nb_samples) {
-    if (stream->sw_frame) {
-      av_frame_free(&stream->sw_frame);
-    }
-
-    // Allocate the resampler frame
-    stream->sw_frame = av_frame_alloc();
-
-    if (!stream->sw_frame) {
-      caml_acquire_runtime_system();
-      caml_raise_out_of_memory();
-    }
-
-    stream->sw_frame->nb_samples = out_nb_samples;
-    stream->sw_frame->channel_layout = enc_ctx->channel_layout;
-    stream->sw_frame->format = enc_ctx->sample_fmt;
-    stream->sw_frame->sample_rate = enc_ctx->sample_rate;
-
-    int ret = av_frame_get_buffer(stream->sw_frame, 0);
-
-    if (ret < 0) {
-      caml_acquire_runtime_system();
-      ocaml_avutil_raise_error(ret);
-    }
-  }
-
-  int ret = av_frame_make_writable(stream->sw_frame);
-
-  if (ret < 0) {
-    caml_acquire_runtime_system();
-    ocaml_avutil_raise_error(ret);
-  }
-
-  // convert to destination format
-  ret = swr_convert(stream->swr_ctx, stream->sw_frame->extended_data,
-                    out_nb_samples, (const uint8_t **)frame->extended_data,
-                    frame->nb_samples);
-
-  caml_acquire_runtime_system();
-
-  if (ret < 0)
-    ocaml_avutil_raise_error(ret);
-
-  return stream->sw_frame;
-}
-
 static void write_audio_frame(av_t *av, int stream_index, AVFrame *frame) {
-  int err, fifo_size, frame_size;
+  int err, frame_size;
 
   if (av->format_context->nb_streams < stream_index)
     Fail("Stream index not found!");
@@ -2078,119 +1930,7 @@ static void write_audio_frame(av_t *av, int stream_index, AVFrame *frame) {
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
-  if (frame && (frame->sample_rate != enc_ctx->sample_rate ||
-                frame->channel_layout != enc_ctx->channel_layout ||
-                ((enum AVSampleFormat)frame->format) != enc_ctx->sample_fmt)) {
-
-    frame = resample_audio_frame(stream, frame);
-  }
-
-  if (stream->audio_fifo == NULL) {
-
-    if (frame) {
-      frame->pts = stream->pts;
-      stream->pts += frame->nb_samples;
-    }
-
-    write_frame(av, stream_index, enc_ctx, frame);
-  } else {
-    AVAudioFifo *fifo = stream->audio_fifo;
-    AVFrame *output_frame = stream->enc_frame;
-
-    caml_release_runtime_system();
-
-    if (frame != NULL) {
-      // Store the new samples in the FIFO buffer.
-      err = av_audio_fifo_write(fifo,
-                                (void **)(const uint8_t **)frame->extended_data,
-                                frame->nb_samples);
-
-      if (err < 0) {
-        caml_acquire_runtime_system();
-        ocaml_avutil_raise_error(err);
-      }
-    }
-
-    fifo_size = av_audio_fifo_size(fifo);
-    frame_size = enc_ctx->frame_size;
-
-    for (; fifo_size >= frame_size || frame == NULL;
-         fifo_size = av_audio_fifo_size(fifo)) {
-      if (fifo_size > 0) {
-        err = av_frame_make_writable(output_frame);
-        if (err < 0) {
-          caml_acquire_runtime_system();
-          ocaml_avutil_raise_error(err);
-        }
-
-        int read_size =
-            av_audio_fifo_read(fifo, (void **)output_frame->data, frame_size);
-
-        if (frame && read_size < frame_size) {
-          caml_acquire_runtime_system();
-          Fail("Invalid input: read_size < frame_size");
-        }
-
-        output_frame->nb_samples = frame_size;
-        output_frame->pts = stream->pts;
-        stream->pts += frame_size;
-      } else {
-        output_frame = NULL;
-      }
-
-      caml_acquire_runtime_system();
-      write_frame(av, stream_index, enc_ctx, output_frame);
-      caml_release_runtime_system();
-
-      if (fifo_size == 0)
-        break;
-    }
-  }
-
-  caml_acquire_runtime_system();
-}
-
-static void scale_video_frame(stream_t *stream, AVFrame *frame) {
-  AVCodecContext *enc_ctx = stream->codec_context;
-
-  if (!stream->sws_ctx) {
-    // create scale context
-    stream->sws_ctx = sws_getContext(
-        frame->width, frame->height, (enum AVPixelFormat)frame->format,
-        enc_ctx->width, enc_ctx->height, (enum AVPixelFormat)frame->format,
-        SWS_BICUBIC, NULL, NULL, NULL);
-    if (!stream->sws_ctx)
-      caml_raise_out_of_memory();
-
-    // Allocate the scale frame
-    stream->sw_frame = av_frame_alloc();
-    if (!stream->sw_frame)
-      caml_raise_out_of_memory();
-
-    stream->sw_frame->width = enc_ctx->width;
-    stream->sw_frame->height = enc_ctx->height;
-    stream->sw_frame->format = enc_ctx->pix_fmt;
-
-    caml_release_runtime_system();
-    int ret = av_frame_get_buffer(stream->sw_frame, 32);
-    caml_acquire_runtime_system();
-    if (ret < 0)
-      ocaml_avutil_raise_error(ret);
-  }
-
-  caml_release_runtime_system();
-  int ret = av_frame_make_writable(stream->sw_frame);
-  caml_acquire_runtime_system();
-
-  if (ret < 0)
-    ocaml_avutil_raise_error(ret);
-
-  // convert to destination format
-  caml_release_runtime_system();
-  sws_scale(stream->sws_ctx, (const uint8_t *const *)frame->data,
-            frame->linesize, 0, frame->height, stream->sw_frame->data,
-            stream->sw_frame->linesize);
-  caml_acquire_runtime_system();
+  write_frame(av, stream_index, enc_ctx, frame);
 }
 
 static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
@@ -2206,14 +1946,6 @@ static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
     Fail("Failed to write video frame with no encoder");
 
   AVCodecContext *enc_ctx = stream->codec_context;
-
-  if (frame &&
-      (frame->width != enc_ctx->width || frame->height != enc_ctx->height))
-    scale_video_frame(stream, frame);
-
-  if (frame) {
-    frame->pts = stream->pts++;
-  }
 
   write_frame(av, stream_index, enc_ctx, frame);
 }

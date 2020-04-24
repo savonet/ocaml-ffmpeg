@@ -7,6 +7,9 @@ type 'a params
 type 'media decoder
 type 'media encoder
 
+(** Codec capabilities. *)
+type capability = Codec_capabilities.t
+
 (** Packet. *)
 module Packet : sig
   (** Packet type *)
@@ -79,6 +82,9 @@ module Audio : sig
       sample rate. *)
   val find_best_sample_rate : _ t -> int -> int
 
+  (** Get the encoding capabilities for this codec. *)
+  val capabilities : [ `Encoder ] t -> capability list
+
   (** [Avcodec.Audio.create_parser codec] create an audio packet parser.
 
       Raise Error if the parser creation failed. *)
@@ -89,11 +95,21 @@ module Audio : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : [ `Decoder ] t -> audio decoder
 
-  (** [Avcodec.Audio.create_encoder ~bit_rate:bit_rate codec] create an audio
+  (** [Avcodec.Audio.create_encoder ~bitrate:bitrate codec] create an audio
       encoder.
 
       Raise Error if the encoder creation failed. *)
-  val create_encoder : ?bit_rate:int -> [ `Encoder ] t -> audio encoder
+  val create_encoder :
+    ?bit_rate:int ->
+    channel_layout:Avutil.Channel_layout.t ->
+    channels:int ->
+    sample_format:Avutil.Sample_format.t ->
+    sample_rate:int ->
+    [ `Encoder ] t ->
+    audio encoder
+
+  (** Get the desired frame_size for this encoder. *)
+  val frame_size : audio encoder -> int
 
   (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and
       libfdk_aac *)
@@ -156,6 +172,9 @@ module Video : sig
   val find_best_pixel_format :
     _ t -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
 
+  (** Get the encoding capabilities for this codec. *)
+  val capabilities : [ `Encoder ] t -> capability list
+
   (** [Avcodec.Video.create_parser codec] create an video packet parser.
 
       Raise Error if the parser creation failed. *)
@@ -171,7 +190,13 @@ module Video : sig
 
       Raise Error if the encoder creation failed. *)
   val create_encoder :
-    ?bit_rate:int -> ?frame_rate:int -> [ `Encoder ] t -> video encoder
+    ?bit_rate:int ->
+    width:int ->
+    height:int ->
+    pixel_format:Avutil.Pixel_format.t ->
+    framerate:Avutil.rational ->
+    [ `Encoder ] t ->
+    video encoder
 
   (** Video codec ids. Careful: different codecs share the same ID, e.g. aac and
       libfdk_aac *)

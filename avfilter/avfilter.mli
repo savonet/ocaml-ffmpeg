@@ -40,11 +40,15 @@ val sample_aspect_ratio : [ `Video ] context -> Avutil.rational
 val channels : [ `Audio ] context -> int
 val channel_layout : [ `Audio ] context -> Avutil.Channel_layout.t
 val sample_rate : [ `Audio ] context -> int
+val set_frame_size : [ `Audio ] context -> int -> unit
 
 exception Exists
 
 (** Filter list. *)
 val filters : [ `Unattached ] filter list
+
+val find : string -> [ `Unattached ] filter
+val find_opt : string -> [ `Unattached ] filter option
 
 (** Buffers (input). *)
 val abuffer : [ `Unattached ] filter
@@ -97,3 +101,19 @@ val parse :
 (** Check validity and configure all the links and formats in the graph and
     return its outputs and outputs. *)
 val launch : config -> t
+
+module Utils : sig
+  type audio_params = {
+    sample_rate : int;
+    channel_layout : Avutil.Channel_layout.t;
+    sample_format : Avutil.Sample_format.t;
+  }
+
+  val convert_audio :
+    ?out_params:audio_params ->
+    ?out_frame_size:int ->
+    in_time_base:Avutil.rational ->
+    in_params:audio_params ->
+    unit ->
+    ('a Avutil.frame -> unit) * (unit -> 'b Avutil.frame)
+end

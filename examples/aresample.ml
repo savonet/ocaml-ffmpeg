@@ -14,8 +14,22 @@ let () =
 
   let audio_params, audio_input, oass =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
-    let opts = Av.mk_audio_opts ~params () in
-    (params, audio_input, (i, Av.new_audio_stream ~codec:audio_codec ~opts dst))
+    let channel_layout = Avcodec.Audio.get_channel_layout params in
+    let channels = Avcodec.Audio.get_nb_channels params in
+    let sample_format = Avcodec.Audio.get_sample_format params in
+    let sample_rate = Avcodec.Audio.get_sample_rate params in
+    let time_base = { Avutil.num = 1; den = sample_rate } in
+    ( params,
+      audio_input,
+      ( i,
+        Av.new_audio_stream ~channels ~channel_layout ~sample_format
+          ~sample_rate ~time_base ~codec:audio_codec dst ) )
+  in
+
+  let frame_size =
+    if List.mem `Variable_frame_size (Avcodec.Audio.capabilities audio_codec)
+    then 512
+    else Av.get_frame_size (snd oass)
   in
 
   let filter =
@@ -65,6 +79,7 @@ let () =
 
   let _, output = List.hd Avfilter.(filter.outputs.audio) in
   let context = output.context in
+  Avfilter.set_frame_size context frame_size;
   let time_base = Avfilter.time_base context in
   Printf.printf
     "Sink info:\n\

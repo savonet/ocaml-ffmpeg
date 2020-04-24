@@ -97,6 +97,5 @@ module Make (I : VideoData) (O : VideoData) = struct
          (Avcodec.Video.get_pixel_format out_codec)
   *)
 
-  external reuse_output : t -> bool -> unit = "ocaml_swscale_reuse_output"
   external convert : t -> I.t -> O.t = "ocaml_swscale_convert"
 end
