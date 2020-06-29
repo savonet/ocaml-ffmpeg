@@ -15,13 +15,16 @@ let rec find_line ic line_re =
 
 exception Found of string
 
-let get_path filename =
+let get_path filenames =
   try
     List.iter
-      (fun path ->
-        let p = path ^ filename in
-        if Sys.file_exists p then raise (Found p))
-      Config.paths;
+      (fun filename ->
+        List.iter
+          (fun path ->
+            let p = path ^ filename in
+            if Sys.file_exists p then raise (Found p))
+          Config.paths)
+      filenames;
     None
   with Found p -> Some p
 
@@ -119,9 +122,11 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
 
     print_ml ["]\n"] )
 
-let translate_enums_opt ?h_oc ?ml_oc in_name enums_labels =
-  match get_path in_name with
-    | None -> Printf.eprintf "WARNING : header file %s not found\n" in_name
+let translate_enums_opt ?h_oc ?ml_oc in_names enums_labels =
+  match get_path in_names with
+    | None ->
+        Printf.eprintf "WARNING : None of the header files [%s] where found\n"
+          (String.concat "; " (List.map (Printf.sprintf "%S") in_names))
     | Some path ->
         let ic = open_in path in
 
@@ -134,14 +139,14 @@ let translate_enums_opt ?h_oc ?ml_oc in_name enums_labels =
 
         close_in ic
 
-let translate_enums in_name out_name enums_labels = function
+let translate_enums in_names out_name enums_labels = function
   | "ml" ->
       let ml_oc = open_out (out_name ^ ".ml") in
-      translate_enums_opt ~ml_oc in_name enums_labels;
+      translate_enums_opt ~ml_oc in_names enums_labels;
       close_out ml_oc
   | "h" ->
       let h_oc = open_out (out_name ^ "_stubs.h") in
-      translate_enums_opt ~h_oc in_name enums_labels;
+      translate_enums_opt ~h_oc in_names enums_labels;
       close_out h_oc
   | _ -> assert false
 
@@ -199,7 +204,9 @@ let gen_polymorphic_variant = function
 let gen_codec_id mode =
   (* translate_enums parameters : *)
   (* in_name out_name title (start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name) *)
-  translate_enums "/libavcodec/avcodec.h" "codec_id"
+  translate_enums
+    ["/libavcodec/codec_id.h"; "/libavcodec/avcodec.h"]
+    "codec_id"
     [
       ( "[ \t]*AV_CODEC_ID_NONE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
@@ -226,7 +233,7 @@ let gen_codec_id mode =
     mode
 
 let gen_pixel_format mode =
-  translate_enums "/libavutil/pixfmt.h" "pixel_format"
+  translate_enums ["/libavutil/pixfmt.h"] "pixel_format"
     [
       ( "enum AVPixelFormat",
         "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)",
@@ -239,7 +246,9 @@ let gen_pixel_format mode =
     mode
 
 let gen_channel_layout mode =
-  translate_enums "/libavutil/channel_layout.h" "channel_layout"
+  translate_enums
+    ["/libavutil/channel_layout.h"]
+    "channel_layout"
     [
       ( "",
         "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)",
@@ -252,7 +261,9 @@ let gen_channel_layout mode =
     mode
 
 let gen_codec_capabilities mode =
-  translate_enums "/libavcodec/avcodec.h" "codec_capabilities"
+  translate_enums
+    ["/libavcodec/codec.h"; "/libavcodec/avcodec.h"]
+    "codec_capabilities"
     [
       ( "",
         "#define AV_CODEC_CAP_\\([A-Z0-9_]+\\)",
@@ -265,7 +276,7 @@ let gen_codec_capabilities mode =
     mode
 
 let gen_sample_format mode =
-  translate_enums "/libavutil/samplefmt.h" "sample_format"
+  translate_enums ["/libavutil/samplefmt.h"] "sample_format"
     [
       ( "enum AVSampleFormat",
         "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)",
@@ -278,7 +289,9 @@ let gen_sample_format mode =
     mode
 
 let gen_swresample_options mode =
-  translate_enums "/libswresample/swresample.h" "swresample_options"
+  translate_enums
+    ["/libswresample/swresample.h"]
+    "swresample_options"
     [
       ( "[ \t]*SWR_DITHER_NONE",
         "[ \t]*SWR_\\([A-Z0-9_]+\\)",
