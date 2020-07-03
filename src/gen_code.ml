@@ -12,20 +12,18 @@ let rec find_line ic line_re = try
     else find_line ic line_re
   with End_of_file -> false
 
+exception Found of string
 
-let get_path filename =
-  ("-I/usr/include"::"-I/usr/include/i386-linux-gnu"::(Sys.argv |> Array.to_list))
-  |> List.fold_left(fun path param ->
-      if path = None && "-I" = String.sub param 0 2 then (
-        let p = (String.sub param 2 (String.length param - 2)) ^ filename in
-        if Sys.file_exists p then Some p
-        else (
-          None
-        )
-      )
-      else path
-    ) None
-
+let get_path filenames =
+  try
+    List.iter (fun filename ->
+      ("-I/usr/include"::"-I/usr/include/i386-linux-gnu"::(Sys.argv |> Array.to_list))
+      |> List.iter (fun param ->
+          if "-I" = String.sub param 0 2 then (
+            let p = (String.sub param 2 (String.length param - 2)) ^ filename in
+            if Sys.file_exists p then raise (Found p)))) filenames;
+    None
+  with Found s -> Some s
 
 let rec id_to_pv_value id values =
   let id = if id.[0] >= '0' && id.[0] <= '9' then "_" ^ id else id in
@@ -90,10 +88,12 @@ let translate_enum_lines ic labels c_oc ml_oc mli_oc =
   )
 
 
-let translate_enums in_name out_name title enums_labels =
+let translate_enums in_names out_name title enums_labels =
 
-  match get_path in_name with
-  | None -> Printf.eprintf"WARNING : header file %s not found\n" in_name
+  match get_path in_names with
+  | None ->
+        Printf.eprintf "WARNING : None of the header files [%s] where found\n"
+          (String.concat "; " (List.map (Printf.sprintf "%S") in_names))
   | Some path ->
     let ic = open_in path in
 
@@ -128,21 +128,21 @@ let () =
 
   (* translate_enums parameters : *)
   (* in_name out_name title (start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name) *)
-  translate_enums "/libavcodec/avcodec.h" "codec_id" "Audio, video and subtitle codec ids" [
+  translate_enums ["/libavcodec/codec_id.h"; "/libavcodec/avcodec.h"] "codec_id" "Audio, video and subtitle codec ids" [
     "[ \t]*AV_CODEC_ID_NONE", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_AUDIO", "AV_CODEC_ID_", "enum AVCodecID", "VideoCodecID", "video";
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE", "AV_CODEC_ID_", "enum AVCodecID", "AudioCodecID", "audio";
     "", "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)", "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN", "AV_CODEC_ID_", "enum AVCodecID", "SubtitleCodecID", "subtitle"];
 
-  translate_enums "/libavutil/pixfmt.h" "pixel_format" "Pixels formats" [
+  translate_enums ["/libavutil/pixfmt.h"] "pixel_format" "Pixels formats" [
     "enum AVPixelFormat", "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_PIX_FMT_DRM_PRIME", "AV_PIX_FMT_", "enum AVPixelFormat", "PixelFormat", "t"];
 
-  translate_enums "/libavutil/channel_layout.h" "channel_layout" "Channel layout formats" [
+  translate_enums ["/libavutil/channel_layout.h"] "channel_layout" "Channel layout formats" [
     "", "#define AV_CH_LAYOUT_\\([A-Z0-9_]+\\)", "", "AV_CH_LAYOUT_", "uint64_t", "ChannelLayout", "t"];
 
-  translate_enums "/libavutil/samplefmt.h" "sample_format" "Audio sample formats" [
+  translate_enums ["/libavutil/samplefmt.h"] "sample_format" "Audio sample formats" [
     "enum AVSampleFormat", "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)", "[ \t]*AV_SAMPLE_FMT_NB", "AV_SAMPLE_FMT_", "enum AVSampleFormat", "SampleFormat", "t"];
 
-  translate_enums "/libswresample/swresample.h" "swresample_options" "Dithering algorithms, Resampling Engines and Resampling Filter Types options" [
+  translate_enums ["/libswresample/swresample.h"] "swresample_options" "Dithering algorithms, Resampling Engines and Resampling Filter Types options" [
     "[ \t]*SWR_DITHER_NONE", "[ \t]*SWR_\\([A-Z0-9_]+\\)", "[ \t]*SWR_DITHER_NS", "SWR_", "enum SwrDitherType", "DitherType", "dither_type";
     "enum SwrEngine", "[ \t]*SWR_\\([A-Z0-9_]+\\)", "[ \t]*SWR_ENGINE_NB", "SWR_", "enum SwrEngine", "Engine", "engine";
     "enum SwrFilterType", "[ \t]*SWR_\\([A-Z0-9_]+\\)", "\\};", "SWR_", "enum SwrFilterType", "FilterType", "filter_type"];
