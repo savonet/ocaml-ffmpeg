@@ -206,6 +206,11 @@ CAMLprim value ocaml_avcodec_set_packet_dts(value _packet, value _dts) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avcodec_packet_size(value _packet) {
+  CAMLparam1(_packet);
+  CAMLreturn(Val_int(Packet_val(_packet)->size));
+}
+
 CAMLprim value ocaml_avcodec_packet_to_bytes(value _packet) {
   CAMLparam1(_packet);
   CAMLlocal1(ans);

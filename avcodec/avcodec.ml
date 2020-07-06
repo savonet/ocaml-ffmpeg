@@ -47,6 +47,8 @@ module Packet = struct
   external set_dts : 'a t -> Int64.t option -> unit
     = "ocaml_avcodec_set_packet_dts"
 
+  external size : 'a t -> int = "ocaml_avcodec_packet_size"
+
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
 
   type parser_t

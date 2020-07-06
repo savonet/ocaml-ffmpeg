@@ -39,6 +39,9 @@ module Packet : sig
   (** Set the packet DTS (Decoding Time) *)
   val set_dts : 'a t -> Int64.t option -> unit
 
+  (** Size in bytes. *)
+  val size : 'a t -> int
+
   (** Return a fresh bytes array containing a copy of packet datas. *)
   val to_bytes : 'a t -> bytes
 
