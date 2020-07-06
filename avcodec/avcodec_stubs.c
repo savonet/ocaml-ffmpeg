@@ -154,6 +154,58 @@ CAMLprim value ocaml_avcodec_set_packet_stream_index(value _packet,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avcodec_get_packet_pts(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->pts));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_pts(value _packet, value _pts) {
+  CAMLparam2(_packet, _pts);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_pts == Val_none)
+    packet->pts = AV_NOPTS_VALUE;
+  else
+    packet->pts = Int64_val(Field(_pts, 0));
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_dts(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->dts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->dts));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_dts(value _packet, value _dts) {
+  CAMLparam2(_packet, _dts);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_dts == Val_none)
+    packet->dts = AV_NOPTS_VALUE;
+  else
+    packet->dts = Int64_val(Field(_dts, 0));
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avcodec_packet_to_bytes(value _packet) {
   CAMLparam1(_packet);
   CAMLlocal1(ans);

@@ -35,6 +35,18 @@ module Packet = struct
   external set_stream_index : 'a t -> int -> unit
     = "ocaml_avcodec_set_packet_stream_index"
 
+  external get_pts : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_pts"
+
+  external set_pts : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_pts"
+
+  external get_dts : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_dts"
+
+  external set_dts : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_dts"
+
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
 
   type parser_t
