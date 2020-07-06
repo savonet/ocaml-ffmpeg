@@ -62,20 +62,11 @@ let () =
            (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in
 
-  let rec f () =
-    match Av.read_input_packet src with
-      | `Audio (i, p) ->
-          Av.write_packet (List.assoc i oass) p;
-          f ()
-      | `Video (i, p) ->
-          Av.write_packet (List.assoc i ovss) p;
-          f ()
-      | `Subtitle (i, p) ->
-          Av.write_packet (List.assoc i osss) p;
-          f ()
-      | exception Avutil.Error `Eof -> ()
-  in
-  f ();
+  src
+  |> Av.iter_input_packet
+       ~audio:(fun i pkt -> Av.write_packet (List.assoc i oass) pkt)
+       ~video:(fun i pkt -> Av.write_packet (List.assoc i ovss) pkt)
+       ~subtitle:(fun i pkt -> Av.write_packet (List.assoc i osss) pkt);
 
   Av.close src;
   Av.close dst;

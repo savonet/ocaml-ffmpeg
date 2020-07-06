@@ -79,6 +79,11 @@
  (libraries ffmpeg-av))
 
 (executable
+ (name async_remuxing)
+ (modules async_remuxing)
+ (libraries ffmpeg-av))
+
+(executable
  (name remuxing)
  (modules remuxing)
  (libraries ffmpeg-av))

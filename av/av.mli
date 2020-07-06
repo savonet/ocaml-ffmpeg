@@ -155,7 +155,7 @@ type input_packet_result =
   | `Subtitle of int * subtitle Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
-    [Audio] [Video] or [Subtitle] index and packet of the input or [End_of_file]
+    [Audio] [Video] or [Subtitle] index and packet of the input or [Error `Eof]
     if the end of the input is reached. Raise Error if the reading failed. *)
 val read_input_packet : input container -> input_packet_result
 
