@@ -18,48 +18,21 @@ let () =
     Av.get_audio_streams src
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Audio.get_params_id params in
-           let codec =
-             Avcodec.Audio.find_encoder (Avcodec.Audio.string_of_id id)
-           in
-           let channel_layout = Avcodec.Audio.get_channel_layout params in
-           let channels = Avcodec.Audio.get_nb_channels params in
-           let sample_format = Avcodec.Audio.get_sample_format params in
-           let sample_rate = Avcodec.Audio.get_sample_rate params in
-           let time_base = { Avutil.num = 1; den = sample_rate } in
-           ( i,
-             Av.new_audio_stream ~channels ~channel_layout ~sample_format
-               ~sample_rate ~time_base ~codec dst ))
+           (i, Av.new_stream_copy ~params dst))
   in
 
   let ovss =
     Av.get_video_streams src
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Video.get_params_id params in
-           let codec =
-             Avcodec.Video.find_encoder (Avcodec.Video.string_of_id id)
-           in
-           let width = Avcodec.Video.get_width params in
-           let height = Avcodec.Video.get_height params in
-           let pixel_format = Avcodec.Video.get_pixel_format params in
-           let frame_rate = { Avutil.num = 25; den = 1 } in
-           let time_base = { Avutil.num = 1; den = 25 } in
-           ( i,
-             Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
-               ~height ~codec dst ))
+           (i, Av.new_stream_copy ~params dst))
   in
 
   let osss =
     Av.get_subtitle_streams src
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Subtitle.get_params_id params in
-           let codec =
-             Avcodec.Subtitle.find_encoder (Avcodec.Subtitle.string_of_id id)
-           in
-           let time_base = { Avutil.num = 1; den = 25 } in
-           (i, Av.new_subtitle_stream ~time_base ~codec dst))
+           (i, Av.new_stream_copy ~params dst))
   in
 
   src

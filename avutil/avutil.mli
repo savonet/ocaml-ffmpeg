@@ -130,7 +130,7 @@ module Channel_layout : sig
   val get_default : int -> t
 
   (** Return the internal ID for a channel layout. This number should be passed
-      as the "channel_layout" [opts] in [Av.new_audio_stream] .*)
+      as the "channel_layout" [opts] in [Av.new_*_audio_stream] .*)
   val get_id : t -> int
 end
 
