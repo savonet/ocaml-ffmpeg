@@ -253,9 +253,8 @@ val set_metadata : (output, _, _) stream -> (string * string) list -> unit
 (** Return the output container of the output stream. *)
 val get_output : (output, _, _) stream -> output container
 
-(* Create a new stream that only supports packet input and
-   does not do any encoding. Used for remuxing with encoded
-   data. *)
+(* Create a new stream that only supports packet input and does not do any
+   encoding. Used for remuxing with encoded data. *)
 val new_stream_copy :
   params:'mode Avcodec.params ->
   output container ->
