@@ -95,17 +95,17 @@ val get_subtitle_streams :
     stream. Raise Error if no stream could be found. *)
 val find_best_audio_stream :
   input container ->
-  int * (input, audio, [ `Frame | `Packet ]) stream * audio Avcodec.params
+  int * (input, audio, 'a) stream * audio Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the video streams. *)
 val find_best_video_stream :
   input container ->
-  int * (input, video, [ `Frame | `Packet ]) stream * video Avcodec.params
+  int * (input, video, 'a) stream * video Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the subtitle streams. *)
 val find_best_subtitle_stream :
   input container ->
-  int * (input, subtitle, [ `Frame | `Packet ]) stream * subtitle Avcodec.params
+  int * (input, subtitle, 'a) stream * subtitle Avcodec.params
 
 (** Return the input container of the input stream. *)
 val get_input : (input, _, _) stream -> input container
@@ -144,24 +144,24 @@ val select : (input, _, _) stream -> unit
     the [stream] or raises [Error `Eof] if the end of the stream is reached.
     Raise Error if the reading failed. *)
 val read_packet :
-  (input, 'media, [> `Packet ]) stream -> 'media Avcodec.Packet.t
+  (input, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t
 
 (** [Av.iter_packet f is] applies function [f] in turn to all the packets of the
     input stream [is]. Raise Error if the reading failed. *)
 val iter_packet :
   ('media Avcodec.Packet.t -> unit) ->
-  (input, 'media, [> `Packet ]) stream ->
+  (input, 'media, [ `Packet ]) stream ->
   unit
 
 (** [Av.read_frame stream] read the input [stream]. Return the next frame of the
     [stream] or raises [Error `Eof] if the end of the stream is reached. Raise
     Error if the reading failed. *)
-val read_frame : (input, 'media, [> `Frame ]) stream -> 'media frame
+val read_frame : (input, 'media, [ `Frame ]) stream -> 'media frame
 
 (** [Av.iter_frame f is] applies function [f] in turn to all the frames of the
     input stream [is]. Raise Error if the reading failed. *)
 val iter_frame :
-  ('media frame -> unit) -> (input, 'media, [> `Frame ]) stream -> unit
+  ('media frame -> unit) -> (input, 'media, [ `Frame ]) stream -> unit
 
 type input_packet_result =
   [ `Audio of int * audio Avcodec.Packet.t
