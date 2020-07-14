@@ -142,7 +142,7 @@ external get_time_base : (_, _, _) stream -> Avutil.rational
 external set_time_base : (_, _, _) stream -> Avutil.rational -> unit
   = "ocaml_av_set_stream_time_base"
 
-external get_frame_size : (output, audio, _) stream -> int
+external get_frame_size : (_, audio, _) stream -> int
   = "ocaml_av_get_stream_frame_size"
 
 external get_pixel_aspect : (_, video, _) stream -> Avutil.rational
@@ -180,77 +180,37 @@ let get_duration ?(format = `Second) s =
 
 let get_metadata s = List.rev (_get_metadata s.container s.index)
 
-external select : (input, _, _) stream -> unit = "ocaml_av_select_stream"
-
-external read_packet : (input, 'm, _) stream -> 'm Avcodec.Packet.t
-  = "ocaml_av_read_stream_packet"
-
-let rec iter_packet f stream =
-  try
-    f (read_packet stream);
-    iter_packet f stream
-  with Error `Eof -> ()
-
-external read_frame : (input, 'm, _) stream -> 'm frame
-  = "ocaml_av_read_stream_frame"
-
-let rec iter_frame f s =
-  try
-    f (read_frame s);
-    iter_frame f s
-  with Error `Eof -> ()
-
-type input_packet_result =
-  [ `Audio of int * audio Avcodec.Packet.t
-  | `Video of int * video Avcodec.Packet.t
-  | `Subtitle of int * subtitle Avcodec.Packet.t ]
+type input_result =
+  [ `Audio_packet of int * audio Avcodec.Packet.t
+  | `Audio_frame of int * audio frame
+  | `Video_packet of int * video Avcodec.Packet.t
+  | `Video_frame of int * video frame
+  | `Subtitle_packet of int * subtitle Avcodec.Packet.t
+  | `Subtitle_frame of int * subtitle frame ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
-external read_input_packet : input container -> input_packet_result
-  = "ocaml_av_read_input_packet"
+external read_input : int array -> int array -> input container -> input_result
+  = "ocaml_av_read_input"
 
-(** Reads iteratively the selected streams if any or all streams otherwise. *)
-let iter_input_packet ?(audio = fun _ _ -> ()) ?(video = fun _ _ -> ())
-    ?(subtitle = fun _ _ -> ()) src =
-  let rec iter () =
-    match read_input_packet src with
-      | `Audio (index, packet) ->
-          audio index packet;
-          iter ()
-      | `Video (index, packet) ->
-          video index packet;
-          iter ()
-      | `Subtitle (index, packet) ->
-          subtitle index packet;
-          iter ()
+let get_id input =
+  List.map (fun { index; container } ->
+      if container != input then
+        raise (Failure "Inconsistent stream and input!");
+      index)
+
+let read_input ?(audio_packet = []) ?(audio_frame = []) ?(video_packet = [])
+    ?(video_frame = []) ?(subtitle_packet = []) ?(subtitle_frame = []) input =
+  let packet =
+    Array.of_list
+      ( get_id input audio_packet @ get_id input video_packet
+      @ get_id input subtitle_packet )
   in
-  try iter () with Error `Eof -> ()
-
-type input_frame_result =
-  [ `Audio of int * audio frame
-  | `Video of int * video frame
-  | `Subtitle of int * subtitle frame ]
-
-(** Reads the selected streams if any or all streams otherwise. *)
-external read_input_frame : input container -> input_frame_result
-  = "ocaml_av_read_input_frame"
-
-(** Reads iteratively the selected streams if any or all streams otherwise. *)
-let iter_input_frame ?(audio = fun _ _ -> ()) ?(video = fun _ _ -> ())
-    ?(subtitle = fun _ _ -> ()) src =
-  let rec iter () =
-    match read_input_frame src with
-      | `Audio (index, frame) ->
-          audio index frame;
-          iter ()
-      | `Video (index, frame) ->
-          video index frame;
-          iter ()
-      | `Subtitle (index, frame) ->
-          subtitle index frame;
-          iter ()
+  let frame =
+    Array.of_list
+      ( get_id input audio_frame @ get_id input video_frame
+      @ get_id input subtitle_frame )
   in
-  try iter () with Error `Eof -> ()
+  read_input packet frame input
 
 type seek_flag =
   | Seek_flag_backward
@@ -292,8 +252,7 @@ let open_output_stream ?opts ?seek write format =
 
 external output_started : output container -> bool = "ocaml_av_header_written"
 
-external _set_metadata :
-  output container -> int -> (string * string) array -> unit
+external _set_metadata : _ container -> int -> (string * string) array -> unit
   = "ocaml_av_set_metadata"
 
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
@@ -320,7 +279,7 @@ let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
   Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base))
 
 external new_audio_stream :
-  output container ->
+  _ container ->
   int ->
   [ `Encoder ] Avcodec.Audio.t ->
   (string * string) array ->
@@ -358,7 +317,7 @@ let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
     | None -> ()
 
 external new_video_stream :
-  output container ->
+  _ container ->
   [ `Encoder ] Avcodec.Video.t ->
   (string * string) array ->
   int * string array = "ocaml_av_new_video_stream"
@@ -372,7 +331,7 @@ let new_video_stream ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
   mk_stream container ret
 
 external new_subtitle_stream :
-  output container ->
+  _ container ->
   [ `Encoder ] Avcodec.Subtitle.t ->
   (string * string) array ->
   int * string array = "ocaml_av_new_subtitle_stream"
@@ -385,10 +344,11 @@ let new_subtitle_stream ?opts ~time_base ~codec container =
   mk_stream container ret
 
 external write_packet :
-  (output, 'media, _) stream -> 'media Avcodec.Packet.t -> unit
+  (output, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t -> unit
   = "ocaml_av_write_stream_packet"
 
-external write_frame : (output, 'media, _) stream -> 'media frame -> unit
+external write_frame :
+  (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
   = "ocaml_av_write_stream_frame"
 
 external write_audio_frame : output container -> audio frame -> unit

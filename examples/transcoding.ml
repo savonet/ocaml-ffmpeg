@@ -13,8 +13,10 @@ let () =
   let audio_codec = Avcodec.Audio.find_encoder "aac" in
   let video_codec = Avcodec.Video.find_encoder "mpeg4" in
 
+  let iass = Av.get_audio_streams src in
+
   let oass =
-    Av.get_audio_streams src
+    iass
     |> List.map (fun (i, _, params) ->
            let channel_layout = Avcodec.Audio.get_channel_layout params in
            let sample_format = Avcodec.Audio.get_sample_format params in
@@ -28,8 +30,10 @@ let () =
   let frame_rate = { Avutil.num = 25; den = 1 } in
   let time_base = { Avutil.num = 1; den = 25 } in
 
+  let ivss = Av.get_video_streams src in
+
   let ovss =
-    Av.get_video_streams src
+    ivss
     |> List.map (fun (i, _, params) ->
            let width = Avcodec.Video.get_width params in
            let height = Avcodec.Video.get_height params in
@@ -39,8 +43,10 @@ let () =
                ~height ~codec:video_codec dst ))
   in
 
+  let isss = Av.get_subtitle_streams src in
+
   let osss =
-    Av.get_subtitle_streams src
+    isss
     |> List.map (fun (i, _, params) ->
            let codec =
              Avcodec.Subtitle.find_encoder
@@ -50,11 +56,27 @@ let () =
            (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in
 
-  src
-  |> Av.iter_input_frame
-       ~audio:(fun i frm -> Av.write_frame (List.assoc i oass) frm)
-       ~video:(fun i frm -> Av.write_frame (List.assoc i ovss) frm)
-       ~subtitle:(fun i frm -> Av.write_frame (List.assoc i osss) frm);
+  let rec f () =
+    match
+      Av.read_input
+        ~audio_frame:(List.map (fun (_, s, _) -> s) iass)
+        ~video_frame:(List.map (fun (_, s, _) -> s) ivss)
+        ~subtitle_frame:(List.map (fun (_, s, _) -> s) isss)
+        src
+    with
+      | `Audio_frame (i, pkt) ->
+          Av.write_frame (List.assoc i oass) pkt;
+          f ()
+      | `Video_frame (i, pkt) ->
+          Av.write_frame (List.assoc i ovss) pkt;
+          f ()
+      | `Subtitle_frame (i, pkt) ->
+          Av.write_frame (List.assoc i osss) pkt;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> assert false
+  in
+  f ();
 
   Av.close src;
   Av.close dst;

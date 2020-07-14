@@ -6,9 +6,9 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
 
-  let _, istream, params =
-    Av.open_input Sys.argv.(1) |> Av.find_best_audio_stream
-  in
+  let src = Av.open_input Sys.argv.(1) in
+
+  let idx, istream, params = Av.find_best_audio_stream src in
 
   let codec = Avcodec.Audio.find_encoder "aac" in
 
@@ -23,7 +23,15 @@ let () =
          ~time_base ~codec
   in
 
-  istream |> Av.iter_frame (Av.write_frame ostream);
+  let rec f () =
+    match Av.read_input ~audio_frame:[istream] src with
+      | `Audio_frame (i, frame) when i = idx ->
+          Av.write_frame ostream frame;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> f ()
+  in
+  f ();
 
   Av.get_input istream |> Av.close;
   Av.get_output ostream |> Av.close;

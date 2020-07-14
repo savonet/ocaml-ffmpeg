@@ -27,7 +27,7 @@ let () =
     with Avutil.Error _ -> Av.open_input Sys.argv.(1)
   in
 
-  let _, ias, params = Av.find_best_audio_stream src in
+  let idx, ias, params = Av.find_best_audio_stream src in
 
   let codec = Avcodec.Audio.find_encoder "flac" in
   let channel_layout = Avcodec.Audio.get_channel_layout params in
@@ -40,11 +40,11 @@ let () =
     try
       if Array.length Sys.argv < 3 then Avdevice.open_default_audio_output ()
       else Avdevice.open_audio_output Sys.argv.(2)
-    with Avutil.Error _ ->
-      Av.open_output Sys.argv.(2)
-      |> Av.new_audio_stream ~channels ~channel_layout ~sample_format
-           ~sample_rate ~time_base ~codec
-      |> Av.get_output
+    with Avutil.Error _ -> Av.open_output Sys.argv.(2)
+  in
+  let dst_stream =
+    Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
+      ~time_base ~codec dst
   in
 
   Avdevice.Dev_to_app.(
@@ -60,8 +60,10 @@ let () =
   let rec run n =
     if n > 0 then (
       try
-        let frame = Av.read_frame ias in
-        Av.write_audio_frame dst frame;
+        ( match Av.read_input src ~audio_frame:[ias] with
+          | `Audio_frame (i, frame) when i = idx ->
+              Av.write_frame dst_stream frame
+          | _ -> assert false );
         run (n - 1)
       with Avutil.Error `Eof -> () )
   in

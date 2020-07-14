@@ -157,8 +157,14 @@ let gen_polymorphic_variant_h () =
     (print_define_polymorphic_variant_value pvv_oc_h)
     [
       "Audio";
+      "Audio_frame";
+      "Audio_packet";
       "Video";
+      "Video_frame";
+      "Video_packet";
       "Subtitle";
+      "Subtitle_frame";
+      "Subtitle_packet";
       "Data";
       "Attachment";
       "Nb";

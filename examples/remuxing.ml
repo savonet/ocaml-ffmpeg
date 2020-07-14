@@ -14,39 +14,52 @@ let () =
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
 
+  let iass = Av.get_audio_streams src in
+
   let oass =
-    Av.get_audio_streams src
+    iass
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
            (i, Av.new_stream_copy ~params dst))
   in
+
+  let ivss = Av.get_video_streams src in
 
   let ovss =
-    Av.get_video_streams src
+    ivss
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
            (i, Av.new_stream_copy ~params dst))
   in
 
+  let isss = Av.get_subtitle_streams src in
+
   let osss =
-    Av.get_subtitle_streams src
+    isss
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
            (i, Av.new_stream_copy ~params dst))
   in
 
   let rec f () =
-    match Av.read_input_packet src with
-      | `Audio (i, p) ->
-          Av.write_packet (List.assoc i oass) p;
+    match
+      Av.read_input
+        ~audio_packet:(List.map (fun (_, s, _) -> s) iass)
+        ~video_packet:(List.map (fun (_, s, _) -> s) ivss)
+        ~subtitle_packet:(List.map (fun (_, s, _) -> s) isss)
+        src
+    with
+      | `Audio_packet (i, pkt) ->
+          Av.write_packet (List.assoc i oass) pkt;
           f ()
-      | `Video (i, p) ->
-          Av.write_packet (List.assoc i ovss) p;
+      | `Video_packet (i, pkt) ->
+          Av.write_packet (List.assoc i ovss) pkt;
           f ()
-      | `Subtitle (i, p) ->
-          Av.write_packet (List.assoc i osss) p;
+      | `Subtitle_packet (i, pkt) ->
+          Av.write_packet (List.assoc i osss) pkt;
           f ()
       | exception Avutil.Error `Eof -> ()
+      | _ -> assert false
   in
   f ();
 
