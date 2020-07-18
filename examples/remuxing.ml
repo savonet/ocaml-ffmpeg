@@ -50,13 +50,16 @@ let () =
         src
     with
       | `Audio_packet (i, pkt) ->
-          Av.write_packet (List.assoc i oass) pkt;
+          let time_base = Av.get_time_base (List.assoc i oass) in
+          Av.write_packet (List.assoc i oass) time_base pkt;
           f ()
       | `Video_packet (i, pkt) ->
-          Av.write_packet (List.assoc i ovss) pkt;
+          let time_base = Av.get_time_base (List.assoc i ovss) in
+          Av.write_packet (List.assoc i ovss) time_base pkt;
           f ()
       | `Subtitle_packet (i, pkt) ->
-          Av.write_packet (List.assoc i osss) pkt;
+          let time_base = Av.get_time_base (List.assoc i osss) in
+          Av.write_packet (List.assoc i osss) time_base pkt;
           f ()
       | exception Avutil.Error `Eof -> ()
       | _ -> assert false

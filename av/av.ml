@@ -344,8 +344,10 @@ let new_subtitle_stream ?opts ~time_base ~codec container =
   mk_stream container ret
 
 external write_packet :
-  (output, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t -> unit
-  = "ocaml_av_write_stream_packet"
+  (output, 'media, [ `Packet ]) stream ->
+  Avutil.rational ->
+  'media Avcodec.Packet.t ->
+  unit = "ocaml_av_write_stream_packet"
 
 external write_frame :
   (output, 'media, [ `Frame ]) stream -> 'media frame -> unit

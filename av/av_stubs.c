@@ -936,8 +936,9 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
       for (i = 0; i < Wosize_val(_packet); i++) {
         if (Int_val(Field(_packet, i)) == packet.stream_index) {
-          AVPacket *new_packet = (AVPacket*) malloc(sizeof(struct AVPacket));
-          if (!new_packet) caml_raise_out_of_memory();
+          AVPacket *new_packet = (AVPacket *)malloc(sizeof(struct AVPacket));
+          if (!new_packet)
+            caml_raise_out_of_memory();
 
           av_init_packet(new_packet);
           av_packet_ref(new_packet, &packet);
@@ -1713,8 +1714,9 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet) {
-  CAMLparam2(_stream, _packet);
+CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
+                                            value _packet) {
+  CAMLparam3(_stream, _time_base, _packet);
   av_t *av = StreamAv_val(_stream);
   int ret = 0, stream_index = StreamIndex_val(_stream);
   AVPacket *packet = Packet_val(_packet);
@@ -1726,17 +1728,14 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _packet) {
   caml_release_runtime_system();
 
   if (!av->header_written) {
-    AVRational cur_time_base = avstream->time_base;
-
     // write output file header
     ret = avformat_write_header(av->format_context, NULL);
 
-    // The stream time base can be modified by avformat_write_header so the
-    // rescale is needed
-    av_packet_rescale_ts(packet, cur_time_base, avstream->time_base);
-
     av->header_written = 1;
   }
+
+  av_packet_rescale_ts(packet, rational_of_value(_time_base),
+                       avstream->time_base);
 
   if (ret >= 0) {
     packet->stream_index = stream_index;

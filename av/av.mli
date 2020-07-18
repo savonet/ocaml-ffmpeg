@@ -275,10 +275,14 @@ val new_subtitle_stream :
   output container ->
   (output, subtitle, [ `Frame ]) stream
 
-(** [Av.write_packet os pkt] write the [pkt] packet to the [os] output stream.
+(** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
+    [time_base] is the packet's PTS/DTS/duration time base.
     Raise Error if the writing failed. *)
 val write_packet :
-  (output, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t -> unit
+  (output, 'media, [ `Packet ]) stream ->
+  Avutil.rational ->
+  'media Avcodec.Packet.t ->
+  unit
 
 (** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
 
