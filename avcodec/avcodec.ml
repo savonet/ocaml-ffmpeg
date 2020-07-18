@@ -45,6 +45,18 @@ module Packet = struct
   external set_dts : 'a t -> Int64.t option -> unit
     = "ocaml_avcodec_set_packet_dts"
 
+  external get_duration : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_duration"
+
+  external set_duration : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_duration"
+
+  external get_position : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_position"
+
+  external set_position : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_position"
+
   external size : 'a t -> int = "ocaml_avcodec_packet_size"
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
 

@@ -94,13 +94,11 @@ val get_subtitle_streams :
     the index of the stream in the container, the stream and the codec of the
     stream. Raise Error if no stream could be found. *)
 val find_best_audio_stream :
-  input container ->
-  int * (input, audio, 'a) stream * audio Avcodec.params
+  input container -> int * (input, audio, 'a) stream * audio Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the video streams. *)
 val find_best_video_stream :
-  input container ->
-  int * (input, video, 'a) stream * video Avcodec.params
+  input container -> int * (input, video, 'a) stream * video Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the subtitle streams. *)
 val find_best_subtitle_stream :
@@ -143,8 +141,7 @@ val select : (input, _, _) stream -> unit
 (** [Av.read_packet stream] read the input [stream]. Return the next packet of
     the [stream] or raises [Error `Eof] if the end of the stream is reached.
     Raise Error if the reading failed. *)
-val read_packet :
-  (input, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t
+val read_packet : (input, 'media, [ `Packet ]) stream -> 'media Avcodec.Packet.t
 
 (** [Av.iter_packet f is] applies function [f] in turn to all the packets of the
     input stream [is]. Raise Error if the reading failed. *)

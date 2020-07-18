@@ -27,17 +27,35 @@ module Packet : sig
   (** Set the stream index of the packet. *)
   val set_stream_index : 'a t -> int -> unit
 
-  (** Return the packet PTS (Presentation Time) *)
+  (** Return the packet PTS (Presentation Time) in its
+      stream's base_time unit. *)
   val get_pts : 'a t -> Int64.t option
 
-  (** Set the packet PTS (Presentation Time) *)
+  (** Set the packet PTS (Presentation Time) in its
+      stream's base_time unit. *)
   val set_pts : 'a t -> Int64.t option -> unit
 
-  (** Return the packet DTS (Decoding Time) *)
+  (** Return the packet DTS (Decoding Time) in its
+      stream's base_time unit. *)
   val get_dts : 'a t -> Int64.t option
 
-  (** Set the packet DTS (Decoding Time) *)
+  (** Set the packet DTS (Decoding Time) in its
+      stream's base_time unit. *)
   val set_dts : 'a t -> Int64.t option -> unit
+
+  (** Return the packet duration in its
+      stream's base_time unit.*)
+  val get_duration : 'a t -> Int64.t option
+
+  (** Set the packet duration in its
+      stream's base_time unit.*)
+  val set_duration : 'a t -> Int64.t option -> unit
+
+  (** Return the packet byte position in stream. *)
+  val get_position : 'a t -> Int64.t option
+
+  (** Set the packet byte position in stream. *)
+  val set_position : 'a t -> Int64.t option -> unit
 
   (** Size in bytes. *)
   val size : 'a t -> int
