@@ -254,7 +254,7 @@ module Video : sig
   val get_sample_aspect_ratio : video params -> Avutil.rational
 
   (** Returns the pixel format set for the codec params. *)
-  val get_pixel_format : video params -> Avutil.Pixel_format.t
+  val get_pixel_format : video params -> Avutil.Pixel_format.t option
 
   (** Returns the bit rate set for the codec. *)
   val get_bit_rate : video params -> int

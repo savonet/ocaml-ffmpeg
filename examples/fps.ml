@@ -33,7 +33,11 @@ let () =
     Av.find_best_video_stream src |> fun (i, video_input, params) ->
     let width = Avcodec.Video.get_width params in
     let height = Avcodec.Video.get_height params in
-    let pixel_format = Avcodec.Video.get_pixel_format params in
+    let pixel_format =
+      match Avcodec.Video.get_pixel_format params with
+        | None -> failwith "Pixel format unknown!"
+        | Some f -> f
+    in
     ( params,
       video_input,
       ( i,
@@ -46,7 +50,11 @@ let () =
     let _buffer =
       let time_base = Av.get_time_base video_input in
       let pixel_aspect = Av.get_pixel_aspect video_input in
-      let pixel_format = Avcodec.Video.get_pixel_format video_params in
+      let pixel_format =
+        match Avcodec.Video.get_pixel_format video_params with
+          | None -> failwith "Pixel format unknown!"
+          | Some f -> f
+      in
       let width = Avcodec.Video.get_width video_params in
       let height = Avcodec.Video.get_height video_params in
       let args =

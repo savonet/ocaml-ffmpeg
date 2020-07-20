@@ -37,7 +37,11 @@ let () =
     |> List.map (fun (i, _, params) ->
            let width = Avcodec.Video.get_width params in
            let height = Avcodec.Video.get_height params in
-           let pixel_format = Avcodec.Video.get_pixel_format params in
+           let pixel_format =
+             match Avcodec.Video.get_pixel_format params with
+               | None -> failwith "Pixel format unknown!"
+               | Some f -> f
+           in
            ( i,
              Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
                ~height ~codec:video_codec dst ))

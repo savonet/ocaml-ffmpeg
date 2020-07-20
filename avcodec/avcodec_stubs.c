@@ -930,8 +930,16 @@ CAMLprim value ocaml_avcodec_parameters_get_sample_aspect_ratio(value _cp) {
 
 CAMLprim value ocaml_avcodec_parameters_get_pixel_format(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(
-      Val_PixelFormat((enum AVPixelFormat)CodecParameters_val(_cp)->format));
+  CAMLlocal1(ret);
+  enum AVPixelFormat f = CodecParameters_val(_cp)->format;
+
+  if (f == AV_PIX_FMT_NONE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_PixelFormat(f));
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id,
