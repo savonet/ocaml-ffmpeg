@@ -1731,18 +1731,20 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
     // write output file header
     ret = avformat_write_header(av->format_context, NULL);
 
+    if (ret < 0) {
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
+
     av->header_written = 1;
   }
 
+  packet->stream_index = stream_index;
+  packet->pos = -1;
   av_packet_rescale_ts(packet, rational_of_value(_time_base),
                        avstream->time_base);
 
-  if (ret >= 0) {
-    packet->stream_index = stream_index;
-    packet->pos = -1;
-
-    ret = av_interleaved_write_frame(av->format_context, packet);
-  }
+  ret = av_interleaved_write_frame(av->format_context, packet);
 
   caml_acquire_runtime_system();
 
