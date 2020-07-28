@@ -30,6 +30,8 @@ type ('line, 'media) format
 (* Frame *)
 type 'media frame
 
+external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
+
 external finalize_frame : _ frame -> unit = "ocaml_avutil_finalize_frame"
 let () =
   Callback.register "ocaml_avutil_finalize_frame" finalize_frame

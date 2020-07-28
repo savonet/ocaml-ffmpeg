@@ -36,6 +36,10 @@ type ('line, 'media) format
 
 type 'media frame
 
+(** [Avutil.frame_pts frame] returns the presentation timestamp in time_base
+    units (time when frame should be shown to user). *)
+val frame_pts : _ frame -> Int64.t option
+
 
 (** {1 Exception} *)
 
