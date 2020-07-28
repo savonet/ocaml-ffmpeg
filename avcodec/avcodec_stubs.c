@@ -137,11 +137,6 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   return ret;
 }
 
-CAMLprim value ocaml_avcodec_get_packet_size(value _packet) {
-  CAMLparam1(_packet);
-  CAMLreturn(Val_int(Packet_val(_packet)->size));
-}
-
 CAMLprim value ocaml_avcodec_get_packet_stream_index(value _packet) {
   CAMLparam1(_packet);
   CAMLreturn(Val_int(Packet_val(_packet)->stream_index));
@@ -260,7 +255,7 @@ CAMLprim value ocaml_avcodec_set_packet_dts(value _packet, value _dts) {
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_avcodec_packet_size(value _packet) {
+CAMLprim value ocaml_avcodec_get_packet_size(value _packet) {
   CAMLparam1(_packet);
   CAMLreturn(Val_int(Packet_val(_packet)->size));
 }

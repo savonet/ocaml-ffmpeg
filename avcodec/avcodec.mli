@@ -57,9 +57,6 @@ module Packet : sig
   (** Set the packet byte position in stream. *)
   val set_position : 'a t -> Int64.t option -> unit
 
-  (** Size in bytes. *)
-  val size : 'a t -> int
-
   (** Return a fresh bytes array containing a copy of packet datas. *)
   val to_bytes : 'a t -> bytes
 
