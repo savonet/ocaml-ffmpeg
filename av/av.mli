@@ -60,7 +60,8 @@ val open_input_stream :
 
 (** [Av.get_input_duration ~format:fmt input] return the duration of an [input]
     in the [fmt] time format (in second by default). *)
-val get_input_duration : ?format:Time_format.t -> input container -> Int64.t
+val get_input_duration :
+  ?format:Time_format.t -> input container -> Int64.t option
 
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
