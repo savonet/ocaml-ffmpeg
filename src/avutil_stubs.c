@@ -260,6 +260,8 @@ static void av_log_ocaml_callback(void* ptr, int level, const char* fmt, va_list
   char line[LINE_SIZE];
   value buffer;
 
+  if (level > av_log_get_level()) return;
+
   av_log_format_line2(ptr, level, fmt, vl, line, LINE_SIZE, &print_prefix);
 
   ocaml_ffmpeg_register_thread();
