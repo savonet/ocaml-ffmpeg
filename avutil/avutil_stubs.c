@@ -301,6 +301,8 @@ static void av_log_ocaml_callback(void *ptr, int level, const char *fmt,
   static int print_prefix = 1;
   log_msg_t *log_msg;
 
+  if (level > av_log_get_level()) return;
+
   pthread_mutex_lock(&log_mutex);
 
   log_msg = &top_level_log_msg;
