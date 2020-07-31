@@ -76,7 +76,7 @@ let () =
   let read = Unix.read in_fd in
   let seek = Unix.lseek in_fd in
   let container = Av.open_input_stream ~seek read in
-  let _, stream, params = Av.find_best_audio_stream container in
+  let idx, stream, params = Av.find_best_audio_stream container in
   let codec_id = Avcodec.Audio.get_params_id params in
   let sample_format =
     match Avcodec.Audio.get_sample_format params with
@@ -101,7 +101,9 @@ let () =
     sample_format;
   let rec f () =
     try
-      write_frame (Av.read_frame stream);
+      ( match Av.read_input container ~audio_frame:[stream] with
+        | `Audio_frame (i, frame) when i = idx -> write_frame frame
+        | _ -> assert false );
       f ()
     with
       | Avutil.Error `Eof -> ()

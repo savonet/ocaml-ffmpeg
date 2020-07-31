@@ -35,6 +35,28 @@ module Packet = struct
   external set_stream_index : 'a t -> int -> unit
     = "ocaml_avcodec_set_packet_stream_index"
 
+  external get_pts : 'a t -> Int64.t option = "ocaml_avcodec_get_packet_pts"
+
+  external set_pts : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_pts"
+
+  external get_dts : 'a t -> Int64.t option = "ocaml_avcodec_get_packet_dts"
+
+  external set_dts : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_dts"
+
+  external get_duration : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_duration"
+
+  external set_duration : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_duration"
+
+  external get_position : 'a t -> Int64.t option
+    = "ocaml_avcodec_get_packet_position"
+
+  external set_position : 'a t -> Int64.t option -> unit
+    = "ocaml_avcodec_set_packet_position"
+
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
 
   type parser_t
@@ -220,7 +242,7 @@ module Video = struct
   external get_sample_aspect_ratio : video params -> Avutil.rational
     = "ocaml_avcodec_parameters_get_sample_aspect_ratio"
 
-  external get_pixel_format : video params -> Avutil.Pixel_format.t
+  external get_pixel_format : video params -> Avutil.Pixel_format.t option
     = "ocaml_avcodec_parameters_get_pixel_format"
 
   external get_bit_rate : video params -> int

@@ -8,35 +8,44 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
 
-  let audio, close_audio =
+  let audio, audio_frame =
     try
-      let _, input_stream, _ = Av.find_best_audio_stream src in
+      let audio_idx, audio_src, _ = Av.find_best_audio_stream src in
 
-      let dst = Avdevice.open_default_audio_output () in
+      let audio_dst = Avdevice.open_default_audio_output () in
 
-      Av.select input_stream;
-
-      ((fun _ frame -> Av.write_audio_frame dst frame), fun () -> Av.close dst)
-    with Avutil.Error _ -> ((fun _ _ -> ()), fun () -> ())
+      (Some (audio_idx, audio_dst), [audio_src])
+    with Avutil.Error _ -> (None, [])
   in
 
-  let video, close_video =
+  let video, video_frame =
     try
-      let _, input_stream, _ = Av.find_best_video_stream src in
+      let video_idx, video_src, _ = Av.find_best_video_stream src in
 
-      let dst = Avdevice.open_video_output "xv" in
+      let video_dst = Avdevice.open_video_output "xv" in
 
-      Av.select input_stream;
-
-      ((fun _ frame -> Av.write_video_frame dst frame), fun () -> Av.close dst)
-    with Avutil.Error _ -> ((fun _ _ -> ()), fun () -> ())
+      (Some (video_idx, video_dst), [video_src])
+    with Avutil.Error _ -> (None, [])
   in
 
-  Av.iter_input_frame ~audio ~video src;
+  let rec f () =
+    match (Av.read_input ~audio_frame ~video_frame src, audio, video) with
+      | `Audio_frame (i, frame), Some (idx, dst), _ when i = idx ->
+          Av.write_audio_frame dst frame;
+          f ()
+      | `Video_frame (i, frame), _, Some (idx, dst) when i = idx ->
+          Av.write_video_frame dst frame;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> f ()
+  in
+  f ();
 
   Av.close src;
-  close_audio ();
-  close_video ();
+
+  let () = match audio with Some (_, dst) -> Av.close dst | None -> () in
+
+  let () = match video with Some (_, dst) -> Av.close dst | None -> () in
 
   Gc.full_major ();
   Gc.full_major ()

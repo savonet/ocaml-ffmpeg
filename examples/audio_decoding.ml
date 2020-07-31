@@ -27,17 +27,23 @@ let () =
       | None -> failwith ("Could not find format: " ^ Sys.argv.(2))
   in
 
-  let _, istream, icodec =
-    Av.open_input ~format Sys.argv.(1) |> Av.find_best_audio_stream
-  in
+  let input = Av.open_input ~format Sys.argv.(1) in
+
+  let idx, istream, icodec = Av.find_best_audio_stream input in
 
   let options = [`Engine_soxr] in
 
   let rsp = FrameToS32Bytes.from_codec ~options icodec `Stereo 44100 in
 
-  istream
-  |> Av.iter_frame (fun frame ->
-         FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file);
+  let rec f () =
+    match Av.read_input ~audio_frame:[istream] input with
+      | `Audio_frame (i, frame) when i = idx ->
+          FrameToS32Bytes.convert rsp frame |> output_bytes audio_output_file;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> f ()
+  in
+  f ();
 
   Av.get_input istream |> Av.close;
   close_out audio_output_file;

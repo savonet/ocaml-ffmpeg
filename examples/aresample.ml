@@ -12,7 +12,7 @@ let () =
   let dst = Av.open_output Sys.argv.(2) in
   let audio_codec = Avcodec.Audio.find_encoder "ac3" in
 
-  let audio_params, audio_input, oass =
+  let audio_params, audio_input, idx, oass =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
     let channel_layout = Avcodec.Audio.get_channel_layout params in
     let channels = Avcodec.Audio.get_nb_channels params in
@@ -21,15 +21,15 @@ let () =
     let time_base = { Avutil.num = 1; den = sample_rate } in
     ( params,
       audio_input,
-      ( i,
-        Av.new_audio_stream ~channels ~channel_layout ~sample_format
-          ~sample_rate ~time_base ~codec:audio_codec dst ) )
+      i,
+      Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
+        ~time_base ~codec:audio_codec dst )
   in
 
   let frame_size =
     if List.mem `Variable_frame_size (Avcodec.Audio.capabilities audio_codec)
     then 512
-    else Av.get_frame_size (snd oass)
+    else Av.get_frame_size oass
   in
 
   let filter =
@@ -94,12 +94,12 @@ let () =
 
   let process_audio i frm =
     try
-      let stream = List.assoc i [oass] in
+      assert (i = idx);
       let _, input = List.hd Avfilter.(filter.inputs.audio) in
       input frm;
       let rec flush () =
         try
-          Av.write_frame stream (output.handler ());
+          Av.write_frame oass (output.handler ());
           flush ()
         with Avutil.Error `Eagain -> ()
       in
@@ -110,7 +110,15 @@ let () =
   Gc.full_major ();
   Gc.full_major ();
 
-  src |> Av.iter_input_frame ~audio:process_audio;
+  let rec f () =
+    match Av.read_input ~audio_frame:[audio_input] src with
+      | `Audio_frame (i, frame) ->
+          process_audio i frame;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> f ()
+  in
+  f ();
 
   Av.close src;
   Av.close dst;

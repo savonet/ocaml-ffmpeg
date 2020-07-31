@@ -14,59 +14,57 @@ let () =
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
 
+  let iass = Av.get_audio_streams src in
+
   let oass =
-    Av.get_audio_streams src
+    iass
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Audio.get_params_id params in
-           let codec =
-             Avcodec.Audio.find_encoder (Avcodec.Audio.string_of_id id)
-           in
-           let channel_layout = Avcodec.Audio.get_channel_layout params in
-           let channels = Avcodec.Audio.get_nb_channels params in
-           let sample_format = Avcodec.Audio.get_sample_format params in
-           let sample_rate = Avcodec.Audio.get_sample_rate params in
-           let time_base = { Avutil.num = 1; den = sample_rate } in
-           ( i,
-             Av.new_audio_stream ~channels ~channel_layout ~sample_format
-               ~sample_rate ~time_base ~codec dst ))
+           (i, Av.new_stream_copy ~params dst))
   in
+
+  let ivss = Av.get_video_streams src in
 
   let ovss =
-    Av.get_video_streams src
+    ivss
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Video.get_params_id params in
-           let codec =
-             Avcodec.Video.find_encoder (Avcodec.Video.string_of_id id)
-           in
-           let width = Avcodec.Video.get_width params in
-           let height = Avcodec.Video.get_height params in
-           let pixel_format = Avcodec.Video.get_pixel_format params in
-           let frame_rate = { Avutil.num = 25; den = 1 } in
-           let time_base = { Avutil.num = 1; den = 25 } in
-           ( i,
-             Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
-               ~height ~codec dst ))
+           (i, Av.new_stream_copy ~params dst))
   in
+
+  let isss = Av.get_subtitle_streams src in
 
   let osss =
-    Av.get_subtitle_streams src
+    isss
     |> List.map (fun (i, stream, _) ->
            let params = Av.get_codec_params stream in
-           let id = Avcodec.Subtitle.get_params_id params in
-           let codec =
-             Avcodec.Subtitle.find_encoder (Avcodec.Subtitle.string_of_id id)
-           in
-           let time_base = { Avutil.num = 1; den = 25 } in
-           (i, Av.new_subtitle_stream ~time_base ~codec dst))
+           (i, Av.new_stream_copy ~params dst))
   in
 
-  src
-  |> Av.iter_input_packet
-       ~audio:(fun i pkt -> Av.write_packet (List.assoc i oass) pkt)
-       ~video:(fun i pkt -> Av.write_packet (List.assoc i ovss) pkt)
-       ~subtitle:(fun i pkt -> Av.write_packet (List.assoc i osss) pkt);
+  let rec f () =
+    match
+      Av.read_input
+        ~audio_packet:(List.map (fun (_, s, _) -> s) iass)
+        ~video_packet:(List.map (fun (_, s, _) -> s) ivss)
+        ~subtitle_packet:(List.map (fun (_, s, _) -> s) isss)
+        src
+    with
+      | `Audio_packet (i, pkt) ->
+          let time_base = Av.get_time_base (List.assoc i oass) in
+          Av.write_packet (List.assoc i oass) time_base pkt;
+          f ()
+      | `Video_packet (i, pkt) ->
+          let time_base = Av.get_time_base (List.assoc i ovss) in
+          Av.write_packet (List.assoc i ovss) time_base pkt;
+          f ()
+      | `Subtitle_packet (i, pkt) ->
+          let time_base = Av.get_time_base (List.assoc i osss) in
+          Av.write_packet (List.assoc i osss) time_base pkt;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> assert false
+  in
+  f ();
 
   Av.close src;
   Av.close dst;

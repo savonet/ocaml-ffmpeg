@@ -60,139 +60,98 @@ val open_input_stream :
 
 (** [Av.get_input_duration ~format:fmt input] return the duration of an [input]
     in the [fmt] time format (in second by default). *)
-val get_input_duration : ?format:Time_format.t -> input container -> Int64.t
+val get_input_duration :
+  ?format:Time_format.t -> input container -> Int64.t option
 
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
 
-(** Input/output, audio/video/subtitle stream type *)
-type ('line, 'media) stream
+(** Input/output, audio/video/subtitle, mode stream type *)
+type ('line, 'media, 'mode) stream
 
 (** Return the audio stream list of the input. The result is a list of tuple
     containing the index of the stream in the container, the stream and the
     codec of the stream. *)
 val get_audio_streams :
-  input container -> (int * (input, audio) stream * audio Avcodec.params) list
+  input container ->
+  (int * (input, audio, 'a) stream * audio Avcodec.params) list
 
 (** Same as {!Av.get_audio_streams} for the video streams. *)
 val get_video_streams :
-  input container -> (int * (input, video) stream * video Avcodec.params) list
+  input container ->
+  (int * (input, video, 'a) stream * video Avcodec.params) list
 
 (** Same as {!Av.get_audio_streams} for the subtitle streams. *)
 val get_subtitle_streams :
   input container ->
-  (int * (input, subtitle) stream * subtitle Avcodec.params) list
+  (int * (input, subtitle, 'a) stream * subtitle Avcodec.params) list
 
 (** Return the best audio stream of the input. The result is a tuple containing
     the index of the stream in the container, the stream and the codec of the
     stream. Raise Error if no stream could be found. *)
 val find_best_audio_stream :
-  input container -> int * (input, audio) stream * audio Avcodec.params
+  input container -> int * (input, audio, 'a) stream * audio Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the video streams. *)
 val find_best_video_stream :
-  input container -> int * (input, video) stream * video Avcodec.params
+  input container -> int * (input, video, 'a) stream * video Avcodec.params
 
 (** Same as {!Av.find_best_audio_stream} for the subtitle streams. *)
 val find_best_subtitle_stream :
-  input container -> int * (input, subtitle) stream * subtitle Avcodec.params
+  input container ->
+  int * (input, subtitle, 'a) stream * subtitle Avcodec.params
 
 (** Return the input container of the input stream. *)
-val get_input : (input, _) stream -> input container
+val get_input : (input, _, _) stream -> input container
 
 (** Return the index of the stream. *)
-val get_index : (_, _) stream -> int
+val get_index : (_, _, _) stream -> int
 
 (** [Av.get_codec stream] return the codec of the [stream]. Raise Error if the
     codec allocation failed. *)
-val get_codec_params : (_, 'media) stream -> 'media Avcodec.params
+val get_codec_params : (_, 'media, _) stream -> 'media Avcodec.params
 
 (** [Av.get_time_base stream] return the time base of the [stream]. *)
-val get_time_base : (_, _) stream -> Avutil.rational
+val get_time_base : (_, _, _) stream -> Avutil.rational
 
 (** [Av.set_time_base stream time_base] set the [stream] time base to
     [time_base]. *)
-val set_time_base : (_, _) stream -> Avutil.rational -> unit
+val set_time_base : (_, _, _) stream -> Avutil.rational -> unit
 
 (** [Av.get_frame_size stream] return the frame size for the given audio stream. *)
-val get_frame_size : (output, audio) stream -> int
+val get_frame_size : (output, audio, _) stream -> int
 
 (** [Av.get_pixel_aspect stream] return the pixel aspect of the [stream]. *)
-val get_pixel_aspect : (_, video) stream -> Avutil.rational
+val get_pixel_aspect : (_, video, _) stream -> Avutil.rational
 
 (** Same as {!Av.get_input_duration} for the input streams. *)
-val get_duration : ?format:Time_format.t -> (input, _) stream -> Int64.t
+val get_duration : ?format:Time_format.t -> (input, _, _) stream -> Int64.t
 
 (** Same as {!Av.get_input_metadata} for the input streams. *)
-val get_metadata : (input, _) stream -> (string * string) list
+val get_metadata : (input, _, _) stream -> (string * string) list
 
-(** [Av.select stream] select the input [stream] for reading. Raise Error if the
-    selection failed. *)
-val select : (input, _) stream -> unit
-
-(** [Av.read_packet stream] read the input [stream]. Return the next packet of
-    the [stream] or raises [Error `Eof] if the end of the stream is reached.
-    Raise Error if the reading failed. *)
-val read_packet : (input, 'media) stream -> 'media Avcodec.Packet.t
-
-(** [Av.iter_packet f is] applies function [f] in turn to all the packets of the
-    input stream [is]. Raise Error if the reading failed. *)
-val iter_packet :
-  ('media Avcodec.Packet.t -> unit) -> (input, 'media) stream -> unit
-
-(** [Av.read_frame stream] read the input [stream]. Return the next frame of the
-    [stream] or raises [Error `Eof] if the end of the stream is reached. Raise
-    Error if the reading failed. *)
-val read_frame : (input, 'media) stream -> 'media frame
-
-(** [Av.iter_frame f is] applies function [f] in turn to all the frames of the
-    input stream [is]. Raise Error if the reading failed. *)
-val iter_frame : ('media frame -> unit) -> (input, 'media) stream -> unit
-
-type input_packet_result =
-  [ `Audio of int * audio Avcodec.Packet.t
-  | `Video of int * video Avcodec.Packet.t
-  | `Subtitle of int * subtitle Avcodec.Packet.t ]
+type input_result =
+  [ `Audio_packet of int * audio Avcodec.Packet.t
+  | `Audio_frame of int * audio frame
+  | `Video_packet of int * video Avcodec.Packet.t
+  | `Video_frame of int * video frame
+  | `Subtitle_packet of int * subtitle Avcodec.Packet.t
+  | `Subtitle_frame of int * subtitle frame ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
-    [Audio] [Video] or [Subtitle] index and packet of the input or [End_of_file]
-    if the end of the input is reached. Raise Error if the reading failed. *)
-val read_input_packet : input container -> input_packet_result
+    [Audio] [Video] or [Subtitle] index and packet or frame of the input or [Error `Eof]
+    if the end of the input is reached. Raise Error if the reading failed.
 
-(** [Av.iter_input_packet ~audio:af ~video:vf ~subtitle:sf src] reads
-    iteratively the selected streams if any or all streams of the [src] input
-    otherwise. It applies function [af] to the audio packets, [vf] to the video
-    packets and [sf] to the subtitle packets with the index of the related
-    stream as first parameter. Raise Error if the reading failed. *)
-val iter_input_packet :
-  ?audio:(int -> audio Avcodec.Packet.t -> unit) ->
-  ?video:(int -> video Avcodec.Packet.t -> unit) ->
-  ?subtitle:(int -> subtitle Avcodec.Packet.t -> unit) ->
+    Only packet and frames from the specified streams are returned. *)
+val read_input :
+  ?audio_packet:(input, audio, [ `Packet ]) stream list ->
+  ?audio_frame:(input, audio, [ `Frame ]) stream list ->
+  ?video_packet:(input, video, [ `Packet ]) stream list ->
+  ?video_frame:(input, video, [ `Frame ]) stream list ->
+  ?subtitle_packet:(input, subtitle, [ `Packet ]) stream list ->
+  ?subtitle_frame:(input, subtitle, [ `Frame ]) stream list ->
   input container ->
-  unit
-
-type input_frame_result =
-  [ `Audio of int * audio frame
-  | `Video of int * video frame
-  | `Subtitle of int * subtitle frame ]
-
-(** Reads the selected streams if any or all streams otherwise. Return the next
-    [Audio] [Video] or [Subtitle] index and frame of the input or raises
-    [Error `Eof] if the end of the input is reached. Raise Error if the reading
-    failed. *)
-val read_input_frame : input container -> input_frame_result
-
-(** [Av.iter_input_frame ~audio:af ~video:vf ~subtitle:sf src] reads iteratively
-    the selected streams if any or all streams of the [src] input otherwise. It
-    applies function [af] to the audio frames, [vf] to the video frames and [sf]
-    to the subtitle frames with the index of the related stream as first
-    parameter. Raise Error if the reading failed. *)
-val iter_input_frame :
-  ?audio:(int -> audio frame -> unit) ->
-  ?video:(int -> video frame -> unit) ->
-  ?subtitle:(int -> subtitle frame -> unit) ->
-  input container ->
-  unit
+  input_result
 
 (** Seek mode. *)
 type seek_flag =
@@ -205,7 +164,7 @@ type seek_flag =
     in the [fmt] time format according to the method indicated by the [flags].
     Raise Error if the seeking failed. *)
 val seek :
-  (input, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
+  (input, _, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
 
 (** {5 Output} *)
 
@@ -234,14 +193,24 @@ val output_started : output container -> bool
 val set_output_metadata : output container -> (string * string) list -> unit
 
 (** Same as {!Av.set_output_metadata} for the output streams. *)
-val set_metadata : (output, _) stream -> (string * string) list -> unit
+val set_metadata : (output, _, _) stream -> (string * string) list -> unit
 
 (** Return the output container of the output stream. *)
-val get_output : (output, _) stream -> output container
+val get_output : (output, _, _) stream -> output container
 
-(** Add a new audio stream to the given container. [opts] may contain any option
-    settable on the stream's internal AVCodec. After returning, if [opts] was
-    passed, unused options are left in the hash table.
+(* Create a new stream that only supports packet input and does not do any
+   encoding. Used for remuxing with encoded data. *)
+val new_stream_copy :
+  params:'mode Avcodec.params ->
+  output container ->
+  (output, 'mode, [ `Packet ]) stream
+
+(** Add a new audio stream to the given container. Stream only supports frames
+    and encodes its input.
+
+    [opts] may contain any option settable on the stream's internal AVCodec.
+    After returning, if [opts] was passed, unused options are left in the hash
+    table.
 
     At least one of [channels] or [channel_layout] must be passed.
 
@@ -267,11 +236,14 @@ val new_audio_stream :
   time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Audio.t ->
   output container ->
-  (output, audio) stream
+  (output, audio, [ `Frame ]) stream
 
-(** Add a new video stream to the given container. [opts] may contain any option
-    settable on the stream's internal AVCodec. After returning, if [opts] was
-    passed, unused options are left in the hash table.
+(** Add a new video stream to the given container. Stream only supports frames
+    and encodes its input.
+
+    [opts] may contain any option settable on the stream's internal AVCodec.
+    After returning, if [opts] was passed, unused options are left in the hash
+    table.
 
     Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/frame_rate] is usually a good value for the
@@ -287,11 +259,14 @@ val new_video_stream :
   time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Video.t ->
   output container ->
-  (output, video) stream
+  (output, video, [ `Frame ]) stream
 
-(** Add a new subtitle stream to the given container. [opts] may contain any
-    option settable on the stream's internal AVCodec. After returning, if [opts]
-    was passed, unused options are left in the hash table.
+(** Add a new subtitle stream to the given container. Stream only supports frames
+    and encodes its input.
+
+    [opts] may contain any option settable on the stream's internal AVCodec.
+    After returning, if [opts] was passed, unused options are left in the hash
+    table.
 
     Raise Error if the opening failed. *)
 val new_subtitle_stream :
@@ -299,11 +274,16 @@ val new_subtitle_stream :
   time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Subtitle.t ->
   output container ->
-  (output, subtitle) stream
+  (output, subtitle, [ `Frame ]) stream
 
-(** [Av.write_packet os pkt] write the [pkt] packet to the [os] output stream.
+(** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
+    [time_base] is the packet's PTS/DTS/duration time base.
     Raise Error if the writing failed. *)
-val write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit
+val write_packet :
+  (output, 'media, [ `Packet ]) stream ->
+  Avutil.rational ->
+  'media Avcodec.Packet.t ->
+  unit
 
 (** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
 
@@ -311,7 +291,7 @@ val write_packet : (output, 'media) stream -> 'media Avcodec.Packet.t -> unit
     when creating the stream
 
     Raise Error if the writing failed. *)
-val write_frame : (output, 'media) stream -> 'media frame -> unit
+val write_frame : (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
 
 (** [Av.write_audio_frame dst frm] write the [frm] audio frame to the [dst]
     output audio container. Raise Error if the output format is not defined or

@@ -27,6 +27,36 @@ module Packet : sig
   (** Set the stream index of the packet. *)
   val set_stream_index : 'a t -> int -> unit
 
+  (** Return the packet PTS (Presentation Time) in its
+      stream's base_time unit. *)
+  val get_pts : 'a t -> Int64.t option
+
+  (** Set the packet PTS (Presentation Time) in its
+      stream's base_time unit. *)
+  val set_pts : 'a t -> Int64.t option -> unit
+
+  (** Return the packet DTS (Decoding Time) in its
+      stream's base_time unit. *)
+  val get_dts : 'a t -> Int64.t option
+
+  (** Set the packet DTS (Decoding Time) in its
+      stream's base_time unit. *)
+  val set_dts : 'a t -> Int64.t option -> unit
+
+  (** Return the packet duration in its
+      stream's base_time unit.*)
+  val get_duration : 'a t -> Int64.t option
+
+  (** Set the packet duration in its
+      stream's base_time unit.*)
+  val set_duration : 'a t -> Int64.t option -> unit
+
+  (** Return the packet byte position in stream. *)
+  val get_position : 'a t -> Int64.t option
+
+  (** Set the packet byte position in stream. *)
+  val set_position : 'a t -> Int64.t option -> unit
+
   (** Return a fresh bytes array containing a copy of packet datas. *)
   val to_bytes : 'a t -> bytes
 
@@ -221,7 +251,7 @@ module Video : sig
   val get_sample_aspect_ratio : video params -> Avutil.rational
 
   (** Returns the pixel format set for the codec params. *)
-  val get_pixel_format : video params -> Avutil.Pixel_format.t
+  val get_pixel_format : video params -> Avutil.Pixel_format.t option
 
   (** Returns the bit rate set for the codec. *)
   val get_bit_rate : video params -> int

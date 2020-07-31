@@ -137,11 +137,6 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   return ret;
 }
 
-CAMLprim value ocaml_avcodec_get_packet_size(value _packet) {
-  CAMLparam1(_packet);
-  CAMLreturn(Val_int(Packet_val(_packet)->size));
-}
-
 CAMLprim value ocaml_avcodec_get_packet_stream_index(value _packet) {
   CAMLparam1(_packet);
   CAMLreturn(Val_int(Packet_val(_packet)->stream_index));
@@ -152,6 +147,117 @@ CAMLprim value ocaml_avcodec_set_packet_stream_index(value _packet,
   CAMLparam1(_packet);
   Packet_val(_packet)->stream_index = Int_val(_index);
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_pts(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->pts));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_pts(value _packet, value _pts) {
+  CAMLparam2(_packet, _pts);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_pts == Val_none)
+    packet->pts = AV_NOPTS_VALUE;
+  else
+    packet->pts = Int64_val(Field(_pts, 0));
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_duration(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->duration == 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->duration));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_duration(value _packet,
+                                                 value _duration) {
+  CAMLparam2(_packet, _duration);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_duration == Val_none)
+    packet->duration = 0;
+  else
+    packet->duration = Int64_val(Field(_duration, 0));
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_position(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->pos == -1)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->pos));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_position(value _packet,
+                                                 value _position) {
+  CAMLparam2(_packet, _position);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_position == Val_none)
+    packet->pos = -1;
+  else
+    packet->pos = Int64_val(Field(_position, 0));
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_dts(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (packet->dts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(packet->dts));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_set_packet_dts(value _packet, value _dts) {
+  CAMLparam2(_packet, _dts);
+  AVPacket *packet = Packet_val(_packet);
+
+  if (_dts == Val_none)
+    packet->dts = AV_NOPTS_VALUE;
+  else
+    packet->dts = Int64_val(Field(_dts, 0));
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_get_packet_size(value _packet) {
+  CAMLparam1(_packet);
+  CAMLreturn(Val_int(Packet_val(_packet)->size));
 }
 
 CAMLprim value ocaml_avcodec_packet_to_bytes(value _packet) {
@@ -819,8 +925,16 @@ CAMLprim value ocaml_avcodec_parameters_get_sample_aspect_ratio(value _cp) {
 
 CAMLprim value ocaml_avcodec_parameters_get_pixel_format(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(
-      Val_PixelFormat((enum AVPixelFormat)CodecParameters_val(_cp)->format));
+  CAMLlocal1(ret);
+  enum AVPixelFormat f = CodecParameters_val(_cp)->format;
+
+  if (f == AV_PIX_FMT_NONE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_PixelFormat(f));
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id,

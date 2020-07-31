@@ -13,16 +13,17 @@ let () =
   let audio_codec = Avcodec.Audio.find_encoder "aac" in
   let video_codec = Avcodec.Video.find_encoder "mpeg4" in
 
-  let oass =
-    Av.find_best_audio_stream src |> fun (i, _, params) ->
+  let audio_input, oass =
+    Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
     let channel_layout = Avcodec.Audio.get_channel_layout params in
     let channels = Avcodec.Audio.get_nb_channels params in
     let sample_format = Avcodec.Audio.get_sample_format params in
     let sample_rate = Avcodec.Audio.get_sample_rate params in
     let time_base = { Avutil.num = 1; den = sample_rate } in
-    ( i,
-      Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
-        ~time_base ~codec:audio_codec dst )
+    ( audio_input,
+      ( i,
+        Av.new_audio_stream ~channels ~channel_layout ~sample_format
+          ~sample_rate ~time_base ~codec:audio_codec dst ) )
   in
 
   let frame_rate = { Avutil.num = 25; den = 1 } in
@@ -32,7 +33,11 @@ let () =
     Av.find_best_video_stream src |> fun (i, video_input, params) ->
     let width = Avcodec.Video.get_width params in
     let height = Avcodec.Video.get_height params in
-    let pixel_format = Avcodec.Video.get_pixel_format params in
+    let pixel_format =
+      match Avcodec.Video.get_pixel_format params with
+        | None -> failwith "Pixel format unknown!"
+        | Some f -> f
+    in
     ( params,
       video_input,
       ( i,
@@ -45,7 +50,11 @@ let () =
     let _buffer =
       let time_base = Av.get_time_base video_input in
       let pixel_aspect = Av.get_pixel_aspect video_input in
-      let pixel_format = Avcodec.Video.get_pixel_format video_params in
+      let pixel_format =
+        match Avcodec.Video.get_pixel_format video_params with
+          | None -> failwith "Pixel format unknown!"
+          | Some f -> f
+      in
       let width = Avcodec.Video.get_width video_params in
       let height = Avcodec.Video.get_height video_params in
       let args =
@@ -119,7 +128,20 @@ let () =
     with Not_found -> ()
   in
 
-  src |> Av.iter_input_frame ~audio:process_audio ~video:process_video;
+  let rec f () =
+    match
+      Av.read_input ~audio_frame:[audio_input] ~video_frame:[video_input] src
+    with
+      | `Audio_frame (i, frame) ->
+          process_audio i frame;
+          f ()
+      | `Video_frame (i, frame) ->
+          process_video i frame;
+          f ()
+      | exception Avutil.Error `Eof -> ()
+      | _ -> f ()
+  in
+  f ();
 
   Av.close src;
   Av.close dst;
