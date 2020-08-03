@@ -38,6 +38,9 @@ val frame_pts : _ frame -> Int64.t option
 (** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
 val frame_set_pts : _ frame -> Int64.t option -> unit
 
+(** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
+val frame_copy : 'a frame -> 'b frame -> unit
+
 (** {1 Exception} *)
 
 (** Internal errors. *)
@@ -175,6 +178,11 @@ module Pixel_format : sig
 end
 
 module Audio : sig
+  (** [Avutil.Audio.create_frame sample_format channel_layout sample_rate samples]
+      allocates a new audio frame. *)
+  val create_frame :
+    Sample_format.t -> Channel_layout.t -> int -> int -> audio frame
+
   (** [Avutil.Audio.frame_get_sample_format frame] returns the sample format of
       the current frame. *)
   val frame_get_sample_format : audio frame -> Sample_format.t
@@ -194,6 +202,12 @@ module Audio : sig
   (** [Avutil.Audio.frame_nb_samples frame] returns the number of audio samples
       per channel in the current frame. *)
   val frame_nb_samples : audio frame -> int
+
+  (** [Abutil.Audio.frame_copy_samples src src_offset dst dst_offset len] copies
+      [len] samples from [src] starting at position [src_offset] into [dst] starting
+      at position [dst_offset]. *)
+  val frame_copy_samples :
+    audio frame -> int -> audio frame -> int -> int -> unit
 end
 
 module Video : sig

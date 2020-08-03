@@ -29,6 +29,8 @@ external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 external frame_set_pts : _ frame -> Int64.t option -> unit
   = "ocaml_avutil_frame_set_pts"
 
+external frame_copy : 'a frame -> 'b frame -> unit = "ocaml_avutil_frame_copy"
+
 type error =
   [ `Bsf_not_found
   | `Decoder_not_found
@@ -170,6 +172,10 @@ module Sample_format = struct
 end
 
 module Audio = struct
+  external create_frame :
+    Sample_format.t -> Channel_layout.t -> int -> int -> audio frame
+    = "ocaml_avutil_audio_create_frame"
+
   external frame_get_sample_format : audio frame -> Sample_format.t
     = "ocaml_avutil_audio_frame_get_sample_format"
 
@@ -184,6 +190,10 @@ module Audio = struct
 
   external frame_nb_samples : audio frame -> int
     = "ocaml_avutil_audio_frame_nb_samples"
+
+  external frame_copy_samples :
+    audio frame -> int -> audio frame -> int -> int -> unit
+    = "ocaml_avutil_audio_frame_copy_samples"
 end
 
 module Video = struct

@@ -10,6 +10,7 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
+#include <libavutil/avassert.h>
 #include <libavutil/avstring.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
@@ -301,7 +302,8 @@ static void av_log_ocaml_callback(void *ptr, int level, const char *fmt,
   static int print_prefix = 1;
   log_msg_t *log_msg;
 
-  if (level > av_log_get_level()) return;
+  if (level > av_log_get_level())
+    return;
 
   pthread_mutex_lock(&log_mutex);
 
@@ -565,10 +567,25 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
+  CAMLparam2(_src, _dst);
+  AVFrame *src = Frame_val(_src);
+  AVFrame *dst = Frame_val(_dst);
+  int ret;
+
+  caml_release_runtime_system();
+  ret = av_frame_copy(dst, src);
+  caml_acquire_runtime_system();
+
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
                                                value _format) {
   CAMLparam1(_format);
-  CAMLlocal1(ans);
   caml_release_runtime_system();
   AVFrame *frame = av_frame_alloc();
   caml_acquire_runtime_system();
@@ -588,8 +605,43 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
     ocaml_avutil_raise_error(ret);
   }
 
-  ans = value_of_frame(frame);
-  CAMLreturn(ans);
+  CAMLreturn(value_of_frame(frame));
+}
+
+/* Adapted from alloc_audio_frame */
+CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
+                                               value _channel_layout,
+                                               value _samplerate,
+                                               value _samples) {
+  CAMLparam2(_sample_fmt, _channel_layout);
+  enum AVSampleFormat sample_fmt = SampleFormat_val(_sample_fmt);
+  uint64_t channel_layout = ChannelLayout_val(_channel_layout);
+  int sample_rate = Int_val(_samplerate);
+  int nb_samples = Int_val(_samples);
+  int ret;
+
+  caml_release_runtime_system();
+  AVFrame *frame = av_frame_alloc();
+  caml_acquire_runtime_system();
+
+  if (!frame)
+    caml_raise_out_of_memory();
+
+  frame->format = sample_fmt;
+  frame->channel_layout = channel_layout;
+  frame->sample_rate = sample_rate;
+  frame->nb_samples = nb_samples;
+
+  caml_release_runtime_system();
+  ret = av_frame_get_buffer(frame, 0);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) {
+    av_frame_free(&frame);
+    ocaml_avutil_raise_error(ret);
+  }
+
+  CAMLreturn(value_of_frame(frame));
 }
 
 CAMLprim value ocaml_avutil_audio_frame_get_sample_format(value _frame) {
@@ -625,6 +677,43 @@ CAMLprim value ocaml_avutil_audio_frame_nb_samples(value _frame) {
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_int(frame->nb_samples));
+}
+
+/* Adapted from frame_copy_audio */
+CAMLprim value ocaml_avutil_audio_frame_copy_samples(value _src, value _src_ofs,
+                                                     value _dst, value _dst_ofs,
+                                                     value _len) {
+  CAMLparam2(_src, _dst);
+  AVFrame *src = Frame_val(_src);
+  AVFrame *dst = Frame_val(_dst);
+  int src_ofs = Int_val(_src_ofs);
+  int dst_ofs = Int_val(_dst_ofs);
+  int len = Int_val(_len);
+
+  int planar = av_sample_fmt_is_planar(dst->format);
+  int channels = dst->channels;
+  int planes = planar ? channels : 1;
+  int i;
+
+  if (src->nb_samples < src_ofs + len || dst->nb_samples < dst_ofs + len ||
+      dst->channels != src->channels ||
+      dst->channel_layout != src->channel_layout)
+    ocaml_avutil_raise_error(AVERROR(EINVAL));
+
+  av_assert2(!src->channel_layout ||
+             src->channels ==
+                 av_get_channel_layout_nb_channels(src->channel_layout));
+
+  for (i = 0; i < planes; i++)
+    if (!dst->extended_data[i] || !src->extended_data[i])
+      ocaml_avutil_raise_error(AVERROR(EINVAL));
+
+  caml_release_runtime_system();
+  av_samples_copy(dst->extended_data, src->extended_data, dst_ofs, src_ofs, len,
+                  channels, dst->format);
+  caml_acquire_runtime_system();
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_avutil_video_frame_width(value _frame) {
