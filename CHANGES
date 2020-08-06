@@ -1,6 +1,7 @@
 0.4.3 (unreleased)
 =====
 * Added Avutil.frame_pts
+* Added Avutil.Audio.{frame_get_sample_rate, frame_get_channels, frame_get_channel_layout}
 
 0.4.2 (2020-07-04)
 =====

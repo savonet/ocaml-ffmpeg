@@ -185,6 +185,12 @@ end
 
 module Audio = struct
   external frame_get_sample_format : audio frame -> Sample_format.t = "ocaml_avutil_video_frame_get_sample_format"
+
+  external frame_get_sample_rate : audio frame -> int = "ocaml_avutil_audio_frame_get_sample_rate"
+
+  external frame_get_channels : audio frame -> int = "ocaml_avutil_audio_frame_get_channels"
+
+  external frame_get_channel_layout : audio frame -> Channel_layout.t = "ocaml_avutil_audio_frame_get_channel_layout"
 end
 
 module Video = struct

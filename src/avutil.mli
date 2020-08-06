@@ -186,8 +186,20 @@ module Pixel_format : sig
 end
 
 module Audio : sig
-  val frame_get_sample_format : audio frame -> Sample_format.t
   (** [Avutil.Audio.frame_get_sample_format frame] returns the sample format of the current frame. *)
+  val frame_get_sample_format : audio frame -> Sample_format.t
+
+  (** [Avutil.Audio.frame_get_sample_rate frame] returns the sample rate of the
+      current frame. *)
+  val frame_get_sample_rate : audio frame -> int
+
+  (** [Avutil.Audio.frame_get_channels frame] returns the number of audio
+      channels in the current frame. *)
+  val frame_get_channels : audio frame -> int
+
+  (** [Avutil.Audio.frame_get_channel_layout frame] returns the channel layout
+      for the current frame. *)
+  val frame_get_channel_layout : audio frame -> Channel_layout.t
 end
 
 module Video : sig

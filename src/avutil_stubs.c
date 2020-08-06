@@ -606,6 +606,37 @@ CAMLprim value ocaml_avutil_video_frame_get_sample_format(value _frame)
 #endif
 }
 
+CAMLprim value ocaml_avutil_audio_frame_get_sample_rate(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->sample_rate));
+}
+
+CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame) {
+  CAMLparam1(_frame);
+#ifdef HAS_FRAME
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_int(frame->channels));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
+}
+
+CAMLprim value ocaml_avutil_audio_frame_get_channel_layout(value _frame) {
+  CAMLparam1(_frame);
+#ifdef HAS_FRAME
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ChannelLayout((frame->channel_layout)));
+#else
+  caml_failwith("Not implemented.");
+  CAMLreturn(Val_unit);
+#endif
+}
+
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame, value _line)
 {
   CAMLparam1(_frame);
