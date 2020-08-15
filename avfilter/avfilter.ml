@@ -59,6 +59,9 @@ external height : filter_ctx -> int = "ocaml_avfilter_buffersink_get_h"
 external sample_aspect_ratio : filter_ctx -> Avutil.rational
   = "ocaml_avfilter_buffersink_get_sample_aspect_ratio"
 
+external pixel_format : filter_ctx -> Avutil.Pixel_format.t
+  = "ocaml_avfilter_buffersink_get_pixel_format"
+
 external channels : filter_ctx -> int = "ocaml_avfilter_buffersink_get_channels"
 
 external channel_layout : filter_ctx -> Avutil.Channel_layout.t
@@ -66,6 +69,9 @@ external channel_layout : filter_ctx -> Avutil.Channel_layout.t
 
 external sample_rate : filter_ctx -> int
   = "ocaml_avfilter_buffersink_get_sample_rate"
+
+external sample_format : filter_ctx -> Avutil.Sample_format.t
+  = "ocaml_avfilter_buffersink_get_sample_format"
 
 external set_frame_size : filter_ctx -> int -> unit
   = "ocaml_avfilter_buffersink_set_frame_size"

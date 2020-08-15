@@ -37,9 +37,11 @@ val frame_rate : [ `Video ] context -> Avutil.rational
 val width : [ `Video ] context -> int
 val height : [ `Video ] context -> int
 val sample_aspect_ratio : [ `Video ] context -> Avutil.rational
+val pixel_format : [ `Video ] context -> Avutil.Pixel_format.t
 val channels : [ `Audio ] context -> int
 val channel_layout : [ `Audio ] context -> Avutil.Channel_layout.t
 val sample_rate : [ `Audio ] context -> int
+val sample_format : [ `Audio ] context -> Avutil.Sample_format.t
 val set_frame_size : [ `Audio ] context -> int -> unit
 
 exception Exists
