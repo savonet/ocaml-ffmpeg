@@ -29,6 +29,9 @@ external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 external frame_set_pts : _ frame -> Int64.t option -> unit
   = "ocaml_avutil_frame_set_pts"
 
+external frame_pkt_duration : _ frame -> Int64.t option
+  = "ocaml_avutil_frame_pkt_duration"
+
 external frame_copy : 'a frame -> 'b frame -> unit = "ocaml_avutil_frame_copy"
 
 type error =

@@ -38,6 +38,9 @@ val frame_pts : _ frame -> Int64.t option
 (** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
 val frame_set_pts : _ frame -> Int64.t option -> unit
 
+(** duration of the corresponding packet, expressed in AVStream->time_base units. *)
+val frame_pkt_duration : _ frame -> Int64.t option
+
 (** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
 val frame_copy : 'a frame -> 'b frame -> unit
 
