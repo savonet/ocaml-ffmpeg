@@ -86,9 +86,42 @@ static void finalize_codec_parameters(value v) {
   avcodec_parameters_free(&codec_parameters);
 }
 
+// This is intended for equality comparison only.
+static int compare_params(value v1, value v2) {
+  struct AVCodecParameters *p1 = CodecParameters_val(v1);
+  struct AVCodecParameters *p2 = CodecParameters_val(v2);
+  int cmp;
+
+  if (p1->codec_type != p2->codec_type) return p1->codec_type - p2->codec_type;
+  
+  if (p1->codec_id != p2->codec_id) return p1->codec_id - p2->codec_id;
+
+  if (p1->format != p2->format) return p1->format - p2->format;
+
+  switch (p1->codec_type) {
+    case AVMEDIA_TYPE_VIDEO:
+      if (p1->width != p2->width) return p1->width - p2->width;
+      if (p1->height != p2->height) return p1->height - p2->height;
+
+      cmp = av_cmp_q(p1->sample_aspect_ratio, p2->sample_aspect_ratio);
+      if (cmp != 0) return cmp;
+
+      return 0;
+
+    case AVMEDIA_TYPE_AUDIO:
+      if (p1->channel_layout != p2->channel_layout) return p1->channel_layout - p2->channel_layout;
+      if (p1->sample_rate != p2->sample_rate) return p1->sample_rate - p2->sample_rate;
+
+      return 0;
+
+    default:
+      caml_invalid_argument("I don't know how to compare these AVCodecParameters");
+  }
+}
+
 static struct custom_operations codec_parameters_ops = {
     "ocaml_avcodec_parameters", finalize_codec_parameters,
-    custom_compare_default,     custom_hash_default,
+    compare_params,     custom_hash_default,
     custom_serialize_default,   custom_deserialize_default};
 
 void value_of_codec_parameters_copy(AVCodecParameters *src, value *pvalue) {
