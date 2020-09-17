@@ -1,6 +1,6 @@
 (* Options *)
-type opt_val = [ `String of string | `Int of int | `Float of float ]
-type opts = (string, opt_val) Hashtbl.t
+type value = [ `String of string | `Int of int | `Float of float ]
+type opts = (string, value) Hashtbl.t
 
 (* Line *)
 type input
@@ -253,4 +253,199 @@ module Subtitle = struct
       ( to_float s *. num_time_base /. den_time_base,
         to_float e *. num_time_base /. den_time_base,
         Array.to_list lines )
+end
+
+module Options = struct
+  type t
+
+  type 'a entry = {
+    default : 'a option;
+    min : 'a option;
+    max : 'a option;
+    values : (string * 'a) list option;
+  }
+
+  type spec =
+    [ `Flags of int64 entry
+    | `Int of int entry
+    | `Int64 of int64 entry
+    | `Float of float entry
+    | `Double of float entry
+    | `String of string entry
+    | `Rational of rational entry
+    | `Binary of string entry
+    | `Dict of (string, string) Hashtbl.t entry
+    | `UInt64 of int64 entry
+    | `Image_size of (int * int) entry
+    | `Pixel_fmt of Pixel_format.t entry
+    | `Sample_fmt of Sample_format.t entry
+    | `Video_rate of rational entry
+    | `Duration of int64 entry
+    | `Color of string entry
+    | `Channel_layout of Channel_layout.t entry
+    | `Bool of bool entry ]
+
+  type opt = { name : string; help : string option; spec : spec }
+  type _next
+  type 'a _entry = { _default : 'a option; _min : 'a option; _max : 'a option }
+
+  type _spec =
+    [ `Flags of int64 _entry
+    | `Int of int _entry
+    | `Int64 of int64 _entry
+    | `Float of float _entry
+    | `Double of float _entry
+    | `String of string _entry
+    | `Rational of rational _entry
+    | `Binary of string _entry
+    | `Dict of (string, string) Hashtbl.t _entry
+    | `UInt64 of int64 _entry
+    | `Image_size of (int * int) _entry
+    | `Pixel_fmt of Pixel_format.t _entry
+    | `Sample_fmt of Sample_format.t _entry
+    | `Video_rate of rational _entry
+    | `Duration of int64 _entry
+    | `Color of string _entry
+    | `Channel_layout of Channel_layout.t _entry
+    | `Bool of bool _entry ]
+
+  type _opt = {
+    _name : string;
+    _help : string option;
+    _spec : _spec;
+    _constant : bool;
+    _unit : string option;
+    _next : _next option;
+  }
+
+  external av_opt_next : ?_next:_next -> t -> _opt option
+    = "ocaml_avutil_av_opt_next"
+
+  let constant_of_opt opt constant =
+    let append n v = function
+      | None -> Some [(n, Option.get v)]
+      | Some l -> Some ((n, Option.get v) :: l)
+    in
+
+    let spec =
+      match (opt.spec, constant) with
+        | ( `Flags ({ values; _ } as spec),
+            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+            `Int64 { spec with values = append _name _default values }
+        | ( `Int ({ values; _ } as spec),
+            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+            `Int
+              {
+                spec with
+                values = append _name (Option.map Int64.to_int _default) values;
+              }
+        | ( `Int64 ({ values; _ } as spec),
+            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+            `Int64 { spec with values = append _name _default values }
+        | ( `UInt64 ({ values; _ } as spec),
+            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+            `UInt64 { spec with values = append _name _default values }
+        | ( `Duration ({ values; _ } as spec),
+            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+            `Duration { spec with values = append _name _default values }
+        | ( `Float ({ values; _ } as spec),
+            { _name; _spec = `Float { _default; _ }; _ } ) ->
+            `Float { spec with values = append _name _default values }
+        | ( `Double ({ values; _ } as spec),
+            { _name; _spec = `Double { _default; _ }; _ } ) ->
+            `Double { spec with values = append _name _default values }
+        | ( `Rational ({ values; _ } as spec),
+            { _name; _spec = `Rational { _default; _ }; _ } ) ->
+            `Rational { spec with values = append _name _default values }
+        | ( `Video_rate ({ values; _ } as spec),
+            { _name; _spec = `Rational { _default; _ }; _ } ) ->
+            `Video_rate { spec with values = append _name _default values }
+        | ( `String ({ values; _ } as spec),
+            { _name; _spec = `String { _default; _ }; _ } ) ->
+            `String { spec with values = append _name _default values }
+        | ( `Color ({ values; _ } as spec),
+            { _name; _spec = `String { _default; _ }; _ } ) ->
+            `Color { spec with values = append _name _default values }
+        | _ -> failwith "Incompatible constant!"
+    in
+    { opt with spec }
+
+  let opts v =
+    let constants = Hashtbl.create 10 in
+
+    let opt_of_opt { _name; _help; _spec; _unit; _ } =
+      let spec =
+        match _spec with
+          | `Flags { _default; _min; _max } ->
+              `Flags
+                { default = _default; min = _min; max = _max; values = None }
+          | `Int { _default; _min; _max; _ } ->
+              `Int { default = _default; min = _min; max = _max; values = None }
+          | `Int64 { _default; _min; _max; _ } ->
+              `Int64
+                { default = _default; min = _min; max = _max; values = None }
+          | `Float { _default; _min; _max; _ } ->
+              `Float
+                { default = _default; min = _min; max = _max; values = None }
+          | `Double { _default; _min; _max; _ } ->
+              `Double
+                { default = _default; min = _min; max = _max; values = None }
+          | `String { _default; _min; _max; _ } ->
+              `String
+                { default = _default; min = _min; max = _max; values = None }
+          | `Rational { _default; _min; _max; _ } ->
+              `Rational
+                { default = _default; min = _min; max = _max; values = None }
+          | `Binary { _default; _min; _max; _ } ->
+              `Binary
+                { default = _default; min = _min; max = _max; values = None }
+          | `Dict { _default; _min; _max; _ } ->
+              `Dict
+                { default = _default; min = _min; max = _max; values = None }
+          | `UInt64 { _default; _min; _max; _ } ->
+              `UInt64
+                { default = _default; min = _min; max = _max; values = None }
+          | `Image_size { _default; _min; _max; _ } ->
+              `Image_size
+                { default = _default; min = _min; max = _max; values = None }
+          | `Pixel_fmt { _default; _min; _max; _ } ->
+              `Pixel_fmt
+                { default = _default; min = _min; max = _max; values = None }
+          | `Sample_fmt { _default; _min; _max; _ } ->
+              `Sample_fmt
+                { default = _default; min = _min; max = _max; values = None }
+          | `Video_rate { _default; _min; _max; _ } ->
+              `Video_rate
+                { default = _default; min = _min; max = _max; values = None }
+          | `Duration { _default; _min; _max; _ } ->
+              `Duration
+                { default = _default; min = _min; max = _max; values = None }
+          | `Color { _default; _min; _max; _ } ->
+              `Color
+                { default = _default; min = _min; max = _max; values = None }
+          | `Channel_layout { _default; _min; _max; _ } ->
+              `Channel_layout
+                { default = _default; min = _min; max = _max; values = None }
+          | `Bool { _default; _min; _max; _ } ->
+              `Bool
+                { default = _default; min = _min; max = _max; values = None }
+      in
+      let opt = { name = _name; help = _help; spec } in
+      match _unit with
+        | Some u when Hashtbl.mem constants u ->
+            List.fold_left constant_of_opt opt (Hashtbl.find_all constants u)
+        | _ -> opt
+    in
+
+    let rec f _next _opts =
+      match av_opt_next ?_next v with
+        | None -> List.map opt_of_opt _opts
+        | Some _opt ->
+            if _opt._constant then (
+              Hashtbl.add constants (Option.get _opt._unit) _opt;
+              f _opt._next _opts )
+            else f _opt._next (_opt :: _opts)
+    in
+
+    f None []
 end
