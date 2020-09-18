@@ -179,6 +179,26 @@ let gen_polymorphic_variant_h () =
       "Buffer";
       "Link";
       "Sink";
+      (* Options *)
+      "Constant";
+      "Flags";
+      "Int";
+      "Int64";
+      "Float";
+      "Double";
+      "String";
+      "Rational";
+      "Binary";
+      "Dict";
+      "UInt64";
+      "Image_size";
+      "Pixel_fmt";
+      "Sample_fmt";
+      "Video_rate";
+      "Duration";
+      "Color";
+      "Channel_layout";
+      "Bool";
       (* Errors *)
       "Bsf_not_found";
       "Decoder_not_found";

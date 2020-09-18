@@ -3,6 +3,7 @@
 type valued_arg =
   [ `String of string
   | `Int of int
+  | `Int64 of int64
   | `Float of float
   | `Rational of Avutil.rational ]
 
@@ -178,6 +179,8 @@ let rec args_of_args cur = function
       args_of_args (Printf.sprintf "%s=%s" lbl s :: cur) args
   | `Pair (lbl, `Int i) :: args ->
       args_of_args (Printf.sprintf "%s=%i" lbl i :: cur) args
+  | `Pair (lbl, `Int64 i) :: args ->
+      args_of_args (Printf.sprintf "%s=%Li" lbl i :: cur) args
   | `Pair (lbl, `Float f) :: args ->
       args_of_args (Printf.sprintf "%s=%f" lbl f :: cur) args
   | `Pair (lbl, `Rational { Avutil.num; den }) :: args ->
@@ -354,7 +357,7 @@ module Utils = struct
         `Pair ("time_base", `Rational in_time_base);
         `Pair
           ( "channel_layout",
-            `Int (Avutil.Channel_layout.get_id in_params.channel_layout) );
+            `Int64 (Avutil.Channel_layout.get_id in_params.channel_layout) );
         `Pair
           ( "sample_fmt",
             `Int (Avutil.Sample_format.get_id in_params.sample_format) );
@@ -378,8 +381,8 @@ module Utils = struct
                 `Pair ("in_sample_rate", `Int in_params.sample_rate);
                 `Pair
                   ( "in_channel_layout",
-                    `Int (Avutil.Channel_layout.get_id in_params.channel_layout)
-                  );
+                    `Int64
+                      (Avutil.Channel_layout.get_id in_params.channel_layout) );
                 `Pair
                   ( "in_sample_fmt",
                     `Int (Avutil.Sample_format.get_id in_params.sample_format)
@@ -387,7 +390,7 @@ module Utils = struct
                 `Pair ("out_sample_rate", `Int out_params.sample_rate);
                 `Pair
                   ( "out_channel_layout",
-                    `Int
+                    `Int64
                       (Avutil.Channel_layout.get_id out_params.channel_layout)
                   );
                 `Pair

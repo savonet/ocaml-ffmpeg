@@ -1,5 +1,7 @@
 (* Options *)
-type value = [ `String of string | `Int of int | `Float of float ]
+type value =
+  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
+
 type opts = (string, value) Hashtbl.t
 
 (* Line *)
@@ -86,6 +88,8 @@ let create_data len =
 
 type rational = { num : int; den : int }
 
+external av_d2q : float -> rational = "ocaml_avutil_av_d2q"
+
 let string_of_rational { num; den } = Printf.sprintf "%d/%d" num den
 
 external time_base : unit -> rational = "ocaml_avutil_time_base"
@@ -141,6 +145,7 @@ module Pixel_format = struct
   external planes : t -> int = "ocaml_avutil_pixelformat_planes"
   external to_string : t -> string = "ocaml_avutil_pixelformat_to_string"
   external of_string : string -> t = "ocaml_avutil_pixelformat_of_string"
+  external of_int : int -> t = "ocaml_avutil_pixelformat_of_int"
 
   let bits (*?(padding=true)*) p =
     let n = bits p in
@@ -162,7 +167,8 @@ module Channel_layout = struct
     = "ocaml_avutil_get_channel_layout_nb_channels"
 
   external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
-  external get_id : t -> int = "ocaml_avutil_get_channel_layout_id"
+  external get_id : t -> int64 = "ocaml_avutil_get_channel_layout_id"
+  external from_id : int64 -> t = "ocaml_avutil_channel_layout_of_id"
 end
 
 module Sample_format = struct
@@ -259,7 +265,7 @@ module Options = struct
   type t
 
   type 'a entry = {
-    default : 'a option;
+    default : 'a;
     min : 'a option;
     max : 'a option;
     values : (string * 'a) list option;
@@ -274,23 +280,33 @@ module Options = struct
     | `String of string entry
     | `Rational of rational entry
     | `Binary of string entry
-    | `Dict of (string, string) Hashtbl.t entry
+    | `Dict of string entry
     | `UInt64 of int64 entry
-    | `Image_size of (int * int) entry
+    | `Image_size of string entry
     | `Pixel_fmt of Pixel_format.t entry
     | `Sample_fmt of Sample_format.t entry
-    | `Video_rate of rational entry
+    | `Video_rate of string entry
     | `Duration of int64 entry
     | `Color of string entry
     | `Channel_layout of Channel_layout.t entry
     | `Bool of bool entry ]
 
   type opt = { name : string; help : string option; spec : spec }
-  type _next
-  type 'a _entry = { _default : 'a option; _min : 'a option; _max : 'a option }
+  type 'a _entry = { _default : 'a; _min : 'a option; _max : 'a option }
+  type constant
+
+  external default_int64 : constant -> int64
+    = "ocaml_avutil_avopt_default_int64"
+
+  external default_double : constant -> float
+    = "ocaml_avutil_avopt_default_double"
+
+  external default_string : constant -> string
+    = "ocaml_avutil_avopt_default_string"
 
   type _spec =
-    [ `Flags of int64 _entry
+    [ `Constant of constant _entry
+    | `Flags of int64 _entry
     | `Int of int _entry
     | `Int64 of int64 _entry
     | `Float of float _entry
@@ -298,74 +314,117 @@ module Options = struct
     | `String of string _entry
     | `Rational of rational _entry
     | `Binary of string _entry
-    | `Dict of (string, string) Hashtbl.t _entry
+    | `Dict of string _entry
     | `UInt64 of int64 _entry
-    | `Image_size of (int * int) _entry
+    | `Image_size of string _entry
     | `Pixel_fmt of Pixel_format.t _entry
     | `Sample_fmt of Sample_format.t _entry
-    | `Video_rate of rational _entry
+    | `Video_rate of string _entry
     | `Duration of int64 _entry
     | `Color of string _entry
     | `Channel_layout of Channel_layout.t _entry
     | `Bool of bool _entry ]
 
+  type _opt_cursor
+  type _class_cursor
+  type _cursor = { _opt_cursor : _opt_cursor; _class_cursor : _class_cursor }
+
   type _opt = {
     _name : string;
     _help : string option;
     _spec : _spec;
-    _constant : bool;
     _unit : string option;
-    _next : _next option;
+    _cursor : _cursor option;
   }
 
-  external av_opt_next : ?_next:_next -> t -> _opt option
+  external av_opt_next : ?_cursor:_cursor -> t -> _opt option
     = "ocaml_avutil_av_opt_next"
 
-  let constant_of_opt opt constant =
-    let append n v = function
-      | None -> Some [(n, Option.get v)]
-      | Some l -> Some ((n, Option.get v) :: l)
+  let constant_of_opt opt (name, { _default; _ }) =
+    let append fn = function
+      | None -> Some [(name, fn _default)]
+      | Some l -> Some ((name, fn _default) :: l)
     in
 
     let spec =
-      match (opt.spec, constant) with
-        | ( `Flags ({ values; _ } as spec),
-            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
-            `Int64 { spec with values = append _name _default values }
-        | ( `Int ({ values; _ } as spec),
-            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
+      (* See: https://ffmpeg.org/doxygen/trunk/opt_8c_source.html#l01281 *)
+      match opt.spec with
+        (* Int *)
+        | `Flags ({ values; _ } as spec) ->
+            `Int64 { spec with values = append default_int64 values }
+        | `Int ({ values; _ } as spec) ->
             `Int
               {
                 spec with
-                values = append _name (Option.map Int64.to_int _default) values;
+                values = append (fun v -> Int64.to_int (default_int64 v)) values;
               }
-        | ( `Int64 ({ values; _ } as spec),
-            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
-            `Int64 { spec with values = append _name _default values }
-        | ( `UInt64 ({ values; _ } as spec),
-            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
-            `UInt64 { spec with values = append _name _default values }
-        | ( `Duration ({ values; _ } as spec),
-            { _name; _spec = `Int64 { _default; _ }; _ } ) ->
-            `Duration { spec with values = append _name _default values }
-        | ( `Float ({ values; _ } as spec),
-            { _name; _spec = `Float { _default; _ }; _ } ) ->
-            `Float { spec with values = append _name _default values }
-        | ( `Double ({ values; _ } as spec),
-            { _name; _spec = `Double { _default; _ }; _ } ) ->
-            `Double { spec with values = append _name _default values }
-        | ( `Rational ({ values; _ } as spec),
-            { _name; _spec = `Rational { _default; _ }; _ } ) ->
-            `Rational { spec with values = append _name _default values }
-        | ( `Video_rate ({ values; _ } as spec),
-            { _name; _spec = `Rational { _default; _ }; _ } ) ->
-            `Video_rate { spec with values = append _name _default values }
-        | ( `String ({ values; _ } as spec),
-            { _name; _spec = `String { _default; _ }; _ } ) ->
-            `String { spec with values = append _name _default values }
-        | ( `Color ({ values; _ } as spec),
-            { _name; _spec = `String { _default; _ }; _ } ) ->
-            `Color { spec with values = append _name _default values }
+        | `Int64 ({ values; _ } as spec) ->
+            `Int64 { spec with values = append default_int64 values }
+        | `UInt64 ({ values; _ } as spec) ->
+            `UInt64 { spec with values = append default_int64 values }
+        | `Duration ({ values; _ } as spec) ->
+            `Duration { spec with values = append default_int64 values }
+        | `Bool ({ values; _ } as spec) ->
+            `Bool
+              {
+                spec with
+                values = append (fun v -> default_int64 v = 0L) values;
+              }
+        (* Float *)
+        | `Float ({ values; _ } as spec) ->
+            `Float { spec with values = append default_double values }
+        | `Double ({ values; _ } as spec) ->
+            `Double { spec with values = append default_double values }
+        (* Rational *)
+        (* This is surprising but this is the current implementation
+           it looks like. Might be historical. *)
+        | `Rational ({ values; _ } as spec) ->
+            `Rational
+              {
+                spec with
+                values = append (fun v -> av_d2q (default_double v)) values;
+              }
+        (* String *)
+        | `String ({ values; _ } as spec) ->
+            `String { spec with values = append default_string values }
+        | `Video_rate ({ values; _ } as spec) ->
+            `Video_rate { spec with values = append default_string values }
+        | `Color ({ values; _ } as spec) ->
+            `Color { spec with values = append default_string values }
+        | `Image_size ({ values; _ } as spec) ->
+            `Image_size { spec with values = append default_string values }
+        | `Dict ({ values; _ } as spec) ->
+            `Dict { spec with values = append default_string values }
+        (* Other *)
+        | `Channel_layout ({ values; _ } as spec) ->
+            `Channel_layout
+              {
+                spec with
+                values =
+                  append
+                    (fun v -> Channel_layout.from_id (default_int64 v))
+                    values;
+              }
+        | `Sample_fmt ({ values; _ } as spec) ->
+            `Sample_fmt
+              {
+                spec with
+                values =
+                  append
+                    (fun v ->
+                      Sample_format.find_id (Int64.to_int (default_int64 v)))
+                    values;
+              }
+        | `Pixel_fmt ({ values; _ } as spec) ->
+            `Pixel_fmt
+              {
+                spec with
+                values =
+                  append
+                    (fun v ->
+                      Pixel_format.of_int (Int64.to_int (default_int64 v)))
+                    values;
+              }
         | _ -> failwith "Incompatible constant!"
     in
     { opt with spec }
@@ -429,6 +488,7 @@ module Options = struct
           | `Bool { _default; _min; _max; _ } ->
               `Bool
                 { default = _default; min = _min; max = _max; values = None }
+          | `Constant _ -> assert false
       in
       let opt = { name = _name; help = _help; spec } in
       match _unit with
@@ -437,14 +497,13 @@ module Options = struct
         | _ -> opt
     in
 
-    let rec f _next _opts =
-      match av_opt_next ?_next v with
+    let rec f _cursor _opts =
+      match av_opt_next ?_cursor v with
         | None -> List.map opt_of_opt _opts
-        | Some _opt ->
-            if _opt._constant then (
-              Hashtbl.add constants (Option.get _opt._unit) _opt;
-              f _opt._next _opts )
-            else f _opt._next (_opt :: _opts)
+        | Some { _name; _spec = `Constant s; _cursor; _unit; _ } ->
+            Hashtbl.add constants (Option.get _unit) (_name, s);
+            f _cursor _opts
+        | Some _opt -> f _opt._cursor (_opt :: _opts)
     in
 
     f None []

@@ -2,7 +2,9 @@
 
 (* {1 Options } *)
 
-type value = [ `String of string | `Int of int | `Float of float ]
+type value =
+  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
+
 type opts = (string, value) Hashtbl.t
 
 (** {1 Line} *)
@@ -137,7 +139,7 @@ module Channel_layout : sig
 
   (** Return the internal ID for a channel layout. This number should be passed
       as the "channel_layout" [opts] in [Av.new_audio_stream] .*)
-  val get_id : t -> int
+  val get_id : t -> int64
 end
 
 (** Formats for audio samples. *)
@@ -265,7 +267,7 @@ module Options : sig
   type t
 
   type 'a entry = {
-    default : 'a option;
+    default : 'a;
     (* Used only for numerical options. *)
     min : 'a option;
     max : 'a option;
@@ -282,12 +284,12 @@ module Options : sig
     | `String of string entry
     | `Rational of rational entry
     | `Binary of string entry
-    | `Dict of (string, string) Hashtbl.t entry
+    | `Dict of string entry
     | `UInt64 of int64 entry
-    | `Image_size of (int * int) entry
+    | `Image_size of string entry
     | `Pixel_fmt of Pixel_format.t entry
     | `Sample_fmt of Sample_format.t entry
-    | `Video_rate of rational entry
+    | `Video_rate of string entry
     | `Duration of int64 entry
     | `Color of string entry
     | `Channel_layout of Channel_layout.t entry

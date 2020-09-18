@@ -62,6 +62,7 @@ external open_output_format :
 let _opt_val = function
   | `String s -> s
   | `Int i -> string_of_int i
+  | `Int64 i -> Int64.to_string i
   | `Float f -> string_of_float f
 
 let mk_opts = function
