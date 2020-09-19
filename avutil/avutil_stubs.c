@@ -929,8 +929,8 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class, value _int64_min, value _int64_max) {
-  CAMLparam4(_cursor, _class, _int64_min, _int64_max);
+CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
+  CAMLparam2(_cursor, _class);
   CAMLlocal4(_opt, _type, _tmp, _spec);
 
   const AVClass *_class_cursor;
@@ -1046,9 +1046,9 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class, value _int6
 
   int64_opt:
     if (_opt_cursor->default_val.i64 == INT64_MIN)
-      Store_field(_tmp, 0, _int64_min);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
     else if (_opt_cursor->default_val.i64 == INT64_MAX)
-      Store_field(_tmp, 0, _int64_max);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MAX));
     else
       Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->default_val.i64));
     Store_field(_spec, 0, _tmp);
@@ -1056,9 +1056,9 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class, value _int6
     _tmp = caml_alloc_small(1, 0);
 
     if (_opt_cursor->min == INT64_MIN)
-      Store_field(_tmp, 0, _int64_min);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
     else if (_opt_cursor->min == INT64_MAX)
-      Store_field(_tmp, 0, _int64_max);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MAX));
     else
       Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->min));
 
@@ -1067,9 +1067,9 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class, value _int6
     _tmp = caml_alloc_small(1, 0);
 
     if (_opt_cursor->max == INT64_MIN)
-      Store_field(_tmp, 0, _int64_min);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
     else if (_opt_cursor->max == INT64_MAX)
-      Store_field(_tmp, 0, _int64_max);
+      Store_field(_tmp, 0, caml_copy_int64(INT64_MAX));
     else
       Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->max));
 
