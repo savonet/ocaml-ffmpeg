@@ -337,8 +337,10 @@ module Options = struct
     _cursor : _cursor option;
   }
 
-  external av_opt_next : _cursor option -> t -> _opt option
+  external av_opt_next : _cursor option -> t -> int64 -> int64 -> _opt option
     = "ocaml_avutil_av_opt_next"
+
+  let av_opt_next cursor t = av_opt_next cursor t Int64.min_int Int64.max_int
 
   let constant_of_opt opt (name, { _default; _ }) =
     let append fn l = (name, fn (Option.get _default)) :: l in
