@@ -28,7 +28,7 @@ type ('a, 'b) pads =
 type 'a filter = {
   name : string;
   description : string;
-  options: Avutil.Options.t;
+  options : Avutil.Options.t;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
@@ -85,7 +85,7 @@ type ('a, 'b, 'c) _filter = {
   _description : string;
   _inputs : ('a, 'b, 'c) pad array;
   _outputs : ('a, 'b, 'c) pad array;
-  _options: Avutil.Options.t;
+  _options : Avutil.Options.t;
 }
 
 external register_all : unit -> unit = "ocaml_avfilter_register_all"
@@ -126,7 +126,9 @@ let filters, abuffer, buffer, abuffersink, buffersink =
         let io =
           { inputs = split_pads _inputs; outputs = split_pads _outputs }
         in
-        let filter = { name = _name; description = _description; options = _options; io } in
+        let filter =
+          { name = _name; description = _description; options = _options; io }
+        in
         match _name with
           | s when s = "abuffer" ->
               (filters, Some filter, buffer, abuffersink, buffersink)

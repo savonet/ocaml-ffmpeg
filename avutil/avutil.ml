@@ -341,7 +341,7 @@ module Options = struct
     = "ocaml_avutil_av_opt_next"
 
   let constant_of_opt opt (name, { _default; _ }) =
-    let append fn l = ((name, fn (Option.get _default)) :: l) in
+    let append fn l = (name, fn (Option.get _default)) :: l in
 
     let spec =
       (* See: https://ffmpeg.org/doxygen/trunk/opt_8c_source.html#l01281 *)
@@ -433,16 +433,13 @@ module Options = struct
       let spec =
         match _spec with
           | `Flags { _default; _min; _max } ->
-              `Flags
-                { default = _default; min = _min; max = _max; values = [] }
+              `Flags { default = _default; min = _min; max = _max; values = [] }
           | `Int { _default; _min; _max; _ } ->
               `Int { default = _default; min = _min; max = _max; values = [] }
           | `Int64 { _default; _min; _max; _ } ->
-              `Int64
-                { default = _default; min = _min; max = _max; values = [] }
+              `Int64 { default = _default; min = _min; max = _max; values = [] }
           | `Float { _default; _min; _max; _ } ->
-              `Float
-                { default = _default; min = _min; max = _max; values = [] }
+              `Float { default = _default; min = _min; max = _max; values = [] }
           | `Double { _default; _min; _max; _ } ->
               `Double
                 { default = _default; min = _min; max = _max; values = [] }
@@ -456,8 +453,7 @@ module Options = struct
               `Binary
                 { default = _default; min = _min; max = _max; values = [] }
           | `Dict { _default; _min; _max; _ } ->
-              `Dict
-                { default = _default; min = _min; max = _max; values = [] }
+              `Dict { default = _default; min = _min; max = _max; values = [] }
           | `UInt64 { _default; _min; _max; _ } ->
               `UInt64
                 { default = _default; min = _min; max = _max; values = [] }
@@ -477,14 +473,12 @@ module Options = struct
               `Duration
                 { default = _default; min = _min; max = _max; values = [] }
           | `Color { _default; _min; _max; _ } ->
-              `Color
-                { default = _default; min = _min; max = _max; values = [] }
+              `Color { default = _default; min = _min; max = _max; values = [] }
           | `Channel_layout { _default; _min; _max; _ } ->
               `Channel_layout
                 { default = _default; min = _min; max = _max; values = [] }
           | `Bool { _default; _min; _max; _ } ->
-              `Bool
-                { default = _default; min = _min; max = _max; values = [] }
+              `Bool { default = _default; min = _min; max = _max; values = [] }
           | `Constant _ -> assert false
       in
       let opt = { name = _name; help = _help; spec } in

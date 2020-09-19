@@ -24,7 +24,7 @@ type ('a, 'b) pads =
 type 'a filter = {
   name : string;
   description : string;
-  options: Avutil.Options.t;
+  options : Avutil.Options.t;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 

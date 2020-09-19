@@ -338,8 +338,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_sample_format(value _src) {
   CAMLparam0();
 
   caml_release_runtime_system();
-  int sample_format =
-    av_buffersink_get_format((AVFilterContext *)_src);
+  int sample_format = av_buffersink_get_format((AVFilterContext *)_src);
   caml_acquire_runtime_system();
 
   CAMLreturn(Val_SampleFormat((enum AVSampleFormat)sample_format));
@@ -369,8 +368,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_pixel_format(value _src) {
   CAMLparam0();
 
   caml_release_runtime_system();
-  int pixel_format =
-    av_buffersink_get_format((AVFilterContext *)_src);
+  int pixel_format = av_buffersink_get_format((AVFilterContext *)_src);
   caml_acquire_runtime_system();
 
   CAMLreturn(Val_PixelFormat((enum AVPixelFormat)pixel_format));

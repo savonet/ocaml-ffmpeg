@@ -945,7 +945,8 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     _class_cursor = (const AVClass *)Field(Some_val(_cursor), 1);
   }
 
-  if (_class_cursor == NULL) CAMLreturn(Val_none);
+  if (_class_cursor == NULL)
+    CAMLreturn(Val_none);
 
   _opt_cursor = av_opt_next(&_class_cursor, _opt_cursor);
 
@@ -954,7 +955,8 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
       _class_cursor =
           av_opt_child_class_next((const AVClass *)_class, _class_cursor);
 
-      if (_class_cursor == NULL) CAMLreturn(Val_none);
+      if (_class_cursor == NULL)
+        CAMLreturn(Val_none);
 
       _opt_cursor = av_opt_next(&_class_cursor, _opt_cursor);
     } while (_opt_cursor == NULL);
@@ -1148,15 +1150,15 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
 
 CAMLprim value ocaml_avutil_avopt_default_int64(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_int64(((const AVOption*)_opt)->default_val.i64));
+  CAMLreturn(caml_copy_int64(((const AVOption *)_opt)->default_val.i64));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_double(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_double(((const AVOption*)_opt)->default_val.dbl));
+  CAMLreturn(caml_copy_double(((const AVOption *)_opt)->default_val.dbl));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_string(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_string(((const AVOption*)_opt)->default_val.str));
+  CAMLreturn(caml_copy_string(((const AVOption *)_opt)->default_val.str));
 }
