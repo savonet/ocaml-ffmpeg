@@ -271,7 +271,7 @@ module Options : sig
     (* Used only for numerical options. *)
     min : 'a option;
     max : 'a option;
-    (* Pre-defined options options. *)
+    (* Pre-defined options. *)
     values : (string * 'a) list;
   }
 
