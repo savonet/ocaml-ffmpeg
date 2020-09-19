@@ -265,10 +265,10 @@ module Options = struct
   type t
 
   type 'a entry = {
-    default : 'a;
+    default : 'a option;
     min : 'a option;
     max : 'a option;
-    values : (string * 'a) list option;
+    values : (string * 'a) list;
   }
 
   type spec =
@@ -292,7 +292,7 @@ module Options = struct
     | `Bool of bool entry ]
 
   type opt = { name : string; help : string option; spec : spec }
-  type 'a _entry = { _default : 'a; _min : 'a option; _max : 'a option }
+  type 'a _entry = { _default : 'a option; _min : 'a option; _max : 'a option }
   type constant
 
   external default_int64 : constant -> int64
@@ -337,14 +337,11 @@ module Options = struct
     _cursor : _cursor option;
   }
 
-  external av_opt_next : ?_cursor:_cursor -> t -> _opt option
+  external av_opt_next : _cursor option -> t -> _opt option
     = "ocaml_avutil_av_opt_next"
 
   let constant_of_opt opt (name, { _default; _ }) =
-    let append fn = function
-      | None -> Some [(name, fn _default)]
-      | Some l -> Some ((name, fn _default) :: l)
-    in
+    let append fn l = ((name, fn (Option.get _default)) :: l) in
 
     let spec =
       (* See: https://ffmpeg.org/doxygen/trunk/opt_8c_source.html#l01281 *)
@@ -437,57 +434,57 @@ module Options = struct
         match _spec with
           | `Flags { _default; _min; _max } ->
               `Flags
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Int { _default; _min; _max; _ } ->
-              `Int { default = _default; min = _min; max = _max; values = None }
+              `Int { default = _default; min = _min; max = _max; values = [] }
           | `Int64 { _default; _min; _max; _ } ->
               `Int64
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Float { _default; _min; _max; _ } ->
               `Float
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Double { _default; _min; _max; _ } ->
               `Double
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `String { _default; _min; _max; _ } ->
               `String
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Rational { _default; _min; _max; _ } ->
               `Rational
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Binary { _default; _min; _max; _ } ->
               `Binary
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Dict { _default; _min; _max; _ } ->
               `Dict
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `UInt64 { _default; _min; _max; _ } ->
               `UInt64
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Image_size { _default; _min; _max; _ } ->
               `Image_size
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Pixel_fmt { _default; _min; _max; _ } ->
               `Pixel_fmt
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Sample_fmt { _default; _min; _max; _ } ->
               `Sample_fmt
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Video_rate { _default; _min; _max; _ } ->
               `Video_rate
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Duration { _default; _min; _max; _ } ->
               `Duration
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Color { _default; _min; _max; _ } ->
               `Color
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Channel_layout { _default; _min; _max; _ } ->
               `Channel_layout
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Bool { _default; _min; _max; _ } ->
               `Bool
-                { default = _default; min = _min; max = _max; values = None }
+                { default = _default; min = _min; max = _max; values = [] }
           | `Constant _ -> assert false
       in
       let opt = { name = _name; help = _help; spec } in
@@ -498,7 +495,7 @@ module Options = struct
     in
 
     let rec f _cursor _opts =
-      match av_opt_next ?_cursor v with
+      match av_opt_next _cursor v with
         | None -> List.map opt_of_opt _opts
         | Some { _name; _spec = `Constant s; _cursor; _unit; _ } ->
             Hashtbl.add constants (Option.get _unit) (_name, s);

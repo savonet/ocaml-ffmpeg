@@ -267,12 +267,12 @@ module Options : sig
   type t
 
   type 'a entry = {
-    default : 'a;
+    default : 'a option;
     (* Used only for numerical options. *)
     min : 'a option;
     max : 'a option;
-    (* Used only for constant options. *)
-    values : (string * 'a) list option;
+    (* Pre-defined options options. *)
+    values : (string * 'a) list;
   }
 
   type spec =

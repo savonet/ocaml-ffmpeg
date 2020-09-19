@@ -50,7 +50,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
   opaque = 0;
   while ((f = av_filter_iterate(&opaque))) {
 #endif
-    cur = caml_alloc_tuple(4);
+    cur = caml_alloc_tuple(5);
     Store_field(cur, 0, caml_copy_string(f->name));
     Store_field(cur, 1, caml_copy_string(f->description));
 
@@ -127,6 +127,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
       Store_field(pads, i, pad);
     }
     Store_field(cur, 3, pads);
+    Store_field(cur, 4, (value)f->priv_class);
 
     Store_field(ret, c, cur);
     c++;

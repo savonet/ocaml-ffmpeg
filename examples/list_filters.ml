@@ -22,12 +22,51 @@ let string_of_pad { audio; video } =
 
   String.concat "" (audio @ video)
 
+let string_of_spec to_string {Avutil.Options.default; min; max; values} =
+  let opt_str = function
+    | None -> "none"
+    | Some v -> to_string v
+  in
+  Printf.sprintf "{default: %s, min: %s, max: %s, values: %s}"
+    (opt_str default) (opt_str min) (opt_str max)
+      (Printf.sprintf "[%s]"
+         (String.concat ", " (List.map (fun (name, v) ->
+            Printf.sprintf "%s: %s" name (to_string v)) values)))
+
+let string_of_option { Avutil.Options.name; help; spec } =
+  let _type, spec = 
+    match spec with
+    | `Flags entry -> "flags", string_of_spec Int64.to_string entry
+    | `Int entry -> "int", string_of_spec string_of_int entry
+    | `Int64 entry -> "int64", string_of_spec Int64.to_string entry
+    | `Float entry -> "float", string_of_spec string_of_float entry
+    | `Double entry -> "double", string_of_spec string_of_float entry
+    | `String entry -> "string", string_of_spec (fun v -> v) entry
+    | `Rational entry -> "rational", string_of_spec (fun {Avutil.num;den} -> Printf.sprintf "%d/%d" num den) entry
+    | `Binary entry -> "binary", string_of_spec (fun v -> v) entry
+    | `Dict entry -> "dict", string_of_spec (fun v -> v) entry
+    | `UInt64 entry -> "uint64", string_of_spec Int64.to_string entry
+    | `Image_size entry -> "image_size", string_of_spec (fun v -> v) entry
+    | `Pixel_fmt entry -> "pixel_fmt", string_of_spec Avutil.Pixel_format.to_string entry
+    | `Sample_fmt entry -> "sample_fmt", string_of_spec Avutil.Sample_format.get_name entry
+    | `Video_rate entry -> "video_rate", string_of_spec (fun v -> v) entry
+    | `Duration entry -> "duration", string_of_spec Int64.to_string entry
+    | `Color entry -> "color", string_of_spec (fun v -> v) entry
+    | `Channel_layout entry -> "channel_layout", string_of_spec Avutil.Channel_layout.get_description entry
+    | `Bool entry -> "bool", string_of_spec string_of_bool entry
+  in
+
+  Printf.sprintf "name: %s, type: %s, help: %s, spec: %s"
+    name _type (match help with None -> "none" | Some v -> v)
+    spec
+
 let () =
   let print_filters cat =
-    List.iter (fun { name; description; io } ->
+    List.iter (fun { name; description; options; io } ->
         let { inputs; outputs } = io in
-        Printf.printf "%s name: %s\ndescription: %s\ninputs:%s\noutputs:%s\n\n"
-          cat name description (string_of_pad inputs) (string_of_pad outputs))
+        let options = Avutil.Options.opts options in
+        Printf.printf "%s name: %s\ndescription: %s\noptions:\n  %s\ninputs:%s\noutputs:%s\n\n"
+          cat name description (String.concat "\n  " (List.map string_of_option options)) (string_of_pad inputs) (string_of_pad outputs))
   in
 
   Printf.printf "## Buffers (inputs) ##\n\n";
