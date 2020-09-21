@@ -1045,12 +1045,7 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     _type = PVV_Duration;
 
   int64_opt:
-    if (_opt_cursor->default_val.i64 <= INT64_MIN)
-      Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
-    else if (_opt_cursor->default_val.i64 >= INT64_MAX)
-      Store_field(_tmp, 0, caml_copy_int64(INT64_MAX));
-    else
-      Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->default_val.i64));
+    Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->default_val.i64));
     Store_field(_spec, 0, _tmp);
 
     _tmp = caml_alloc_small(1, 0);
