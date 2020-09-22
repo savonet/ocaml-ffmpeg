@@ -1197,7 +1197,11 @@ CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {
   case PVV_Readonly:
     CAMLreturn(Val_int(AV_OPT_FLAG_READONLY));
   case PVV_Bsf_param:
+#ifdef AV_OPT_FLAG_BSF_PARAM
     CAMLreturn(Val_int(AV_OPT_FLAG_BSF_PARAM));
+#else
+    CAMLreturn(Val_int(0));
+#endif
   case PVV_Filtering_param:
     CAMLreturn(Val_int(AV_OPT_FLAG_FILTERING_PARAM));
   case PVV_Deprecated:
