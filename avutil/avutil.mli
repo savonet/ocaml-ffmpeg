@@ -266,8 +266,8 @@ end
 module Options : sig
   type t
 
-  type flag = [
-    | `Encoding_param
+  type flag =
+    [ `Encoding_param
     | `Decoding_param
     | `Audio_param
     | `Video_param
@@ -276,8 +276,7 @@ module Options : sig
     | `Readonly
     | `Bsf_param
     | `Filtering_param
-    | `Deprecated
-  ]
+    | `Deprecated ]
 
   type 'a entry = {
     default : 'a option;
@@ -308,7 +307,12 @@ module Options : sig
     | `Channel_layout of Channel_layout.t entry
     | `Bool of bool entry ]
 
-  type opt = { name : string; help : string option; flags : flag list; spec : spec }
+  type opt = {
+    name : string;
+    help : string option;
+    flags : flag list;
+    spec : spec;
+  }
 
   val opts : t -> opt list
 end

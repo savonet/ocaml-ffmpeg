@@ -78,10 +78,10 @@ let string_of_option { Avutil.Options.name; help; flags; spec } =
       | `Bool entry -> ("bool", string_of_spec string_of_bool entry)
   in
 
-  Printf.sprintf "- %s:\n    type: %s\n    help: %s\n    flags: %s\n    spec: %s" name _type
+  Printf.sprintf
+    "- %s:\n    type: %s\n    help: %s\n    flags: %s\n    spec: %s" name _type
     (match help with None -> "none" | Some v -> v)
-    (string_of_flags flags)
-    spec
+    (string_of_flags flags) spec
 
 let () =
   let print_filters cat =
