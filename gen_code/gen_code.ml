@@ -199,6 +199,16 @@ let gen_polymorphic_variant_h () =
       "Color";
       "Channel_layout";
       "Bool";
+      "Encoding_param";
+      "Decoding_param";
+      "Audio_param";
+      "Video_param";
+      "Subtitle_param";
+      "Export";
+      "Readonly";
+      "Bsf_param";
+      "Filtering_param";
+      "Deprecated";
       (* Errors *)
       "Bsf_not_found";
       "Decoder_not_found";

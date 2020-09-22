@@ -271,6 +271,38 @@ module Options = struct
     values : (string * 'a) list;
   }
 
+  type flag = [
+    | `Encoding_param
+    | `Decoding_param
+    | `Audio_param
+    | `Video_param
+    | `Subtitle_param
+    | `Export
+    | `Readonly
+    | `Bsf_param
+    | `Filtering_param
+    | `Deprecated
+  ]
+
+  external int_of_flag : flag -> int = "ocaml_avutil_av_opt_int_of_flag"
+
+  let flags_of_flags _flags =
+    List.fold_left (fun flags flag ->
+      if _flags land (int_of_flag flag) = 0 then
+        flags
+      else
+        flag :: flags) [] [
+     `Encoding_param;
+     `Decoding_param;
+     `Audio_param;
+     `Video_param;
+     `Subtitle_param;
+     `Export;
+     `Readonly;
+     `Bsf_param;
+     `Filtering_param;
+     `Deprecated]
+
   type spec =
     [ `Flags of int64 entry
     | `Int of int entry
@@ -291,7 +323,7 @@ module Options = struct
     | `Channel_layout of Channel_layout.t entry
     | `Bool of bool entry ]
 
-  type opt = { name : string; help : string option; spec : spec }
+  type opt = { name : string; help : string option; flags : flag list; spec : spec }
   type 'a _entry = { _default : 'a option; _min : 'a option; _max : 'a option }
   type constant
 
@@ -333,6 +365,7 @@ module Options = struct
     _name : string;
     _help : string option;
     _spec : _spec;
+    _flags : int;
     _unit : string option;
     _cursor : _cursor option;
   }
@@ -429,7 +462,7 @@ module Options = struct
   let opts v =
     let constants = Hashtbl.create 10 in
 
-    let opt_of_opt { _name; _help; _spec; _unit; _ } =
+    let opt_of_opt { _name; _help; _spec; _flags; _unit; _ } =
       let spec =
         match _spec with
           | `Flags { _default; _min; _max } ->
@@ -481,7 +514,7 @@ module Options = struct
               `Bool { default = _default; min = _min; max = _max; values = [] }
           | `Constant _ -> assert false
       in
-      let opt = { name = _name; help = _help; spec } in
+      let opt = { name = _name; help = _help; flags = flags_of_flags _flags; spec } in
       match _unit with
         | Some u when Hashtbl.mem constants u ->
             List.fold_left constant_of_opt opt (Hashtbl.find_all constants u)

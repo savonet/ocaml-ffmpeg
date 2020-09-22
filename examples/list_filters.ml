@@ -32,7 +32,22 @@ let string_of_spec to_string { Avutil.Options.default; min; max; values } =
              (fun (name, v) -> Printf.sprintf "%s: %s" name (to_string v))
              values)))
 
-let string_of_option { Avutil.Options.name; help; spec } =
+let string_of_flags flags =
+  let string_of_flag = function
+    | `Encoding_param -> "Encoding_param"
+    | `Decoding_param -> "Decoding_param"
+    | `Audio_param -> "Audio_param"
+    | `Video_param -> "Video_param"
+    | `Subtitle_param -> "Subtitle_param"
+    | `Export -> "Export"
+    | `Readonly -> "Readonly"
+    | `Bsf_param -> "Bsf_param"
+    | `Filtering_param -> "Filtering_param"
+    | `Deprecated -> "Deprecated"
+  in
+  String.concat ", " (List.map string_of_flag flags)
+
+let string_of_option { Avutil.Options.name; help; flags; spec } =
   let _type, spec =
     match spec with
       | `Flags entry -> ("flags", string_of_spec Int64.to_string entry)
@@ -63,8 +78,9 @@ let string_of_option { Avutil.Options.name; help; spec } =
       | `Bool entry -> ("bool", string_of_spec string_of_bool entry)
   in
 
-  Printf.sprintf "name: %s, type: %s, help: %s, spec: %s" name _type
+  Printf.sprintf "- %s:\n    type: %s\n    help: %s\n    flags: %s\n    spec: %s" name _type
     (match help with None -> "none" | Some v -> v)
+    (string_of_flags flags)
     spec
 
 let () =
@@ -76,11 +92,11 @@ let () =
           "%s name: %s\n\
            description: %s\n\
            options:\n\
-          \  %s\n\
+           %s\n\
            inputs:%s\n\
            outputs:%s\n\n"
           cat name description
-          (String.concat "\n  " (List.map string_of_option options))
+          (String.concat "\n" (List.map string_of_option options))
           (string_of_pad inputs) (string_of_pad outputs))
   in
 

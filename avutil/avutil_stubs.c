@@ -981,7 +981,6 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   Store_field(_spec, 0, Val_none);
   Store_field(_spec, 1, Val_none);
   Store_field(_spec, 2, Val_none);
-  Store_field(_opt, 2, _spec);
 
   switch (_opt_cursor->type) {
   case AV_OPT_TYPE_CONST:
@@ -1142,19 +1141,21 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   Store_field(_tmp, 1, _spec);
   Store_field(_opt, 2, _tmp);
 
+  Store_field(_opt, 3, Val_int(_opt_cursor->flags));
+
   if (_opt_cursor->unit == NULL || strlen(_opt_cursor->unit) == 0)
-    Store_field(_opt, 3, Val_none);
+    Store_field(_opt, 4, Val_none);
   else {
     _tmp = caml_alloc_small(1, 0);
     Store_field(_tmp, 0, caml_copy_string(_opt_cursor->unit));
-    Store_field(_opt, 3, _tmp);
+    Store_field(_opt, 4, _tmp);
   }
 
   _tmp = caml_alloc_small(1, 0);
   Store_field(_tmp, 0, caml_alloc_tuple(2));
   Store_field(Field(_tmp, 0), 0, (value)_opt_cursor);
   Store_field(Field(_tmp, 0), 1, (value)_class_cursor);
-  Store_field(_opt, 4, _tmp);
+  Store_field(_opt, 5, _tmp);
 
   _tmp = caml_alloc_small(1, 0);
   Store_field(_tmp, 0, _opt);
@@ -1175,4 +1176,33 @@ CAMLprim value ocaml_avutil_avopt_default_double(value _opt) {
 CAMLprim value ocaml_avutil_avopt_default_string(value _opt) {
   CAMLparam0();
   CAMLreturn(caml_copy_string(((const AVOption *)_opt)->default_val.str));
+}
+
+CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {
+  CAMLparam0();
+
+  switch (_flag) {
+  case PVV_Encoding_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_ENCODING_PARAM));
+  case PVV_Decoding_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_DECODING_PARAM));
+  case PVV_Audio_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_AUDIO_PARAM));
+  case PVV_Video_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_VIDEO_PARAM));
+  case PVV_Subtitle_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_SUBTITLE_PARAM));
+  case PVV_Export:
+    CAMLreturn(Val_int(AV_OPT_FLAG_EXPORT));
+  case PVV_Readonly:
+    CAMLreturn(Val_int(AV_OPT_FLAG_READONLY));
+  case PVV_Bsf_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_BSF_PARAM));
+  case PVV_Filtering_param:
+    CAMLreturn(Val_int(AV_OPT_FLAG_FILTERING_PARAM));
+  case PVV_Deprecated:
+    CAMLreturn(Val_int(AV_OPT_FLAG_DEPRECATED));
+  default:
+    caml_failwith("Invalid option flag!");
+  }
 }
