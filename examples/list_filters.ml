@@ -34,16 +34,18 @@ let string_of_spec to_string { Avutil.Options.default; min; max; values } =
 
 let string_of_flags flags =
   let string_of_flag = function
-    | `Encoding_param -> "Encoding_param"
-    | `Decoding_param -> "Decoding_param"
-    | `Audio_param -> "Audio_param"
-    | `Video_param -> "Video_param"
-    | `Subtitle_param -> "Subtitle_param"
-    | `Export -> "Export"
-    | `Readonly -> "Readonly"
-    | `Bsf_param -> "Bsf_param"
-    | `Filtering_param -> "Filtering_param"
-    | `Deprecated -> "Deprecated"
+    | `Encoding_param -> "encoding param"
+    | `Decoding_param -> "decoding param"
+    | `Audio_param -> "audio param"
+    | `Video_param -> "video param"
+    | `Subtitle_param -> "subtitle param"
+    | `Export -> "export"
+    | `Readonly -> "readonly"
+    | `Bsf_param -> "bsf param"
+    | `Runtime_param -> "runtime param"
+    | `Filtering_param -> "filtering param"
+    | `Deprecated -> "deprecated"
+    | `Child_consts -> "child constants"
   in
   String.concat ", " (List.map string_of_flag flags)
 

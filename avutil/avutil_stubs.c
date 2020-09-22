@@ -1201,7 +1201,23 @@ CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {
   case PVV_Filtering_param:
     CAMLreturn(Val_int(AV_OPT_FLAG_FILTERING_PARAM));
   case PVV_Deprecated:
+#ifdef AV_OPT_FLAG_DEPRECATED
     CAMLreturn(Val_int(AV_OPT_FLAG_DEPRECATED));
+#else
+    CAMLreturn(Val_int(0));
+#endif
+  case PVV_Child_consts:
+#ifdef AV_OPT_FLAG_AV_OPT_FLAG_CHILD_CONSTS
+    CAMLreturn(Val_int(AV_OPT_FLAG_CHILD_CONSTS));
+#else
+    CAMLreturn(Val_int(0));
+#endif
+  case PVV_Runtime_param:
+#ifdef AV_OPT_FLAG_RUNTIME_PARAM
+    CAMLreturn(Val_int(AV_OPT_FLAG_RUNTIME_PARAM));
+#else
+    CAMLreturn(Val_int(0));
+#endif
   default:
     caml_failwith("Invalid option flag!");
   }

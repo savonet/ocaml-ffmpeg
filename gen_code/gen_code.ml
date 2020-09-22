@@ -207,8 +207,10 @@ let gen_polymorphic_variant_h () =
       "Export";
       "Readonly";
       "Bsf_param";
+      "Runtime_param";
       "Filtering_param";
       "Deprecated";
+      "Child_consts";
       (* Errors *)
       "Bsf_not_found";
       "Decoder_not_found";

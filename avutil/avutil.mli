@@ -275,8 +275,10 @@ module Options : sig
     | `Export
     | `Readonly
     | `Bsf_param
+    | `Runtime_param
     | `Filtering_param
-    | `Deprecated ]
+    | `Deprecated
+    | `Child_consts ]
 
   type 'a entry = {
     default : 'a option;

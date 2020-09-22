@@ -280,8 +280,10 @@ module Options = struct
     | `Export
     | `Readonly
     | `Bsf_param
+    | `Runtime_param
     | `Filtering_param
-    | `Deprecated ]
+    | `Deprecated
+    | `Child_consts ]
 
   external int_of_flag : flag -> int = "ocaml_avutil_av_opt_int_of_flag"
 
@@ -299,8 +301,10 @@ module Options = struct
         `Export;
         `Readonly;
         `Bsf_param;
+        `Runtime_param;
         `Filtering_param;
         `Deprecated;
+        `Child_consts
       ]
 
   type spec =
