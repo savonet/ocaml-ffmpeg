@@ -961,9 +961,6 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     } while (_opt_cursor == NULL);
   }
 
-  if (_opt_cursor == NULL)
-    CAMLreturn(Val_none);
-
   _opt = caml_alloc_tuple(6);
   Store_field(_opt, 0, caml_copy_string(_opt_cursor->name));
 
