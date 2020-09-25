@@ -2,8 +2,10 @@
 
 (* {1 Options } *)
 
-type opt_val = [ `String of string | `Int of int | `Float of float ]
-type opts = (string, opt_val) Hashtbl.t
+type value =
+  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
+
+type opts = (string, value) Hashtbl.t
 
 (** {1 Line} *)
 
@@ -137,7 +139,7 @@ module Channel_layout : sig
 
   (** Return the internal ID for a channel layout. This number should be passed
       as the "channel_layout" [opts] in [Av.new_audio_stream] .*)
-  val get_id : t -> int
+  val get_id : t -> int64
 end
 
 (** Formats for audio samples. *)
@@ -258,4 +260,61 @@ module Subtitle : sig
   (** Convert subtitle frame to lines. The two float are the start and the end
       dislpay time in seconds. *)
   val frame_to_lines : subtitle frame -> float * float * string list
+end
+
+(** {5 Options} *)
+module Options : sig
+  type t
+
+  type flag =
+    [ `Encoding_param
+    | `Decoding_param
+    | `Audio_param
+    | `Video_param
+    | `Subtitle_param
+    | `Export
+    | `Readonly
+    | `Bsf_param
+    | `Runtime_param
+    | `Filtering_param
+    | `Deprecated
+    | `Child_consts ]
+
+  type 'a entry = {
+    default : 'a option;
+    (* Used only for numerical options. *)
+    min : 'a option;
+    max : 'a option;
+    (* Pre-defined options. *)
+    values : (string * 'a) list;
+  }
+
+  type spec =
+    [ `Flags of int64 entry
+    | `Int of int entry
+    | `Int64 of int64 entry
+    | `Float of float entry
+    | `Double of float entry
+    | `String of string entry
+    | `Rational of rational entry
+    | `Binary of string entry
+    | `Dict of string entry
+    | `UInt64 of int64 entry
+    | `Image_size of string entry
+    | `Pixel_fmt of Pixel_format.t entry
+    | `Sample_fmt of Sample_format.t entry
+    | `Video_rate of string entry
+    | `Duration of int64 entry
+    | `Color of string entry
+    | `Channel_layout of Channel_layout.t entry
+    | `Bool of bool entry ]
+
+  type opt = {
+    name : string;
+    help : string option;
+    flags : flag list;
+    spec : spec;
+  }
+
+  val opts : t -> opt list
 end

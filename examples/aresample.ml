@@ -52,7 +52,7 @@ let () =
           `Pair ("sample_rate", `Int sample_rate);
           `Pair ("sample_fmt", `Int sample_format);
           `Pair ("channels", `Int channels);
-          `Pair ("channel_layout", `Int channel_layout);
+          `Pair ("channel_layout", `Int64 channel_layout);
         ]
       in
       {

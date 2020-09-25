@@ -3,6 +3,7 @@
 type valued_arg =
   [ `String of string
   | `Int of int
+  | `Int64 of int64
   | `Float of float
   | `Rational of Avutil.rational ]
 
@@ -27,6 +28,7 @@ type ('a, 'b) pads =
 type 'a filter = {
   name : string;
   description : string;
+  options : Avutil.Options.t;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
@@ -83,6 +85,7 @@ type ('a, 'b, 'c) _filter = {
   _description : string;
   _inputs : ('a, 'b, 'c) pad array;
   _outputs : ('a, 'b, 'c) pad array;
+  _options : Avutil.Options.t;
 }
 
 external register_all : unit -> unit = "ocaml_avfilter_register_all"
@@ -119,11 +122,13 @@ let filters, abuffer, buffer, abuffersink, buffersink =
   let filters, abuffer, buffer, abuffersink, buffersink =
     Array.fold_left
       (fun (filters, abuffer, buffer, abuffersink, buffersink)
-           { _name; _description; _inputs; _outputs } ->
+           { _name; _description; _options; _inputs; _outputs } ->
         let io =
           { inputs = split_pads _inputs; outputs = split_pads _outputs }
         in
-        let filter = { name = _name; description = _description; io } in
+        let filter =
+          { name = _name; description = _description; options = _options; io }
+        in
         match _name with
           | s when s = "abuffer" ->
               (filters, Some filter, buffer, abuffersink, buffersink)
@@ -178,6 +183,8 @@ let rec args_of_args cur = function
       args_of_args (Printf.sprintf "%s=%s" lbl s :: cur) args
   | `Pair (lbl, `Int i) :: args ->
       args_of_args (Printf.sprintf "%s=%i" lbl i :: cur) args
+  | `Pair (lbl, `Int64 i) :: args ->
+      args_of_args (Printf.sprintf "%s=%Li" lbl i :: cur) args
   | `Pair (lbl, `Float f) :: args ->
       args_of_args (Printf.sprintf "%s=%f" lbl f :: cur) args
   | `Pair (lbl, `Rational { Avutil.num; den }) :: args ->
@@ -354,7 +361,7 @@ module Utils = struct
         `Pair ("time_base", `Rational in_time_base);
         `Pair
           ( "channel_layout",
-            `Int (Avutil.Channel_layout.get_id in_params.channel_layout) );
+            `Int64 (Avutil.Channel_layout.get_id in_params.channel_layout) );
         `Pair
           ( "sample_fmt",
             `Int (Avutil.Sample_format.get_id in_params.sample_format) );
@@ -378,8 +385,8 @@ module Utils = struct
                 `Pair ("in_sample_rate", `Int in_params.sample_rate);
                 `Pair
                   ( "in_channel_layout",
-                    `Int (Avutil.Channel_layout.get_id in_params.channel_layout)
-                  );
+                    `Int64
+                      (Avutil.Channel_layout.get_id in_params.channel_layout) );
                 `Pair
                   ( "in_sample_fmt",
                     `Int (Avutil.Sample_format.get_id in_params.sample_format)
@@ -387,7 +394,7 @@ module Utils = struct
                 `Pair ("out_sample_rate", `Int out_params.sample_rate);
                 `Pair
                   ( "out_channel_layout",
-                    `Int
+                    `Int64
                       (Avutil.Channel_layout.get_id out_params.channel_layout)
                   );
                 `Pair
