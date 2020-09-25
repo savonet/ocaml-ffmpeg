@@ -237,7 +237,6 @@ value ocaml_avutil_av_d2q(value f) {
   CAMLlocal1(ret);
 
   const AVRational r = av_d2q(Double_val(f), INT_MAX);
-  ;
   value_of_rational(&r, &ret);
 
   CAMLreturn(ret);
