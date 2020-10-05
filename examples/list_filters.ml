@@ -85,19 +85,28 @@ let string_of_option { Avutil.Options.name; help; flags; spec } =
     (match help with None -> "none" | Some v -> v)
     (string_of_flags flags) spec
 
+let string_of_flag = function
+  | `Dynamic_inputs -> "Dynamic_inputs"
+  | `Dynamic_outputs -> "Dynamic_outputs"
+  | `Slice_threads -> "Slice_threads"
+  | `Support_timeline_generic -> "Support_timeline_generic"
+  | `Support_timeline_internal -> "Support_timeline_internal"
+
 let () =
   let print_filters cat =
-    List.iter (fun { name; description; options; io } ->
+    List.iter (fun { name; description; options; flags; io } ->
         let { inputs; outputs } = io in
         let options = Avutil.Options.opts options in
         Printf.printf
           "%s name: %s\n\
            description: %s\n\
+           flags: [%s]\n\
            options:\n\
            %s\n\
            inputs:%s\n\
            outputs:%s\n\n"
           cat name description
+          (String.concat ", " (List.map string_of_flag flags))
           (String.concat "\n" (List.map string_of_option options))
           (string_of_pad inputs) (string_of_pad outputs))
   in

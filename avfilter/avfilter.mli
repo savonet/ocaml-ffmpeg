@@ -21,10 +21,18 @@ type ('a, 'b, 'c) pad
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
+type flag =
+  [ `Dynamic_inputs
+  | `Dynamic_outputs
+  | `Slice_threads
+  | `Support_timeline_generic
+  | `Support_timeline_internal ]
+
 type 'a filter = {
   name : string;
   description : string;
   options : Avutil.Options.t;
+  flags : flag list;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 

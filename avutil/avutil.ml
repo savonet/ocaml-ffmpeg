@@ -304,7 +304,7 @@ module Options = struct
         `Runtime_param;
         `Filtering_param;
         `Deprecated;
-        `Child_consts
+        `Child_consts;
       ]
 
   type spec =

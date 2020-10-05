@@ -179,6 +179,12 @@ let gen_polymorphic_variant_h () =
       "Buffer";
       "Link";
       "Sink";
+      (* Avfilter flags *)
+      "Dynamic_inputs";
+      "Dynamic_outputs";
+      "Slice_threads";
+      "Support_timeline_generic";
+      "Support_timeline_internal";
       (* Options *)
       "Constant";
       "Flags";

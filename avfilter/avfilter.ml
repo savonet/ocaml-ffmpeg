@@ -25,10 +25,18 @@ type ('a, 'b, 'c) pad = {
 type ('a, 'b) pads =
   (('a, [ `Audio ], 'b) pad list, ('a, [ `Video ], 'b) pad list) av
 
+type flag =
+  [ `Dynamic_inputs
+  | `Dynamic_outputs
+  | `Slice_threads
+  | `Support_timeline_generic
+  | `Support_timeline_internal ]
+
 type 'a filter = {
   name : string;
   description : string;
   options : Avutil.Options.t;
+  flags : flag list;
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
@@ -86,6 +94,7 @@ type ('a, 'b, 'c) _filter = {
   _inputs : ('a, 'b, 'c) pad array;
   _outputs : ('a, 'b, 'c) pad array;
   _options : Avutil.Options.t;
+  _flags : int;
 }
 
 external register_all : unit -> unit = "ocaml_avfilter_register_all"
@@ -94,6 +103,8 @@ let () = register_all ()
 
 external get_all_filters : unit -> ([ `Unattached ], 'a, 'c) _filter array
   = "ocaml_avfilter_get_all_filters"
+
+external int_of_flag : flag -> int = "ocaml_avfilter_int_of_flag"
 
 let filters, abuffer, buffer, abuffersink, buffersink =
   let split_pads pads =
@@ -122,12 +133,29 @@ let filters, abuffer, buffer, abuffersink, buffersink =
   let filters, abuffer, buffer, abuffersink, buffersink =
     Array.fold_left
       (fun (filters, abuffer, buffer, abuffersink, buffersink)
-           { _name; _description; _options; _inputs; _outputs } ->
+           { _name; _description; _options; _inputs; _outputs; _flags } ->
         let io =
           { inputs = split_pads _inputs; outputs = split_pads _outputs }
         in
+        let flags =
+          List.filter
+            (fun flag -> int_of_flag flag land _flags <> 0)
+            [
+              `Dynamic_inputs;
+              `Dynamic_outputs;
+              `Slice_threads;
+              `Support_timeline_generic;
+              `Support_timeline_internal;
+            ]
+        in
         let filter =
-          { name = _name; description = _description; options = _options; io }
+          {
+            name = _name;
+            description = _description;
+            options = _options;
+            io;
+            flags;
+          }
         in
         match _name with
           | s when s = "abuffer" ->

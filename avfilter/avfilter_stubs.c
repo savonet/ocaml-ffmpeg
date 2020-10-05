@@ -50,7 +50,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
   opaque = 0;
   while ((f = av_filter_iterate(&opaque))) {
 #endif
-    cur = caml_alloc_tuple(5);
+    cur = caml_alloc_tuple(6);
     Store_field(cur, 0, caml_copy_string(f->name));
     Store_field(cur, 1, caml_copy_string(f->description));
 
@@ -128,6 +128,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
     }
     Store_field(cur, 3, pads);
     Store_field(cur, 4, (value)f->priv_class);
+    Store_field(cur, 5, Val_int(f->flags));
 
     Store_field(ret, c, cur);
     c++;
@@ -478,4 +479,23 @@ CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
     ocaml_avutil_raise_error(err);
 
   CAMLreturn(frame_value);
+}
+
+CAMLprim value ocaml_avfilter_int_of_flag(value _flag) {
+  CAMLparam1(_flag);
+
+  switch (_flag) {
+  case PVV_Dynamic_inputs:
+    CAMLreturn(Val_int(AVFILTER_FLAG_DYNAMIC_INPUTS));
+  case PVV_Dynamic_outputs:
+    CAMLreturn(Val_int(AVFILTER_FLAG_DYNAMIC_OUTPUTS));
+  case PVV_Slice_threads:
+    CAMLreturn(Val_int(AVFILTER_FLAG_SLICE_THREADS));
+  case PVV_Support_timeline_generic:
+    CAMLreturn(Val_int(AVFILTER_FLAG_SUPPORT_TIMELINE_GENERIC));
+  case PVV_Support_timeline_internal:
+    CAMLreturn(Val_int(AVFILTER_FLAG_SUPPORT_TIMELINE_INTERNAL));
+  default:
+    caml_failwith("Invalid flag type!");
+  }
 }
