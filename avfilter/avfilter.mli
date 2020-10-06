@@ -82,7 +82,9 @@ val pad_name : _ pad -> string
 val init : unit -> config
 
 (** Attach a filter to a filter graph configuration. Raises [Exists] if there is
-    already a filter by that name in the graph. *)
+    already a filter by that name in the graph. Number of inputs or outputs
+    can change from the filter's specifications, in particular if the filter
+    has the [`Dynamic_input] or [`Dynamic_output] flag set. *)
 val attach :
   ?args:args list ->
   name:string ->

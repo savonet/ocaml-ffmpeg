@@ -19,13 +19,56 @@ CAMLprim value ocaml_avfilter_register_all(value unit) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avfilter_alloc_pads(const AVFilterPad *pads, int pad_count,
+                                         const char *name) {
+  CAMLparam0();
+  CAMLlocal2(pad, _pads);
+
+  int i, pad_type;
+
+  _pads = caml_alloc_tuple(pad_count);
+
+  for (i = 0; i < pad_count; i++) {
+    pad = caml_alloc_tuple(6);
+    Store_field(pad, 0, caml_copy_string(avfilter_pad_get_name(pads, i)));
+    Store_field(pad, 1, caml_copy_string(name));
+
+    switch (avfilter_pad_get_type(pads, i)) {
+    case AVMEDIA_TYPE_VIDEO:
+      pad_type = PVV_Video;
+      break;
+    case AVMEDIA_TYPE_AUDIO:
+      pad_type = PVV_Audio;
+      break;
+    case AVMEDIA_TYPE_DATA:
+      pad_type = PVV_Data;
+      break;
+    case AVMEDIA_TYPE_SUBTITLE:
+      pad_type = PVV_Subtitle;
+      break;
+    case AVMEDIA_TYPE_ATTACHMENT:
+      pad_type = PVV_Attachment;
+      break;
+    default:
+      pad_type = PVV_Unknown;
+    }
+
+    Store_field(pad, 2, pad_type);
+    Store_field(pad, 3, Val_int(i));
+    Store_field(pad, 4, Val_none);
+    Store_field(pad, 5, Val_none);
+
+    Store_field(_pads, i, pad);
+  }
+
+  CAMLreturn(_pads);
+}
+
 CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
   CAMLparam0();
   CAMLlocal4(pad, pads, cur, ret);
   int c = 0;
-  int i, pad_count;
   const AVFilter *f = NULL;
-  int pad_type;
 
 #if LIBAVFILTER_VERSION_INT >= AV_VERSION_INT(7, 14, 100)
   void *opaque = 0;
@@ -53,80 +96,12 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
     cur = caml_alloc_tuple(6);
     Store_field(cur, 0, caml_copy_string(f->name));
     Store_field(cur, 1, caml_copy_string(f->description));
-
-    pad_count = avfilter_pad_count(f->inputs);
-    pads = caml_alloc_tuple(pad_count);
-    for (i = 0; i < pad_count; i++) {
-      pad = caml_alloc_tuple(6);
-      Store_field(pad, 0,
-                  caml_copy_string(avfilter_pad_get_name(f->inputs, i)));
-      Store_field(pad, 1, caml_copy_string(f->name));
-
-      switch (avfilter_pad_get_type(f->inputs, i)) {
-      case AVMEDIA_TYPE_VIDEO:
-        pad_type = PVV_Video;
-        break;
-      case AVMEDIA_TYPE_AUDIO:
-        pad_type = PVV_Audio;
-        break;
-      case AVMEDIA_TYPE_DATA:
-        pad_type = PVV_Data;
-        break;
-      case AVMEDIA_TYPE_SUBTITLE:
-        pad_type = PVV_Subtitle;
-        break;
-      case AVMEDIA_TYPE_ATTACHMENT:
-        pad_type = PVV_Attachment;
-        break;
-      default:
-        pad_type = PVV_Unknown;
-      }
-
-      Store_field(pad, 2, pad_type);
-      Store_field(pad, 3, Val_int(i));
-      Store_field(pad, 4, Val_none);
-      Store_field(pad, 5, Val_none);
-
-      Store_field(pads, i, pad);
-    }
-    Store_field(cur, 2, pads);
-
-    pad_count = avfilter_pad_count(f->outputs);
-    pads = caml_alloc_tuple(pad_count);
-    for (i = 0; i < pad_count; i++) {
-      pad = caml_alloc_tuple(6);
-      Store_field(pad, 0,
-                  caml_copy_string(avfilter_pad_get_name(f->outputs, i)));
-      Store_field(pad, 1, caml_copy_string(f->name));
-
-      switch (avfilter_pad_get_type(f->outputs, i)) {
-      case AVMEDIA_TYPE_VIDEO:
-        pad_type = PVV_Video;
-        break;
-      case AVMEDIA_TYPE_AUDIO:
-        pad_type = PVV_Audio;
-        break;
-      case AVMEDIA_TYPE_DATA:
-        pad_type = PVV_Data;
-        break;
-      case AVMEDIA_TYPE_SUBTITLE:
-        pad_type = PVV_Subtitle;
-        break;
-      case AVMEDIA_TYPE_ATTACHMENT:
-        pad_type = PVV_Attachment;
-        break;
-      default:
-        pad_type = PVV_Unknown;
-      }
-
-      Store_field(pad, 2, pad_type);
-      Store_field(pad, 3, Val_int(i));
-      Store_field(pad, 4, Val_none);
-      Store_field(pad, 5, Val_none);
-
-      Store_field(pads, i, pad);
-    }
-    Store_field(cur, 3, pads);
+    Store_field(cur, 2,
+                ocaml_avfilter_alloc_pads(
+                    f->inputs, avfilter_pad_count(f->inputs), f->name));
+    Store_field(cur, 3,
+                ocaml_avfilter_alloc_pads(
+                    f->outputs, avfilter_pad_count(f->outputs), f->name));
     Store_field(cur, 4, (value)f->priv_class);
     Store_field(cur, 5, Val_int(f->flags));
 
@@ -207,7 +182,16 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name,
   if (err < 0)
     ocaml_avutil_raise_error(err);
 
-  CAMLreturn((value)context);
+  ret = caml_alloc_tuple(3);
+  Store_field(ret, 0, (value)context);
+  Store_field(ret, 1,
+              ocaml_avfilter_alloc_pads(context->input_pads, context->nb_inputs,
+                                        filter->name));
+  Store_field(ret, 2,
+              ocaml_avfilter_alloc_pads(context->output_pads,
+                                        context->nb_outputs, filter->name));
+
+  CAMLreturn(ret);
 }
 
 static void append_avfilter_in_out(AVFilterInOut **filter, char *name,

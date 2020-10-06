@@ -106,30 +106,25 @@ external get_all_filters : unit -> ([ `Unattached ], 'a, 'c) _filter array
 
 external int_of_flag : flag -> int = "ocaml_avfilter_int_of_flag"
 
-let filters, abuffer, buffer, abuffersink, buffersink =
-  let split_pads pads =
-    let audio, video =
-      Array.fold_left
-        (fun (a, v) pad ->
-          if pad.media_type = `Audio then (
-            let pad : (_, [ `Audio ], _) pad =
-              { pad with media_type = `Audio }
-            in
-            (pad :: a, v) )
-          else (
-            let pad : (_, [ `Video ], _) pad =
-              { pad with media_type = `Video }
-            in
-            (a, pad :: v) ))
-        ([], []) pads
-    in
-
-    let audio = List.sort (fun pad1 pad2 -> compare pad1.idx pad2.idx) audio in
-    let video = List.sort (fun pad1 pad2 -> compare pad1.idx pad2.idx) video in
-
-    { audio; video }
+let split_pads pads =
+  let audio, video =
+    Array.fold_left
+      (fun (a, v) pad ->
+        if pad.media_type = `Audio then (
+          let pad : (_, [ `Audio ], _) pad = { pad with media_type = `Audio } in
+          (pad :: a, v) )
+        else (
+          let pad : (_, [ `Video ], _) pad = { pad with media_type = `Video } in
+          (a, pad :: v) ))
+      ([], []) pads
   in
 
+  let audio = List.sort (fun pad1 pad2 -> compare pad1.idx pad2.idx) audio in
+  let video = List.sort (fun pad1 pad2 -> compare pad1.idx pad2.idx) video in
+
+  { audio; video }
+
+let filters, abuffer, buffer, abuffersink, buffersink =
   let filters, abuffer, buffer, abuffersink, buffersink =
     Array.fold_left
       (fun (filters, abuffer, buffer, abuffersink, buffersink)
@@ -201,7 +196,11 @@ let init () =
   }
 
 external create_filter :
-  ?args:string -> name:string -> string -> _config -> filter_ctx
+  ?args:string ->
+  name:string ->
+  string ->
+  _config ->
+  filter_ctx * ('a, 'b, 'c) pad array * ('a, 'b, 'c) pad array
   = "ocaml_avfilter_create_filter"
 
 let rec args_of_args cur = function
@@ -239,18 +238,18 @@ let append_io graph ~name filter_name filter_ctx =
 let attach ?args ~name filter graph =
   if List.mem name graph.names then raise Exists;
   let args = args_of_args args in
-  let filter_ctx = create_filter ?args ~name filter.name graph.c in
+  let filter_ctx, inputs, outputs =
+    create_filter ?args ~name filter.name graph.c
+  in
+  let io = { inputs = split_pads inputs; outputs = split_pads outputs } in
   let f () = List.map (attach_pad filter_ctx graph) in
   let inputs =
-    {
-      audio = (f ()) filter.io.inputs.audio;
-      video = (f ()) filter.io.inputs.video;
-    }
+    { audio = (f ()) io.inputs.audio; video = (f ()) io.inputs.video }
   in
   let outputs =
     {
-      audio = (f ()) filter.io.outputs.audio;
-      video = (f ()) filter.io.outputs.video;
+      audio = (f ()) io.outputs.audio;
+      video = (f ()) io.outputs.video;
     }
   in
   let io = { inputs; outputs } in
@@ -294,7 +293,9 @@ let parse ({ inputs; outputs } : [ `Unattached ] parse_io) filters graph =
     if List.mem node_name graph.names then raise Exists;
     let { filter_name; _ } = node_pad in
     let args = args_of_args node_args in
-    let filter_ctx = create_filter ?args ~name:node_name filter_name graph.c in
+    let filter_ctx, _, _ =
+      create_filter ?args ~name:node_name filter_name graph.c
+    in
     graph.names <- node_name :: graph.names;
     append_io graph ~name:node_name filter_name filter_ctx;
     (node, filter_ctx)
