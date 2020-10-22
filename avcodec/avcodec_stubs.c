@@ -137,6 +137,11 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   return ret;
 }
 
+CAMLprim value ocaml_avcodec_get_flags(value _packet) {
+  CAMLparam1(_packet);
+  CAMLreturn(Val_int(Packet_val(_packet)->flags));
+}
+
 CAMLprim value ocaml_avcodec_get_packet_stream_index(value _packet) {
   CAMLparam1(_packet);
   CAMLreturn(Val_int(Packet_val(_packet)->stream_index));
@@ -1001,4 +1006,23 @@ CAMLprim value ocaml_avcodec_parameters_subtitle_copy(value _codec_id,
   dst->codec_id = SubtitleCodecID_val(_codec_id);
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avcodec_int_of_flag(value _flag) {
+  CAMLparam1(_flag);
+
+  switch (_flag) {
+  case PVV_Keyframe:
+    CAMLreturn(Val_int(AV_PKT_FLAG_KEY));
+  case PVV_Corrupt:
+    CAMLreturn(Val_int(AV_PKT_FLAG_CORRUPT));
+  case PVV_Discard:
+    CAMLreturn(Val_int(AV_PKT_FLAG_DISCARD));
+  case PVV_Trusted:
+    CAMLreturn(Val_int(AV_PKT_FLAG_TRUSTED));
+  case PVV_Disposable:
+    CAMLreturn(Val_int(AV_PKT_FLAG_DISPOSABLE));
+  default:
+    caml_failwith("Invalid flag type!");
+  }
 }

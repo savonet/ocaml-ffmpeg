@@ -27,6 +27,19 @@ module Packet = struct
   (** Packet type *)
   type 'a t
 
+  type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
+
+  external int_of_flag : flag -> int = "ocaml_avcodec_int_of_flag"
+  external get_flags : 'a t -> int = "ocaml_avcodec_get_flags"
+
+  let get_flags p =
+    let flags = get_flags p in
+    List.fold_left
+      (fun cur flag ->
+        if int_of_flag flag land flags <> 0 then flag :: cur else cur)
+      []
+      [`Keyframe; `Corrupt; `Discard; `Trusted; `Disposable]
+
   external get_size : 'a t -> int = "ocaml_avcodec_get_packet_size"
 
   external get_stream_index : 'a t -> int

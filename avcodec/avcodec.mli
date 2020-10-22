@@ -18,6 +18,12 @@ module Packet : sig
   (** Parser type *)
   type 'a parser
 
+  (** Packet flags *)
+  type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
+
+  (** Retun the packet flags. *)
+  val get_flags : 'a t -> flag list
+
   (** Return the size of the packet. *)
   val get_size : 'a t -> int
 

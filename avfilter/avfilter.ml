@@ -247,10 +247,7 @@ let attach ?args ~name filter graph =
     { audio = (f ()) io.inputs.audio; video = (f ()) io.inputs.video }
   in
   let outputs =
-    {
-      audio = (f ()) io.outputs.audio;
-      video = (f ()) io.outputs.video;
-    }
+    { audio = (f ()) io.outputs.audio; video = (f ()) io.outputs.video }
   in
   let io = { inputs; outputs } in
   let filter = { filter with io } in

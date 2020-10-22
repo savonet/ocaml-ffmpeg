@@ -185,6 +185,12 @@ let gen_polymorphic_variant_h () =
       "Slice_threads";
       "Support_timeline_generic";
       "Support_timeline_internal";
+      (* Avpacket flags. *)
+      "Keyframe";
+      "Corrupt";
+      "Discard";
+      "Trusted";
+      "Disposable";
       (* Options *)
       "Constant";
       "Flags";
