@@ -13,6 +13,10 @@
 #include "codec_capabilities_stubs.h"
 #include "codec_id_stubs.h"
 
+#ifndef AV_PKT_FLAG_DISPOSABLE
+#define AV_PKT_FLAG_DISPOSABLE 0x0010
+#endif
+
 value ocaml_avcodec_init(value unit) {
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
   avcodec_register_all();
