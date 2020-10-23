@@ -1020,10 +1020,8 @@ CAMLprim value ocaml_avcodec_int_of_flag(value _flag) {
     CAMLreturn(Val_int(AV_PKT_FLAG_DISCARD));
   case PVV_Trusted:
     CAMLreturn(Val_int(AV_PKT_FLAG_TRUSTED));
-#ifdef AV_PKT_FLAG_DISPOSABLE
   case PVV_Disposable:
     CAMLreturn(Val_int(AV_PKT_FLAG_DISPOSABLE));
-#endif
   default:
     caml_failwith("Invalid flag type!");
   }
