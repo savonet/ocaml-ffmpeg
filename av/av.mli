@@ -293,6 +293,9 @@ val write_packet :
     Raise Error if the writing failed. *)
 val write_frame : (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
 
+(** [true] if the last processed frame was a video key frame. *)
+val was_keyframe : (output, _, _) stream -> bool
+
 (** [Av.write_audio_frame dst frm] write the [frm] audio frame to the [dst]
     output audio container. Raise Error if the output format is not defined or
     if the output media type is not compatible with the frame or if the writing
@@ -301,6 +304,9 @@ val write_audio_frame : output container -> audio frame -> unit
 
 (** Same as {!Av.write_audio_frame} for output video container. *)
 val write_video_frame : output container -> video frame -> unit
+
+(** Flush the underlying muxer. *)
+val flush : output container -> unit
 
 (** Close an input or output container. *)
 val close : _ container -> unit

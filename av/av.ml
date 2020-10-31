@@ -355,6 +355,10 @@ external write_frame :
   (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
   = "ocaml_av_write_stream_frame"
 
+external flush : output container -> unit = "ocaml_av_flush"
+
+external was_keyframe : (output, _, _) stream -> bool = "ocaml_av_was_keyframe"
+
 external write_audio_frame : output container -> audio frame -> unit
   = "ocaml_av_write_audio_frame"
 

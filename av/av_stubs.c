@@ -44,6 +44,9 @@ typedef struct {
 
   // input
   int got_frame;
+
+  // output
+  int was_keyframe;
 } stream_t;
 
 typedef struct av_t {
@@ -1725,6 +1728,8 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
   if (!av->streams)
     Fail("Failed to write in closed output");
 
+  if (!av->streams[stream_index]) caml_failwith("Internal error");
+
   caml_release_runtime_system();
 
   if (!av->header_written) {
@@ -1745,6 +1750,7 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
                        avstream->time_base);
 
   ret = av_interleaved_write_frame(av->format_context, packet);
+  av->streams[stream_index]->was_keyframe = packet->flags & AV_PKT_FLAG_KEY;
 
   caml_acquire_runtime_system();
 
@@ -1796,6 +1802,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     ocaml_avutil_raise_error(ret);
   }
 
+  int was_keyframe = 0;
+
   // read all the available output packets (in general there may be any number
   // of them
   while (ret >= 0) {
@@ -1803,6 +1811,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
 
     if (ret < 0)
       break;
+
+    if (packet.flags & AV_PKT_FLAG_KEY) was_keyframe = 1;
 
     packet.stream_index = stream_index;
     packet.pos = -1;
@@ -1812,6 +1822,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
 
     av_packet_unref(&packet);
   }
+
+  av->streams[stream_index]->was_keyframe = was_keyframe;
 
   caml_acquire_runtime_system();
 
@@ -1928,6 +1940,31 @@ CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame) {
   }
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_flush(value _av) {
+  CAMLparam1(_av);
+  av_t *av = Av_val(_av);
+  int ret;
+  
+  caml_release_runtime_system();
+  ret = av_interleaved_write_frame(av->format_context, NULL);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) ocaml_avutil_raise_error(ret);
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_was_keyframe(value _stream) {
+  CAMLparam1(_stream);
+  av_t *av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+
+  if (!av->streams)
+    Fail("Invalid input: no streams provided");
+
+  CAMLreturn(Val_bool(av->streams[index]->was_keyframe));
 }
 
 CAMLprim value ocaml_av_write_audio_frame(value _av, value _frame) {
