@@ -276,6 +276,9 @@ val new_subtitle_stream :
   output container ->
   (output, subtitle, [ `Frame ]) stream
 
+(** Return a codec attribute suitable for HLS playlists when available. *)
+val codec_attr : _ stream -> string option
+
 (** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
     [time_base] is the packet's PTS/DTS/duration time base.
     Raise Error if the writing failed. *)

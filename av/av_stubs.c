@@ -2027,3 +2027,132 @@ CAMLprim value ocaml_av_close(value _av) {
 
   CAMLreturn(Val_unit);
 }
+
+// This is from libavformat/avc.h
+uint8_t *ocaml_av_ff_nal_unit_extract_rbsp(const uint8_t *src, uint32_t src_len,
+                                           uint32_t *dst_len, int header_len) {
+  uint8_t *dst;
+  uint32_t i, len;
+
+  dst = av_malloc(src_len + AV_INPUT_BUFFER_PADDING_SIZE);
+  if (!dst)
+    return NULL;
+
+  /* NAL unit header */
+  i = len = 0;
+  while (i < header_len && i < src_len)
+    dst[len++] = src[i++];
+
+  while (i + 2 < src_len)
+    if (!src[i] && !src[i + 1] && src[i + 2] == 3) {
+      dst[len++] = src[i++];
+      dst[len++] = src[i++];
+      i++; // remove emulation_prevention_three_byte
+    } else
+      dst[len++] = src[i++];
+
+  while (i < src_len)
+    dst[len++] = src[i++];
+
+  memset(dst + len, 0, AV_INPUT_BUFFER_PADDING_SIZE);
+
+  *dst_len = len;
+  return dst;
+}
+
+// This from libavformat/hlsenc.c
+CAMLprim value ocaml_av_codec_attr(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal2(ans, _attr);
+
+  char attr[32];
+  av_t *av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+  AVCodecContext *ctx;
+
+  if (!av->streams)
+    Fail("Invalid input: no streams provided");
+
+  ctx = av->streams[index]->codec_context;
+
+  if (ctx->codec_id == AV_CODEC_ID_H264) {
+    uint8_t *data = ctx->extradata;
+    if (data && (data[0] | data[1] | data[2]) == 0 && data[3] == 1 &&
+        (data[4] & 0x1F) == 7) {
+      snprintf(attr, sizeof(attr), "avc1.%02x%02x%02x", data[5], data[6],
+               data[7]);
+    } else {
+      CAMLreturn(Val_none);
+    }
+  } else if (ctx->codec_id == AV_CODEC_ID_HEVC) {
+    uint8_t *data = ctx->extradata;
+    int profile = FF_PROFILE_UNKNOWN;
+    int level = FF_LEVEL_UNKNOWN;
+
+    if (ctx->profile != FF_PROFILE_UNKNOWN)
+      profile = ctx->profile;
+    if (ctx->level != FF_LEVEL_UNKNOWN)
+      level = ctx->level;
+
+    /* check the boundary of data which from current position is small than
+     * extradata_size */
+    while (data && (data - ctx->extradata + 19) < ctx->extradata_size) {
+      /* get HEVC SPS NAL and seek to profile_tier_level */
+      if (!(data[0] | data[1] | data[2]) && data[3] == 1 &&
+          ((data[4] & 0x7E) == 0x42)) {
+        uint8_t *rbsp_buf;
+        int remain_size = 0;
+        uint32_t rbsp_size = 0;
+        /* skip start code + nalu header */
+        data += 6;
+        /* process by reference General NAL unit syntax */
+        remain_size = ctx->extradata_size - (data - ctx->extradata);
+        rbsp_buf =
+            ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
+        if (!rbsp_buf)
+          CAMLreturn(Val_none);
+        if (rbsp_size < 13) {
+          av_freep(&rbsp_buf);
+          break;
+        }
+        /* skip sps_video_parameter_set_id   u(4),
+         *      sps_max_sub_layers_minus1    u(3),
+         *  and sps_temporal_id_nesting_flag u(1) */
+        profile = rbsp_buf[1] & 0x1f;
+        /* skip 8 + 8 + 32 + 4 + 43 + 1 bit */
+        level = rbsp_buf[12];
+        av_freep(&rbsp_buf);
+        break;
+      }
+      data++;
+    }
+    if (ctx->codec_tag == MKTAG('h', 'v', 'c', '1') &&
+        profile != FF_PROFILE_UNKNOWN && level != FF_LEVEL_UNKNOWN) {
+      snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
+               av_fourcc2str(ctx->codec_tag), profile, level);
+    } else
+      CAMLreturn(Val_none);
+  } else if (ctx->codec_id == AV_CODEC_ID_MP2) {
+    snprintf(attr, sizeof(attr), "mp4a.40.33");
+  } else if (ctx->codec_id == AV_CODEC_ID_MP3) {
+    snprintf(attr, sizeof(attr), "mp4a.40.34");
+  } else if (ctx->codec_id == AV_CODEC_ID_AAC) {
+    /* TODO : For HE-AAC, HE-AACv2, the last digit needs to be set to 5 and 29
+     * respectively */
+    snprintf(attr, sizeof(attr), "mp4a.40.2");
+  } else if (ctx->codec_id == AV_CODEC_ID_AC3) {
+    snprintf(attr, sizeof(attr), "ac-3");
+  } else if (ctx->codec_id == AV_CODEC_ID_EAC3) {
+    snprintf(attr, sizeof(attr), "ec-3");
+  } else {
+    CAMLreturn(Val_none);
+  }
+
+  _attr = caml_alloc_string(sizeof(attr));
+  memcpy(Bytes_val(_attr), attr, sizeof(attr));
+
+  ans = caml_alloc_tuple(1);
+  Store_field(ans, 0, _attr);
+
+  CAMLreturn(ans);
+}

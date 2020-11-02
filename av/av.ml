@@ -345,6 +345,8 @@ let new_subtitle_stream ?opts ~time_base ~codec container =
   filter_opts unused opts;
   mk_stream container ret
 
+external codec_attr : _ stream -> string option = "ocaml_av_codec_attr"
+
 external write_packet :
   (output, 'media, [ `Packet ]) stream ->
   Avutil.rational ->
