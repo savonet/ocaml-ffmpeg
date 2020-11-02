@@ -2082,7 +2082,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       snprintf(attr, sizeof(attr), "avc1.%02x%02x%02x", data[5], data[6],
                data[7]);
     } else {
-      CAMLreturn(Val_none);
+      snprintf(attr, sizeof(attr), "avc1");
     }
   } else if (ctx->codec_id == AV_CODEC_ID_HEVC) {
     uint8_t *data = ctx->extradata;
@@ -2110,7 +2110,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         rbsp_buf =
             ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
         if (!rbsp_buf)
-          CAMLreturn(Val_none);
+          break;
         if (rbsp_size < 13) {
           av_freep(&rbsp_buf);
           break;
@@ -2131,7 +2131,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
                av_fourcc2str(ctx->codec_tag), profile, level);
     } else
-      CAMLreturn(Val_none);
+      snprintf(attr, sizeof(attr), "%s", av_fourcc2str(ctx->codec_tag));
   } else if (ctx->codec_id == AV_CODEC_ID_MP2) {
     snprintf(attr, sizeof(attr), "mp4a.40.33");
   } else if (ctx->codec_id == AV_CODEC_ID_MP3) {
@@ -2148,11 +2148,35 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
     CAMLreturn(Val_none);
   }
 
-  _attr = caml_alloc_string(sizeof(attr));
-  memcpy(Bytes_val(_attr), attr, sizeof(attr));
+  _attr = caml_copy_string(attr);
 
   ans = caml_alloc_tuple(1);
   Store_field(ans, 0, _attr);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_stream_bit_rate(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal1(ans);
+
+  av_t *av = StreamAv_val(_stream);
+  int index = StreamIndex_val(_stream);
+  AVStream *stream = av->format_context->streams[stream->index];
+
+  AVCPBProperties *props = (AVCPBProperties *)av_stream_get_side_data(
+      stream, AV_PKT_DATA_CPB_PROPERTIES, NULL);
+
+  if (!stream->codecpar->bit_rate && !props)
+    CAMLreturn(Val_none);
+
+  ans = caml_alloc_tuple(1);
+
+  if (stream->codecpar->bit_rate) {
+    Store_field(ans, 0, Val_int(stream->codecpar->bit_rate));
+  } else if (props) {
+    Store_field(ans, 0, Val_int(props->max_bitrate));
+  }
 
   CAMLreturn(ans);
 }
