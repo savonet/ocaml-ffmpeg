@@ -2071,9 +2071,12 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   AVCodecContext *ctx;
 
   if (!av->streams)
-    Fail("Invalid input: no streams provided");
+    CAMLreturn(Val_none);
 
   ctx = av->streams[index]->codec_context;
+
+  if (!ctx)
+    CAMLreturn(Val_none);
 
   if (ctx->codec_id == AV_CODEC_ID_H264) {
     uint8_t *data = ctx->extradata;
@@ -2156,13 +2159,20 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_av_stream_bit_rate(value _stream) {
+CAMLprim value ocaml_av_stream_bitrate(value _stream) {
   CAMLparam1(_stream);
   CAMLlocal1(ans);
 
   av_t *av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
+
+  if (!av->format_context || !av->format_context->streams)
+    CAMLreturn(Val_none);
+
   AVStream *stream = av->format_context->streams[stream->index];
+
+  if (!stream)
+    CAMLreturn(Val_none);
 
   AVCPBProperties *props = (AVCPBProperties *)av_stream_get_side_data(
       stream, AV_PKT_DATA_CPB_PROPERTIES, NULL);

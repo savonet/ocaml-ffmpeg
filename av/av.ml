@@ -346,7 +346,7 @@ let new_subtitle_stream ?opts ~time_base ~codec container =
   mk_stream container ret
 
 external codec_attr : _ stream -> string option = "ocaml_av_codec_attr"
-external bandwidth : _ stream -> int option = "ocaml_av_stream_bit_rate"
+external bitrate : _ stream -> int option = "ocaml_av_stream_bitrate"
 
 external write_packet :
   (output, 'media, [ `Packet ]) stream ->
