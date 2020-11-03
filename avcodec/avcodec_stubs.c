@@ -141,6 +141,23 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   return ret;
 }
 
+CAMLprim value ocaml_avcodec_packet_dup(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal1(ret);
+
+  AVPacket *packet = (AVPacket*)malloc(sizeof(struct AVPacket));
+
+  if (!packet) caml_raise_out_of_memory();
+
+  av_init_packet(packet);
+  av_packet_ref(packet, Packet_val(_packet));
+
+  ret = caml_alloc_custom(&packet_ops, sizeof(AVPacket *), 0, 1);
+  Packet_val(ret) = packet;
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_avcodec_get_flags(value _packet) {
   CAMLparam1(_packet);
   CAMLreturn(Val_int(Packet_val(_packet)->flags));

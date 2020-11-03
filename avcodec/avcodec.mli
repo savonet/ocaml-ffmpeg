@@ -21,6 +21,9 @@ module Packet : sig
   (** Packet flags *)
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
+  (** Return a fresh packet refereing the same data. *)
+  val dup : 'a t -> 'a t
+
   (** Retun the packet flags. *)
   val get_flags : 'a t -> flag list
 
