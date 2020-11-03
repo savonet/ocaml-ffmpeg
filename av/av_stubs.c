@@ -2068,18 +2068,17 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   char attr[32];
   av_t *av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
-  AVCodecContext *ctx;
 
-  if (!av->streams)
+  if (!av->format_context || !av->format_context->streams)
     CAMLreturn(Val_none);
 
-  ctx = av->streams[index]->codec_context;
+  AVStream *stream = av->format_context->streams[index];
 
-  if (!ctx)
+  if (!stream)
     CAMLreturn(Val_none);
 
-  if (ctx->codec_id == AV_CODEC_ID_H264) {
-    uint8_t *data = ctx->extradata;
+  if (stream->codecpar->codec_id == AV_CODEC_ID_H264) {
+    uint8_t *data = stream->codecpar->extradata;
     if (data && (data[0] | data[1] | data[2]) == 0 && data[3] == 1 &&
         (data[4] & 0x1F) == 7) {
       snprintf(attr, sizeof(attr), "avc1.%02x%02x%02x", data[5], data[6],
@@ -2087,19 +2086,19 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
     } else {
       snprintf(attr, sizeof(attr), "avc1");
     }
-  } else if (ctx->codec_id == AV_CODEC_ID_HEVC) {
-    uint8_t *data = ctx->extradata;
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
+    uint8_t *data = stream->codecpar->extradata;
     int profile = FF_PROFILE_UNKNOWN;
     int level = FF_LEVEL_UNKNOWN;
 
-    if (ctx->profile != FF_PROFILE_UNKNOWN)
-      profile = ctx->profile;
-    if (ctx->level != FF_LEVEL_UNKNOWN)
-      level = ctx->level;
+    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
+      profile = stream->codecpar->profile;
+    if (stream->codecpar->level != FF_LEVEL_UNKNOWN)
+      level = stream->codecpar->level;
 
     /* check the boundary of data which from current position is small than
      * extradata_size */
-    while (data && (data - ctx->extradata + 19) < ctx->extradata_size) {
+    while (data && (data - stream->codecpar->extradata + 19) < stream->codecpar->extradata_size) {
       /* get HEVC SPS NAL and seek to profile_tier_level */
       if (!(data[0] | data[1] | data[2]) && data[3] == 1 &&
           ((data[4] & 0x7E) == 0x42)) {
@@ -2109,7 +2108,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         /* skip start code + nalu header */
         data += 6;
         /* process by reference General NAL unit syntax */
-        remain_size = ctx->extradata_size - (data - ctx->extradata);
+        remain_size = stream->codecpar->extradata_size - (data - stream->codecpar->extradata);
         rbsp_buf =
             ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
         if (!rbsp_buf)
@@ -2129,23 +2128,23 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       }
       data++;
     }
-    if (ctx->codec_tag == MKTAG('h', 'v', 'c', '1') &&
+    if (stream->codecpar->codec_tag == MKTAG('h', 'v', 'c', '1') &&
         profile != FF_PROFILE_UNKNOWN && level != FF_LEVEL_UNKNOWN) {
       snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
-               av_fourcc2str(ctx->codec_tag), profile, level);
+               av_fourcc2str(stream->codecpar->codec_tag), profile, level);
     } else
-      snprintf(attr, sizeof(attr), "%s", av_fourcc2str(ctx->codec_tag));
-  } else if (ctx->codec_id == AV_CODEC_ID_MP2) {
+      snprintf(attr, sizeof(attr), "%s", av_fourcc2str(stream->codecpar->codec_tag));
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP2) {
     snprintf(attr, sizeof(attr), "mp4a.40.33");
-  } else if (ctx->codec_id == AV_CODEC_ID_MP3) {
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP3) {
     snprintf(attr, sizeof(attr), "mp4a.40.34");
-  } else if (ctx->codec_id == AV_CODEC_ID_AAC) {
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_AAC) {
     /* TODO : For HE-AAC, HE-AACv2, the last digit needs to be set to 5 and 29
      * respectively */
     snprintf(attr, sizeof(attr), "mp4a.40.2");
-  } else if (ctx->codec_id == AV_CODEC_ID_AC3) {
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_AC3) {
     snprintf(attr, sizeof(attr), "ac-3");
-  } else if (ctx->codec_id == AV_CODEC_ID_EAC3) {
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_EAC3) {
     snprintf(attr, sizeof(attr), "ec-3");
   } else {
     CAMLreturn(Val_none);
@@ -2169,7 +2168,7 @@ CAMLprim value ocaml_av_stream_bitrate(value _stream) {
   if (!av->format_context || !av->format_context->streams)
     CAMLreturn(Val_none);
 
-  AVStream *stream = av->format_context->streams[stream->index];
+  AVStream *stream = av->format_context->streams[index];
 
   if (!stream)
     CAMLreturn(Val_none);
