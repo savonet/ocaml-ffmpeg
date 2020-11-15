@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <caml/alloc.h>
 #include <caml/callback.h>
 #include <caml/custom.h>
