@@ -5,8 +5,6 @@
  (foreign_stubs
   (language c)
   (names av_stubs)
-  (include_dirs
-   (lib ffmpeg-avcodec))
   (flags
    (:include c_flags.sexp)))
  (c_library_flags
