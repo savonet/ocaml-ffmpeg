@@ -41,7 +41,6 @@ module Packet = struct
       [`Keyframe; `Corrupt; `Discard; `Trusted; `Disposable]
 
   external dup : 'a t -> 'a t = "ocaml_avcodec_packet_dup"
-
   external get_size : 'a t -> int = "ocaml_avcodec_get_packet_size"
 
   external get_stream_index : 'a t -> int

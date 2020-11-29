@@ -1,12 +1,5 @@
 (** Common code shared across all FFmpeg libraries. *)
 
-(* {1 Options } *)
-
-type value =
-  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
-
-type opts = (string, value) Hashtbl.t
-
 (** {1 Line} *)
 
 type input
@@ -318,3 +311,31 @@ module Options : sig
 
   val opts : t -> opt list
 end
+
+(* {1 Options } *)
+
+type value =
+  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
+
+type opts = (string, value) Hashtbl.t
+
+val opts_default : opts option -> opts
+val mk_opts_array : opts -> (string * string) array
+
+val mk_audio_opts :
+  ?opts:opts ->
+  ?channels:int ->
+  ?channel_layout:Channel_layout.t ->
+  sample_rate:int ->
+  sample_format:Sample_format.t ->
+  time_base:rational ->
+  opts
+
+val mk_video_opts :
+  ?opts:opts ->
+  ?frame_rate:rational ->
+  pixel_format:Pixel_format.t ->
+  width:int ->
+  height:int ->
+  time_base:rational ->
+  opts

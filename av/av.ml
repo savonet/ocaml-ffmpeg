@@ -4,20 +4,6 @@ external init : unit -> unit = "ocaml_av_init" [@@noalloc]
 
 let () = init ()
 
-let _opt_val = function
-  | `String s -> s
-  | `Int i -> string_of_int i
-  | `Int64 i -> Int64.to_string i
-  | `Float f -> string_of_float f
-
-let opts_default = function None -> Hashtbl.create 0 | Some opts -> opts
-
-let mk_opts opts =
-  Array.of_list
-    (Hashtbl.fold
-       (fun opt_name opt_val cur -> (opt_name, _opt_val opt_val) :: cur)
-       opts [])
-
 let filter_opts unused opts =
   Hashtbl.filter_map_inplace
     (fun k v -> if Array.mem k unused then Some v else None)
@@ -70,7 +56,7 @@ external open_input :
 
 let open_input ?format ?opts url =
   let opts = opts_default opts in
-  let ret, unused = open_input url format (mk_opts opts) in
+  let ret, unused = open_input url format (mk_opts_array opts) in
   filter_opts unused opts;
   ret
 
@@ -105,7 +91,9 @@ external ocaml_av_open_input_stream :
 
 let ocaml_av_open_input_stream ?format ?opts avio =
   let opts = opts_default opts in
-  let ret, unused = ocaml_av_open_input_stream avio format (mk_opts opts) in
+  let ret, unused =
+    ocaml_av_open_input_stream avio format (mk_opts_array opts)
+  in
   filter_opts unused opts;
   ret
 
@@ -233,7 +221,7 @@ external open_output :
 
 let open_output ?format ?opts fname =
   let opts = opts_default opts in
-  let ret, unused = open_output ?format fname (mk_opts opts) in
+  let ret, unused = open_output ?format fname (mk_opts_array opts) in
   filter_opts unused opts;
   ret
 
@@ -247,7 +235,9 @@ let open_output_stream ?opts ?seek write format =
   let opts = opts_default opts in
   let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
   let cleanup () = caml_av_input_io_finalise avio in
-  let output, unused = ocaml_av_open_output_stream format avio (mk_opts opts) in
+  let output, unused =
+    ocaml_av_open_output_stream format avio (mk_opts_array opts)
+  in
   filter_opts unused opts;
   Gc.finalise_last cleanup output;
   output
@@ -260,7 +250,6 @@ external _set_metadata : _ container -> int -> (string * string) array -> unit
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
 let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 let get_output s = s.container
-let on_opt v fn = match v with None -> () | Some v -> fn v
 
 external new_stream_copy : output container -> _ Avcodec.params -> int
   = "ocaml_av_new_stream_copy"
@@ -268,17 +257,6 @@ external new_stream_copy : output container -> _ Avcodec.params -> int
 let new_stream_copy ~params container =
   let ret = new_stream_copy container params in
   mk_stream container ret
-
-let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
-    ~time_base opts =
-  Hashtbl.add opts "ar" (`Int sample_rate);
-  on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
-  on_opt channel_layout (fun channel_layout ->
-      Hashtbl.add opts "channel_layout"
-        (`Int64 (Channel_layout.get_id channel_layout)));
-  Hashtbl.add opts "sample_fmt"
-    (`Int (Avutil.Sample_format.get_id sample_format));
-  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base))
 
 external new_audio_stream :
   _ container ->
@@ -289,34 +267,17 @@ external new_audio_stream :
 
 let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
     ~time_base ~codec container =
-  let () =
-    match (channels, channel_layout) with
-      | None, None ->
-          raise
-            (Avutil.Error
-               (`Failure
-                 "At least one of channels or channel_layout must be passed!"))
-      | _ -> ()
+  let opts =
+    mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+      ~time_base
   in
-  let opts = opts_default opts in
-  add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
-    ~time_base opts;
   let ret, unused =
     new_audio_stream container
       (Sample_format.get_id sample_format)
-      codec (mk_opts opts)
+      codec (mk_opts_array opts)
   in
   filter_opts unused opts;
   mk_stream container ret
-
-let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
-  Hashtbl.add opts "pixel_format"
-    (`String (Pixel_format.to_string pixel_format));
-  Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" width height));
-  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base));
-  match frame_rate with
-    | Some r -> Hashtbl.add opts "r" (`String (Avutil.string_of_rational r))
-    | None -> ()
 
 external new_video_stream :
   _ container ->
@@ -326,9 +287,10 @@ external new_video_stream :
 
 let new_video_stream ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
     ~codec container =
-  let opts = opts_default opts in
-  add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
-  let ret, unused = new_video_stream container codec (mk_opts opts) in
+  let opts =
+    mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+  in
+  let ret, unused = new_video_stream container codec (mk_opts_array opts) in
   filter_opts unused opts;
   mk_stream container ret
 
@@ -341,7 +303,7 @@ external new_subtitle_stream :
 let new_subtitle_stream ?opts ~time_base ~codec container =
   let opts = opts_default opts in
   Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base));
-  let ret, unused = new_subtitle_stream container codec (mk_opts opts) in
+  let ret, unused = new_subtitle_stream container codec (mk_opts_array opts) in
   filter_opts unused opts;
   mk_stream container ret
 

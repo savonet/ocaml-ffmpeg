@@ -1,9 +1,3 @@
-(* Options *)
-type value =
-  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
-
-type opts = (string, value) Hashtbl.t
-
 (* Line *)
 type input
 type output
@@ -544,3 +538,65 @@ module Options = struct
 
     f None []
 end
+
+(* Options *)
+type value =
+  [ `String of string | `Int of int | `Int64 of int64 | `Float of float ]
+
+type opts = (string, value) Hashtbl.t
+
+let _opt_val = function
+  | `String s -> s
+  | `Int i -> string_of_int i
+  | `Int64 i -> Int64.to_string i
+  | `Float f -> string_of_float f
+
+let opts_default = function None -> Hashtbl.create 0 | Some opts -> opts
+
+let mk_opts_array opts =
+  Array.of_list
+    (Hashtbl.fold
+       (fun opt_name opt_val cur -> (opt_name, _opt_val opt_val) :: cur)
+       opts [])
+
+let on_opt v fn = match v with None -> () | Some v -> fn v
+
+let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts =
+  Hashtbl.add opts "ar" (`Int sample_rate);
+  on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
+  on_opt channel_layout (fun channel_layout ->
+      Hashtbl.add opts "channel_layout"
+        (`Int64 (Channel_layout.get_id channel_layout)));
+  Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));
+  Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
+
+let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base =
+  let () =
+    match (channels, channel_layout) with
+      | None, None ->
+          raise
+            (Error
+               (`Failure
+                 "At least one of channels or channel_layout must be passed!"))
+      | _ -> ()
+  in
+  let opts = opts_default opts in
+  add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts;
+  opts
+
+let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
+  Hashtbl.add opts "pixel_format"
+    (`String (Pixel_format.to_string pixel_format));
+  Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" width height));
+  Hashtbl.add opts "time_base" (`String (string_of_rational time_base));
+  match frame_rate with
+    | Some r -> Hashtbl.add opts "r" (`String (string_of_rational r))
+    | None -> ()
+
+let mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base =
+  let opts = opts_default opts in
+  add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
+  opts
