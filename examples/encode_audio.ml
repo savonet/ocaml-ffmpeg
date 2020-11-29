@@ -23,6 +23,12 @@ let () =
       ~sample_format:out_sample_format ~sample_rate codec
   in
 
+  let () =
+    let p = Avcodec.params encoder in
+    Printf.printf "Codec ID: %s\n%!"
+      Avcodec.Audio.(string_of_id (get_params_id p))
+  in
+
   let frame_size =
     if List.mem `Variable_frame_size (Audio.capabilities codec) then 512
     else Audio.frame_size encoder

@@ -5,6 +5,9 @@ type 'a params
 type 'media decoder
 type 'media encoder
 
+external params : 'media encoder -> 'media params
+  = "ocaml_avcodec_encoder_params"
+
 external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
 
 let () = init ()

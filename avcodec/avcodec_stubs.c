@@ -460,6 +460,32 @@ CAMLprim value ocaml_avcodec_create_decoder(value _codec) {
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avcodec_encoder_params(value _encoder) {
+  CAMLparam1(_encoder);
+  CAMLlocal1(ans);
+  AVCodecParameters *params = avcodec_parameters_alloc();
+
+  if (!params)
+    caml_raise_out_of_memory();
+
+  codec_context_t *ctx = CodecContext_val(_encoder);
+
+  caml_release_runtime_system();
+  int err = avcodec_parameters_from_context(params, ctx->codec_context);
+  caml_acquire_runtime_system();
+
+  if (err < 0) {
+    avcodec_parameters_free(&params);
+    ocaml_avutil_raise_error(err);
+  }
+
+  value_of_codec_parameters_copy(params, &ans);
+
+  avcodec_parameters_free(&params);
+
+  CAMLreturn(ans);
+}
+
 CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
                                                   value _codec, value _opts) {
   CAMLparam1(_opts);

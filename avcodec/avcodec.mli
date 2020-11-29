@@ -7,6 +7,9 @@ type 'a params
 type 'media decoder
 type 'media encoder
 
+(** Get the params of a given encoder *)
+val params : 'media encoder -> 'media params
+
 (** Codec capabilities. *)
 type capability = Codec_capabilities.t
 
