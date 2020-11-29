@@ -134,16 +134,18 @@ module Audio : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : [ `Decoder ] t -> audio decoder
 
-  (** [Avcodec.Audio.create_encoder ~bitrate:bitrate codec] create an audio
-      encoder.
+  (** [Avcodec.Audio.create_encoder] create an audio encoder.
+
+      Params have the same semantics as in [Av.new_audio_stream]
 
       Raise Error if the encoder creation failed. *)
   val create_encoder :
-    ?bit_rate:int ->
-    channel_layout:Avutil.Channel_layout.t ->
-    channels:int ->
-    sample_format:Avutil.Sample_format.t ->
+    ?opts:opts ->
+    ?channels:int ->
+    ?channel_layout:Channel_layout.t ->
     sample_rate:int ->
+    sample_format:Avutil.Sample_format.t ->
+    time_base:Avutil.rational ->
     [ `Encoder ] t ->
     audio encoder
 
@@ -224,16 +226,18 @@ module Video : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : [ `Decoder ] t -> video decoder
 
-  (** [Avcodec.Video.create_encoder ~bit_rate:bit_rate codec] create a video
-      encoder.
+  (** [Avcodec.Video.create_encoder] create a video encoder.
+
+      Params have the same semantics as in [Av.new_video_stream]
 
       Raise Error if the encoder creation failed. *)
   val create_encoder :
-    ?bit_rate:int ->
+    ?opts:opts ->
+    ?frame_rate:Avutil.rational ->
+    pixel_format:Avutil.Pixel_format.t ->
     width:int ->
     height:int ->
-    pixel_format:Avutil.Pixel_format.t ->
-    framerate:Avutil.rational ->
+    time_base:Avutil.rational ->
     [ `Encoder ] t ->
     video encoder
 

@@ -17,8 +17,9 @@ let () =
 
   let codec = Audio.find_encoder Sys.argv.(2) in
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
+  let time_base = { Avutil.num = 1; den = sample_rate } in
   let encoder =
-    Audio.create_encoder ~channel_layout:`Stereo ~channels:2
+    Audio.create_encoder ~channel_layout:`Stereo ~channels:2 ~time_base
       ~sample_format:out_sample_format ~sample_rate codec
   in
 

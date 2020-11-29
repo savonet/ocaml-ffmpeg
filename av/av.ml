@@ -4,11 +4,6 @@ external init : unit -> unit = "ocaml_av_init" [@@noalloc]
 
 let () = init ()
 
-let filter_opts unused opts =
-  Hashtbl.filter_map_inplace
-    (fun k v -> if Array.mem k unused then Some v else None)
-    opts
-
 (* Format *)
 module Format = struct
   external get_input_name : (input, _) format -> string

@@ -145,9 +145,10 @@ CAMLprim value ocaml_avcodec_packet_dup(value _packet) {
   CAMLparam1(_packet);
   CAMLlocal1(ret);
 
-  AVPacket *packet = (AVPacket*)malloc(sizeof(struct AVPacket));
+  AVPacket *packet = (AVPacket *)malloc(sizeof(struct AVPacket));
 
-  if (!packet) caml_raise_out_of_memory();
+  if (!packet)
+    caml_raise_out_of_memory();
 
   av_init_packet(packet);
   av_packet_ref(packet, Packet_val(_packet));
@@ -459,12 +460,27 @@ CAMLprim value ocaml_avcodec_create_decoder(value _codec) {
   CAMLreturn(ans);
 }
 
-CAMLprim value ocaml_avcodec_create_audio_encoder_native(
-    value _bit_rate, value _channel_layout, value _channels, value _sample_fmt,
-    value _sample_rate, value _codec) {
-  CAMLparam1(_bit_rate);
-  CAMLlocal1(ans);
+CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
+                                                  value _codec, value _opts) {
+  CAMLparam1(_opts);
+  CAMLlocal3(ret, ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
+
+  AVDictionary *options = NULL;
+  char *key, *val;
+  int len = Wosize_val(_opts);
+  int i, err, count;
+
+  for (i = 0; i < len; i++) {
+    // Dictionaries copy key/values by default!
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
+    err = av_dict_set(&options, key, val, 0);
+    if (err < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(err);
+    }
+  }
 
   codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
   if (!ctx)
@@ -483,36 +499,56 @@ CAMLprim value ocaml_avcodec_create_audio_encoder_native(
     caml_raise_out_of_memory();
   }
 
-  ctx->codec_context->channel_layout = ChannelLayout_val(_channel_layout);
-  ctx->codec_context->channels = Int_val(_channels);
-  ctx->codec_context->sample_fmt = SampleFormat_val(_sample_fmt);
-  ctx->codec_context->sample_rate = Int_val(_sample_rate);
-  ctx->codec_context->time_base = (AVRational){1, Int_val(_sample_rate)};
-  ctx->codec_context->bit_rate =
-      Is_block(_bit_rate) ? Int_val(Field(_bit_rate, 0)) : 0;
+  ctx->codec_context->sample_fmt = Int_val(_sample_fmt);
 
   // Open the codec
-  int ret = avcodec_open2(ctx->codec_context, ctx->codec, NULL);
+  err = avcodec_open2(ctx->codec_context, ctx->codec, &options);
   caml_acquire_runtime_system();
 
-  if (ret < 0)
-    ocaml_avutil_raise_error(ret);
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
 
-  CAMLreturn(ans);
+  // Return unused keys
+  caml_release_runtime_system();
+  count = av_dict_count(options);
+  caml_acquire_runtime_system();
+
+  unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
+
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, ans);
+  Store_field(ret, 1, unused);
+
+  CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_avcodec_create_audio_encoder_bytecode(value *argv,
-                                                           int argn) {
-  return ocaml_avcodec_create_audio_encoder_native(argv[0], argv[1], argv[2],
-                                                   argv[3], argv[4], argv[5]);
-}
-
-CAMLprim value ocaml_avcodec_create_video_encoder_native(
-    value _bit_rate, value _width, value _height, value _pixel_fmt,
-    value _framerate_num, value _framerate_den, value _codec) {
-  CAMLparam1(_bit_rate);
-  CAMLlocal1(ans);
+CAMLprim value ocaml_avcodec_create_video_encoder(value _codec, value _opts) {
+  CAMLparam1(_codec);
+  CAMLlocal3(ret, ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
+
+  AVDictionary *options = NULL;
+  char *key, *val;
+  int len = Wosize_val(_opts);
+  int i, err, count;
+
+  for (i = 0; i < len; i++) {
+    // Dictionaries copy key/values by default!
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
+    err = av_dict_set(&options, key, val, 0);
+    if (err < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(err);
+    }
+  }
 
   codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
   if (!ctx)
@@ -531,30 +567,32 @@ CAMLprim value ocaml_avcodec_create_video_encoder_native(
     caml_raise_out_of_memory();
   }
 
-  ctx->codec_context->width = Int_val(_width);
-  ctx->codec_context->height = Int_val(_height);
-  ctx->codec_context->pix_fmt = PixelFormat_val(_pixel_fmt);
-  ctx->codec_context->framerate =
-      (AVRational){Int_val(_framerate_num), Int_val(_framerate_den)};
-  ctx->codec_context->time_base =
-      (AVRational){Int_val(_framerate_den), Int_val(_framerate_num)};
-  ctx->codec_context->bit_rate =
-      Is_block(_bit_rate) ? Int_val(Field(_bit_rate, 0)) : 0;
-
   // Open the codec
-  int ret = avcodec_open2(ctx->codec_context, ctx->codec, NULL);
+  err = avcodec_open2(ctx->codec_context, ctx->codec, &options);
   caml_acquire_runtime_system();
 
-  if (ret < 0)
-    ocaml_avutil_raise_error(ret);
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
 
-  CAMLreturn(ans);
-}
+  // Return unused keys
+  caml_release_runtime_system();
+  count = av_dict_count(options);
+  caml_acquire_runtime_system();
 
-CAMLprim value ocaml_avcodec_create_video_encoder_bytecode(value *argv,
-                                                           int argn) {
-  return ocaml_avcodec_create_video_encoder_native(
-      argv[0], argv[1], argv[2], argv[3], argv[4], argv[5], argv[6]);
+  unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
+
+  ret = caml_alloc_tuple(2);
+  Store_field(ret, 0, ans);
+  Store_field(ret, 1, unused);
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avcodec_frame_size(value _ctx) {

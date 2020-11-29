@@ -339,3 +339,5 @@ val mk_video_opts :
   height:int ->
   time_base:rational ->
   opts
+
+val filter_opts : string array -> opts -> unit

@@ -200,14 +200,24 @@ module Audio = struct
   let create_decoder = create_decoder
 
   external create_encoder :
-    ?bit_rate:int ->
-    channel_layout:Avutil.Channel_layout.t ->
-    channels:int ->
-    sample_format:Avutil.Sample_format.t ->
-    sample_rate:int ->
+    int ->
     [ `Encoder ] t ->
-    audio encoder
-    = "ocaml_avcodec_create_audio_encoder_bytecode" "ocaml_avcodec_create_audio_encoder_native"
+    (string * string) array ->
+    audio encoder * string array = "ocaml_avcodec_create_audio_encoder"
+
+  let create_encoder ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+      ~time_base codec =
+    let opts =
+      mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+        ~time_base
+    in
+    let encoder, unused =
+      create_encoder
+        (Sample_format.get_id sample_format)
+        codec (mk_opts_array opts)
+    in
+    filter_opts unused opts;
+    encoder
 end
 
 (** Video codecs. *)
@@ -266,19 +276,17 @@ module Video = struct
   let create_decoder = create_decoder
 
   external create_encoder :
-    ?bit_rate:int ->
-    width:int ->
-    height:int ->
-    pixel_format:Avutil.Pixel_format.t ->
-    int ->
-    int ->
-    [ `Encoder ] t ->
-    video encoder
-    = "ocaml_avcodec_create_video_encoder_bytecode" "ocaml_avcodec_create_video_encoder_native"
+    [ `Encoder ] t -> (string * string) array -> video encoder * string array
+    = "ocaml_avcodec_create_video_encoder"
 
-  let create_encoder ?bit_rate ~width ~height ~pixel_format ~framerate enc =
-    create_encoder ?bit_rate ~width ~height ~pixel_format framerate.Avutil.num
-      framerate.Avutil.den enc
+  let create_encoder ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+      codec =
+    let opts =
+      mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+    in
+    let encoder, unused = create_encoder codec (mk_opts_array opts) in
+    filter_opts unused opts;
+    encoder
 end
 
 (** Subtitle codecs. *)

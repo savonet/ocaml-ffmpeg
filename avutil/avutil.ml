@@ -600,3 +600,8 @@ let mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base =
   let opts = opts_default opts in
   add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
   opts
+
+let filter_opts unused opts =
+  Hashtbl.filter_map_inplace
+    (fun k v -> if Array.mem k unused then Some v else None)
+    opts
