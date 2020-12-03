@@ -2015,7 +2015,7 @@ CAMLprim value ocaml_av_close(value _av) {
 
     // write the trailer
     caml_release_runtime_system();
-    av_write_trailer(av->format_context);
+    if (av->header_written) av_write_trailer(av->format_context);
     caml_acquire_runtime_system();
   }
 
