@@ -594,6 +594,7 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _codec, value _opts) {
   }
 
   // Open the codec
+  caml_release_runtime_system();
   err = avcodec_open2(ctx->codec_context, ctx->codec, &options);
   caml_acquire_runtime_system();
 
