@@ -210,14 +210,15 @@ module Audio = struct
 
   let create_encoder ?opts ?channels ?channel_layout ~sample_rate ~sample_format
       ~time_base codec =
-    let opts =
-      mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+    let opts = opts_default opts in
+    let _opts =
+      mk_audio_opts ~opts ?channels ?channel_layout ~sample_rate ~sample_format
         ~time_base
     in
     let encoder, unused =
       create_encoder
         (Sample_format.get_id sample_format)
-        codec (mk_opts_array opts)
+        codec (mk_opts_array _opts)
     in
     filter_opts unused opts;
     encoder
@@ -284,10 +285,11 @@ module Video = struct
 
   let create_encoder ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
       codec =
-    let opts =
-      mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+    let opts = opts_default opts in
+    let _opts =
+      mk_video_opts ~opts ?frame_rate ~pixel_format ~width ~height ~time_base
     in
-    let encoder, unused = create_encoder codec (mk_opts_array opts) in
+    let encoder, unused = create_encoder codec (mk_opts_array _opts) in
     filter_opts unused opts;
     encoder
 end
