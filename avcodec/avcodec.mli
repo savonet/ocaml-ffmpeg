@@ -10,6 +10,9 @@ type 'media encoder
 (** Get the params of a given encoder *)
 val params : 'media encoder -> 'media params
 
+(** Get the time base of a given encoder. *)
+val time_base : 'media encoder -> Avutil.rational
+
 (** Codec capabilities. *)
 type capability = Codec_capabilities.t
 

@@ -486,6 +486,16 @@ CAMLprim value ocaml_avcodec_encoder_params(value _encoder) {
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avcodec_encoder_time_base(value _encoder) {
+  CAMLparam1(_encoder);
+  CAMLlocal1(ans);
+  codec_context_t *ctx = CodecContext_val(_encoder);
+
+  value_of_rational(&ctx->codec_context->time_base, &ans);
+
+  CAMLreturn(ans);
+}
+
 CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
                                                   value _codec, value _opts) {
   CAMLparam1(_opts);
@@ -684,7 +694,7 @@ CAMLprim value ocaml_avcodec_flush_decoder(value _ctx) {
   return Val_unit;
 }
 
-static int send_frame(codec_context_t *ctx, AVFrame *frame) {
+static void send_frame(codec_context_t *ctx, AVFrame *frame) {
   int ret;
 
   ctx->flushed = !frame;
@@ -693,13 +703,8 @@ static int send_frame(codec_context_t *ctx, AVFrame *frame) {
   ret = avcodec_send_frame(ctx->codec_context, frame);
   caml_acquire_runtime_system();
 
-  if (ret == AVERROR(EAGAIN))
-    return ret;
-
   if (ret < 0)
     ocaml_avutil_raise_error(ret);
-
-  return 0;
 }
 
 CAMLprim value ocaml_avcodec_send_frame(value _ctx, value _frame) {
@@ -708,10 +713,7 @@ CAMLprim value ocaml_avcodec_send_frame(value _ctx, value _frame) {
   codec_context_t *ctx = CodecContext_val(_ctx);
   AVFrame *frame = _frame ? Frame_val(_frame) : NULL;
 
-  int ret = send_frame(ctx, frame);
-
-  if (ret < 0)
-    ocaml_avutil_raise_error(ret);
+  send_frame(ctx, frame);
 
   CAMLreturn(Val_unit);
 }
@@ -730,6 +732,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
     caml_raise_out_of_memory();
 
   caml_release_runtime_system();
+  av_init_packet(packet);
   ret = avcodec_receive_packet(ctx->codec_context, packet);
   caml_acquire_runtime_system();
 

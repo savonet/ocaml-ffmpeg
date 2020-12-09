@@ -8,6 +8,9 @@ type 'media encoder
 external params : 'media encoder -> 'media params
   = "ocaml_avcodec_encoder_params"
 
+external time_base : 'media encoder -> Avutil.rational
+  = "ocaml_avcodec_encoder_time_base"
+
 external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
 
 let () = init ()
