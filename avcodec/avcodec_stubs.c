@@ -565,7 +565,8 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_avcodec_create_video_encoder(value _codec, value _opts) {
+CAMLprim value ocaml_avcodec_create_video_encoder(value _pix_fmt, value _codec,
+                                                  value _opts) {
   CAMLparam1(_codec);
   CAMLlocal3(ret, ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
@@ -602,6 +603,8 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _codec, value _opts) {
     caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
+
+  ctx->codec_context->pix_fmt = Int_val(_pix_fmt);
 
   // Open the codec
   caml_release_runtime_system();

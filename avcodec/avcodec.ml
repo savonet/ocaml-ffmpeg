@@ -283,8 +283,10 @@ module Video = struct
   let create_decoder = create_decoder
 
   external create_encoder :
-    [ `Encoder ] t -> (string * string) array -> video encoder * string array
-    = "ocaml_avcodec_create_video_encoder"
+    int ->
+    [ `Encoder ] t ->
+    (string * string) array ->
+    video encoder * string array = "ocaml_avcodec_create_video_encoder"
 
   let create_encoder ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
       codec =
@@ -292,7 +294,11 @@ module Video = struct
     let _opts =
       mk_video_opts ~opts ?frame_rate ~pixel_format ~width ~height ~time_base
     in
-    let encoder, unused = create_encoder codec (mk_opts_array _opts) in
+    let encoder, unused =
+      create_encoder
+        (Pixel_format.get_id pixel_format)
+        codec (mk_opts_array _opts)
+    in
     filter_opts unused opts;
     encoder
 end

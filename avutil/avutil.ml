@@ -139,7 +139,8 @@ module Pixel_format = struct
   external planes : t -> int = "ocaml_avutil_pixelformat_planes"
   external to_string : t -> string = "ocaml_avutil_pixelformat_to_string"
   external of_string : string -> t = "ocaml_avutil_pixelformat_of_string"
-  external of_int : int -> t = "ocaml_avutil_pixelformat_of_int"
+  external get_id : t -> int = "ocaml_avutil_get_pixel_fmt_id"
+  external find_id : int -> t = "ocaml_avutil_find_pixel_fmt_from_id"
 
   let bits (*?(padding=true)*) p =
     let n = bits p in
@@ -456,7 +457,7 @@ module Options = struct
                 values =
                   append
                     (fun v ->
-                      Pixel_format.of_int (Int64.to_int (default_int64 v)))
+                      Pixel_format.find_id (Int64.to_int (default_int64 v)))
                     values;
               }
         | _ -> failwith "Incompatible constant!"

@@ -173,6 +173,12 @@ module Pixel_format : sig
   (** [Pixel_format.of_string s] Convert the string [s] into a [Pixel_format.t].
       Raises Error if [s] is not a valid format. *)
   val of_string : string -> t
+
+  (** Return the internal ID of the pixel format. *)
+  val get_id : t -> int
+
+  (** Find a sample pixel from its ID. Raises [Not_found] when none exist. *)
+  val find_id : int -> t
 end
 
 module Audio : sig

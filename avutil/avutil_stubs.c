@@ -516,9 +516,19 @@ CAMLprim value ocaml_avutil_pixelformat_planes(value pixel) {
   CAMLreturn(Val_int(av_pix_fmt_count_planes(p)));
 }
 
-CAMLprim value ocaml_avutil_pixelformat_of_int(value v) {
+CAMLprim value ocaml_avutil_get_pixel_fmt_id(value _pixel_fmt) {
+  CAMLparam1(_pixel_fmt);
+  CAMLreturn(Val_int(PixelFormat_val(_pixel_fmt)));
+}
+
+CAMLprim value ocaml_avutil_find_pixel_fmt_from_id(value _id) {
   CAMLparam0();
-  CAMLreturn(Val_PixelFormat((enum AVPixelFormat)Int_val(v)));
+  value ret = Val_PixelFormat(Int_val(_id));
+
+  if (ret == VALUE_NOT_FOUND)
+    caml_raise_not_found();
+
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel) {
