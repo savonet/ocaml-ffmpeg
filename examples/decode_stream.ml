@@ -26,9 +26,9 @@ let () =
       ~codec out_file
   in
 
-  let filters = ref None in
-  let get_filters frame =
-    match !filters with
+  let filter = ref None in
+  let get_filter frame =
+    match !filter with
       | Some f -> f
       | None ->
           let in_params =
@@ -49,28 +49,23 @@ let () =
             { Avfilter.Utils.sample_rate; sample_format; channel_layout }
           in
           let f =
-            Avfilter.Utils.convert_audio ~in_params ~in_time_base ~out_params
-              ~out_frame_size ()
+            Avfilter.Utils.init_audio_converter ~in_params ~in_time_base
+              ~out_params ~out_frame_size ()
           in
-          filters := Some f;
+          filter := Some f;
           f
   in
 
   let pts = ref 0L in
-  let rec flush filter_out =
-    try
-      filter_out () |> fun frame ->
-      Avutil.frame_set_pts frame (Some !pts);
-      pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
-      Av.write_frame out_stream frame;
-      flush filter_out
-    with Avutil.Error `Eagain -> ()
+  let on_frame frame =
+    Avutil.frame_set_pts frame (Some !pts);
+    pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+    Av.write_frame out_stream frame
   in
 
   let write_frame frame =
-    let filter_in, filter_out = get_filters frame in
-    filter_in frame;
-    flush filter_out
+    let filter = get_filter frame in
+    Avfilter.Utils.convert_audio filter on_frame frame
   in
 
   let read = Unix.read in_fd in

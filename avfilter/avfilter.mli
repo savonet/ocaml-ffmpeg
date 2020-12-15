@@ -120,17 +120,27 @@ val parse :
 val launch : config -> t
 
 module Utils : sig
+  type audio_converter
+
   type audio_params = {
     sample_rate : int;
     channel_layout : Avutil.Channel_layout.t;
     sample_format : Avutil.Sample_format.t;
   }
 
-  val convert_audio :
+  val init_audio_converter :
     ?out_params:audio_params ->
     ?out_frame_size:int ->
     in_time_base:Avutil.rational ->
     in_params:audio_params ->
     unit ->
-    ('a Avutil.frame -> unit) * (unit -> 'b Avutil.frame)
+    audio_converter
+
+  val time_base : audio_converter -> Avutil.rational
+
+  val convert_audio :
+    audio_converter ->
+    (Avutil.audio Avutil.frame -> unit) ->
+    Avutil.audio Avutil.frame ->
+    unit
 end

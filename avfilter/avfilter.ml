@@ -374,13 +374,20 @@ let launch graph =
   { outputs; inputs }
 
 module Utils = struct
+  type audio_converter = {
+    time_base : Avutil.rational;
+    filter_in : Avutil.audio Avutil.frame -> unit;
+    filter_out : unit -> Avutil.audio Avutil.frame;
+  }
+
   type audio_params = {
     sample_rate : int;
     channel_layout : Avutil.Channel_layout.t;
     sample_format : Avutil.Sample_format.t;
   }
 
-  let convert_audio ?out_params ?out_frame_size ~in_time_base ~in_params () =
+  let init_audio_converter ?out_params ?out_frame_size ~in_time_base ~in_params
+      () =
     let abuffer_args =
       [
         `Pair ("sample_rate", `Int in_params.sample_rate);
@@ -457,5 +464,18 @@ module Utils = struct
         | None -> ()
         | Some frame_size -> set_frame_size filter_out.context frame_size
     in
-    (filter_in, filter_out.handler)
+    let time_base = time_base filter_out.context in
+    { time_base; filter_in; filter_out = filter_out.handler }
+
+  let convert_audio { filter_in; filter_out; _ } cb frame =
+    let rec flush () =
+      try
+        cb (filter_out ());
+        flush ()
+      with Avutil.Error `Eagain -> ()
+    in
+    filter_in frame;
+    flush ()
+
+  let time_base { time_base; _ } = time_base
 end

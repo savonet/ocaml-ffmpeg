@@ -60,7 +60,7 @@ let () =
     else Av.get_frame_size stream
   in
 
-  let filter_in, filter_out =
+  let audio_filter =
     let in_params =
       {
         Avfilter.Utils.sample_rate = out_sample_rate;
@@ -68,7 +68,7 @@ let () =
         sample_format = out_sample_format;
       }
     in
-    Avfilter.Utils.convert_audio ~in_params ~in_time_base:time_base
+    Avfilter.Utils.init_audio_converter ~in_params ~in_time_base:time_base
       ~out_frame_size ()
   in
 
@@ -79,22 +79,17 @@ let () =
   assert (Hashtbl.mem output_opt "foo");
   assert (not (Hashtbl.mem output_opt "packetsize"));
 
-  let rec flush () =
-    try
-      filter_out () |> fun frame ->
-      Avutil.frame_set_pts frame (Some !pts);
-      pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
-      Av.write_frame stream frame;
-      flush ()
-    with Avutil.Error `Eagain -> ()
+  let on_frame frame =
+    Avutil.frame_set_pts frame (Some !pts);
+    pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
+    Av.write_frame stream frame
   in
 
   for i = 0 to 2000 do
     Array.init out_frame_size (fun t ->
         sin (float_of_int (t + (i * out_frame_size)) *. c))
-    |> Resampler.convert rsp |> filter_in;
-
-    flush ()
+    |> Resampler.convert rsp
+    |> Avfilter.Utils.convert_audio audio_filter on_frame
   done;
 
   Av.close output;
