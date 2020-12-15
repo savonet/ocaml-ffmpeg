@@ -29,7 +29,7 @@ let () =
 
   let idx, ias, params = Av.find_best_audio_stream src in
 
-  let codec = Avcodec.Audio.find_encoder "flac" in
+  let codec = Avcodec.Audio.find_encoder_by_name "flac" in
   let channel_layout = Avcodec.Audio.get_channel_layout params in
   let channels = Avcodec.Audio.get_nb_channels params in
   let sample_format = Avcodec.Audio.get_sample_format params in

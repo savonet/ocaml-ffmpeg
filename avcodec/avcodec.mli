@@ -91,15 +91,29 @@ module Audio : sig
   (** Main types for audio codecs. *)
   type 'a t
 
+  (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and
+      libfdk_aac *)
+  type id = Codec_id.audio
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> [ `Encoder ] t
+
+  (** Find an encoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_encoder : id -> [ `Encoder ] t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> [ `Decoder ] t
+
+  (** Find a decoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_decoder : id -> [ `Decoder ] t
 
   (** Return the list of supported channel layouts of the codec. *)
   val get_supported_channel_layouts : _ t -> Avutil.Channel_layout.t list
@@ -158,10 +172,6 @@ module Audio : sig
   (** Get the desired frame_size for this encoder. *)
   val frame_size : audio encoder -> int
 
-  (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and
-      libfdk_aac *)
-  type id = Codec_id.audio
-
   (** Return the name of the codec ID. *)
   val string_of_id : id -> string
 
@@ -192,15 +202,29 @@ module Video : sig
   (** Main types for video codecs. *)
   type 'a t
 
+  (** Video codec ids. Careful: different codecs share the same ID, e.g. aac and
+      libfdk_aac *)
+  type id = Codec_id.video
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> [ `Encoder ] t
+
+  (** Find an encoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_encoder : id -> [ `Encoder ] t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> [ `Decoder ] t
+
+  (** Find a decoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_decoder : id -> [ `Decoder ] t
 
   (** Return the list of supported frame rates of the codec. *)
   val get_supported_frame_rates : _ t -> Avutil.rational list
@@ -247,10 +271,6 @@ module Video : sig
     [ `Encoder ] t ->
     video encoder
 
-  (** Video codec ids. Careful: different codecs share the same ID, e.g. aac and
-      libfdk_aac *)
-  type id = Codec_id.video
-
   (** Return the name of the codec. *)
   val string_of_id : id -> string
 
@@ -281,19 +301,29 @@ module Subtitle : sig
   (** Main subtitle types. *)
   type 'a t
 
+  (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac
+      and libfdk_aac *)
+  type id = Codec_id.subtitle
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> [ `Encoder ] t
+
+  (** Find an encoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_encoder : id -> [ `Encoder ] t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> [ `Decoder ] t
 
-  (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac
-      and libfdk_aac *)
-  type id = Codec_id.subtitle
+  (** Find a decoder from its id.
+
+      Raise Error if the codec is not found or is not an audio codec. *)
+  val find_decoder : id -> [ `Decoder ] t
 
   (** Return the name of the codec. *)
   val string_of_id : id -> string

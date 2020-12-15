@@ -151,10 +151,16 @@ module Audio = struct
   external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_audio_codec_id_name"
 
-  external find_encoder : string -> [ `Encoder ] t
+  external find_encoder_by_name : string -> [ `Encoder ] t
+    = "ocaml_avcodec_find_audio_encoder_by_name"
+
+  external find_encoder : id -> [ `Encoder ] t
     = "ocaml_avcodec_find_audio_encoder"
 
-  external find_decoder : string -> [ `Decoder ] t
+  external find_decoder_by_name : string -> [ `Decoder ] t
+    = "ocaml_avcodec_find_audio_decoder_by_name"
+
+  external find_decoder : id -> [ `Decoder ] t
     = "ocaml_avcodec_find_audio_decoder"
 
   external get_supported_channel_layouts : _ t -> Avutil.Channel_layout.t list
@@ -237,10 +243,16 @@ module Video = struct
   external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
 
-  external find_encoder : string -> [ `Encoder ] t
+  external find_encoder_by_name : string -> [ `Encoder ] t
+    = "ocaml_avcodec_find_video_encoder_by_name"
+
+  external find_encoder : id -> [ `Encoder ] t
     = "ocaml_avcodec_find_video_encoder"
 
-  external find_decoder : string -> [ `Decoder ] t
+  external find_decoder_by_name : string -> [ `Decoder ] t
+    = "ocaml_avcodec_find_video_decoder_by_name"
+
+  external find_decoder : id -> [ `Decoder ] t
     = "ocaml_avcodec_find_video_decoder"
 
   external get_supported_frame_rates : _ t -> Avutil.rational list
@@ -313,10 +325,16 @@ module Subtitle = struct
   external string_of_id : id -> string
     = "ocaml_avcodec_get_subtitle_codec_id_name"
 
-  external find_encoder : string -> [ `Encoder ] t
+  external find_encoder_by_name : string -> [ `Encoder ] t
+    = "ocaml_avcodec_find_subtitle_encoder_by_name"
+
+  external find_encoder : id -> [ `Encoder ] t
     = "ocaml_avcodec_find_subtitle_encoder"
 
-  external find_decoder : string -> [ `Decoder ] t
+  external find_decoder_by_name : string -> [ `Decoder ] t
+    = "ocaml_avcodec_find_subtitle_decoder_by_name"
+
+  external find_decoder : id -> [ `Decoder ] t
     = "ocaml_avcodec_find_subtitle_decoder"
 
   external get_params_id : subtitle params -> id

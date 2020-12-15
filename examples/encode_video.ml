@@ -36,7 +36,7 @@ let () =
   let width = 352 in
   let height = 288 in
   let pixel_format = `Yuv420p in
-  let codec = Avcodec.Video.find_encoder Sys.argv.(2) in
+  let codec = Avcodec.Video.find_encoder_by_name Sys.argv.(2) in
 
   let dst = Av.open_output Sys.argv.(1) in
 

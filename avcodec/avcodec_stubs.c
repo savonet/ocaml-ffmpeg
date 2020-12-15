@@ -763,7 +763,7 @@ CAMLprim value ocaml_avcodec_flush_encoder(value _ctx) {
 
 /**** codec ****/
 
-static AVCodec *find_encoder(const char *name, enum AVMediaType type) {
+static AVCodec *find_encoder_by_name(const char *name, enum AVMediaType type) {
   caml_release_runtime_system();
   AVCodec *codec = avcodec_find_encoder_by_name(name);
   caml_acquire_runtime_system();
@@ -774,9 +774,31 @@ static AVCodec *find_encoder(const char *name, enum AVMediaType type) {
   return codec;
 }
 
-static AVCodec *find_decoder(const char *name, enum AVMediaType type) {
+static AVCodec *find_encoder(enum AVCodecID id, enum AVMediaType type) {
+  caml_release_runtime_system();
+  AVCodec *codec = avcodec_find_encoder(id);
+  caml_acquire_runtime_system();
+
+  if (!codec || codec->type != type)
+    ocaml_avutil_raise_error(AVERROR_ENCODER_NOT_FOUND);
+
+  return codec;
+}
+
+static AVCodec *find_decoder_by_name(const char *name, enum AVMediaType type) {
   caml_release_runtime_system();
   AVCodec *codec = avcodec_find_decoder_by_name(name);
+  caml_acquire_runtime_system();
+
+  if (!codec || codec->type != type)
+    ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
+
+  return codec;
+}
+
+static AVCodec *find_decoder(enum AVCodecID id, enum AVMediaType type) {
+  caml_release_runtime_system();
+  AVCodec *codec = avcodec_find_decoder(id);
   caml_acquire_runtime_system();
 
   if (!codec || codec->type != type)
@@ -816,14 +838,26 @@ CAMLprim value ocaml_avcodec_get_audio_codec_id_name(value _codec_id) {
       avcodec_get_name((enum AVCodecID)AudioCodecID_val(_codec_id))));
 }
 
-CAMLprim value ocaml_avcodec_find_audio_encoder(value _name) {
+CAMLprim value ocaml_avcodec_find_audio_encoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_encoder(String_val(_name), AVMEDIA_TYPE_AUDIO));
+  CAMLreturn(
+      (value)find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO));
 }
 
-CAMLprim value ocaml_avcodec_find_audio_decoder(value _name) {
+CAMLprim value ocaml_avcodec_find_audio_encoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn((value)find_encoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO));
+}
+
+CAMLprim value ocaml_avcodec_find_audio_decoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_decoder(String_val(_name), AVMEDIA_TYPE_AUDIO));
+  CAMLreturn(
+      (value)find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO));
+}
+
+CAMLprim value ocaml_avcodec_find_audio_decoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn((value)find_decoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO));
 }
 
 CAMLprim value ocaml_avcodec_capabilities(value _codec) {
@@ -953,14 +987,26 @@ CAMLprim value ocaml_avcodec_get_video_codec_id_name(value _codec_id) {
   CAMLreturn(caml_copy_string(avcodec_get_name(VideoCodecID_val(_codec_id))));
 }
 
-CAMLprim value ocaml_avcodec_find_video_decoder(value _name) {
+CAMLprim value ocaml_avcodec_find_video_decoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_decoder(String_val(_name), AVMEDIA_TYPE_VIDEO));
+  CAMLreturn(
+      (value)find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO));
 }
 
-CAMLprim value ocaml_avcodec_find_video_encoder(value _name) {
+CAMLprim value ocaml_avcodec_find_video_decoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn((value)find_decoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO));
+}
+
+CAMLprim value ocaml_avcodec_find_video_encoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_encoder(String_val(_name), AVMEDIA_TYPE_VIDEO));
+  CAMLreturn(
+      (value)find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO));
+}
+
+CAMLprim value ocaml_avcodec_find_video_encoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn((value)find_encoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO));
 }
 
 CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec) {
@@ -1070,14 +1116,28 @@ CAMLprim value ocaml_avcodec_get_subtitle_codec_id_name(value _codec_id) {
       caml_copy_string(avcodec_get_name(SubtitleCodecID_val(_codec_id))));
 }
 
-CAMLprim value ocaml_avcodec_find_subtitle_decoder(value _name) {
+CAMLprim value ocaml_avcodec_find_subtitle_decoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_decoder(String_val(_name), AVMEDIA_TYPE_SUBTITLE));
+  CAMLreturn(
+      (value)find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE));
 }
 
-CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _name) {
+CAMLprim value ocaml_avcodec_find_subtitle_decoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn(
+      (value)find_decoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE));
+}
+
+CAMLprim value ocaml_avcodec_find_subtitle_encoder_by_name(value _name) {
   CAMLparam1(_name);
-  CAMLreturn((value)find_encoder(String_val(_name), AVMEDIA_TYPE_SUBTITLE));
+  CAMLreturn(
+      (value)find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE));
+}
+
+CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
+  CAMLparam1(_id);
+  CAMLreturn(
+      (value)find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE));
 }
 
 /**** Subtitle codec parameters ****/

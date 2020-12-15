@@ -10,8 +10,8 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
-  let audio_codec = Avcodec.Audio.find_encoder "aac" in
-  let video_codec = Avcodec.Video.find_encoder "mpeg4" in
+  let audio_codec = Avcodec.Audio.find_encoder_by_name "aac" in
+  let video_codec = Avcodec.Video.find_encoder_by_name "mpeg4" in
 
   let iass = Av.get_audio_streams src in
 
@@ -54,8 +54,7 @@ let () =
     |> List.map (fun (i, _, params) ->
            let codec =
              Avcodec.Subtitle.find_encoder
-               (Avcodec.Subtitle.string_of_id
-                  (Avcodec.Subtitle.get_params_id params))
+               (Avcodec.Subtitle.get_params_id params)
            in
            (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in

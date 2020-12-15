@@ -15,7 +15,7 @@ let () =
   let pi = 4.0 *. atan 1.0 in
   let sample_rate = 44100 in
 
-  let codec = Audio.find_encoder Sys.argv.(2) in
+  let codec = Audio.find_encoder_by_name Sys.argv.(2) in
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
   let time_base = { Avutil.num = 1; den = sample_rate } in
   let encoder =

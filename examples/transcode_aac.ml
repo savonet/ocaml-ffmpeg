@@ -10,7 +10,7 @@ let () =
 
   let idx, istream, params = Av.find_best_audio_stream src in
 
-  let codec = Avcodec.Audio.find_encoder "aac" in
+  let codec = Avcodec.Audio.find_encoder_by_name "aac" in
 
   let channel_layout = Avcodec.Audio.get_channel_layout params in
   let sample_format = Avcodec.Audio.get_sample_format params in

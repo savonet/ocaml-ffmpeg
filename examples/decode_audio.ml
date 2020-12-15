@@ -25,7 +25,7 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
 
-  let in_codec = Audio.find_decoder Sys.argv.(2) in
+  let in_codec = Audio.find_decoder_by_name Sys.argv.(2) in
 
   let parser = Audio.create_parser in_codec in
   let decoder = Audio.create_decoder in_codec in
@@ -33,7 +33,7 @@ let () =
   let in_fd = Unix.openfile Sys.argv.(1) [Unix.O_RDONLY] 0 in
 
   let out_file = Av.open_output Sys.argv.(3) in
-  let codec = Avcodec.Audio.find_encoder Sys.argv.(4) in
+  let codec = Avcodec.Audio.find_encoder_by_name Sys.argv.(4) in
   let channel_layout = Avcodec.Audio.find_best_channel_layout codec `Stereo in
   let sample_format = Avcodec.Audio.find_best_sample_format codec `Dbl in
   let sample_rate = Avcodec.Audio.find_best_sample_rate codec 44100 in

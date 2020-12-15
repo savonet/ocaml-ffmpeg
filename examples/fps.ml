@@ -10,8 +10,8 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
-  let audio_codec = Avcodec.Audio.find_encoder "aac" in
-  let video_codec = Avcodec.Video.find_encoder "mpeg4" in
+  let audio_codec = Avcodec.Audio.find_encoder_by_name "aac" in
+  let video_codec = Avcodec.Video.find_encoder_by_name "mpeg4" in
 
   let audio_input, oass =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
