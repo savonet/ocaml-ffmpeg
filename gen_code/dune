@@ -3,7 +3,7 @@
  (foreign_stubs
   (language c)
   (names gen_code_stubs))
- (libraries str))
+ (libraries unix str))
 
 (rule
  (target config.ml)

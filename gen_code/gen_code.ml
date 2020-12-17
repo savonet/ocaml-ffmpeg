@@ -122,13 +122,24 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
 
     print_ml ["]\n"] )
 
-let translate_enums_opt ?h_oc ?ml_oc in_names enums_labels =
+let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
   match get_path in_names with
     | None ->
         Printf.eprintf "WARNING : None of the header files [%s] where found\n"
           (String.concat "; " (List.map (Printf.sprintf "%S") in_names))
     | Some path ->
-        let ic = open_in path in
+        let ic =
+          if pre_process then (
+            let path = Filename.quote path in
+            let cmd =
+              Printf.sprintf
+                "if which gcc; then gcc -E %s; elif which clang; then clang -E \
+                 %s; else cat %s; fi"
+                path path path
+            in
+            Unix.open_process_in cmd )
+          else open_in path
+        in
 
         if_d h_oc (fun oc ->
             output_string oc "#define VALUE_NOT_FOUND 0xFFFFFFF\n\n");
@@ -137,16 +148,17 @@ let translate_enums_opt ?h_oc ?ml_oc in_names enums_labels =
           (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
           enums_labels;
 
-        close_in ic
+        if pre_process then assert (Unix.close_process_in ic = Unix.WEXITED 0)
+        else close_in ic
 
-let translate_enums in_names out_name enums_labels = function
+let translate_c_values ~pre_process in_names out_name enums_labels = function
   | "ml" ->
       let ml_oc = open_out (out_name ^ ".ml") in
-      translate_enums_opt ~ml_oc in_names enums_labels;
+      translate_c_values_opt ~ml_oc ~pre_process in_names enums_labels;
       close_out ml_oc
   | "h" ->
       let h_oc = open_out (out_name ^ "_stubs.h") in
-      translate_enums_opt ~h_oc in_names enums_labels;
+      translate_c_values_opt ~h_oc ~pre_process in_names enums_labels;
       close_out h_oc
   | _ -> assert false
 
@@ -252,9 +264,9 @@ let gen_polymorphic_variant = function
   | _ -> assert false
 
 let gen_codec_id mode =
-  (* translate_enums parameters : *)
+  (* translate_c_values parameters : *)
   (* in_name out_name title (start_pat, pat, end_pat, enum_prefix, c_type_name, c_fun_radix, ml_type_name) *)
-  translate_enums
+  translate_c_values ~pre_process:true
     ["/libavcodec/codec_id.h"; "/libavcodec/avcodec.h"]
     "codec_id"
     [
@@ -283,7 +295,7 @@ let gen_codec_id mode =
     mode
 
 let gen_pixel_format mode =
-  translate_enums ["/libavutil/pixfmt.h"] "pixel_format"
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "pixel_format"
     [
       ( "enum AVPixelFormat",
         "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)",
@@ -296,7 +308,7 @@ let gen_pixel_format mode =
     mode
 
 let gen_channel_layout mode =
-  translate_enums
+  translate_c_values ~pre_process:false
     ["/libavutil/channel_layout.h"]
     "channel_layout"
     [
@@ -311,7 +323,7 @@ let gen_channel_layout mode =
     mode
 
 let gen_codec_capabilities mode =
-  translate_enums
+  translate_c_values ~pre_process:false
     ["/libavcodec/codec.h"; "/libavcodec/avcodec.h"]
     "codec_capabilities"
     [
@@ -326,7 +338,8 @@ let gen_codec_capabilities mode =
     mode
 
 let gen_sample_format mode =
-  translate_enums ["/libavutil/samplefmt.h"] "sample_format"
+  translate_c_values ~pre_process:true ["/libavutil/samplefmt.h"]
+    "sample_format"
     [
       ( "enum AVSampleFormat",
         "[ \t]*AV_SAMPLE_FMT_\\([A-Z0-9_]+\\)",
@@ -339,7 +352,7 @@ let gen_sample_format mode =
     mode
 
 let gen_swresample_options mode =
-  translate_enums
+  translate_c_values ~pre_process:true
     ["/libswresample/swresample.h"]
     "swresample_options"
     [
