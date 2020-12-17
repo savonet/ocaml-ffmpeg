@@ -307,6 +307,20 @@ let gen_pixel_format mode =
     ]
     mode
 
+let gen_pixel_format_flag mode =
+  translate_c_values ~pre_process:false ["/libavutil/pixdesc.h"]
+    "pixel_format_flag"
+    [
+      ( "",
+        "#define AV_PIX_FMT_FLAG_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_PIX_FMT_FLAG_",
+        "uint64_t",
+        "PixelFormatFlag",
+        "t" );
+    ]
+    mode
+
 let gen_channel_layout mode =
   translate_c_values ~pre_process:false
     ["/libavutil/channel_layout.h"]
@@ -386,6 +400,7 @@ let () =
     | "polymorphic_variant" -> gen_polymorphic_variant mode
     | "codec_id" -> gen_codec_id mode
     | "pixel_format" -> gen_pixel_format mode
+    | "pixel_format_flag" -> gen_pixel_format_flag mode
     | "channel_layout" -> gen_channel_layout mode
     | "sample_format" -> gen_sample_format mode
     | "swresample_options" -> gen_swresample_options mode

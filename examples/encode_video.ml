@@ -36,6 +36,52 @@ let () =
   let width = 352 in
   let height = 288 in
   let pixel_format = `Yuv420p in
+
+  let () =
+    let string_of_flag = function
+      | `Be -> "be"
+      | `Pal -> "pal"
+      | `Bitstream -> "bitstream"
+      | `Hwaccel -> "hwaccel"
+      | `Planar -> "planar"
+      | `Rgb -> "rgb"
+      | `Pseudopal -> "pseudopal"
+      | `Alpha -> "alpha"
+      | `Bayer -> "bayer"
+      | `Float -> "float"
+    in
+    let string_of_comp { Avutil.Pixel_format.plane; step; shift; offset; depth }
+        =
+      Printf.sprintf "plane: %i, step: %i, shift: %i, offset: %i, depth: %i"
+        plane step shift offset depth
+    in
+    let descriptor = Avutil.Pixel_format.descriptor pixel_format in
+    Printf.printf
+      "Pixel format:\n\
+       name: %s\n\
+       nb_components: %i\n\
+       log2_chroma_w: %i\n\
+       log2_chroma_h: %i\n\
+       flags: %s\n\
+       comp: [\n\
+      \  %s\n\
+       ]\n\
+       alias: %s\n\
+       bits: %i\n"
+      descriptor.Avutil.Pixel_format.name
+      descriptor.Avutil.Pixel_format.nb_components
+      descriptor.Avutil.Pixel_format.log2_chroma_w
+      descriptor.Avutil.Pixel_format.log2_chroma_h
+      (String.concat ", "
+         (List.map string_of_flag descriptor.Avutil.Pixel_format.flags))
+      (String.concat ",\n  "
+         (List.map string_of_comp descriptor.Avutil.Pixel_format.comp))
+      ( match descriptor.Avutil.Pixel_format.alias with
+        | None -> "N/A"
+        | Some a -> a )
+      (Avutil.Pixel_format.bits descriptor)
+  in
+
   let codec = Avcodec.Video.find_encoder_by_name Sys.argv.(2) in
 
   let dst = Av.open_output Sys.argv.(1) in

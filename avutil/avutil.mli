@@ -160,8 +160,35 @@ module Pixel_format : sig
   (** Pixels formats. *)
   type t = Pixel_format.t
 
+  (** Pixel format flags. *)
+  type flag = Pixel_format_flag.t
+
+  (** Pixel format component descriptor *)
+  type component_descriptor = {
+    plane : int;
+    step : int;
+    offset : int;
+    shift : int;
+    depth : int;
+  }
+
+  (** Pixel format descriptor. *)
+  type descriptor = private {
+    name : string;
+    nb_components : int;
+    log2_chroma_w : int;
+    log2_chroma_h : int;
+    flags : flag list;
+    comp : component_descriptor list;
+    alias : string option;
+  }
+
+  (** Return the pixel's format descriptor. Raises [Not_found]
+      if descriptor could not be found. *)
+  val descriptor : t -> descriptor
+
   (** Return the number of bits of the pixel format. *)
-  val bits : (*?padding:bool ->*) t -> int
+  val bits : descriptor -> int
 
   (** Return the number of planes of the pixel format. *)
   val planes : t -> int

@@ -134,18 +134,36 @@ end
 
 module Pixel_format = struct
   type t = Pixel_format.t
+  type flag = Pixel_format_flag.t
 
-  external bits : t -> int = "ocaml_avutil_pixelformat_bits_per_pixel"
+  type component_descriptor = {
+    plane : int;
+    step : int;
+    offset : int;
+    shift : int;
+    depth : int;
+  }
+
+  (* An extra hidden field is stored on the C side
+     with a reference to the underlying C descriptor
+     for use with the C functions consuming it. *)
+  type descriptor = {
+    name : string;
+    nb_components : int;
+    log2_chroma_w : int;
+    log2_chroma_h : int;
+    flags : flag list;
+    comp : component_descriptor list;
+    alias : string option;
+  }
+
+  external descriptor : t -> descriptor = "ocaml_avutil_pixelformat_descriptor"
+  external bits : descriptor -> int = "ocaml_avutil_pixelformat_bits_per_pixel"
   external planes : t -> int = "ocaml_avutil_pixelformat_planes"
   external to_string : t -> string = "ocaml_avutil_pixelformat_to_string"
   external of_string : string -> t = "ocaml_avutil_pixelformat_of_string"
   external get_id : t -> int = "ocaml_avutil_get_pixel_fmt_id"
   external find_id : int -> t = "ocaml_avutil_find_pixel_fmt_from_id"
-
-  let bits (*?(padding=true)*) p =
-    let n = bits p in
-    (* TODO: when padding is true we should add the padding *)
-    n
 end
 
 module Channel_layout = struct

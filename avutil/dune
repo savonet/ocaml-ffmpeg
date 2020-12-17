@@ -21,7 +21,7 @@
  (targets avutil_stubs.c)
  (mode fallback)
  (deps polymorphic_variant_values_stubs.h pixel_format_stubs.h
-   sample_format_stubs.h channel_layout_stubs.h)
+   pixel_format_flag_stubs.h sample_format_stubs.h channel_layout_stubs.h)
  (action
   (echo "this should not happen")))
 
@@ -39,6 +39,16 @@
  (targets pixel_format.ml)
  (action
   (run ../gen_code/gen_code.exe pixel_format ml)))
+
+(rule
+ (targets pixel_format_flag_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe pixel_format_flag h)))
+
+(rule
+ (targets pixel_format_flag.ml)
+ (action
+  (run ../gen_code/gen_code.exe pixel_format_flag ml)))
 
 (rule
  (targets sample_format_stubs.h)

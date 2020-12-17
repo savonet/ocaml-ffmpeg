@@ -19,6 +19,7 @@
 
 #include "avutil_stubs.h"
 #include "channel_layout_stubs.h"
+#include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
 #include "sample_format_stubs.h"
 
@@ -502,11 +503,77 @@ CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id) {
 }
 
 /***** AVPixelFormat *****/
-CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value pixel) {
+CAMLprim value ocaml_avutil_pixelformat_descriptor(value pixel) {
   CAMLparam1(pixel);
+  CAMLlocal4(ret, tmp1, tmp2, cons);
   enum AVPixelFormat p = PixelFormat_val(pixel);
+  const AVPixFmtDescriptor *pixdesc = av_pix_fmt_desc_get(p);
+  AVComponentDescriptor comp_desc;
+  int i, n;
 
-  CAMLreturn(Val_int(av_get_bits_per_pixel(av_pix_fmt_desc_get(p))));
+  if (!pixdesc)
+    caml_raise_not_found();
+
+  ret = caml_alloc_tuple(8);
+  Store_field(ret, 0, caml_copy_string(pixdesc->name));
+  Store_field(ret, 1, Val_int(pixdesc->nb_components));
+  Store_field(ret, 2, Val_int(pixdesc->log2_chroma_w));
+  Store_field(ret, 3, Val_int(pixdesc->log2_chroma_h));
+
+  n = 0;
+  for (i = 0; i < AV_PIX_FMT_FLAG_T_TAB_LEN; i++) {
+    if (pixdesc->flags & AV_PIX_FMT_FLAG_T_TAB[i][1])
+      n++;
+  }
+
+  if (n == 0)
+    Store_field(ret, 4, Val_int(0));
+  else {
+    cons = Val_int(0);
+    for (i = 0; i < AV_PIX_FMT_FLAG_T_TAB_LEN; i++) {
+      if (pixdesc->flags & AV_PIX_FMT_FLAG_T_TAB[i][1]) {
+        tmp1 = caml_alloc(2, 0);
+        Store_field(tmp1, 0, AV_PIX_FMT_FLAG_T_TAB[i][0]);
+        Store_field(tmp1, 1, cons);
+        cons = tmp1;
+      }
+    }
+    Store_field(ret, 4, tmp1);
+  }
+
+  cons = Val_int(0);
+  for (i = 3; i >= 0; i--) {
+    comp_desc = pixdesc->comp[i];
+    tmp2 = caml_alloc_tuple(5);
+    Store_field(tmp2, 0, comp_desc.plane);
+    Store_field(tmp2, 1, comp_desc.step);
+    Store_field(tmp2, 2, comp_desc.offset);
+    Store_field(tmp2, 3, comp_desc.shift);
+    Store_field(tmp2, 4, comp_desc.depth);
+
+    tmp1 = caml_alloc(2, 0);
+    Store_field(tmp1, 0, tmp2);
+    Store_field(tmp1, 1, cons);
+    cons = tmp1;
+  }
+  Store_field(ret, 5, tmp1);
+
+  if (pixdesc->alias) {
+    tmp1 = caml_alloc_tuple(1);
+    Store_field(tmp1, 0, caml_copy_string(pixdesc->alias));
+    Store_field(ret, 6, tmp1);
+  } else
+    Store_field(ret, 6, Val_none);
+  Store_field(ret, 7, (value)pixdesc);
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value d) {
+  CAMLparam0();
+  AVPixFmtDescriptor *pixdesc = (AVPixFmtDescriptor *)Field(d, 7);
+
+  CAMLreturn(Val_int(av_get_bits_per_pixel(pixdesc)));
 }
 
 CAMLprim value ocaml_avutil_pixelformat_planes(value pixel) {
