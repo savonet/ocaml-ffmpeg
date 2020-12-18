@@ -914,6 +914,8 @@ CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
    Store_field(tmp1, 1, tmp2);
 
    Store_field(tmp1, 2, Val_HwDeviceType(config->device_type));
+
+   Store_field(ret, 0, tmp1);
    cons1 = ret;
    i++;
    config = avcodec_get_hw_config(codec, i);

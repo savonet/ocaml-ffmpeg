@@ -3,19 +3,20 @@ open Avcodec
 exception Skip
 
 let () =
-  let codec = "libopencore_amrwb" in
+  let codec_name = Sys.argv.(1) in
   try
     let codec =
-      try Video.find_decoder_by_name codec
+      try Video.find_decoder_by_name codec_name
       with _ ->
-        Printf.printf "codec %s not available!\n" codec;
+        Printf.printf "codec %s not available!\n" codec_name;
         raise Skip
     in
-    Printf.printf "hw_config for h264_videotoolbox:\n  %s\n"
+    Printf.printf "hw_config for %s:\n%s\n"
+      codec_name
       (String.concat ",\n  "
          (List.map
             (fun { pix_fmt; methods; device_type } ->
-              Printf.sprintf "pix_fmt: %s, methods: %s, device_type: %s"
+              Printf.sprintf "{\n  pix_fmt: %s,\n  methods: %s,\n  device_type: %s\n}"
                 (Avutil.Pixel_format.to_string pix_fmt)
                 (String.concat ", "
                    (List.map
@@ -37,6 +38,6 @@ let () =
                   | `Drm -> "drm"
                   | `Opencl -> "opencl"
                   | `Mediacodec -> "mediacodec"
-                  | `Vulkan -> "vulkan" ))
+                  | _ -> "not supported in this test!" ))
             (hw_configs codec)))
   with Skip -> ()

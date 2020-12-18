@@ -148,7 +148,7 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
           (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
           enums_labels;
 
-        if pre_process then assert (Unix.close_process_in ic = Unix.WEXITED 0)
+        if pre_process then ignore(Unix.close_process_in ic)
         else close_in ic
 
 let translate_c_values ~pre_process in_names out_name enums_labels = function
@@ -322,7 +322,7 @@ let gen_pixel_format_flag mode =
     mode
 
 let gen_hw_config_method mode =
-  translate_c_values ~pre_process:true ["/libavcodec/codec.h"]
+  translate_c_values ~pre_process:true ["/libavcodec/avcodec.h"]
     "hw_config_method"
     [
       ( "",
