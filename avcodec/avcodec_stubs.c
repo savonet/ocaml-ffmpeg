@@ -12,6 +12,8 @@
 #include "avcodec_stubs.h"
 #include "codec_capabilities_stubs.h"
 #include "codec_id_stubs.h"
+#include "hw_device_type_stubs.h"
+#include "hw_config_method_stubs.h"
 
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
@@ -877,6 +879,45 @@ CAMLprim value ocaml_avcodec_capabilities(value _codec) {
   for (i = 0; i < AV_CODEC_CAP_T_TAB_LEN; i++)
     if (codec->capabilities & AV_CODEC_CAP_T_TAB[i][1])
       Store_field(ret, len++, Val_int(AV_CODEC_CAP_T_TAB[i][0]));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
+  CAMLparam0();
+  CAMLlocal5(ret, tmp1, cons1, tmp2, cons2);
+  AVCodec *codec = (AVCodec *)_codec;
+  int n, i = 0;
+  const AVCodecHWConfig *config = avcodec_get_hw_config(codec, i);
+
+  if (!config)
+    CAMLreturn(Val_int(0));
+
+  cons1 = Val_int(0);
+  do {
+   ret = caml_alloc(2, 0);
+   Store_field(ret, 1, cons1);
+
+   tmp1 = caml_alloc_tuple(3);
+   Store_field(tmp1, 0, Val_PixelFormat(config->pix_fmt));
+   
+   tmp2 = Val_int(0);
+   cons2 = Val_int(0);
+   for (n = 0; n < AV_CODEC_HW_CONFIG_METHOD_T_TAB_LEN; n++) {
+     if (config->methods & AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][1]) {
+       tmp2 = caml_alloc(2, 0);
+       Store_field(tmp2, 0, AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][0]);
+       Store_field(tmp2, 1, cons2);
+       cons2 = tmp2;
+     }
+   } 
+   Store_field(tmp1, 1, tmp2);
+
+   Store_field(tmp1, 2, Val_HwDeviceType(config->device_type));
+   cons1 = ret;
+   i++;
+   config = avcodec_get_hw_config(codec, i);
+  } while (config);
 
   CAMLreturn(ret);
 }

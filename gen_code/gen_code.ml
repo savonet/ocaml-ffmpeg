@@ -321,6 +321,34 @@ let gen_pixel_format_flag mode =
     ]
     mode
 
+let gen_hw_config_method mode =
+  translate_c_values ~pre_process:true ["/libavcodec/codec.h"]
+    "hw_config_method"
+    [
+      ( "",
+        "[ \t]*AV_CODEC_HW_CONFIG_METHOD_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_CODEC_HW_CONFIG_METHOD_",
+        "uint64_t",
+        "HwConfigMethod",
+        "t" );
+    ]
+    mode
+
+let gen_hw_device_type mode =
+  translate_c_values ~pre_process:true ["/libavutil/hwcontext.h"]
+    "hw_device_type"
+    [
+      ( "enum AVHWDeviceType",
+        "[ \t]*AV_HWDEVICE_TYPE_\\([A-Z0-9_]+\\)",
+        "[ \t]*AV_HWDEVICE_TYPE_NONE ",
+        "AV_HWDEVICE_TYPE_",
+        "enum AVHWDeviceType",
+        "HwDeviceType",
+        "t" );
+    ]
+    mode
+
 let gen_channel_layout mode =
   translate_c_values ~pre_process:false
     ["/libavutil/channel_layout.h"]
@@ -401,6 +429,8 @@ let () =
     | "codec_id" -> gen_codec_id mode
     | "pixel_format" -> gen_pixel_format mode
     | "pixel_format_flag" -> gen_pixel_format_flag mode
+    | "hw_config_method" -> gen_hw_config_method mode
+    | "hw_device_type" -> gen_hw_device_type mode
     | "channel_layout" -> gen_channel_layout mode
     | "sample_format" -> gen_sample_format mode
     | "swresample_options" -> gen_swresample_options mode

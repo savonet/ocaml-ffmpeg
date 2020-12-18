@@ -6,6 +6,7 @@
  (alias runtest)
  (package ffmpeg)
  (deps
+  (:hw_tests ../examples/hw_tests.exe)
   (:list_filters ../examples/list_filters.exe)
   (:encode_audio ../examples/encode_audio.exe)
   (:encode_video ../examples/encode_video.exe)
@@ -25,6 +26,7 @@
  (action
   (progn
    (run %{list_filters})
+   (run %{hw_tests})
    (run %{encode_audio} A4.flac flac)
    (run %{encode_audio} A4.mp2 mp2)
    (run %{encode_video} video.ogg libtheora)

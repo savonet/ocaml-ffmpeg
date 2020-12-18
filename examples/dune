@@ -4,6 +4,11 @@
    (:standard -warn-error -A))))
 
 (executable
+ (name hw_tests)
+ (modules hw_tests)
+ (libraries ffmpeg-avcodec))
+
+(executable
  (name aresample)
  (modules aresample)
  (libraries ffmpeg-av ffmpeg-avfilter))

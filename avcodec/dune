@@ -18,6 +18,28 @@
   (run ./config/discover.exe)))
 
 (rule
+ (targets hw_device_type_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe hw_device_type h)))
+
+(rule
+ (targets hw_device_type.ml)
+ (deps hw_device_type_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe hw_device_type ml)))
+
+(rule
+ (targets hw_config_method_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe hw_config_method h)))
+
+(rule
+ (targets hw_config_method.ml)
+ (deps hw_config_method_stubs.h)
+ (action
+  (run ../gen_code/gen_code.exe hw_config_method ml)))
+
+(rule
  (targets codec_capabilities_stubs.h)
  (action
   (run ../gen_code/gen_code.exe codec_capabilities h)))
