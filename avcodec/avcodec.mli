@@ -36,7 +36,7 @@ type hw_config = {
 }
 
 (** Get the codec's hardward configs. *)
-val hw_configs : ([< `Audio | `Video ], decode) codec -> hw_config list
+val hw_configs : ([< `Audio | `Video ], _) codec -> hw_config list
 
 (** Packet. *)
 module Packet : sig

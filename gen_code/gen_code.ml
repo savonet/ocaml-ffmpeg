@@ -102,6 +102,20 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
         tab_name;
         "[i][0])return ";
         tab_name;
+        "[i][1];\n}\ncaml_raise_not_found();\n}";
+      ];
+
+    print_c
+      [
+        c_type_name;
+        " ";
+        c_fun_radix;
+        "_val_no_raise(value v){\nint i;\nfor(i=0;i<";
+        tab_len;
+        ";i++){\nif(v==";
+        tab_name;
+        "[i][0])return ";
+        tab_name;
         "[i][1];\n}\nreturn VALUE_NOT_FOUND;\n}";
       ];
 
@@ -117,7 +131,7 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
         tab_name;
         "[i][1])return ";
         tab_name;
-        "[i][0];\n}\nreturn VALUE_NOT_FOUND;\n}";
+        "[i][0];\n}\ncaml_raise_not_found();\n}";
       ];
 
     print_ml ["]\n"] )
@@ -148,8 +162,7 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
           (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
           enums_labels;
 
-        if pre_process then ignore(Unix.close_process_in ic)
-        else close_in ic
+        if pre_process then ignore (Unix.close_process_in ic) else close_in ic
 
 let translate_c_values ~pre_process in_names out_name enums_labels = function
   | "ml" ->

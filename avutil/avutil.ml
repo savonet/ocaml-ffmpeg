@@ -160,7 +160,7 @@ module Pixel_format = struct
   external descriptor : t -> descriptor = "ocaml_avutil_pixelformat_descriptor"
   external bits : descriptor -> int = "ocaml_avutil_pixelformat_bits_per_pixel"
   external planes : t -> int = "ocaml_avutil_pixelformat_planes"
-  external to_string : t -> string = "ocaml_avutil_pixelformat_to_string"
+  external to_string : t -> string option = "ocaml_avutil_pixelformat_to_string"
   external of_string : string -> t = "ocaml_avutil_pixelformat_of_string"
   external get_id : t -> int = "ocaml_avutil_get_pixel_fmt_id"
   external find_id : int -> t = "ocaml_avutil_find_pixel_fmt_from_id"
@@ -187,7 +187,7 @@ end
 module Sample_format = struct
   type t = Sample_format.t
 
-  external get_name : t -> string = "ocaml_avutil_get_sample_fmt_name"
+  external get_name : t -> string option = "ocaml_avutil_get_sample_fmt_name"
   external get_id : t -> int = "ocaml_avutil_get_sample_fmt_id"
   external find : string -> t = "ocaml_avutil_find_sample_fmt"
   external find_id : int -> t = "ocaml_avutil_find_sample_fmt_from_id"
@@ -607,8 +607,7 @@ let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
   opts
 
 let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
-  Hashtbl.add opts "pixel_format"
-    (`String (Pixel_format.to_string pixel_format));
+  Hashtbl.add opts "pixel_format" (`Int (Pixel_format.get_id pixel_format));
   Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" width height));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base));
   match frame_rate with

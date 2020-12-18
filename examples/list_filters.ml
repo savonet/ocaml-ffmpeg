@@ -68,9 +68,21 @@ let string_of_option { Avutil.Options.name; help; flags; spec } =
       | `UInt64 entry -> ("uint64", string_of_spec Int64.to_string entry)
       | `Image_size entry -> ("image_size", string_of_spec (fun v -> v) entry)
       | `Pixel_fmt entry ->
-          ("pixel_fmt", string_of_spec Avutil.Pixel_format.to_string entry)
+          ( "pixel_fmt",
+            string_of_spec
+              (fun p ->
+                match Avutil.Pixel_format.to_string p with
+                  | None -> "none"
+                  | Some f -> f)
+              entry )
       | `Sample_fmt entry ->
-          ("sample_fmt", string_of_spec Avutil.Sample_format.get_name entry)
+          ( "sample_fmt",
+            string_of_spec
+              (fun f ->
+                match Avutil.Sample_format.get_name f with
+                  | None -> "none"
+                  | Some f -> f)
+              entry )
       | `Video_rate entry -> ("video_rate", string_of_spec (fun v -> v) entry)
       | `Duration entry -> ("duration", string_of_spec Int64.to_string entry)
       | `Color entry -> ("color", string_of_spec (fun v -> v) entry)

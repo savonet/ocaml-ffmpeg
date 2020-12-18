@@ -477,12 +477,20 @@ CAMLprim value ocaml_avutil_find_sample_fmt(value _name) {
 CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt) {
   CAMLparam1(_sample_fmt);
   CAMLlocal1(ans);
+  enum AVSampleFormat sample_fmt = SampleFormat_val(_sample_fmt);
+
+  if (sample_fmt == AV_SAMPLE_FMT_NONE)
+    CAMLreturn(Val_none);
 
   caml_release_runtime_system();
   const char *name = av_get_sample_fmt_name(SampleFormat_val(_sample_fmt));
   caml_acquire_runtime_system();
 
-  ans = caml_copy_string(name);
+  if (!name)
+    CAMLreturn(Val_none);
+
+  ans = caml_alloc_tuple(1);
+  Store_field(ans, 0, caml_copy_string(name));
 
   CAMLreturn(ans);
 }
@@ -495,9 +503,6 @@ CAMLprim value ocaml_avutil_get_sample_fmt_id(value _sample_fmt) {
 CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id) {
   CAMLparam0();
   value ret = Val_SampleFormat(Int_val(_id));
-
-  if (ret == VALUE_NOT_FOUND)
-    caml_raise_not_found();
 
   CAMLreturn(ret);
 }
@@ -592,17 +597,27 @@ CAMLprim value ocaml_avutil_find_pixel_fmt_from_id(value _id) {
   CAMLparam0();
   value ret = Val_PixelFormat(Int_val(_id));
 
-  if (ret == VALUE_NOT_FOUND)
-    caml_raise_not_found();
-
   CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel) {
   CAMLparam1(pixel);
+  CAMLlocal1(ret);
   enum AVPixelFormat p = PixelFormat_val(pixel);
 
-  CAMLreturn(caml_copy_string(av_get_pix_fmt_name(p)));
+  if (p == AV_PIX_FMT_NONE)
+    CAMLreturn(Val_none);
+
+  caml_release_runtime_system();
+  const char *name = av_get_pix_fmt_name(p);
+  caml_acquire_runtime_system();
+
+  if (!name)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_string(name));
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_pixelformat_of_string(value name) {

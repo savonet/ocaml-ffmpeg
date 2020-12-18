@@ -2015,7 +2015,8 @@ CAMLprim value ocaml_av_close(value _av) {
 
     // write the trailer
     caml_release_runtime_system();
-    if (av->header_written) av_write_trailer(av->format_context);
+    if (av->header_written)
+      av_write_trailer(av->format_context);
     caml_acquire_runtime_system();
   }
 
@@ -2098,7 +2099,8 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
 
     /* check the boundary of data which from current position is small than
      * extradata_size */
-    while (data && (data - stream->codecpar->extradata + 19) < stream->codecpar->extradata_size) {
+    while (data && (data - stream->codecpar->extradata + 19) <
+                       stream->codecpar->extradata_size) {
       /* get HEVC SPS NAL and seek to profile_tier_level */
       if (!(data[0] | data[1] | data[2]) && data[3] == 1 &&
           ((data[4] & 0x7E) == 0x42)) {
@@ -2108,7 +2110,8 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         /* skip start code + nalu header */
         data += 6;
         /* process by reference General NAL unit syntax */
-        remain_size = stream->codecpar->extradata_size - (data - stream->codecpar->extradata);
+        remain_size = stream->codecpar->extradata_size -
+                      (data - stream->codecpar->extradata);
         rbsp_buf =
             ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
         if (!rbsp_buf)
@@ -2133,7 +2136,8 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
                av_fourcc2str(stream->codecpar->codec_tag), profile, level);
     } else
-      snprintf(attr, sizeof(attr), "%s", av_fourcc2str(stream->codecpar->codec_tag));
+      snprintf(attr, sizeof(attr), "%s",
+               av_fourcc2str(stream->codecpar->codec_tag));
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP2) {
     snprintf(attr, sizeof(attr), "mp4a.40.33");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP3) {

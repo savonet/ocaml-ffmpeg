@@ -12,8 +12,8 @@
 #include "avcodec_stubs.h"
 #include "codec_capabilities_stubs.h"
 #include "codec_id_stubs.h"
-#include "hw_device_type_stubs.h"
 #include "hw_config_method_stubs.h"
+#include "hw_device_type_stubs.h"
 
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
@@ -28,22 +28,16 @@ value ocaml_avcodec_init(value unit) {
 
 static value value_of_audio_codec_id(enum AVCodecID id) {
   value ret = Val_AudioCodecID(id);
-  if (ret == VALUE_NOT_FOUND)
-    caml_raise_not_found();
   return ret;
 }
 
 static value value_of_video_codec_id(enum AVCodecID id) {
   value ret = Val_VideoCodecID(id);
-  if (ret == VALUE_NOT_FOUND)
-    caml_raise_not_found();
   return ret;
 }
 
 static value value_of_subtitle_codec_id(enum AVCodecID id) {
   value ret = Val_SubtitleCodecID(id);
-  if (ret == VALUE_NOT_FOUND)
-    caml_raise_not_found();
   return ret;
 }
 
@@ -895,30 +889,30 @@ CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
 
   cons1 = Val_int(0);
   do {
-   ret = caml_alloc(2, 0);
-   Store_field(ret, 1, cons1);
+    ret = caml_alloc(2, 0);
+    Store_field(ret, 1, cons1);
 
-   tmp1 = caml_alloc_tuple(3);
-   Store_field(tmp1, 0, Val_PixelFormat(config->pix_fmt));
-   
-   tmp2 = Val_int(0);
-   cons2 = Val_int(0);
-   for (n = 0; n < AV_CODEC_HW_CONFIG_METHOD_T_TAB_LEN; n++) {
-     if (config->methods & AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][1]) {
-       tmp2 = caml_alloc(2, 0);
-       Store_field(tmp2, 0, AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][0]);
-       Store_field(tmp2, 1, cons2);
-       cons2 = tmp2;
-     }
-   } 
-   Store_field(tmp1, 1, tmp2);
+    tmp1 = caml_alloc_tuple(3);
+    Store_field(tmp1, 0, Val_PixelFormat(config->pix_fmt));
 
-   Store_field(tmp1, 2, Val_HwDeviceType(config->device_type));
+    tmp2 = Val_int(0);
+    cons2 = Val_int(0);
+    for (n = 0; n < AV_CODEC_HW_CONFIG_METHOD_T_TAB_LEN; n++) {
+      if (config->methods & AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][1]) {
+        tmp2 = caml_alloc(2, 0);
+        Store_field(tmp2, 0, AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][0]);
+        Store_field(tmp2, 1, cons2);
+        cons2 = tmp2;
+      }
+    }
+    Store_field(tmp1, 1, tmp2);
 
-   Store_field(ret, 0, tmp1);
-   cons1 = ret;
-   i++;
-   config = avcodec_get_hw_config(codec, i);
+    Store_field(tmp1, 2, Val_HwDeviceType(config->device_type));
+
+    Store_field(ret, 0, tmp1);
+    cons1 = ret;
+    i++;
+    config = avcodec_get_hw_config(codec, i);
   } while (config);
 
   CAMLreturn(ret);

@@ -6,18 +6,20 @@ let () =
   let codec_name = Sys.argv.(1) in
   try
     let codec =
-      try Video.find_decoder_by_name codec_name
+      try Video.find_encoder_by_name codec_name
       with _ ->
-        Printf.printf "codec %s not available!\n" codec_name;
+        Printf.printf "encoder %s not available!\n" codec_name;
         raise Skip
     in
-    Printf.printf "hw_config for %s:\n%s\n"
-      codec_name
+    Printf.printf "hw_config for %s:\n%s\n" codec_name
       (String.concat ",\n  "
          (List.map
             (fun { pix_fmt; methods; device_type } ->
-              Printf.sprintf "{\n  pix_fmt: %s,\n  methods: %s,\n  device_type: %s\n}"
-                (Avutil.Pixel_format.to_string pix_fmt)
+              Printf.sprintf
+                "{\n  pix_fmt: %s,\n  methods: %s,\n  device_type: %s\n}"
+                ( match Avutil.Pixel_format.to_string pix_fmt with
+                  | None -> "none"
+                  | Some f -> f )
                 (String.concat ", "
                    (List.map
                       (function

@@ -529,17 +529,18 @@ static SwrContext *swresample_set_context(
   int i, ret = 0;
 
   for (i = 0; options[i]; i++) {
-    int64_t val = DitherType_val(options[i]);
+    int64_t val = DitherType_val_no_raise(options[i]);
 
+    // TODO: get rid of that!
     if (val != VALUE_NOT_FOUND) {
       ret = av_opt_set_int(ctx, "dither_method", val, 0);
     } else {
-      val = Engine_val(options[i]);
+      val = Engine_val_no_raise(options[i]);
 
       if (val != VALUE_NOT_FOUND) {
         ret = av_opt_set_int(ctx, "resampler", val, 0);
       } else {
-        val = FilterType_val(options[i]);
+        val = FilterType_val_no_raise(options[i]);
 
         if (val != VALUE_NOT_FOUND) {
           ret = av_opt_set_int(ctx, "filter_type", val, 0);

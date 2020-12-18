@@ -41,7 +41,7 @@ type hw_config = {
   device_type : hw_device_type;
 }
 
-external hw_configs : ([< `Audio | `Video ], decode) codec -> hw_config list
+external hw_configs : ([< `Audio | `Video ], _) codec -> hw_config list
   = "ocaml_avcodec_hw_methods"
 
 (** Packet. *)
@@ -184,7 +184,11 @@ module Audio = struct
     List.rev (get_supported_channel_layouts codec)
 
   let find_best_channel_layout codec default =
-    match get_supported_channel_layouts codec with h :: _ -> h | [] -> default
+    try
+      match get_supported_channel_layouts codec with
+        | h :: _ -> h
+        | [] -> default
+    with Not_found -> default
 
   external get_supported_sample_formats : _ t -> Avutil.Sample_format.t list
     = "ocaml_avcodec_get_supported_sample_formats"
@@ -193,7 +197,11 @@ module Audio = struct
     List.rev (get_supported_sample_formats codec)
 
   let find_best_sample_format codec default =
-    match get_supported_sample_formats codec with h :: _ -> h | [] -> default
+    try
+      match get_supported_sample_formats codec with
+        | h :: _ -> h
+        | [] -> default
+    with Not_found -> default
 
   external get_supported_sample_rates : _ t -> int list
     = "ocaml_avcodec_get_supported_sample_rates"

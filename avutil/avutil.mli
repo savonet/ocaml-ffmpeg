@@ -140,8 +140,8 @@ module Sample_format : sig
   (** Audio sample formats. *)
   type t = Sample_format.t
 
-  (** Return the name of the sample format. *)
-  val get_name : t -> string
+  (** Return the name of the sample format if it exists. *)
+  val get_name : t -> string option
 
   (** Find a sample format by its name. Raises [Not_found] when none exist. *)
   val find : string -> t
@@ -194,8 +194,8 @@ module Pixel_format : sig
   val planes : t -> int
 
   (** [Pixel_format.to_string f] Return a string representation of the pixel
-      format [f]. *)
-  val to_string : t -> string
+      format [f] if it exists *)
+  val to_string : t -> string option
 
   (** [Pixel_format.of_string s] Convert the string [s] into a [Pixel_format.t].
       Raises Error if [s] is not a valid format. *)

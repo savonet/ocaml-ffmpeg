@@ -51,7 +51,8 @@ let () =
   Printf.printf
     "Play the output audio file with the command:\n\
      ffplay -f %s -ac 2 -ar 44100 %s\n"
-    (Sample_format.get_name `S32 ^ if Sys.big_endian then "be" else "le")
+    ( Option.get (Sample_format.get_name `S32)
+    ^ if Sys.big_endian then "be" else "le" )
     audio_output_filename;
 
   Gc.full_major ();

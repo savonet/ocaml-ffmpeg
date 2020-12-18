@@ -22,7 +22,8 @@ let test () =
                     idx "codec"
                     (get_params_id cd |> string_of_id)
                     "sample format"
-                    (get_sample_format cd |> Sample_format.get_name)
+                    ( get_sample_format cd |> fun p ->
+                      Option.get (Sample_format.get_name p) )
                     "channels" (get_nb_channels cd) "bit rate" (get_bit_rate cd)
                     "sample rate" (get_sample_rate cd) "duration (ms)"
                     (Av.get_duration ~format:`Millisecond stm)));
