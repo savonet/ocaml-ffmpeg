@@ -162,7 +162,12 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
           (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
           enums_labels;
 
-        if pre_process then ignore (Unix.close_process_in ic) else close_in ic
+        if pre_process then (
+          let tmp = Bytes.create 1024 in
+          let rec read () = if input ic tmp 0 1024 <> 0 then read () in
+          read ();
+          assert (Unix.close_process_in ic = Unix.WEXITED 0) )
+        else close_in ic
 
 let translate_c_values ~pre_process in_names out_name enums_labels = function
   | "ml" ->
