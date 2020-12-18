@@ -41,8 +41,8 @@ let () =
           in
           let in_time_base = { Avutil.num = 1; den = sample_rate } in
           let out_frame_size =
-            if List.mem `Variable_frame_size (Avcodec.Audio.capabilities codec)
-            then 512
+            if List.mem `Variable_frame_size (Avcodec.capabilities codec) then
+              512
             else Av.get_frame_size out_stream
           in
           let out_params =

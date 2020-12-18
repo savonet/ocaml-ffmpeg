@@ -1,9 +1,12 @@
 open Avutil
 module Ba = Bigarray.Array1
 
-type 'a params
+type ('media, 'mode) codec
+type 'media params
 type 'media decoder
 type 'media encoder
+type encode = [ `Encoder ]
+type decode = [ `Decoder ]
 
 external params : 'media encoder -> 'media params
   = "ocaml_avcodec_encoder_params"
@@ -24,7 +27,8 @@ let empty_data = create_data 0
 type capability = Codec_capabilities.t
 
 (* To be used with Audio.t and Video.t *)
-external capabilities : 'a -> capability array = "ocaml_avcodec_capabilities"
+external capabilities : ([< `Audio | `Video ], encode) codec -> capability array
+  = "ocaml_avcodec_capabilities"
 
 let capabilities c = Array.to_list (capabilities c)
 
@@ -141,11 +145,9 @@ external create_decoder : 'a -> _ decoder = "ocaml_avcodec_create_decoder"
 (** Audio codecs. *)
 module Audio = struct
   (** Audio codec ids *)
-  type 'a t
+  type 'mode t = (audio, 'mode) codec
 
   type id = Codec_id.audio
-
-  let capabilities = capabilities
 
   external frame_size : audio encoder -> int = "ocaml_avcodec_frame_size"
   external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
@@ -235,10 +237,8 @@ end
 
 (** Video codecs. *)
 module Video = struct
-  type 'a t
+  type 'mode t = (video, 'mode) codec
   type id = Codec_id.video
-
-  let capabilities = capabilities
 
   external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
@@ -317,7 +317,7 @@ end
 
 (** Subtitle codecs. *)
 module Subtitle = struct
-  type 'a t
+  type 'mode t = (subtitle, 'mode) codec
   type id = Codec_id.subtitle
 
   external get_id : _ t -> id = "ocaml_avcodec_get_subtitle_codec_id"

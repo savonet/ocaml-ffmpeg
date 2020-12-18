@@ -30,7 +30,7 @@ let () =
   in
 
   let frame_size =
-    if List.mem `Variable_frame_size (Audio.capabilities codec) then 512
+    if List.mem `Variable_frame_size (capabilities codec) then 512
     else Audio.frame_size encoder
   in
 

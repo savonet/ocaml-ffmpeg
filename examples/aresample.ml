@@ -27,8 +27,7 @@ let () =
   in
 
   let frame_size =
-    if List.mem `Variable_frame_size (Avcodec.Audio.capabilities audio_codec)
-    then 512
+    if List.mem `Variable_frame_size (Avcodec.capabilities audio_codec) then 512
     else Av.get_frame_size oass
   in
 

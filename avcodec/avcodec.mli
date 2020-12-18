@@ -3,9 +3,12 @@
 
 open Avutil
 
-type 'a params
+type ('media, 'mode) codec
+type 'media params
 type 'media decoder
 type 'media encoder
+type encode = [ `Encoder ]
+type decode = [ `Decoder ]
 
 (** Get the params of a given encoder *)
 val params : 'media encoder -> 'media params
@@ -16,80 +19,83 @@ val time_base : 'media encoder -> Avutil.rational
 (** Codec capabilities. *)
 type capability = Codec_capabilities.t
 
+(** Get the encoding capabilities for this codec. *)
+val capabilities : ([< `Audio | `Video ], encode) codec -> capability list
+
 (** Packet. *)
 module Packet : sig
   (** Packet type *)
-  type 'a t
+  type 'media t
 
   (** Parser type *)
-  type 'a parser
+  type 'media parser
 
   (** Packet flags *)
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
   (** Return a fresh packet refereing the same data. *)
-  val dup : 'a t -> 'a t
+  val dup : 'media t -> 'media t
 
   (** Retun the packet flags. *)
-  val get_flags : 'a t -> flag list
+  val get_flags : 'media t -> flag list
 
   (** Return the size of the packet. *)
-  val get_size : 'a t -> int
+  val get_size : 'media t -> int
 
   (** Return the stream index of the packet. *)
-  val get_stream_index : 'a t -> int
+  val get_stream_index : 'media t -> int
 
   (** Set the stream index of the packet. *)
-  val set_stream_index : 'a t -> int -> unit
+  val set_stream_index : 'media t -> int -> unit
 
   (** Return the packet PTS (Presentation Time) in its
       stream's base_time unit. *)
-  val get_pts : 'a t -> Int64.t option
+  val get_pts : 'media t -> Int64.t option
 
   (** Set the packet PTS (Presentation Time) in its
       stream's base_time unit. *)
-  val set_pts : 'a t -> Int64.t option -> unit
+  val set_pts : 'media t -> Int64.t option -> unit
 
   (** Return the packet DTS (Decoding Time) in its
       stream's base_time unit. *)
-  val get_dts : 'a t -> Int64.t option
+  val get_dts : 'media t -> Int64.t option
 
   (** Set the packet DTS (Decoding Time) in its
       stream's base_time unit. *)
-  val set_dts : 'a t -> Int64.t option -> unit
+  val set_dts : 'media t -> Int64.t option -> unit
 
   (** Return the packet duration in its
       stream's base_time unit.*)
-  val get_duration : 'a t -> Int64.t option
+  val get_duration : 'media t -> Int64.t option
 
   (** Set the packet duration in its
       stream's base_time unit.*)
-  val set_duration : 'a t -> Int64.t option -> unit
+  val set_duration : 'media t -> Int64.t option -> unit
 
   (** Return the packet byte position in stream. *)
-  val get_position : 'a t -> Int64.t option
+  val get_position : 'media t -> Int64.t option
 
   (** Set the packet byte position in stream. *)
-  val set_position : 'a t -> Int64.t option -> unit
+  val set_position : 'media t -> Int64.t option -> unit
 
   (** Return a fresh bytes array containing a copy of packet datas. *)
-  val to_bytes : 'a t -> bytes
+  val to_bytes : 'media t -> bytes
 
   (** [Avcodec.Packet.parse_data parser f data] applies function [f] to the
       parsed packets frome the [data] array according to the [parser]
       configuration.
 
       Raise Error if the parsing failed. *)
-  val parse_data : 'a parser -> ('a t -> unit) -> data -> unit
+  val parse_data : 'media parser -> ('media t -> unit) -> data -> unit
 
   (** Same as {!Avcodec.Packet.parse_data} with bytes array. *)
-  val parse_bytes : 'a parser -> ('a t -> unit) -> bytes -> int -> unit
+  val parse_bytes : 'media parser -> ('media t -> unit) -> bytes -> int -> unit
 end
 
 (** Audio codecs. *)
 module Audio : sig
   (** Main types for audio codecs. *)
-  type 'a t
+  type 'mode t = (audio, 'mode) codec
 
   (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and
       libfdk_aac *)
@@ -98,22 +104,22 @@ module Audio : sig
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder_by_name : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> encode t
 
   (** Find an encoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : id -> [ `Encoder ] t
+  val find_encoder : id -> encode t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder_by_name : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> decode t
 
   (** Find a decoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : id -> [ `Decoder ] t
+  val find_decoder : id -> decode t
 
   (** Return the list of supported channel layouts of the codec. *)
   val get_supported_channel_layouts : _ t -> Avutil.Channel_layout.t list
@@ -141,18 +147,15 @@ module Audio : sig
       sample rate. *)
   val find_best_sample_rate : _ t -> int -> int
 
-  (** Get the encoding capabilities for this codec. *)
-  val capabilities : [ `Encoder ] t -> capability list
-
   (** [Avcodec.Audio.create_parser codec] create an audio packet parser.
 
       Raise Error if the parser creation failed. *)
-  val create_parser : [ `Decoder ] t -> audio Packet.parser
+  val create_parser : decode t -> audio Packet.parser
 
   (** [Avcodec.Audio.create_decoder codec] create an audio decoder.
 
       Raise Error if the decoder creation failed. *)
-  val create_decoder : [ `Decoder ] t -> audio decoder
+  val create_decoder : decode t -> audio decoder
 
   (** [Avcodec.Audio.create_encoder] create an audio encoder.
 
@@ -166,7 +169,7 @@ module Audio : sig
     sample_rate:int ->
     sample_format:Avutil.Sample_format.t ->
     time_base:Avutil.rational ->
-    [ `Encoder ] t ->
+    encode t ->
     audio encoder
 
   (** Get the desired frame_size for this encoder. *)
@@ -200,7 +203,7 @@ end
 (** Video codecs. *)
 module Video : sig
   (** Main types for video codecs. *)
-  type 'a t
+  type 'mode t = (video, 'mode) codec
 
   (** Video codec ids. Careful: different codecs share the same ID, e.g. aac and
       libfdk_aac *)
@@ -209,22 +212,22 @@ module Video : sig
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder_by_name : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> encode t
 
   (** Find an encoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : id -> [ `Encoder ] t
+  val find_encoder : id -> encode t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder_by_name : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> decode t
 
   (** Find a decoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : id -> [ `Decoder ] t
+  val find_decoder : id -> decode t
 
   (** Return the list of supported frame rates of the codec. *)
   val get_supported_frame_rates : _ t -> Avutil.rational list
@@ -243,18 +246,15 @@ module Video : sig
   val find_best_pixel_format :
     _ t -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
 
-  (** Get the encoding capabilities for this codec. *)
-  val capabilities : [ `Encoder ] t -> capability list
-
   (** [Avcodec.Video.create_parser codec] create an video packet parser.
 
       Raise Error if the parser creation failed. *)
-  val create_parser : [ `Decoder ] t -> video Packet.parser
+  val create_parser : decode t -> video Packet.parser
 
   (** [Avcodec.Video.create_decoder codec] create a video decoder.
 
       Raise Error if the decoder creation failed. *)
-  val create_decoder : [ `Decoder ] t -> video decoder
+  val create_decoder : decode t -> video decoder
 
   (** [Avcodec.Video.create_encoder] create a video encoder.
 
@@ -268,7 +268,7 @@ module Video : sig
     width:int ->
     height:int ->
     time_base:Avutil.rational ->
-    [ `Encoder ] t ->
+    encode t ->
     video encoder
 
   (** Return the name of the codec. *)
@@ -299,7 +299,7 @@ end
 (** Subtitle codecs. *)
 module Subtitle : sig
   (** Main subtitle types. *)
-  type 'a t
+  type 'mode t = (subtitle, 'mode) codec
 
   (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac
       and libfdk_aac *)
@@ -308,22 +308,22 @@ module Subtitle : sig
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder_by_name : string -> [ `Encoder ] t
+  val find_encoder_by_name : string -> encode t
 
   (** Find an encoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_encoder : id -> [ `Encoder ] t
+  val find_encoder : id -> encode t
 
   (** Find a decoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder_by_name : string -> [ `Decoder ] t
+  val find_decoder_by_name : string -> decode t
 
   (** Find a decoder from its id.
 
       Raise Error if the codec is not found or is not an audio codec. *)
-  val find_decoder : id -> [ `Decoder ] t
+  val find_decoder : id -> decode t
 
   (** Return the name of the codec. *)
   val string_of_id : id -> string
