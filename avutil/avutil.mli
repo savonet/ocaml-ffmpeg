@@ -374,3 +374,20 @@ val mk_video_opts :
   opts
 
 val filter_opts : string array -> opts -> unit
+
+(** {5 HwContext} *)
+
+module HwContext : sig
+  (** Codec hardward device type. *)
+  type device_type = Hw_device_type.t
+
+  (** Device context. *)
+  type device_context
+
+  (** Frame context. *)
+  type frame_context
+
+  val create_device_context : ?device:string -> ?opts:opts -> device_type -> device_context
+
+  val create_frame_context : device_context -> frame_context
+end

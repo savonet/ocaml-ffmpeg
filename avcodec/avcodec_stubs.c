@@ -13,7 +13,6 @@
 #include "codec_capabilities_stubs.h"
 #include "codec_id_stubs.h"
 #include "hw_config_method_stubs.h"
-#include "hw_device_type_stubs.h"
 
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010

@@ -22,17 +22,14 @@ type capability = Codec_capabilities.t
 (** Get the encoding capabilities for this codec. *)
 val capabilities : ([< `Audio | `Video ], encode) codec -> capability list
 
-(** Codec hardware config method. *)
-type hw_config_method = Hw_config_method.t
-
-(** Codec hardward device type. *)
-type hw_device_type = Hw_device_type.t
+  (** Codec hardware config method. *)
+  type hw_config_method = Hw_config_method.t
 
 (** Hardward config for the given codec. *)
 type hw_config = {
   pix_fmt : Pixel_format.t;
   methods : hw_config_method list;
-  device_type : hw_device_type;
+  device_type : HwContext.device_type;
 }
 
 (** Get the codec's hardward configs. *)

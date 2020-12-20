@@ -77,6 +77,11 @@ int PixelFormat_val(value);
 
 value Val_PixelFormat(enum AVPixelFormat pf);
 
+/**** Device Type ****/
+
+enum AVHWDeviceType HwDeviceType_val(value v);
+
+value Val_HwDeviceType(enum AVHWDeviceType t);
 
 /***** AVFrame *****/
 

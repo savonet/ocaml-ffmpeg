@@ -32,13 +32,12 @@ external capabilities : ([< `Audio | `Video ], encode) codec -> capability array
 
 let capabilities c = Array.to_list (capabilities c)
 
-type hw_config_method = Hw_config_method.t
-type hw_device_type = Hw_device_type.t
+  type hw_config_method = Hw_config_method.t
 
 type hw_config = {
   pix_fmt : Pixel_format.t;
   methods : hw_config_method list;
-  device_type : hw_device_type;
+  device_type : HwContext.device_type;
 }
 
 external hw_configs : ([< `Audio | `Video ], _) codec -> hw_config list

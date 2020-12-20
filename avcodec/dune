@@ -18,18 +18,6 @@
   (run ./config/discover.exe)))
 
 (rule
- (targets hw_device_type_stubs.h)
- (deps c_flags)
- (action
-  (run ../gen_code/gen_code.exe hw_device_type h %{read-lines:c_flags})))
-
-(rule
- (targets hw_device_type.ml)
- (deps hw_device_type_stubs.h c_flags)
- (action
-  (run ../gen_code/gen_code.exe hw_device_type ml %{read-lines:c_flags})))
-
-(rule
  (targets hw_config_method_stubs.h)
  (deps c_flags)
  (action
