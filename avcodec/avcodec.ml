@@ -32,7 +32,7 @@ external capabilities : ([< `Audio | `Video ], encode) codec -> capability array
 
 let capabilities c = Array.to_list (capabilities c)
 
-  type hw_config_method = Hw_config_method.t
+type hw_config_method = Hw_config_method.t
 
 type hw_config = {
   pix_fmt : Pixel_format.t;
@@ -314,19 +314,21 @@ module Video = struct
   let create_decoder = create_decoder
 
   external create_encoder :
+    ?device_context:Avutil.HwContext.device_context ->
+    ?frame_context:Avutil.HwContext.frame_context ->
     int ->
     [ `Encoder ] t ->
     (string * string) array ->
     video encoder * string array = "ocaml_avcodec_create_video_encoder"
 
-  let create_encoder ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
-      codec =
+  let create_encoder ?opts ?frame_rate ?device_context ?frame_context
+      ~pixel_format ~width ~height ~time_base codec =
     let opts = opts_default opts in
     let _opts =
       mk_video_opts ~opts ?frame_rate ~pixel_format ~width ~height ~time_base
     in
     let encoder, unused =
-      create_encoder
+      create_encoder ?device_context ?frame_context
         (Pixel_format.get_id pixel_format)
         codec (mk_opts_array _opts)
     in

@@ -628,13 +628,21 @@ module HwContext = struct
   type device_type = Hw_device_type.t
   type device_context
   type frame_context
-  external create_device_context : device_type -> string -> (string * string) array -> device_context * string array = "ocaml_avutil_create_device_context"
 
-  let create_device_context ?(device="") ?opts device_type =
+  external create_device_context :
+    device_type ->
+    string ->
+    (string * string) array ->
+    device_context * string array = "ocaml_avutil_create_device_context"
+
+  let create_device_context ?(device = "") ?opts device_type =
     let opts = opts_default opts in
-    let ret, unused = create_device_context device_type device (mk_opts_array opts) in
+    let ret, unused =
+      create_device_context device_type device (mk_opts_array opts)
+    in
     filter_opts unused opts;
     ret
 
-  external create_frame_context : device_context -> frame_context = "ocaml_avutil_create_frame_context"
+  external create_frame_context : device_context -> frame_context
+    = "ocaml_avutil_create_frame_context"
 end

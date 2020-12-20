@@ -226,6 +226,9 @@ val new_stream_copy :
     [Avfilter] can be used to slice frames into frames of fixed size. See
     [Avfilter.Utils.convert_audio] for an example.
 
+    [device_context] and [frame_context] can be used to pass optional hardware
+    device and frame context to enable hardward encoding on this stream.
+
     Raise Error if the opening failed. *)
 val new_audio_stream :
   ?opts:opts ->
@@ -249,10 +252,15 @@ val new_audio_stream :
     the given [time_base]. [1/frame_rate] is usually a good value for the
     [time_base].
 
+    [device_context] and [frame_context] can be used to pass optional hardware
+    device and frame context to enable hardward encoding on this stream.
+
     Raise Error if the opening failed. *)
 val new_video_stream :
   ?opts:opts ->
   ?frame_rate:Avutil.rational ->
+  ?device_context:Avutil.HwContext.device_context ->
+  ?frame_context:Avutil.HwContext.frame_context ->
   pixel_format:Avutil.Pixel_format.t ->
   width:int ->
   height:int ->

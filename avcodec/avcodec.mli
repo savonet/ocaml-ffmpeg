@@ -22,8 +22,8 @@ type capability = Codec_capabilities.t
 (** Get the encoding capabilities for this codec. *)
 val capabilities : ([< `Audio | `Video ], encode) codec -> capability list
 
-  (** Codec hardware config method. *)
-  type hw_config_method = Hw_config_method.t
+(** Codec hardware config method. *)
+type hw_config_method = Hw_config_method.t
 
 (** Hardward config for the given codec. *)
 type hw_config = {
@@ -277,6 +277,8 @@ module Video : sig
   val create_encoder :
     ?opts:opts ->
     ?frame_rate:Avutil.rational ->
+    ?device_context:Avutil.HwContext.device_context ->
+    ?frame_context:Avutil.HwContext.frame_context ->
     pixel_format:Avutil.Pixel_format.t ->
     width:int ->
     height:int ->

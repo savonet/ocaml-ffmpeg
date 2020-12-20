@@ -21,8 +21,8 @@
  (targets avutil_stubs.c)
  (mode fallback)
  (deps polymorphic_variant_values_stubs.h pixel_format_stubs.h
-   hw_device_type_stubs.h pixel_format_flag_stubs.h
-   sample_format_stubs.h channel_layout_stubs.h)
+   hw_device_type_stubs.h pixel_format_flag_stubs.h sample_format_stubs.h
+   channel_layout_stubs.h)
  (action
   (echo "this should not happen")))
 

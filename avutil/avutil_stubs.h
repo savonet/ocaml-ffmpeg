@@ -77,6 +77,10 @@ int PixelFormat_val(value);
 
 value Val_PixelFormat(enum AVPixelFormat pf);
 
+/**** Buffer Ref ****/
+
+#define BufferRef_val(v) (*(AVBufferRef **)Data_custom_val(v))
+
 /**** Device Type ****/
 
 enum AVHWDeviceType HwDeviceType_val(value v);

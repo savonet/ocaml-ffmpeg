@@ -18,8 +18,8 @@
 #include <libavutil/pixfmt.h>
 
 #include "avutil_stubs.h"
-#include "hw_device_type_stubs.h"
 #include "channel_layout_stubs.h"
+#include "hw_device_type_stubs.h"
 #include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
 #include "sample_format_stubs.h"
@@ -1317,16 +1317,15 @@ CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {
   }
 }
 
-#define BufferRef_val(v) (*(AVBufferRef **)Data_custom_val(v))
-
 static void finalize_buffer_ref(value v) { av_buffer_unref(&BufferRef_val(v)); }
 
 static struct custom_operations buffer_ref_ops = {
-    "ocaml_avutil_buffer_ref",finalize_buffer_ref,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
+    "ocaml_avutil_buffer_ref", finalize_buffer_ref,
+    custom_compare_default,    custom_hash_default,
+    custom_serialize_default,  custom_deserialize_default};
 
-CAMLprim value ocaml_avutil_create_device_context(value _device_type, value _name, value _opts) {
+CAMLprim value ocaml_avutil_create_device_context(value _device_type,
+                                                  value _name, value _opts) {
   CAMLparam2(_name, _opts);
   CAMLlocal3(ret, ans, unused);
   AVBufferRef *hw_device_ctx = NULL;
@@ -1354,7 +1353,8 @@ CAMLprim value ocaml_avutil_create_device_context(value _device_type, value _nam
   }
 
   caml_release_runtime_system();
-  err = av_hwdevice_ctx_create(&hw_device_ctx, HwDeviceType_val(_device_type), name, options, 0); 
+  err = av_hwdevice_ctx_create(&hw_device_ctx, HwDeviceType_val(_device_type),
+                               name, options, 0);
   caml_acquire_runtime_system();
 
   if (err < 0) {
@@ -1375,15 +1375,15 @@ CAMLprim value ocaml_avutil_create_device_context(value _device_type, value _nam
   }
 
   av_dict_free(&options);
- 
-  ans = caml_alloc_custom(&buffer_ref_ops, sizeof(AVBufferRef *), 0, 1); 
+
+  ans = caml_alloc_custom(&buffer_ref_ops, sizeof(AVBufferRef *), 0, 1);
   BufferRef_val(ans) = hw_device_ctx;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
   Store_field(ret, 1, unused);
 
-  CAMLreturn(ret);  
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_create_frame_context(value _device_ctx) {
@@ -1396,10 +1396,11 @@ CAMLprim value ocaml_avutil_create_frame_context(value _device_ctx) {
   frame_ctx = av_hwframe_ctx_alloc(BufferRef_val(_device_ctx));
   caml_acquire_runtime_system();
 
-  if (!frame_ctx) caml_raise_out_of_memory();
+  if (!frame_ctx)
+    caml_raise_out_of_memory();
 
   ans = caml_alloc_custom(&buffer_ref_ops, sizeof(AVBufferRef *), 0, 1);
-  BufferRef_val(ans) = frame_ctx;   
+  BufferRef_val(ans) = frame_ctx;
 
   CAMLreturn(ans);
 }

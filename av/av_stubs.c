@@ -1487,7 +1487,8 @@ static stream_t *new_stream(av_t *av, AVCodec *codec) {
   return stream;
 }
 
-static void init_stream_encoder(av_t *av, stream_t *stream,
+static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
+                                av_t *av, stream_t *stream,
                                 AVDictionary **options) {
   AVCodecContext *enc_ctx = stream->codec_context;
   int ret;
@@ -1497,6 +1498,24 @@ static void init_stream_encoder(av_t *av, stream_t *stream,
     enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
   caml_release_runtime_system();
+
+  if (device_ctx) {
+    enc_ctx->hw_device_ctx = av_buffer_ref(device_ctx);
+    if (!enc_ctx->hw_device_ctx) {
+      av_dict_free(options);
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+  }
+
+  if (frame_ctx) {
+    enc_ctx->hw_frames_ctx = av_buffer_ref(frame_ctx);
+    if (!enc_ctx->hw_frames_ctx) {
+      av_dict_free(options);
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+  }
 
   ret = avcodec_open2(enc_ctx, enc_ctx->codec, options);
 
@@ -1528,7 +1547,7 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
 
   enc_ctx->sample_fmt = sample_fmt;
 
-  init_stream_encoder(av, stream, options);
+  init_stream_encoder(NULL, NULL, av, stream, options);
 
   return stream;
 }
@@ -1597,22 +1616,34 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
   CAMLreturn(ans);
 }
 
-static stream_t *new_video_stream(av_t *av, AVCodec *codec,
-                                  AVDictionary **options) {
+static stream_t *new_video_stream(AVBufferRef *device_ctx,
+                                  AVBufferRef *frame_ctx, av_t *av,
+                                  AVCodec *codec, AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
 
   if (!stream)
     return NULL;
 
-  init_stream_encoder(av, stream, options);
+  init_stream_encoder(device_ctx, frame_ctx, av, stream, options);
 
   return stream;
 }
 
-CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _opts) {
-  CAMLparam2(_av, _opts);
+CAMLprim value ocaml_av_new_video_stream(value _device_context,
+                                         value _frame_context, value _av,
+                                         value _codec, value _opts) {
+  CAMLparam4(_device_context, _frame_context, _av, _opts);
   CAMLlocal2(ans, unused);
   AVCodec *codec = (AVCodec *)_codec;
+
+  AVBufferRef *device_ctx = NULL;
+  AVBufferRef *frame_ctx = NULL;
+
+  if (_device_context != Val_none)
+    device_ctx = BufferRef_val(Some_val(_device_context));
+
+  if (_frame_context != Val_none)
+    frame_ctx = BufferRef_val(Some_val(_frame_context));
 
   AVDictionary *options = NULL;
   char *key, *val;
@@ -1630,7 +1661,8 @@ CAMLprim value ocaml_av_new_video_stream(value _av, value _codec, value _opts) {
     }
   }
 
-  stream_t *stream = new_video_stream(Av_val(_av), codec, &options);
+  stream_t *stream =
+      new_video_stream(device_ctx, frame_ctx, Av_val(_av), codec, &options);
 
   // Return unused keys
   caml_release_runtime_system();
@@ -1667,7 +1699,7 @@ static stream_t *new_subtitle_stream(av_t *av, AVCodec *codec,
     ocaml_avutil_raise_error(ret);
   }
 
-  init_stream_encoder(av, stream, options);
+  init_stream_encoder(NULL, NULL, av, stream, options);
 
   return stream;
 }

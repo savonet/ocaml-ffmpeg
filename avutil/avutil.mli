@@ -387,7 +387,8 @@ module HwContext : sig
   (** Frame context. *)
   type frame_context
 
-  val create_device_context : ?device:string -> ?opts:opts -> device_type -> device_context
+  val create_device_context :
+    ?device:string -> ?opts:opts -> device_type -> device_context
 
   val create_frame_context : device_context -> frame_context
 end
