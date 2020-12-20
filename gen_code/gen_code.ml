@@ -23,11 +23,11 @@ let print_define_polymorphic_variant_value oc pv =
   let value = Int64.to_string (polymorphic_variant_string_to_c_value pv) in
   output_string oc ("#define PVV_" ^ pv ^ " (" ^ value ^ ")\n")
 
-let rec find_line ic line_re =
-  try
-    if Str.string_match line_re (input_line ic) 0 then true
-    else find_line ic line_re
-  with End_of_file -> false
+let rec find_start_line lines line_re =
+  match lines with
+    | line :: lines when Str.string_match line_re line 0 -> (true, lines)
+    | _ :: lines -> find_start_line lines line_re
+    | [] -> (false, [])
 
 exception Found of string
 
@@ -54,7 +54,7 @@ let rec id_to_pv_value id values =
 
   if List.mem value values then id_to_pv_value (id ^ "_") values else (id, value)
 
-let translate_enum_lines ?h_oc ?ml_oc ic labels =
+let translate_enum_lines ?h_oc ?ml_oc lines labels =
   let ( start_pat,
         pat,
         end_pat,
@@ -78,24 +78,24 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
     if_d ml_oc (fun oc -> output_string oc line)
   in
 
-  let rec loop values =
-    try
-      match input_line ic with
-        | line when end_pat <> "" && Str.string_match end_re line 0 -> values
-        | line when Str.string_match re line 0 ->
-            let id = Str.matched_group 1 line in
-            let pv, value = id_to_pv_value id values in
+  let rec loop lines values =
+    match lines with
+      | line :: _ when end_pat <> "" && Str.string_match end_re line 0 -> values
+      | line :: lines when Str.string_match re line 0 ->
+          let id = Str.matched_group 1 line in
+          let pv, value = id_to_pv_value id values in
 
-            print_c
-              ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
-            print_ml ["  | `"; pv];
+          print_c ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
+          print_ml ["  | `"; pv];
 
-            loop (value :: values)
-        | _ -> loop values
-    with End_of_file -> values
+          loop lines (value :: values)
+      | _ :: lines -> loop lines values
+      | [] -> values
   in
 
-  if start_pat = "" || find_line ic start_re then (
+  let has_start_line, lines = find_start_line lines start_re in
+
+  if start_pat = "" || has_start_line then (
     let tab_name = enum_prefix ^ String.uppercase_ascii ml_type_name ^ "_TAB" in
     let tab_len = tab_name ^ "_LEN" in
 
@@ -103,7 +103,7 @@ let translate_enum_lines ?h_oc ?ml_oc ic labels =
 
     print_ml ["type "; ml_type_name; " = ["];
 
-    let values = loop [] in
+    let values = loop lines [] in
 
     print_c ["};\n\n#define "; tab_len; " "; string_of_int (List.length values)];
 
@@ -158,7 +158,20 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
         Printf.eprintf "WARNING : None of the header files [%s] where found\n"
           (String.concat "; " (List.map (Printf.sprintf "%S") in_names))
     | Some path ->
-        let ic, close =
+        let lines =
+          let rec read lines ic =
+            try read (input_line ic :: lines) ic
+            with End_of_file -> List.rev lines
+          in
+          let read ic close =
+            let lines = read [] ic in
+            close ic;
+            lines
+          in
+          let cat path =
+            let ic = open_in path in
+            read ic close_in
+          in
           if pre_process then (
             try
               let path = Filename.quote path in
@@ -169,26 +182,21 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
                    clang -E %s %s; else cat %s; fi"
                   c_flags path c_flags path path
               in
-              let p = Unix.open_process_in cmd in
+              let ic = Unix.open_process_in cmd in
               let close ic =
-                let tmp = Bytes.create 1024 in
-                let rec read () = if input ic tmp 0 1024 <> 0 then read () in
-                read ();
                 assert (Unix.close_process_in ic = Unix.WEXITED 0)
               in
-              (p, close)
-            with _ -> (open_in path, close_in) )
-          else (open_in path, close_in)
+              read ic close
+            with _ -> cat path )
+          else cat path
         in
 
         if_d h_oc (fun oc ->
             output_string oc "#define VALUE_NOT_FOUND 0xFFFFFFF\n\n");
 
         List.iter
-          (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
-          enums_labels;
-
-        close ic
+          (fun labels -> translate_enum_lines lines labels ?h_oc ?ml_oc)
+          enums_labels
 
 let translate_c_values ~pre_process in_names out_name enums_labels = function
   | "ml" ->
