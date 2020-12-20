@@ -1,6 +1,22 @@
 external polymorphic_variant_string_to_c_value : string -> int64
   = "polymorphic_variant_string_to_c_value"
 
+let c_flags =
+  let len = Array.length Sys.argv in
+  if len > 3 then
+    Array.to_list (Array.sub Sys.argv 3 (Array.length Sys.argv - 3))
+  else []
+
+let include_paths =
+  List.fold_left
+    (fun cur flag ->
+      let len = String.length flag in
+      if len > 2 && String.sub flag 0 2 = "-I" then (
+        let path = String.sub flag 2 (len - 2) in
+        if not (List.mem path cur) then path :: cur else cur )
+      else cur)
+    Config.paths c_flags
+
 let if_d d fn = match d with None -> () | Some d -> fn d
 
 let print_define_polymorphic_variant_value oc pv =
@@ -23,7 +39,7 @@ let get_path filenames =
           (fun path ->
             let p = path ^ filename in
             if Sys.file_exists p then raise (Found p))
-          Config.paths)
+          include_paths)
       filenames;
     None
   with Found p -> Some p
@@ -145,11 +161,12 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
         let ic =
           if pre_process then (
             let path = Filename.quote path in
+            let c_flags = String.concat " " c_flags in
             let cmd =
               Printf.sprintf
-                "if which gcc; then gcc -E %s; elif which clang; then clang -E \
-                 %s; else cat %s; fi"
-                path path path
+                "if which gcc; then gcc -E %s %s; elif which clang; then clang \
+                 -E %s %s; else cat %s; fi"
+                c_flags path c_flags path path
             in
             Unix.open_process_in cmd )
           else open_in path

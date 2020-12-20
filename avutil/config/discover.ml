@@ -17,4 +17,5 @@ let () =
                 | Ok deps -> deps )
       in
       C.Flags.write_sexp "c_flags.sexp" conf.cflags;
+      C.Flags.write_lines "c_flags" conf.cflags;
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs)
