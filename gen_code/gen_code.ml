@@ -158,18 +158,27 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
         Printf.eprintf "WARNING : None of the header files [%s] where found\n"
           (String.concat "; " (List.map (Printf.sprintf "%S") in_names))
     | Some path ->
-        let ic =
+        let ic, close =
           if pre_process then (
-            let path = Filename.quote path in
-            let c_flags = String.concat " " c_flags in
-            let cmd =
-              Printf.sprintf
-                "if which gcc; then gcc -E %s %s; elif which clang; then clang \
-                 -E %s %s; else cat %s; fi"
-                c_flags path c_flags path path
-            in
-            Unix.open_process_in cmd )
-          else open_in path
+            try
+              let path = Filename.quote path in
+              let c_flags = String.concat " " c_flags in
+              let cmd =
+                Printf.sprintf
+                  "if which gcc; then gcc -E %s %s; elif which clang; then \
+                   clang -E %s %s; else cat %s; fi"
+                  c_flags path c_flags path path
+              in
+              let p = Unix.open_process_in cmd in
+              let close ic =
+                let tmp = Bytes.create 1024 in
+                let rec read () = if input ic tmp 0 1024 <> 0 then read () in
+                read ();
+                assert (Unix.close_process_in ic = Unix.WEXITED 0)
+              in
+              (p, close)
+            with _ -> (open_in path, close_in) )
+          else (open_in path, close_in)
         in
 
         if_d h_oc (fun oc ->
@@ -179,12 +188,7 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
           (fun labels -> translate_enum_lines ic labels ?h_oc ?ml_oc)
           enums_labels;
 
-        if pre_process then (
-          let tmp = Bytes.create 1024 in
-          let rec read () = if input ic tmp 0 1024 <> 0 then read () in
-          read ();
-          assert (Unix.close_process_in ic = Unix.WEXITED 0) )
-        else close_in ic
+        close ic
 
 let translate_c_values ~pre_process in_names out_name enums_labels = function
   | "ml" ->
