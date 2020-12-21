@@ -272,6 +272,10 @@ module Video : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : decode t -> video decoder
 
+  type hardware_context =
+    [ `Device_context of HwContext.device_context
+    | `Frame_context of HwContext.frame_context ]
+
   (** [Avcodec.Video.create_encoder] create a video encoder.
 
       Params have the same semantics as in [Av.new_video_stream]
@@ -280,8 +284,7 @@ module Video : sig
   val create_encoder :
     ?opts:opts ->
     ?frame_rate:Avutil.rational ->
-    ?device_context:Avutil.HwContext.device_context ->
-    ?frame_context:Avutil.HwContext.frame_context ->
+    ?hardware_context:hardware_context ->
     pixel_format:Avutil.Pixel_format.t ->
     width:int ->
     height:int ->

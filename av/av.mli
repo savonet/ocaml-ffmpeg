@@ -238,10 +238,6 @@ val new_audio_stream :
   output container ->
   (output, audio, [ `Frame ]) stream
 
-type hardware_context =
-  [ `Device_context of HwContext.device_context
-  | `Frame_context of HwContext.frame_context ]
-
 (** Add a new video stream to the given container. Stream only supports frames
     and encodes its input.
 
@@ -260,7 +256,7 @@ type hardware_context =
 val new_video_stream :
   ?opts:opts ->
   ?frame_rate:Avutil.rational ->
-  ?hardware_context:hardware_context ->
+  ?hardware_context:Avcodec.Video.hardware_context ->
   pixel_format:Avutil.Pixel_format.t ->
   width:int ->
   height:int ->
