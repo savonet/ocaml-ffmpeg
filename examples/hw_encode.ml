@@ -38,6 +38,7 @@ let () =
       Printf.printf "encoder %s not available!\n" codec_name;
       exit 0
   in
+  let codec_name = Avcodec.name (codec ()) in
   let configs = Avcodec.hw_configs (codec ()) in
   Printf.printf "hw_config for %s:\n%s\n" codec_name
     (String.concat ",\n"

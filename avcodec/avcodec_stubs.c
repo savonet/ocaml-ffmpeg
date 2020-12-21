@@ -957,6 +957,11 @@ CAMLprim value ocaml_avcodec_find_audio_decoder(value _id) {
   CAMLreturn((value)find_decoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO));
 }
 
+CAMLprim value ocaml_avcodec_name(value _codec) {
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(((AVCodec *)_codec)->name));
+}
+
 CAMLprim value ocaml_avcodec_capabilities(value _codec) {
   CAMLparam0();
   CAMLlocal1(ret);

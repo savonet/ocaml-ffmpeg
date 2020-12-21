@@ -24,6 +24,8 @@ external get_input_buffer_padding_size : unit -> int
 let input_buffer_padding_size = get_input_buffer_padding_size ()
 let empty_data = create_data 0
 
+external name : _ codec -> string = "ocaml_avcodec_name"
+
 type capability = Codec_capabilities.t
 
 (* To be used with Audio.t and Video.t *)
