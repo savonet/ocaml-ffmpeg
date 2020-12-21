@@ -700,6 +700,38 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
     caml_raise_out_of_memory();
   }
 
+  if (ctx->codec_context->hw_frames_ctx && frame) {
+    AVFrame *hw_frame = av_frame_alloc();
+
+    if (!hw_frame) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+
+    ret = av_hwframe_get_buffer(ctx->codec_context->hw_frames_ctx, hw_frame, 0);
+
+    if (ret < 0) {
+      av_frame_free(&hw_frame);
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
+
+    if (!hw_frame->hw_frames_ctx) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+
+    ret = av_hwframe_transfer_data(hw_frame, frame, 0);
+
+    if (ret < 0) {
+      av_frame_free(&hw_frame);
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
+
+    frame = hw_frame;
+  }
+
   ret = avcodec_receive_frame(ctx->codec_context, frame);
 
   if (ret < 0 && ret != AVERROR(EAGAIN)) {
@@ -728,12 +760,48 @@ CAMLprim value ocaml_avcodec_flush_decoder(value _ctx) {
 
 static void send_frame(codec_context_t *ctx, AVFrame *frame) {
   int ret;
+  AVFrame *hw_frame = NULL;
 
   ctx->flushed = !frame;
+
+  if (ctx->codec_context->hw_frames_ctx && frame) {
+    hw_frame = av_frame_alloc();
+
+    if (!hw_frame) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+
+    ret = av_hwframe_get_buffer(ctx->codec_context->hw_frames_ctx, hw_frame, 0);
+
+    if (ret < 0) {
+      av_frame_free(&hw_frame);
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
+
+    if (!hw_frame->hw_frames_ctx) {
+      caml_acquire_runtime_system();
+      caml_raise_out_of_memory();
+    }
+
+    ret = av_hwframe_transfer_data(hw_frame, frame, 0);
+
+    if (ret < 0) {
+      av_frame_free(&hw_frame);
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
+
+    frame = hw_frame;
+  }
 
   caml_release_runtime_system();
   ret = avcodec_send_frame(ctx->codec_context, frame);
   caml_acquire_runtime_system();
+
+  if (hw_frame)
+    av_frame_free(&hw_frame);
 
   if (ret < 0)
     ocaml_avutil_raise_error(ret);

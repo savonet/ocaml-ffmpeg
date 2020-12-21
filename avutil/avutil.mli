@@ -390,5 +390,11 @@ module HwContext : sig
   val create_device_context :
     ?device:string -> ?opts:opts -> device_type -> device_context
 
-  val create_frame_context : device_context -> frame_context
+  val create_frame_context :
+    width:int ->
+    height:int ->
+    src_pixel_format:Pixel_format.t ->
+    dst_pixel_format:Pixel_format.t ->
+    device_context ->
+    frame_context
 end

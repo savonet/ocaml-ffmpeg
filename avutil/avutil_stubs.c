@@ -1358,6 +1358,11 @@ CAMLprim value ocaml_avutil_create_device_context(value _device_type,
   caml_acquire_runtime_system();
 
   if (err < 0) {
+    char errbuf[AV_ERROR_MAX_STRING_SIZE] = "";
+    printf(
+        "failed with error: %s\n",
+        av_make_error_string(errbuf, AV_ERROR_MAX_STRING_SIZE, AVERROR(err)));
+    fflush(stdout);
     av_dict_free(&options);
     ocaml_avutil_raise_error(err);
   }
@@ -1386,21 +1391,40 @@ CAMLprim value ocaml_avutil_create_device_context(value _device_type,
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_avutil_create_frame_context(value _device_ctx) {
+CAMLprim value ocaml_avutil_create_frame_context(value _width, value _height,
+                                                 value _src_pixel_format,
+                                                 value _dst_pixel_format,
+                                                 value _device_ctx) {
   CAMLparam1(_device_ctx);
   CAMLlocal1(ans);
-  AVBufferRef *frame_ctx;
+  AVBufferRef *hw_frames_ref;
+  AVHWFramesContext *frames_ctx = NULL;
   int ret;
 
   caml_release_runtime_system();
-  frame_ctx = av_hwframe_ctx_alloc(BufferRef_val(_device_ctx));
+  hw_frames_ref = av_hwframe_ctx_alloc(BufferRef_val(_device_ctx));
   caml_acquire_runtime_system();
 
-  if (!frame_ctx)
+  if (!hw_frames_ref)
     caml_raise_out_of_memory();
 
+  frames_ctx = (AVHWFramesContext *)(hw_frames_ref->data);
+  frames_ctx->format = PixelFormat_val(_dst_pixel_format);
+  frames_ctx->sw_format = PixelFormat_val(_src_pixel_format);
+  frames_ctx->width = Int_val(_width);
+  frames_ctx->height = Int_val(_height);
+
+  caml_release_runtime_system();
+  ret = av_hwframe_ctx_init(hw_frames_ref);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) {
+    av_buffer_unref(&hw_frames_ref);
+    ocaml_avutil_raise_error(ret);
+  }
+
   ans = caml_alloc_custom(&buffer_ref_ops, sizeof(AVBufferRef *), 0, 1);
-  BufferRef_val(ans) = frame_ctx;
+  BufferRef_val(ans) = hw_frames_ref;
 
   CAMLreturn(ans);
 }

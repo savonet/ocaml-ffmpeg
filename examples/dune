@@ -4,9 +4,9 @@
    (:standard -warn-error -A))))
 
 (executable
- (name hw_tests)
- (modules hw_tests)
- (libraries ffmpeg-avcodec))
+ (name hw_encode)
+ (modules hw_encode)
+ (libraries ffmpeg-av))
 
 (executable
  (name aresample)

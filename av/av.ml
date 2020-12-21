@@ -282,10 +282,20 @@ external new_video_stream :
   (string * string) array ->
   int * string array = "ocaml_av_new_video_stream"
 
-let new_video_stream ?opts ?frame_rate ?device_context ?frame_context
-    ~pixel_format ~width ~height ~time_base ~codec container =
+type hardware_context =
+  [ `Device_context of Avutil.HwContext.device_context
+  | `Frame_context of Avutil.HwContext.frame_context ]
+
+let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
+    ~height ~time_base ~codec container =
   let opts =
     mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+  in
+  let device_context, frame_context =
+    match hardware_context with
+      | None -> (None, None)
+      | Some (`Device_context hardware_context) -> (Some hardware_context, None)
+      | Some (`Frame_context frame_context) -> (None, Some frame_context)
   in
   let ret, unused =
     new_video_stream ?device_context ?frame_context container codec

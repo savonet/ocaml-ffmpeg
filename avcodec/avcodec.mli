@@ -27,7 +27,7 @@ type hw_config_method = Hw_config_method.t
 
 (** Hardward config for the given codec. *)
 type hw_config = {
-  pix_fmt : Pixel_format.t;
+  pixel_format : Pixel_format.t;
   methods : hw_config_method list;
   device_type : HwContext.device_type;
 }

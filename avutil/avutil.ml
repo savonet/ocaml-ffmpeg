@@ -643,6 +643,11 @@ module HwContext = struct
     filter_opts unused opts;
     ret
 
-  external create_frame_context : device_context -> frame_context
-    = "ocaml_avutil_create_frame_context"
+  external create_frame_context :
+    width:int ->
+    height:int ->
+    src_pixel_format:Pixel_format.t ->
+    dst_pixel_format:Pixel_format.t ->
+    device_context ->
+    frame_context = "ocaml_avutil_create_frame_context"
 end
