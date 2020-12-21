@@ -249,10 +249,14 @@ val new_audio_stream :
     the given [time_base]. [1/frame_rate] is usually a good value for the
     [time_base].
 
+    [hardware_context] can be used to pass optional hardware device and frame
+    context to enable hardward encoding on this stream.
+
     Raise Error if the opening failed. *)
 val new_video_stream :
   ?opts:opts ->
   ?frame_rate:Avutil.rational ->
+  ?hardware_context:Avcodec.Video.hardware_context ->
   pixel_format:Avutil.Pixel_format.t ->
   width:int ->
   height:int ->

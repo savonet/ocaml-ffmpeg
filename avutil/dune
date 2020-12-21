@@ -21,9 +21,22 @@
  (targets avutil_stubs.c)
  (mode fallback)
  (deps polymorphic_variant_values_stubs.h pixel_format_stubs.h
-   pixel_format_flag_stubs.h sample_format_stubs.h channel_layout_stubs.h)
+   hw_device_type_stubs.h pixel_format_flag_stubs.h sample_format_stubs.h
+   channel_layout_stubs.h)
  (action
   (echo "this should not happen")))
+
+(rule
+ (targets hw_device_type_stubs.h)
+ (deps c_flags)
+ (action
+  (run ../gen_code/gen_code.exe hw_device_type h %{read-lines:c_flags})))
+
+(rule
+ (targets hw_device_type.ml)
+ (deps hw_device_type_stubs.h c_flags)
+ (action
+  (run ../gen_code/gen_code.exe hw_device_type ml %{read-lines:c_flags})))
 
 (rule
  (targets polymorphic_variant_values_stubs.h)

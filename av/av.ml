@@ -275,17 +275,28 @@ let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
   mk_stream container ret
 
 external new_video_stream :
+  ?device_context:Avutil.HwContext.device_context ->
+  ?frame_context:Avutil.HwContext.frame_context ->
   _ container ->
   [ `Encoder ] Avcodec.Video.t ->
   (string * string) array ->
   int * string array = "ocaml_av_new_video_stream"
 
-let new_video_stream ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
-    ~codec container =
+let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
+    ~height ~time_base ~codec container =
   let opts =
     mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
   in
-  let ret, unused = new_video_stream container codec (mk_opts_array opts) in
+  let device_context, frame_context =
+    match hardware_context with
+      | None -> (None, None)
+      | Some (`Device_context hardware_context) -> (Some hardware_context, None)
+      | Some (`Frame_context frame_context) -> (None, Some frame_context)
+  in
+  let ret, unused =
+    new_video_stream ?device_context ?frame_context container codec
+      (mk_opts_array opts)
+  in
   filter_opts unused opts;
   mk_stream container ret
 

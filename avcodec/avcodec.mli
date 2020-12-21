@@ -16,6 +16,9 @@ val params : 'media encoder -> 'media params
 (** Get the time base of a given encoder. *)
 val time_base : 'media encoder -> Avutil.rational
 
+(** Get the name of a given codec. *)
+val name : _ codec -> string
+
 (** Codec capabilities. *)
 type capability = Codec_capabilities.t
 
@@ -25,14 +28,11 @@ val capabilities : ([< `Audio | `Video ], encode) codec -> capability list
 (** Codec hardware config method. *)
 type hw_config_method = Hw_config_method.t
 
-(** Codec hardward device type. *)
-type hw_device_type = Hw_device_type.t
-
 (** Hardward config for the given codec. *)
 type hw_config = {
-  pix_fmt : Pixel_format.t;
+  pixel_format : Pixel_format.t;
   methods : hw_config_method list;
-  device_type : hw_device_type;
+  device_type : HwContext.device_type;
 }
 
 (** Get the codec's hardward configs. *)
@@ -272,6 +272,10 @@ module Video : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : decode t -> video decoder
 
+  type hardware_context =
+    [ `Device_context of HwContext.device_context
+    | `Frame_context of HwContext.frame_context ]
+
   (** [Avcodec.Video.create_encoder] create a video encoder.
 
       Params have the same semantics as in [Av.new_video_stream]
@@ -280,6 +284,7 @@ module Video : sig
   val create_encoder :
     ?opts:opts ->
     ?frame_rate:Avutil.rational ->
+    ?hardware_context:hardware_context ->
     pixel_format:Avutil.Pixel_format.t ->
     width:int ->
     height:int ->
