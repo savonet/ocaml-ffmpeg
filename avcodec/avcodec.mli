@@ -168,10 +168,10 @@ module Audio : sig
       Raise Error if the parser creation failed. *)
   val create_parser : decode t -> audio Packet.parser
 
-  (** [Avcodec.Audio.create_decoder codec] create an audio decoder.
+  (** [Avcodec.Audio.create_decoder ~params codec] create an audio decoder.
 
       Raise Error if the decoder creation failed. *)
-  val create_decoder : decode t -> audio decoder
+  val create_decoder : ?params:audio params -> decode t -> audio decoder
 
   (** [Avcodec.Audio.create_encoder] create an audio encoder.
 
@@ -270,7 +270,7 @@ module Video : sig
   (** [Avcodec.Video.create_decoder codec] create a video decoder.
 
       Raise Error if the decoder creation failed. *)
-  val create_decoder : decode t -> video decoder
+  val create_decoder : ?params:video params -> decode t -> video decoder
 
   type hardware_context =
     [ `Device_context of HwContext.device_context

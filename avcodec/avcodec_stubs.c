@@ -52,28 +52,37 @@ CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
 
 /***** AVCodecContext *****/
 
-static AVCodecContext *create_AVCodecContext(AVCodec *codec) {
+static AVCodecContext *create_AVCodecContext(AVCodecParameters *params, AVCodec *codec) {
   AVCodecContext *codec_context;
+  int ret = 0;
 
   caml_release_runtime_system();
   codec_context = avcodec_alloc_context3(codec);
-  caml_acquire_runtime_system();
 
-  if (!codec_context)
+  if (!codec_context) {
+    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
+  }
 
-  // Open the codec
-  caml_release_runtime_system();
-  int ret = avcodec_open2(codec_context, codec, NULL);
-  caml_acquire_runtime_system();
+  if (params)
+    ret = avcodec_parameters_to_context(codec_context, params);
 
   if (ret < 0) {
-    caml_release_runtime_system();
     avcodec_free_context(&codec_context);
     caml_acquire_runtime_system();
-
     ocaml_avutil_raise_error(ret);
   }
+
+  // Open the codec
+  ret = avcodec_open2(codec_context, codec, NULL);
+
+  if (ret < 0) {
+    avcodec_free_context(&codec_context);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  caml_acquire_runtime_system();
 
   return codec_context;
 }
@@ -325,7 +334,7 @@ static struct custom_operations parser_ops = {
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 
-static parser_t *create_parser(AVCodec *codec) {
+static parser_t *create_parser(AVCodecParameters *params, AVCodec *codec) {
   parser_t *parser = (parser_t *)calloc(1, sizeof(parser_t));
   if (!parser)
     caml_raise_out_of_memory();
@@ -339,17 +348,18 @@ static parser_t *create_parser(AVCodec *codec) {
     caml_raise_out_of_memory();
   }
 
-  parser->codec_context = create_AVCodecContext(codec);
+  parser->codec_context = create_AVCodecContext(NULL, codec);
 
   return parser;
 }
 
-CAMLprim value ocaml_avcodec_create_parser(value _codec) {
-  CAMLparam0();
+CAMLprim value ocaml_avcodec_create_parser(value _params, value _codec) {
+  CAMLparam1(_params);
   CAMLlocal1(ans);
   AVCodec *codec = (AVCodec *)_codec;
+  AVCodecParameters *params = CodecParameters_val(_params);
 
-  parser_t *parser = create_parser(codec);
+  parser_t *parser = create_parser(params, codec);
 
   ans = caml_alloc_custom(&parser_ops, sizeof(parser_t *), 0, 1);
   Parser_val(ans) = parser;
@@ -437,10 +447,14 @@ static struct custom_operations codec_context_ops = {
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 
-CAMLprim value ocaml_avcodec_create_decoder(value _codec) {
-  CAMLparam0();
+CAMLprim value ocaml_avcodec_create_decoder(value _params, value _codec) {
+  CAMLparam1(_params);
   CAMLlocal1(ans);
   AVCodec *codec = (AVCodec *)_codec;
+  AVCodecParameters *params = NULL;
+
+  if (_params != Val_none)
+    params = CodecParameters_val(Field(_params, 0)); 
 
   codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
   if (!ctx)
@@ -450,7 +464,7 @@ CAMLprim value ocaml_avcodec_create_decoder(value _codec) {
   CodecContext_val(ans) = ctx;
 
   ctx->codec = codec;
-  ctx->codec_context = create_AVCodecContext(ctx->codec);
+  ctx->codec_context = create_AVCodecContext(params, ctx->codec);
 
   CAMLreturn(ans);
 }

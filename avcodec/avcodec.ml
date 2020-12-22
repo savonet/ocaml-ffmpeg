@@ -105,7 +105,7 @@ module Packet = struct
   }
 
   (* This is an internal function, which receives any type of AVCodec in the C code. *)
-  external create_parser : 'a -> parser_t = "ocaml_avcodec_create_parser"
+  external create_parser :'a -> parser_t = "ocaml_avcodec_create_parser"
 
   let create_parser codec =
     { buf = empty_data; remainder = empty_data; parser = create_parser codec }
@@ -152,8 +152,8 @@ module Packet = struct
     parse_data ctx f data
 end
 
-(* These functions receive a AVCodec on the C side. *)
-external create_decoder : 'a -> _ decoder = "ocaml_avcodec_create_decoder"
+(* These functions receive AVCodecParameters and AVCodec on the C side. *)
+external create_decoder : ?params:'a params -> 'b -> 'a decoder = "ocaml_avcodec_create_decoder"
 
 (** Audio codecs. *)
 module Audio = struct

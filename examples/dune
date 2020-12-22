@@ -97,3 +97,8 @@
  (name transcoding)
  (modules transcoding)
  (libraries ffmpeg-av))
+
+(executable
+ (name decoding)
+ (modules decoding)
+ (libraries ffmpeg-av))
