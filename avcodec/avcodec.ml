@@ -309,6 +309,9 @@ module Video = struct
   external get_pixel_format : video params -> Avutil.Pixel_format.t option
     = "ocaml_avcodec_parameters_get_pixel_format"
 
+  external get_pixel_aspect : video params -> Avutil.rational option
+    = "ocaml_avcodec_parameters_get_pixel_aspect"
+
   external get_bit_rate : video params -> int
     = "ocaml_avcodec_parameters_get_bit_rate"
 

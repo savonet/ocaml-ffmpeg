@@ -270,6 +270,9 @@ module Video : sig
 
   (** [Avutil.Video.frame_get_pixel_format frame] returns frame's pixel format. *)
   val frame_get_pixel_format : video frame -> Pixel_format.t
+
+  (** [Avutil.Video.frame_get_pixel_aspect frame] returns the frame's pixel aspect. *)
+  val frame_get_pixel_aspect : video frame -> rational option
 end
 
 (** {5 Subtitle utilities} *)

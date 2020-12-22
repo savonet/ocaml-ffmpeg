@@ -1237,6 +1237,22 @@ CAMLprim value ocaml_avcodec_parameters_get_pixel_format(value _cp) {
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_avcodec_parameters_get_pixel_aspect(value _cp) {
+  CAMLparam1(_cp);
+  CAMLlocal2(ret, ans);
+  const AVRational pixel_aspect = CodecParameters_val(_cp)->sample_aspect_ratio;
+
+  if (pixel_aspect.num == 0)
+    CAMLreturn(Val_none);
+
+  value_of_rational(&pixel_aspect, &ans);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id,
                                                    value _width, value _height,
                                                    value _sample_aspect_ratio,

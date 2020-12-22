@@ -868,6 +868,23 @@ CAMLprim value ocaml_avutil_video_frame_get_pixel_format(value _frame) {
   CAMLreturn(Val_PixelFormat(frame->format));
 }
 
+CAMLprim value ocaml_avutil_video_frame_get_pixel_aspect(value _frame) {
+  CAMLparam1(_frame);
+  CAMLlocal2(ret, ans);
+  AVFrame *frame = Frame_val(_frame);
+  const AVRational pixel_aspect = frame->sample_aspect_ratio;
+
+  if (pixel_aspect.num == 0)
+    CAMLreturn(Val_none);
+
+  value_of_rational(&pixel_aspect, &ans);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame,
                                                      value _line) {
   CAMLparam1(_frame);
