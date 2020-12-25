@@ -26,8 +26,8 @@ let fill_yuv_image width height frame_index planes =
   done
 
 let () =
-  if Array.length Sys.argv < 3 then (
-    Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
+  if Array.length Sys.argv < 4 then (
+    Printf.eprintf "Usage: %s <output file> <pixel formay> <codec name>\n" Sys.argv.(0);
     exit 1 );
 
   Avutil.Log.set_level `Debug;
@@ -35,7 +35,7 @@ let () =
 
   let width = 352 in
   let height = 288 in
-  let pixel_format = `Yuv420p in
+  let pixel_format = Avutil.Pixel_format.of_string Sys.argv.(2) in
 
   let () =
     let string_of_flag = function
@@ -82,7 +82,7 @@ let () =
       (Avutil.Pixel_format.bits descriptor)
   in
 
-  let codec = Avcodec.Video.find_encoder_by_name Sys.argv.(2) in
+  let codec = Avcodec.Video.find_encoder_by_name Sys.argv.(3) in
 
   let dst = Av.open_output Sys.argv.(1) in
 
