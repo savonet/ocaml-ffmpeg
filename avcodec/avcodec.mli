@@ -260,7 +260,7 @@ module Video : sig
       format of the [codec] codec or the [default] value if the codec has no
       pixel format. *)
   val find_best_pixel_format :
-    _ t -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
+    ?hwaccel:bool -> _ t -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
 
   (** [Avcodec.Video.create_parser codec] create an video packet parser.
 

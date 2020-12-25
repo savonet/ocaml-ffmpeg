@@ -11,7 +11,9 @@ let () =
   let src = Av.open_input Sys.argv.(1) in
 
   let mk_audio_decoder (pos, _, params) =
-    pos, Avcodec.Audio.create_decoder ~params Avcodec.Audio.(find_decoder (get_params_id params))
+    ( pos,
+      Avcodec.Audio.create_decoder ~params
+        Avcodec.Audio.(find_decoder (get_params_id params)) )
   in
 
   let iass = Av.get_audio_streams src in
@@ -19,7 +21,9 @@ let () =
   let dass = List.map mk_audio_decoder iass in
 
   let mk_video_decoder (pos, _, params) =
-    pos, Avcodec.Video.create_decoder ~params Avcodec.Video.(find_decoder (get_params_id params))
+    ( pos,
+      Avcodec.Video.create_decoder ~params
+        Avcodec.Video.(find_decoder (get_params_id params)) )
   in
 
   let ivss = Av.get_video_streams src in

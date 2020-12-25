@@ -244,7 +244,7 @@ module Video = struct
     = "ocaml_avutil_video_frame_get_pixel_format"
 
   external frame_get_pixel_aspect : video frame -> rational option
-   = "ocaml_avutil_video_frame_get_pixel_aspect"
+    = "ocaml_avutil_video_frame_get_pixel_aspect"
 end
 
 module Subtitle = struct

@@ -105,7 +105,7 @@ module Packet = struct
   }
 
   (* This is an internal function, which receives any type of AVCodec in the C code. *)
-  external create_parser :'a -> parser_t = "ocaml_avcodec_create_parser"
+  external create_parser : 'a -> parser_t = "ocaml_avcodec_create_parser"
 
   let create_parser codec =
     { buf = empty_data; remainder = empty_data; parser = create_parser codec }
@@ -153,7 +153,8 @@ module Packet = struct
 end
 
 (* These functions receive AVCodecParameters and AVCodec on the C side. *)
-external create_decoder : ?params:'a params -> 'b -> 'a decoder = "ocaml_avcodec_create_decoder"
+external create_decoder : ?params:'a params -> 'b -> 'a decoder
+  = "ocaml_avcodec_create_decoder"
 
 (** Audio codecs. *)
 module Audio = struct
@@ -186,9 +187,9 @@ module Audio = struct
 
   let find_best_channel_layout codec default =
     try
-      match get_supported_channel_layouts codec with
-        | h :: _ -> h
-        | [] -> default
+      let channel_layouts = get_supported_channel_layouts codec in
+      if List.mem default channel_layouts then default
+      else (match channel_layouts with h :: _ -> h | [] -> default)
     with Not_found -> default
 
   external get_supported_sample_formats : _ t -> Avutil.Sample_format.t list
@@ -199,9 +200,9 @@ module Audio = struct
 
   let find_best_sample_format codec default =
     try
-      match get_supported_sample_formats codec with
-        | h :: _ -> h
-        | [] -> default
+      let formats = get_supported_sample_formats codec in
+      if List.mem default formats then default
+      else (match formats with h :: _ -> h | [] -> default)
     with Not_found -> default
 
   external get_supported_sample_rates : _ t -> int list
@@ -211,7 +212,9 @@ module Audio = struct
     List.rev (get_supported_sample_rates codec)
 
   let find_best_sample_rate codec default =
-    match get_supported_sample_rates codec with h :: _ -> h | [] -> default
+    let rates = get_supported_sample_rates codec in
+    if List.mem default rates then default
+    else (match rates with h :: _ -> h | [] -> default)
 
   external get_params_id : audio params -> id
     = "ocaml_avcodec_parameters_get_audio_codec_id"
@@ -283,7 +286,9 @@ module Video = struct
     List.rev (get_supported_frame_rates codec)
 
   let find_best_frame_rate codec default =
-    match get_supported_frame_rates codec with h :: _ -> h | [] -> default
+    let frame_rates = get_supported_frame_rates codec in
+    if List.mem default frame_rates then default
+    else (match frame_rates with h :: _ -> h | [] -> default)
 
   external get_supported_pixel_formats : _ t -> Avutil.Pixel_format.t list
     = "ocaml_avcodec_get_supported_pixel_formats"
@@ -291,8 +296,19 @@ module Video = struct
   let get_supported_pixel_formats codec =
     List.rev (get_supported_pixel_formats codec)
 
-  let find_best_pixel_format codec default =
-    match get_supported_pixel_formats codec with h :: _ -> h | [] -> default
+  let find_best_pixel_format ?(hwaccel = false) codec default =
+    let formats = get_supported_pixel_formats codec in
+    if List.mem default formats then default
+    else (
+      let formats =
+        if hwaccel then formats
+        else
+          List.filter
+            (fun f ->
+              not (List.mem `Hwaccel Avutil.Pixel_format.((descriptor f).flags)))
+            formats
+      in
+      match formats with p :: _ -> p | [] -> default )
 
   external get_params_id : video params -> id
     = "ocaml_avcodec_parameters_get_video_codec_id"
