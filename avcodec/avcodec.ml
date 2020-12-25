@@ -96,21 +96,21 @@ module Packet = struct
 
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
 
-  type parser_t
+  type 'a parser_t
 
   type 'a parser = {
     mutable buf : data;
     mutable remainder : data;
-    parser : parser_t;
+    parser : 'a parser_t;
   }
 
   (* This is an internal function, which receives any type of AVCodec in the C code. *)
-  external create_parser : 'a -> parser_t = "ocaml_avcodec_create_parser"
+  external create_parser : 'a params option -> 'b -> 'a parser_t = "ocaml_avcodec_create_parser"
 
-  let create_parser codec =
-    { buf = empty_data; remainder = empty_data; parser = create_parser codec }
+  let create_parser ?params codec =
+    { buf = empty_data; remainder = empty_data; parser = create_parser params codec }
 
-  external parse_packet : parser_t -> data -> int -> int -> ('m t * int) option
+  external parse_packet : 'a parser_t -> data -> int -> int -> ('m t * int) option
     = "ocaml_avcodec_parse_packet"
 
   let rec buf_loop ctx f buf ofs len =

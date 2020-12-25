@@ -166,7 +166,7 @@ module Audio : sig
   (** [Avcodec.Audio.create_parser codec] create an audio packet parser.
 
       Raise Error if the parser creation failed. *)
-  val create_parser : decode t -> audio Packet.parser
+  val create_parser : ?params:audio params -> decode t -> audio Packet.parser
 
   (** [Avcodec.Audio.create_decoder ~params codec] create an audio decoder.
 
@@ -265,7 +265,7 @@ module Video : sig
   (** [Avcodec.Video.create_parser codec] create an video packet parser.
 
       Raise Error if the parser creation failed. *)
-  val create_parser : decode t -> video Packet.parser
+  val create_parser : ?params:video params -> decode t -> video Packet.parser
 
   (** [Avcodec.Video.create_decoder codec] create a video decoder.
 

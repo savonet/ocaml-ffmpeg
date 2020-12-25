@@ -52,7 +52,8 @@ CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
 
 /***** AVCodecContext *****/
 
-static AVCodecContext *create_AVCodecContext(AVCodecParameters *params, AVCodec *codec) {
+static AVCodecContext *create_AVCodecContext(AVCodecParameters *params,
+                                             AVCodec *codec) {
   AVCodecContext *codec_context;
   int ret = 0;
 
@@ -357,7 +358,10 @@ CAMLprim value ocaml_avcodec_create_parser(value _params, value _codec) {
   CAMLparam1(_params);
   CAMLlocal1(ans);
   AVCodec *codec = (AVCodec *)_codec;
-  AVCodecParameters *params = CodecParameters_val(_params);
+  AVCodecParameters *params = NULL;
+
+  if (_params != Val_none)
+    params = CodecParameters_val(Field(_params, 0));
 
   parser_t *parser = create_parser(params, codec);
 
@@ -454,7 +458,7 @@ CAMLprim value ocaml_avcodec_create_decoder(value _params, value _codec) {
   AVCodecParameters *params = NULL;
 
   if (_params != Val_none)
-    params = CodecParameters_val(Field(_params, 0)); 
+    params = CodecParameters_val(Field(_params, 0));
 
   codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
   if (!ctx)
