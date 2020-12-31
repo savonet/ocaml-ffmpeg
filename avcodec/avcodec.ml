@@ -105,12 +105,18 @@ module Packet = struct
   }
 
   (* This is an internal function, which receives any type of AVCodec in the C code. *)
-  external create_parser : 'a params option -> 'b -> 'a parser_t = "ocaml_avcodec_create_parser"
+  external create_parser : 'a params option -> 'b -> 'a parser_t
+    = "ocaml_avcodec_create_parser"
 
   let create_parser ?params codec =
-    { buf = empty_data; remainder = empty_data; parser = create_parser params codec }
+    {
+      buf = empty_data;
+      remainder = empty_data;
+      parser = create_parser params codec;
+    }
 
-  external parse_packet : 'a parser_t -> data -> int -> int -> ('m t * int) option
+  external parse_packet :
+    'a parser_t -> data -> int -> int -> ('m t * int) option
     = "ocaml_avcodec_parse_packet"
 
   let rec buf_loop ctx f buf ofs len =
@@ -248,7 +254,7 @@ module Audio = struct
     let opts = opts_default opts in
     let _opts =
       mk_audio_opts ~opts ?channels ?channel_layout ~sample_rate ~sample_format
-        ~time_base
+        ~time_base ()
     in
     let encoder, unused =
       create_encoder
@@ -350,7 +356,7 @@ module Video = struct
       ~height ~time_base codec =
     let opts = opts_default opts in
     let _opts =
-      mk_video_opts ~opts ?frame_rate ~pixel_format ~width ~height ~time_base
+      mk_video_opts ~opts ?frame_rate ~pixel_format ~width ~height ~time_base ()
     in
     let device_context, frame_context =
       match hardware_context with

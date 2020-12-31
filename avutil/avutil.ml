@@ -594,7 +594,7 @@ let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
 
 let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
-    ~time_base =
+    ~time_base () =
   let () =
     match (channels, channel_layout) with
       | None, None ->
@@ -617,7 +617,7 @@ let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
     | Some r -> Hashtbl.add opts "r" (`String (string_of_rational r))
     | None -> ()
 
-let mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base =
+let mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base () =
   let opts = opts_default opts in
   add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
   opts

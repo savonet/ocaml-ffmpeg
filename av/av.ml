@@ -264,7 +264,7 @@ let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
     ~time_base ~codec container =
   let opts =
     mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
-      ~time_base
+      ~time_base ()
   in
   let ret, unused =
     new_audio_stream container
@@ -285,7 +285,7 @@ external new_video_stream :
 let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
     ~height ~time_base ~codec container =
   let opts =
-    mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base
+    mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base ()
   in
   let device_context, frame_context =
     match hardware_context with

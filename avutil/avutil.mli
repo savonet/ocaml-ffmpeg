@@ -365,6 +365,7 @@ val mk_audio_opts :
   sample_rate:int ->
   sample_format:Sample_format.t ->
   time_base:rational ->
+  unit ->
   opts
 
 val mk_video_opts :
@@ -374,6 +375,7 @@ val mk_video_opts :
   width:int ->
   height:int ->
   time_base:rational ->
+  unit ->
   opts
 
 val filter_opts : string array -> opts -> unit
