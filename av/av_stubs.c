@@ -1146,7 +1146,7 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
   if (!guessed)
     CAMLreturn(Val_none);
 
-  ans = caml_alloc_small(1, 0);
+  ans = caml_alloc_tuple(1);
   Field(ans, 0) = value_of_outputFormat(guessed);
 
   CAMLreturn(ans);

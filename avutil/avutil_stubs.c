@@ -1078,13 +1078,13 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   if (_opt_cursor->help == NULL || strlen(_opt_cursor->help) == 0)
     Store_field(_opt, 1, Val_none);
   else {
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, caml_copy_string(_opt_cursor->help));
     Store_field(_opt, 1, _tmp);
   }
 
   _spec = caml_alloc_tuple(3);
-  _tmp = caml_alloc_small(1, 0);
+  _tmp = caml_alloc_tuple(1);
   Store_field(_spec, 0, Val_none);
   Store_field(_spec, 1, Val_none);
   Store_field(_spec, 2, Val_none);
@@ -1129,11 +1129,11 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     Store_field(_tmp, 0, Val_int(_opt_cursor->default_val.i64));
     Store_field(_spec, 0, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, Val_int(_opt_cursor->min));
     Store_field(_spec, 1, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, Val_int(_opt_cursor->max));
     Store_field(_spec, 2, _tmp);
     break;
@@ -1154,7 +1154,7 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     Store_field(_tmp, 0, caml_copy_int64(_opt_cursor->default_val.i64));
     Store_field(_spec, 0, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
 
     if (_opt_cursor->min <= INT64_MIN)
       Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
@@ -1165,7 +1165,7 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
 
     Store_field(_spec, 1, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
 
     if (_opt_cursor->max <= INT64_MIN)
       Store_field(_tmp, 0, caml_copy_int64(INT64_MIN));
@@ -1187,11 +1187,11 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     Store_field(_tmp, 0, caml_copy_double(_opt_cursor->default_val.dbl));
     Store_field(_spec, 0, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, caml_copy_double(_opt_cursor->min));
     Store_field(_spec, 1, _tmp);
 
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, caml_copy_double(_opt_cursor->max));
     Store_field(_spec, 2, _tmp);
     break;
@@ -1204,12 +1204,12 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
     value_of_rational(&r, &_tmp);
     Store_field(Field(_spec, 0), 0, _tmp);
 
-    Store_field(_spec, 1, caml_alloc_small(1, 0));
+    Store_field(_spec, 1, caml_alloc_tuple(1));
     r = av_d2q(_opt_cursor->min, INT_MAX);
     value_of_rational(&r, &_tmp);
     Store_field(Field(_spec, 1), 0, _tmp);
 
-    Store_field(_spec, 2, caml_alloc_small(1, 0));
+    Store_field(_spec, 2, caml_alloc_tuple(1));
     r = av_d2q(_opt_cursor->max, INT_MAX);
     value_of_rational(&r, &_tmp);
     Store_field(Field(_spec, 2), 0, _tmp);
@@ -1253,18 +1253,18 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   if (_opt_cursor->unit == NULL || strlen(_opt_cursor->unit) == 0)
     Store_field(_opt, 4, Val_none);
   else {
-    _tmp = caml_alloc_small(1, 0);
+    _tmp = caml_alloc_tuple(1);
     Store_field(_tmp, 0, caml_copy_string(_opt_cursor->unit));
     Store_field(_opt, 4, _tmp);
   }
 
-  _tmp = caml_alloc_small(1, 0);
+  _tmp = caml_alloc_tuple(1);
   Store_field(_tmp, 0, caml_alloc_tuple(2));
   Store_field(Field(_tmp, 0), 0, (value)_opt_cursor);
   Store_field(Field(_tmp, 0), 1, (value)_class_cursor);
   Store_field(_opt, 5, _tmp);
 
-  _tmp = caml_alloc_small(1, 0);
+  _tmp = caml_alloc_tuple(1);
   Store_field(_tmp, 0, _opt);
 
   CAMLreturn(_tmp);
