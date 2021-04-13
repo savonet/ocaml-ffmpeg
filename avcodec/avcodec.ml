@@ -8,6 +8,10 @@ type 'media encoder
 type encode = [ `Encoder ]
 type decode = [ `Decoder ]
 
+external flag_qscale : unit -> int = "ocaml_avcodec_flag_qscale"
+
+let flag_qscale = flag_qscale ()
+
 external params : 'media encoder -> 'media params
   = "ocaml_avcodec_encoder_params"
 

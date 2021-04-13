@@ -90,6 +90,11 @@ void ocaml_avutil_raise_error(int err) {
   caml_raise_with_arg(*caml_named_value(EXN_ERROR), _err);
 }
 
+CAMLprim value ocaml_avutil_qp2lambda(value unit) {
+  CAMLparam0();
+  CAMLreturn(Val_int(FF_QP2LAMBDA));
+}
+
 CAMLprim value ocaml_avutil_string_of_error(value error) {
   CAMLparam0();
   int err;

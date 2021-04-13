@@ -20,6 +20,10 @@ type ('line, 'media) format
 (* Frame *)
 type 'media frame
 
+external qp2lambda : unit -> int = "ocaml_avutil_qp2lambda"
+
+let qp2lambda = qp2lambda ()
+
 external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 
 external frame_set_pts : _ frame -> Int64.t option -> unit

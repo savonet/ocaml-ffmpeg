@@ -40,6 +40,11 @@ static value value_of_subtitle_codec_id(enum AVCodecID id) {
   return ret;
 }
 
+CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
+  CAMLparam0();
+  CAMLreturn(Val_int(AV_CODEC_FLAG_QSCALE ));
+}
+
 CAMLprim value ocaml_avcodec_get_input_buffer_padding_size() {
   CAMLparam0();
   CAMLreturn(Val_int(AV_INPUT_BUFFER_PADDING_SIZE));

@@ -77,6 +77,10 @@ type rational = { num : int; den : int }
 
 val string_of_rational : rational -> string
 
+(** {9 Constants} *)
+
+val qp2lambda : int
+
 (** {9 Timestamp} *)
 
 (** Formats for time. *)
