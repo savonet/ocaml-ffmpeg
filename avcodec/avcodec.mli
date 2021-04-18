@@ -177,6 +177,10 @@ module Audio : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : ?params:audio params -> decode t -> audio decoder
 
+  (** [Avcodec.Audio.sample_format decoder] returns the output sample format
+      for the given decoder. *)
+  val sample_format : audio decoder -> Sample_format.t
+
   (** [Avcodec.Audio.create_encoder] create an audio encoder.
 
       Params have the same semantics as in [Av.new_audio_stream]

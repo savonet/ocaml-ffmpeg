@@ -478,6 +478,12 @@ CAMLprim value ocaml_avcodec_create_decoder(value _params, value _codec) {
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avcodec_sample_format(value _ctx) {
+  CAMLparam1(_ctx);
+  codec_context_t *ctx = CodecContext_val(_ctx);
+  CAMLreturn(Val_SampleFormat(ctx->codec_context->sample_fmt));
+}
+
 CAMLprim value ocaml_avcodec_encoder_params(value _encoder) {
   CAMLparam1(_encoder);
   CAMLlocal1(ans);

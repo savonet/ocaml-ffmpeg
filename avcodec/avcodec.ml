@@ -247,6 +247,8 @@ module Audio = struct
   let create_parser = Packet.create_parser
   let create_decoder = create_decoder
 
+  external sample_format : audio decoder -> Sample_format.t = "ocaml_avcodec_sample_format"
+
   external create_encoder :
     int ->
     [ `Encoder ] t ->
