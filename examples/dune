@@ -79,6 +79,11 @@
  (libraries ffmpeg-av ffmpeg-avdevice))
 
 (executable
+ (name webcam)
+ (modules webcam)
+ (libraries ffmpeg-av ffmpeg-avdevice))
+
+(executable
  (name read_metadata)
  (modules read_metadata)
  (libraries ffmpeg-av))
