@@ -8,9 +8,8 @@ let () =
   let () =
     print_endline "Available outputs:";
     List.iter
-      (fun f ->
-         print_endline ("- "^(Av.Format.get_output_name f))
-      ) (Avdevice.get_video_output_formats ())
+      (fun f -> print_endline ("- " ^ Av.Format.get_output_name f))
+      (Avdevice.get_video_output_formats ())
   in
 
   let video, video_frame =

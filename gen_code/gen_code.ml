@@ -3,8 +3,8 @@ external polymorphic_variant_string_to_c_value : string -> int64
 
 let c_flags =
   let len = Array.length Sys.argv in
-  if len > 3 then
-    Array.to_list (Array.sub Sys.argv 3 (Array.length Sys.argv - 3))
+  if len > 4 then
+    Array.to_list (Array.sub Sys.argv 4 (Array.length Sys.argv - 4))
   else []
 
 let include_paths =
@@ -176,12 +176,8 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
             try
               let path = Filename.quote path in
               let c_flags = String.concat " " c_flags in
-              let cmd =
-                Printf.sprintf
-                  "if which gcc; then gcc -E %s %s; elif which clang; then \
-                   clang -E %s %s; else cat %s; fi"
-                  c_flags path c_flags path path
-              in
+              let cc = Sys.argv.(1) in
+              let cmd = Printf.sprintf "%s -E %s %s" cc c_flags path in
               let ic = Unix.open_process_in cmd in
               let close ic =
                 assert (Unix.close_process_in ic = Unix.WEXITED 0)
@@ -470,8 +466,8 @@ let gen_swresample_options mode =
     mode
 
 let () =
-  let mode = Sys.argv.(2) in
-  match Sys.argv.(1) with
+  let mode = Sys.argv.(3) in
+  match Sys.argv.(2) with
     | "polymorphic_variant" -> gen_polymorphic_variant mode
     | "codec_id" -> gen_codec_id mode
     | "pixel_format" -> gen_pixel_format mode

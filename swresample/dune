@@ -27,10 +27,12 @@
  (targets swresample_options_stubs.h)
  (deps c_flags)
  (action
-  (run ../gen_code/gen_code.exe swresample_options h %{read-lines:c_flags})))
+  (run ../gen_code/gen_code.exe "%{cc}" swresample_options h
+    %{read-lines:c_flags})))
 
 (rule
  (targets swresample_options.ml)
  (deps c_flags)
  (action
-  (run ../gen_code/gen_code.exe swresample_options ml %{read-lines:c_flags})))
+  (run ../gen_code/gen_code.exe "%{cc}" swresample_options ml
+    %{read-lines:c_flags})))
