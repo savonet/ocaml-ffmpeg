@@ -2,7 +2,6 @@
  (name avdevice)
  (public_name ffmpeg-avdevice)
  (synopsis "Bindings to ffmpeg's avdevice library")
- (library_flags -linkall)
  (foreign_stubs
   (language c)
   (names avdevice_stubs)
