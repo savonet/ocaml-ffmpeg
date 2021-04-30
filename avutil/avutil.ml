@@ -585,6 +585,11 @@ let mk_opts_array opts =
        (fun opt_name opt_val cur -> (opt_name, _opt_val opt_val) :: cur)
        opts [])
 
+let string_of_opts opts =
+  Hashtbl.fold
+    (fun opt_name opt_val l -> (opt_name^"="^_opt_val opt_val)::l) opts []
+  |> String.concat ","
+
 let on_opt v fn = match v with None -> () | Some v -> fn v
 
 let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format

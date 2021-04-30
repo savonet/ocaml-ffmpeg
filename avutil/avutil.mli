@@ -362,6 +362,8 @@ type opts = (string, value) Hashtbl.t
 val opts_default : opts option -> opts
 val mk_opts_array : opts -> (string * string) array
 
+val string_of_opts : opts -> string
+
 val mk_audio_opts :
   ?opts:opts ->
   ?channels:int ->
