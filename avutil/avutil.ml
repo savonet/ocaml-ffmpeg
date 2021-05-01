@@ -29,6 +29,9 @@ external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
 external frame_set_pts : _ frame -> Int64.t option -> unit
   = "ocaml_avutil_frame_set_pts"
 
+external frame_best_effort_timestamp : _ frame -> Int64.t option
+  = "ocaml_avutil_frame_best_effort_timestamp"
+
 external frame_pkt_duration : _ frame -> Int64.t option
   = "ocaml_avutil_frame_pkt_duration"
 
@@ -587,7 +590,8 @@ let mk_opts_array opts =
 
 let string_of_opts opts =
   Hashtbl.fold
-    (fun opt_name opt_val l -> (opt_name^"="^_opt_val opt_val)::l) opts []
+    (fun opt_name opt_val l -> (opt_name ^ "=" ^ _opt_val opt_val) :: l)
+    opts []
   |> String.concat ","
 
 let on_opt v fn = match v with None -> () | Some v -> fn v

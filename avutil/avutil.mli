@@ -33,6 +33,9 @@ val frame_pts : _ frame -> Int64.t option
 (** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
 val frame_set_pts : _ frame -> Int64.t option -> unit
 
+(** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
+val frame_best_effort_timestamp : _ frame -> Int64.t option
+
 (** duration of the corresponding packet, expressed in AVStream->time_base units. *)
 val frame_pkt_duration : _ frame -> Int64.t option
 
@@ -361,7 +364,6 @@ type opts = (string, value) Hashtbl.t
 
 val opts_default : opts option -> opts
 val mk_opts_array : opts -> (string * string) array
-
 val string_of_opts : opts -> string
 
 val mk_audio_opts :

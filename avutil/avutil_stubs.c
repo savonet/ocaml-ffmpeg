@@ -701,6 +701,20 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avutil_frame_best_effort_timestamp(value _frame) {
+  CAMLparam1(_frame);
+  CAMLlocal1(ret);
+  AVFrame *frame = Frame_val(_frame);
+
+  if (frame->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(frame->best_effort_timestamp));
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
   CAMLparam2(_src, _dst);
   AVFrame *src = Frame_val(_src);
