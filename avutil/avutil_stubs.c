@@ -706,7 +706,7 @@ CAMLprim value ocaml_avutil_frame_best_effort_timestamp(value _frame) {
   CAMLlocal1(ret);
   AVFrame *frame = Frame_val(_frame);
 
-  if (frame->pts == AV_NOPTS_VALUE)
+  if (frame->best_effort_timestamp == AV_NOPTS_VALUE)
     CAMLreturn(Val_none);
 
   ret = caml_alloc_tuple(1);
