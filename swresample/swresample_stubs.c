@@ -448,6 +448,23 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector) {
   CAMLreturn(swr->out_vector);
 }
 
+CAMLprim value ocaml_swresample_flush(value _swr) {
+  CAMLparam1(_swr);
+  swr_t *swr = Swr_val(_swr);
+
+  caml_modify_generational_global_root(&swr->out_vector,
+                                       caml_alloc(swr->out.nb_channels, 0));
+
+  // Computation of the output number of samples per channel according to the
+  // input ones
+  int out_nb_samples = swr_get_out_samples(swr->context, 0);
+
+  // Resample and convert input data to output data
+  swr->convert(swr, 0, out_nb_samples);
+
+  CAMLreturn(swr->out_vector);
+}
+
 void swresample_free(swr_t *swr) {
   if (swr->context)
     swr_free(&swr->context);

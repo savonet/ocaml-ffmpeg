@@ -81,6 +81,9 @@ module Make (I : AudioData) (O : AudioData) : sig
 
       Raise Error if the conversion failed. *)
   val convert : t -> I.t -> O.t
+
+  (** [Swresample.convert rpsp] flushes the last remaining data. *)
+  val flush : t -> O.t
 end
 
 (** Byte string with undefined sample format for interleaved channels. The
