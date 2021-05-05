@@ -118,7 +118,9 @@ module Log = struct
   let set_level level = set_level (int_of_level level)
 
   external setup_log_callback : unit -> unit = "ocaml_avutil_setup_log_callback"
+(*
   external process_log : (string -> unit) -> unit = "ocaml_ffmpeg_process_log"
+*)
 
   let log_fn = ref (Printf.printf "%s")
   let log_fn_m = Mutex.create ()
@@ -135,8 +137,10 @@ module Log = struct
     clear_callback ();
     set_callback (Printf.printf "%s")
 
+(*
   let () =
     ignore (Thread.create (fun () -> process_log (fun msg -> !log_fn msg)) ())
+*)
 end
 
 module Pixel_format = struct
