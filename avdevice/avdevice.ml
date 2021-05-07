@@ -2,12 +2,6 @@ open Avutil
 
 external init : unit -> unit = "ocaml_avdevice_init" [@@noalloc]
 
-let init_done = ref false
-
-let () =
-  if not !init_done then init ();
-  init_done := true
-
 let hd = function [] -> raise Not_found | x :: _ -> x
 
 external get_audio_input_formats : unit -> (input, audio) format array
