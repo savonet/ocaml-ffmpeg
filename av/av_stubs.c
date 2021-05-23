@@ -913,7 +913,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   CAMLlocal3(ans, decoded_content, frame_value);
   av_t *av = Av_val(_av);
   AVFrame *frame;
-  int i, ret, frame_kind;
+  int i, ret, frame_kind, skip;
 
   if (!av->streams && !allocate_input_context(av))
     caml_raise_out_of_memory();
@@ -933,6 +933,17 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
       if (av->end_of_file)
         continue;
+
+      skip = 1;
+      for (i = 0; i < Wosize_val(_packet); i++)
+        if (Int_val(Field(_packet, i)) == packet.stream_index)
+           skip = 0;
+
+      for (i = 0; i < Wosize_val(_frame); i++)
+        if (Int_val(Field(_frame, i)) == packet.stream_index)
+          skip = 0;
+
+      if (skip) continue;
 
       if ((stream = streams[packet.stream_index]) == NULL)
         stream = open_stream_index(av, packet.stream_index);
@@ -979,7 +990,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
         ocaml_avutil_raise_error(AVERROR_EOF);
     }
 
-    int skip = 1;
+    skip = 1;
     for (i = 0; i < Wosize_val(_frame); i++) {
       if (Int_val(Field(_frame, i)) == stream->index) {
         skip = 0;
