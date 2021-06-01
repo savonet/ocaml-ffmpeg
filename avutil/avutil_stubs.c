@@ -1058,6 +1058,129 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
+                                    value name, value obj) {
+  CAMLparam2(name, obj);
+  CAMLlocal1(ret);
+
+  uint8_t *str;
+  int64_t err, i, search_flags = 0;
+  double d;
+  AVRational r;
+  int w_out, h_out;
+  enum AVPixelFormat pf;
+  enum AVSampleFormat sf;
+
+  if (Bool_val(search_children))
+    search_flags = AV_OPT_SEARCH_CHILDREN;
+
+  switch (_type) {
+  case PVV_String:
+    err = av_opt_get((void *)obj, (const char *)String_val(name), search_flags,
+                     &str);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    ret = caml_copy_string((char *)str);
+    av_free(str);
+
+    CAMLreturn(ret);
+    break;
+
+  case PVV_Int:
+    err = av_opt_get_int((void *)obj, (const char *)String_val(name),
+                         search_flags, &i);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(Val_int(i));
+    break;
+
+  case PVV_Int64:
+    err = av_opt_get_int((void *)obj, (const char *)String_val(name),
+                         search_flags, &i);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(caml_copy_int64(i));
+    break;
+
+  case PVV_Float:
+    err = av_opt_get_double((void *)obj, (const char *)String_val(name),
+                            search_flags, &d);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(caml_copy_double(d));
+    break;
+
+  case PVV_Rational:
+    err = av_opt_get_q((void *)obj, (const char *)String_val(name),
+                       search_flags, &r);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    value_of_rational(&r, &ret);
+
+    CAMLreturn(ret);
+    break;
+
+  case PVV_Image_size:
+    err = av_opt_get_image_size((void *)obj, (const char *)String_val(name),
+                                search_flags, &w_out, &h_out);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    ret = caml_alloc_tuple(2);
+    Store_field(ret, 0, Val_int(w_out));
+    Store_field(ret, 1, Val_int(h_out));
+
+    CAMLreturn(ret);
+    break;
+
+  case PVV_Pixel_fmt:
+    err = av_opt_get_pixel_fmt((void *)obj, (const char *)String_val(name),
+                               search_flags, &pf);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(Val_PixelFormat(pf));
+    break;
+
+  case PVV_Sample_fmt:
+    err = av_opt_get_sample_fmt((void *)obj, (const char *)String_val(name),
+                                search_flags, &sf);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(Val_SampleFormat(sf));
+    break;
+
+  case PVV_Video_rate:
+    err = av_opt_get_video_rate((void *)obj, (const char *)String_val(name),
+                                search_flags, &r);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    value_of_rational(&r, &ret);
+
+    CAMLreturn(ret);
+    break;
+
+  case PVV_Channel_layout:
+    err = av_opt_get_channel_layout((void *)obj, (const char *)String_val(name),
+                                    search_flags, &i);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    CAMLreturn(Val_ChannelLayout(i));
+    break;
+
+  default:
+    caml_failwith("Invalid option type!");
+  }
+}
+
 CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   CAMLparam2(_cursor, _class);
   CAMLlocal4(_opt, _type, _tmp, _spec);

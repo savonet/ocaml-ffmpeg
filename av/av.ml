@@ -4,6 +4,10 @@ external init : unit -> unit = "ocaml_av_init" [@@noalloc]
 
 let () = init ()
 
+external container_options : unit -> Options.t = "ocaml_av_container_options"
+
+let container_options = container_options ()
+
 (* Format *)
 module Format = struct
   external get_input_name : (input, _) format -> string
@@ -111,6 +115,10 @@ external _get_metadata : input container -> int -> (string * string) list
   = "ocaml_av_get_metadata"
 
 let get_input_metadata i = List.rev (_get_metadata i (-1))
+
+external input_obj : input container -> 'a = "ocaml_av_input_obj"
+
+let input_obj c = Obj.magic (input_obj c, c)
 
 (* Input Stream *)
 type ('a, 'b, 'c) stream = { container : 'a container; index : int }

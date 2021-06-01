@@ -118,7 +118,8 @@ module Log = struct
   let set_level level = set_level (int_of_level level)
 
   external setup_log_callback : unit -> unit = "ocaml_avutil_setup_log_callback"
-(*
+
+  (*
   external process_log : (string -> unit) -> unit = "ocaml_ffmpeg_process_log"
 *)
 
@@ -137,7 +138,7 @@ module Log = struct
     clear_callback ();
     set_callback (Printf.printf "%s")
 
-(*
+  (*
   let () =
     ignore (Thread.create (fun () -> process_log (fun msg -> !log_fn msg)) ())
 *)
@@ -570,6 +571,32 @@ module Options = struct
     in
 
     f None []
+
+  (* The type implementation is a tuple [(C object, OCaml value)].
+     OCaml value is passed to make sure that the C object is not 
+     collected by the GC while running the function. *)
+  type obj
+  type 'a getter = ?search_children:bool -> name:string -> obj -> 'a
+
+  external get : 'a -> ?search_children:bool -> name:string -> 'b -> 'c
+    = "ocaml_avutil_get_opt"
+
+  let get (type a) _type ?search_children ~name (obj:obj) : a =
+    let (c, o) = Obj.magic obj in
+    let ret = get _type ?search_children ~name c in
+    ignore(o);
+    ret
+
+  let get_string = get `String
+  let get_int = get `Int
+  let get_int64 = get `Int64
+  let get_float = get `Float
+  let get_rational = get `Rational
+  let get_image_size = get `Image_size
+  let get_pixel_fmt = get `Pixel_fmt
+  let get_sample_fmt = get `Sample_fmt
+  let get_video_rate = get `Video_rate
+  let get_channel_layout = get `Channel_layout
 end
 
 (* Options *)

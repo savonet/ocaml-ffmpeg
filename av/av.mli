@@ -3,6 +3,9 @@
 
 open Avutil
 
+(* A value suitable for listing available options on a given container. *)
+val container_options : Options.t
+
 (** {5 Format} *)
 
 module Format : sig
@@ -65,6 +68,9 @@ val get_input_duration :
 
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
+
+(** Return a value of type [obj], suited for use with [Avutils.Options] getters. *)
+val input_obj : input container -> Options.obj
 
 (** Input/output, audio/video/subtitle, mode stream type *)
 type ('line, 'media, 'mode) stream

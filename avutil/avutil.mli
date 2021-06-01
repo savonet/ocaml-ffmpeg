@@ -353,6 +353,21 @@ module Options : sig
   }
 
   val opts : t -> opt list
+
+  (* Generic type for any object with options. *)
+  type obj
+  type 'a getter = ?search_children:bool -> name:string -> obj -> 'a
+
+  val get_string : string getter
+  val get_int : int getter
+  val get_int64 : int64 getter
+  val get_float : float getter
+  val get_rational : rational getter
+  val get_image_size : (int * int) getter
+  val get_pixel_fmt : Pixel_format.t getter
+  val get_sample_fmt : Sample_format.t getter
+  val get_video_rate : rational getter
+  val get_channel_layout : Channel_layout.t getter
 end
 
 (* {1 Options } *)
