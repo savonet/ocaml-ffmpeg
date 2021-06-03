@@ -8,7 +8,7 @@ license: "LGPL"
 homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
-  "ocaml" {>= "4.05.0"}
+  "ocaml" {>= "4.08.0"}
   "dune" {>= "2.0"}
   "ffmpeg-avutil" {= version}
   "ffmpeg-avcodec" {= version}
@@ -16,9 +16,6 @@ depends: [
   "ffmpeg-avdevice" {= version}
   "ffmpeg-swscale" {= version}
   "ffmpeg-swresample" {= version}
-]
-conflicts: [
-  "liquidsoap" {< "1.5.0"}
 ]
 build: [
   ["dune" "subst"] {pinned}
