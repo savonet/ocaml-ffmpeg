@@ -9,6 +9,7 @@ homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
   "conf-pkg-config"
+  "conf-ffmpeg"
   "ocaml" {>= "4.08.0"}
   "dune" {>= "2.0"}
   "dune-configurator"
@@ -32,13 +33,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/savonet/ocaml-ffmpeg.git"
-depexts: [
-  ["libavfilter-dev"] {os-family = "debian"}
-  ["ffmpeg-dev"] {os-distribution = "alpine"}
-  ["ffmpeg"] {os-distribution = "arch"}
-  ["ffmpeg-devel"] {os-distribution = "centos"}
-  ["ffmpeg-devel"] {os-distribution = "fedora"}
-  ["ffmpeg-devel"] {os-family = "suse"}
-  ["ffmpeg"] {os-distribution = "nixos"}
-  ["ffmpeg"] {os = "macos" & os-distribution = "homebrew"}
-]
