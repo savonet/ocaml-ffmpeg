@@ -9,16 +9,17 @@ homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
   "ocaml" {>= "4.08.0"}
-  "dune" {>= "2.0"}
+  "dune" {>= "2.7" & >= "2.0"}
   "ffmpeg-avutil" {= version}
   "ffmpeg-avcodec" {= version}
   "ffmpeg-avfilter" {= version}
   "ffmpeg-avdevice" {= version}
   "ffmpeg-swscale" {= version}
   "ffmpeg-swresample" {= version}
+  "odoc" {with-doc}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"

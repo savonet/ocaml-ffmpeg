@@ -1,4 +1,4 @@
-(lang dune 2.0)
+(lang dune 2.7)
 
 (name ffmpeg)
 (version 1.0.0)

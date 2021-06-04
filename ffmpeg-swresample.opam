@@ -11,16 +11,17 @@ depends: [
   "conf-pkg-config" {build}
   "conf-ffmpeg" {build}
   "ocaml" {>= "4.08.0"}
-  "dune" {>= "2.0"}
+  "dune" {>= "2.7" & >= "2.0"}
   "dune-configurator" {build}
   "ffmpeg-avutil" {= version}
   "ffmpeg-avcodec" {= version}
+  "odoc" {with-doc}
 ]
 conflicts: [
   "ffmpeg" {< "0.5.0"}
 ]
 build: [
-  ["dune" "subst"] {pinned}
+  ["dune" "subst"] {dev}
   [
     "dune"
     "build"
