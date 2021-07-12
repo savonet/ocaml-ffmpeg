@@ -368,6 +368,7 @@ module Options : sig
   val get_sample_fmt : Sample_format.t getter
   val get_video_rate : rational getter
   val get_channel_layout : Channel_layout.t getter
+  val get_dictionary : (string * string) list getter
 end
 
 (* {1 Options } *)

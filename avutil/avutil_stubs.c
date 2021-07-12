@@ -1061,7 +1061,7 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
 CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
                                     value name, value obj) {
   CAMLparam2(name, obj);
-  CAMLlocal1(ret);
+  CAMLlocal2(ret, tmp);
 
   uint8_t *str;
   int64_t err, i, search_flags = 0;
@@ -1070,6 +1070,9 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
   int w_out, h_out;
   enum AVPixelFormat pf;
   enum AVSampleFormat sf;
+  AVDictionary *dict = NULL;
+  AVDictionaryEntry *dict_entry = NULL;
+  int dict_length, dict_pos;
 
   if (Bool_val(search_children))
     search_flags = AV_OPT_SEARCH_CHILDREN;
@@ -1174,6 +1177,29 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
       ocaml_avutil_raise_error(err);
 
     CAMLreturn(Val_ChannelLayout(i));
+    break;
+
+  case PVV_Dict:
+    err = av_opt_get_dict_val((void *)obj, (const char *)String_val(name),
+                              search_flags, &dict);
+    if (err < 0)
+      ocaml_avutil_raise_error(err);
+
+    dict_length = av_dict_count(dict);
+    ret = caml_alloc_tuple(dict_length);
+printf("dict len: %d\n", dict_length);
+
+    for (dict_pos = 0; dict_pos < dict_length; dict_pos++) {
+      dict_entry = av_dict_get(dict, "", dict_entry, AV_DICT_IGNORE_SUFFIX);
+      tmp = caml_alloc_tuple(2);
+      Store_field(tmp, 0, caml_copy_string(dict_entry->key));
+      Store_field(tmp, 1, caml_copy_string(dict_entry->value));
+      Store_field(ret, dict_pos, tmp);
+    }
+
+    av_dict_free(&dict);
+
+    CAMLreturn(ret);
     break;
 
   default:

@@ -573,7 +573,7 @@ module Options = struct
     f None []
 
   (* The type implementation is a tuple [(C object, OCaml value)].
-     OCaml value is passed to make sure that the C object is not 
+     OCaml value is passed to make sure that the C object is not
      collected by the GC while running the function. *)
   type obj
   type 'a getter = ?search_children:bool -> name:string -> obj -> 'a
@@ -581,10 +581,10 @@ module Options = struct
   external get : 'a -> ?search_children:bool -> name:string -> 'b -> 'c
     = "ocaml_avutil_get_opt"
 
-  let get (type a) _type ?search_children ~name (obj:obj) : a =
-    let (c, o) = Obj.magic obj in
+  let get (type a) _type ?search_children ~name (obj : obj) : a =
+    let c, o = Obj.magic obj in
     let ret = get _type ?search_children ~name c in
-    ignore(o);
+    ignore o;
     ret
 
   let get_string = get `String
@@ -597,6 +597,9 @@ module Options = struct
   let get_sample_fmt = get `Sample_fmt
   let get_video_rate = get `Video_rate
   let get_channel_layout = get `Channel_layout
+
+  let get_dictionary ?search_children ~name obj =
+    Array.to_list (get `Dict ?search_children ~name obj)
 end
 
 (* Options *)
