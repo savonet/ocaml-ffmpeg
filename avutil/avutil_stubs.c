@@ -1187,7 +1187,6 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
 
     dict_length = av_dict_count(dict);
     ret = caml_alloc_tuple(dict_length);
-printf("dict len: %d\n", dict_length);
 
     for (dict_pos = 0; dict_pos < dict_length; dict_pos++) {
       dict_entry = av_dict_get(dict, "", dict_entry, AV_DICT_IGNORE_SUFFIX);
