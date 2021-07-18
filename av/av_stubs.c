@@ -947,13 +947,14 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       skip = 1;
       for (i = 0; i < Wosize_val(_packet); i++)
         if (Int_val(Field(_packet, i)) == packet.stream_index)
-           skip = 0;
+          skip = 0;
 
       for (i = 0; i < Wosize_val(_frame); i++)
         if (Int_val(Field(_frame, i)) == packet.stream_index)
           skip = 0;
 
-      if (skip) continue;
+      if (skip)
+        continue;
 
       if ((stream = streams[packet.stream_index]) == NULL)
         stream = open_stream_index(av, packet.stream_index);
@@ -1058,36 +1059,52 @@ static const int seek_flags[] = {AVSEEK_FLAG_BACKWARD, AVSEEK_FLAG_BYTE,
 
 static int seek_flags_val(value v) { return seek_flags[Int_val(v)]; }
 
-CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format,
-                                   value _timestamp, value _flags) {
-  CAMLparam4(_stream, _time_format, _timestamp, _flags);
-  av_t *av = StreamAv_val(_stream);
-  int index = StreamIndex_val(_stream);
+CAMLprim value ocaml_av_seek_native(value _flags, value _stream, value _min_ts,
+                                    value _max_ts, value _time_format,
+                                    value _timestamp, value _av) {
+  CAMLparam5(_flags, _stream, _min_ts, _max_ts, _time_format);
+  CAMLxparam2(_timestamp, _av);
+
+  av_t *av = Av_val(_av);
+  int index = -1;
+  int64_t min_ts = INT64_MIN;
+  int64_t max_ts = INT64_MAX;
   int64_t timestamp = Int64_val(_timestamp);
+  int64_t second_fractions = second_fractions_of_time_format(_time_format);
+  int64_t num = AV_TIME_BASE;
+  int64_t den = 1;
+  int flags = 0;
+  int ret, i;
 
   if (!av->format_context)
     Fail("Failed to seek closed input");
 
-  int64_t num = AV_TIME_BASE;
-  int64_t den = 1;
+  if (_stream != Val_none) {
+    index = StreamIndex_val(Field(_stream, 0));
+  }
 
   if (index >= 0) {
     num = (int64_t)av->format_context->streams[index]->time_base.den;
     den = (int64_t)av->format_context->streams[index]->time_base.num;
   }
 
-  int64_t second_fractions = second_fractions_of_time_format(_time_format);
-
   timestamp = (timestamp * num) / (den * second_fractions);
 
-  int flags = 0;
-  int i;
+  if (_min_ts != Val_none) {
+    min_ts = (Int64_val(Field(_min_ts, 0)) * num) / (den * second_fractions);
+  }
+
+  if (_max_ts != Val_none) {
+    max_ts = (Int64_val(Field(_max_ts, 0)) * num) / (den * second_fractions);
+  }
+
   for (i = 0; i < Wosize_val(_flags); i++)
     flags |= seek_flags_val(Field(_flags, i));
 
   caml_release_runtime_system();
 
-  int ret = av_seek_frame(av->format_context, index, timestamp, flags);
+  ret = avformat_seek_file(av->format_context, index, min_ts, timestamp, max_ts,
+                           flags);
 
   caml_acquire_runtime_system();
 
@@ -1095,6 +1112,11 @@ CAMLprim value ocaml_av_seek_frame(value _stream, value _time_format,
     ocaml_avutil_raise_error(ret);
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_seek_bytecode(value *argv, int argn) {
+  return ocaml_av_seek_native(argv[0], argv[1], argv[2], argv[3], argv[4],
+                              argv[5], argv[6]);
 }
 
 /***** Output *****/

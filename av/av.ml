@@ -212,8 +212,16 @@ type seek_flag =
   | Seek_flag_frame
 
 external seek :
-  (input, _, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
-  = "ocaml_av_seek_frame"
+  flags:seek_flag array ->
+  ?stream:(input, _, _) stream ->
+  ?min_ts:Int64.t ->
+  ?max_ts:Int64.t ->
+  fmt:Time_format.t ->
+  ts:Int64.t ->
+  input container ->
+  unit = "ocaml_av_seek_bytecode" "ocaml_av_seek_native"
+
+let seek ?(flags = []) = seek ~flags:(Array.of_list flags)
 
 (* Output *)
 external open_output :

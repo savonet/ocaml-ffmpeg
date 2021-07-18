@@ -166,11 +166,19 @@ type seek_flag =
   | Seek_flag_any
   | Seek_flag_frame
 
-(** [Av.seek is fmt t flags] seek in the input stream [is] at the position [t]
-    in the [fmt] time format according to the method indicated by the [flags].
-    Raise Error if the seeking failed. *)
+(** [Av.seek ?flags ?stream ?min_ts ?max_ts ~fmt ~ts container] seek in the container [container]
+    to position [ts]. You can pass an optional [stream] to use for seeking, [max_ts] and [min_ts]
+    to force seeking to happen within a given timestamp window and [flags] to speficy certain
+    property of the seeking operation. Raise Error if the seeking failed. *)
 val seek :
-  (input, _, _) stream -> Time_format.t -> Int64.t -> seek_flag array -> unit
+  ?flags:seek_flag list ->
+  ?stream:(input, _, _) stream ->
+  ?min_ts:Int64.t ->
+  ?max_ts:Int64.t ->
+  fmt:Time_format.t ->
+  ts:Int64.t ->
+  input container ->
+  unit
 
 (** {5 Output} *)
 
