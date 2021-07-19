@@ -42,7 +42,7 @@ static value value_of_subtitle_codec_id(enum AVCodecID id) {
 
 CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
   CAMLparam0();
-  CAMLreturn(Val_int(AV_CODEC_FLAG_QSCALE ));
+  CAMLreturn(Val_int(AV_CODEC_FLAG_QSCALE));
 }
 
 CAMLprim value ocaml_avcodec_get_input_buffer_padding_size() {
@@ -155,12 +155,11 @@ CAMLprim value ocaml_avcodec_packet_dup(value _packet) {
   CAMLparam1(_packet);
   CAMLlocal1(ret);
 
-  AVPacket *packet = (AVPacket *)malloc(sizeof(struct AVPacket));
+  AVPacket *packet = av_packet_alloc();
 
   if (!packet)
     caml_raise_out_of_memory();
 
-  av_init_packet(packet);
   av_packet_ref(packet, Packet_val(_packet));
 
   ret = caml_alloc_custom(&packet_ops, sizeof(AVPacket *), 0, 1);
@@ -861,7 +860,6 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
     caml_raise_out_of_memory();
 
   caml_release_runtime_system();
-  av_init_packet(packet);
   ret = avcodec_receive_packet(ctx->codec_context, packet);
   caml_acquire_runtime_system();
 
