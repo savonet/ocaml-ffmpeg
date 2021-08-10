@@ -25,6 +25,10 @@ The modules currently available are :
 
 Please read the COPYING file before using this software.
 
+Documentation:
+=============
+
+The [API documentation is available here](http://www.liquidsoap.info/ocaml-ffmpeg/).
 
 Prerequisites:
 ==============
@@ -66,11 +70,6 @@ Compilation:
 ```
 dune build
 ```
-
-Documentation:
-=============
-
-The [API documentation is available here](https://www.liquidsoap.info/modules/ocaml-ffmpeg/index.html).
 
 
 Examples:
