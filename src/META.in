@@ -1,6 +1,0 @@
-name="ffmpeg"
-version="@VERSION@"
-description="OCaml bindings for FFmpeg"
-requires="@requires@"
-archive(byte)="ffmpeg.cma"
-archive(native)="ffmpeg.cmxa"
