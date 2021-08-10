@@ -80,11 +80,11 @@ type rational = { num : int; den : int }
 
 val string_of_rational : rational -> string
 
-(** {9 Constants} *)
+(** {5 Constants} *)
 
 val qp2lambda : int
 
-(** {9 Timestamp} *)
+(** {5 Timestamp} *)
 
 (** Formats for time. *)
 module Time_format : sig

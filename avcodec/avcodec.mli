@@ -10,7 +10,7 @@ type 'media encoder
 type encode = [ `Encoder ]
 type decode = [ `Decoder ]
 
-(** {9 Constants} *)
+(** {5 Constants} *)
 
 val flag_qscale : int
 

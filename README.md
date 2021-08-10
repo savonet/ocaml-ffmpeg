@@ -29,10 +29,12 @@ Please read the COPYING file before using this software.
 Prerequisites:
 ==============
 
-- ocaml >= 4.05.0
-- FFmpeg >= 3.0
-- dune >= 2.0
-- findlib >= 0.8.1
+- ocaml
+- FFmpeg
+- dune
+- findlib
+
+See [dune-project](dune-project) file for versions.
 
 Installation:
 =============

@@ -1,13 +1,14 @@
-(lang dune 2.7)
+(lang dune 2.8)
 
 (name ffmpeg)
-(version 1.0.1)
+(version 1.0.0~beta2)
 (source (github savonet/ocaml-ffmpeg))
 (license LGPL-2.1-only)
 (authors "The Savonet Team <savonet-users@lists.sourceforge.net>")
 (maintainers "Romain Beauxis <toots@rastageeks.org>")
 
 (generate_opam_files true)
+(use_standard_c_and_cxx_flags false)
 
 (package
  (name ffmpeg-avutil)
@@ -16,7 +17,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   base-threads)
  (conflicts
@@ -30,7 +31,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
  (conflicts
@@ -44,7 +45,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
  (conflicts
@@ -58,7 +59,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
  (conflicts
@@ -72,7 +73,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
@@ -87,7 +88,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version)))
@@ -102,7 +103,7 @@
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (dune-configurator :build)
   (ffmpeg-av (= :version)))
  (conflicts
@@ -114,7 +115,7 @@
  (synopsis "Bindings for the ffmpeg libraries")
  (depends
   (ocaml (>= 4.08.0))
-  (dune (>= 2.0))
+  dune
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version))
   (ffmpeg-avfilter (= :version))
