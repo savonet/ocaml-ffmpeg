@@ -6,9 +6,9 @@ let test () =
   |> List.iter (fun url ->
          let input = Av.open_input url in
          printf "%s (%s s) :\n" url
-           ( match Av.get_input_duration input with
+           (match Av.get_input_duration input with
              | None -> "N/A"
-             | Some d -> Int64.to_string d );
+             | Some d -> Int64.to_string d);
          Av.get_input_metadata input
          |> List.iter (fun (k, v) -> printf "\t%s : %s\n" k v);
          Av.get_audio_streams input

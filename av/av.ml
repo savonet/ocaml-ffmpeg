@@ -195,13 +195,13 @@ let read_input ?(audio_packet = []) ?(audio_frame = []) ?(video_packet = [])
     ?(video_frame = []) ?(subtitle_packet = []) ?(subtitle_frame = []) input =
   let packet =
     Array.of_list
-      ( get_id input audio_packet @ get_id input video_packet
-      @ get_id input subtitle_packet )
+      (get_id input audio_packet @ get_id input video_packet
+      @ get_id input subtitle_packet)
   in
   let frame =
     Array.of_list
-      ( get_id input audio_frame @ get_id input video_frame
-      @ get_id input subtitle_frame )
+      (get_id input audio_frame @ get_id input video_frame
+      @ get_id input subtitle_frame)
   in
   read_input packet frame input
 

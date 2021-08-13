@@ -26,7 +26,7 @@ let () =
               in
               match C.Pkg_config.query_expr_err pc ~package ~expr with
                 | Error msg -> failwith msg
-                | Ok deps -> deps )
+                | Ok deps -> deps)
       in
       C.Flags.write_sexp "c_flags.sexp" conf.cflags;
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs)

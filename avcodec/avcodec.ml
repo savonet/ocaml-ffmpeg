@@ -321,7 +321,7 @@ module Video = struct
               not (List.mem `Hwaccel Avutil.Pixel_format.((descriptor f).flags)))
             formats
       in
-      match formats with p :: _ -> p | [] -> default )
+      match formats with p :: _ -> p | [] -> default)
 
   external get_params_id : video params -> id
     = "ocaml_avcodec_parameters_get_video_codec_id"

@@ -28,7 +28,7 @@ let fill_yuv_image width height frame_index planes =
 let () =
   if Array.length Sys.argv < 4 then (
     Printf.eprintf "Usage: %s <output file> <codec name> <mode>\n" Sys.argv.(0);
-    exit 1 );
+    exit 1);
   let dst = Av.open_output Sys.argv.(1) in
   let codec_name = Sys.argv.(2) in
   let mode = Sys.argv.(3) in
@@ -46,9 +46,9 @@ let () =
           (fun { Avcodec.pixel_format; methods; device_type } ->
             Printf.sprintf
               "{\n  pixel_format: %s,\n  methods: %s,\n  device_type: %s\n}"
-              ( match Avutil.Pixel_format.to_string pixel_format with
+              (match Avutil.Pixel_format.to_string pixel_format with
                 | None -> "none"
-                | Some f -> f )
+                | Some f -> f)
               (String.concat ", "
                  (List.map
                     (function
@@ -57,7 +57,7 @@ let () =
                       | `Internal -> "internal"
                       | `Ad_hoc -> "ad-hoc")
                     methods))
-              ( match device_type with
+              (match device_type with
                 | `None -> "none"
                 | `Vdpau -> "vdpau"
                 | `Cuda -> "cuda"
@@ -69,7 +69,7 @@ let () =
                 | `Drm -> "drm"
                 | `Opencl -> "opencl"
                 | `Mediacodec -> "mediacodec"
-                | _ -> "not supported in this test!" ))
+                | _ -> "not supported in this test!"))
           configs));
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
@@ -117,9 +117,9 @@ let () =
            (List.map string_of_flag descriptor.Avutil.Pixel_format.flags))
         (String.concat ",\n  "
            (List.map string_of_comp descriptor.Avutil.Pixel_format.comp))
-        ( match descriptor.Avutil.Pixel_format.alias with
+        (match descriptor.Avutil.Pixel_format.alias with
           | None -> "N/A"
-          | Some a -> a )
+          | Some a -> a)
         (Avutil.Pixel_format.bits descriptor)
     in
 
@@ -139,7 +139,7 @@ let () =
         (fill_yuv_image width height i)
         frame
       |> fun frame ->
-      Avutil.frame_set_pts frame (Some !pts);
+      Avutil.Frame.set_pts frame (Some !pts);
       pts := Int64.succ !pts;
       Av.write_frame ovs frame
     done;
@@ -164,7 +164,7 @@ let () =
           encode ~hardware_context:(`Device_context device_context) ()
       | None ->
           Printf.printf "No device context method found for codec %s..\n%!"
-            codec_name );
+            codec_name);
   if mode = "frame" then (
     let frame_method =
       List.find_opt
@@ -186,4 +186,4 @@ let () =
             ()
       | None ->
           Printf.printf "No frame context method found for codec %s..\n%!"
-            codec_name )
+            codec_name)

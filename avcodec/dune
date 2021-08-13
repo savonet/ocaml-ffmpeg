@@ -21,29 +21,45 @@
  (targets hw_config_method_stubs.h)
  (deps c_flags)
  (action
-  (run ../gen_code/gen_code.exe "%{cc}" hw_config_method h
-    %{read-lines:c_flags})))
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   hw_config_method
+   h
+   %{read-lines:c_flags})))
 
 (rule
  (targets hw_config_method.ml)
  (deps hw_config_method_stubs.h c_flags)
  (action
-  (run ../gen_code/gen_code.exe "%{cc}" hw_config_method ml
-    %{read-lines:c_flags})))
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   hw_config_method
+   ml
+   %{read-lines:c_flags})))
 
 (rule
  (targets codec_capabilities_stubs.h)
  (deps c_flags)
  (action
-  (run ../gen_code/gen_code.exe "%{cc}" codec_capabilities h
-    %{read-lines:c_flags})))
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   codec_capabilities
+   h
+   %{read-lines:c_flags})))
 
 (rule
  (targets codec_capabilities.ml)
  (deps codec_capabilities_stubs.h c_flags)
  (action
-  (run ../gen_code/gen_code.exe "%{cc}" codec_capabilities ml
-    %{read-lines:c_flags})))
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   codec_capabilities
+   ml
+   %{read-lines:c_flags})))
 
 (rule
  (targets codec_id_stubs.h)

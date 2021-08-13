@@ -1,7 +1,7 @@
 let () =
   if Array.length Sys.argv < 2 then (
     Printf.printf "usage: %s input_file\n" Sys.argv.(0);
-    exit 0 );
+    exit 0);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;

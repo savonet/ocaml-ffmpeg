@@ -112,10 +112,10 @@ let split_pads pads =
       (fun (a, v) pad ->
         if pad.media_type = `Audio then (
           let pad : (_, [ `Audio ], _) pad = { pad with media_type = `Audio } in
-          (pad :: a, v) )
+          (pad :: a, v))
         else (
           let pad : (_, [ `Video ], _) pad = { pad with media_type = `Video } in
-          (a, pad :: v) ))
+          (a, pad :: v)))
       ([], []) pads
   in
 

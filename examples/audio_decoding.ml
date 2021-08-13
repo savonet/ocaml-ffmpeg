@@ -13,7 +13,7 @@ let () =
        and writes decoded\n\
       \      audio frames to a rawaudio file named audio_output_file.\n"
       Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Log.set_level `Debug;
   Log.set_callback print_string;
@@ -51,8 +51,8 @@ let () =
   Printf.printf
     "Play the output audio file with the command:\n\
      ffplay -f %s -ac 2 -ar 44100 %s\n"
-    ( Option.get (Sample_format.get_name `S32)
-    ^ if Sys.big_endian then "be" else "le" )
+    (Option.get (Sample_format.get_name `S32)
+    ^ if Sys.big_endian then "be" else "le")
     audio_output_filename;
 
   Gc.full_major ();

@@ -1,7 +1,7 @@
 let () =
   if Array.length Sys.argv < 3 then (
     Printf.eprintf "Usage: %s <input_file> <output_file>.mp4\n" Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;

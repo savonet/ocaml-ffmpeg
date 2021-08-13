@@ -6,7 +6,7 @@ let () =
        libavcodec.\n\
       \      The output format is guessed according to the file extension.\n"
       Sys.argv.(0);
-    exit 0 );
+    exit 0);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;

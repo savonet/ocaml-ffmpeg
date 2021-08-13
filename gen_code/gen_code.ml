@@ -13,7 +13,7 @@ let include_paths =
       let len = String.length flag in
       if len > 2 && String.sub flag 0 2 = "-I" then (
         let path = String.sub flag 2 (len - 2) in
-        if not (List.mem path cur) then path :: cur else cur )
+        if not (List.mem path cur) then path :: cur else cur)
       else cur)
     Config.paths c_flags
 
@@ -150,7 +150,7 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         "[i][0];\n}\ncaml_raise_not_found();\n}";
       ];
 
-    print_ml ["]\n"] )
+    print_ml ["]\n"])
 
 let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
   match get_path in_names with
@@ -183,7 +183,7 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
                 assert (Unix.close_process_in ic = Unix.WEXITED 0)
               in
               read ic close
-            with _ -> cat path )
+            with _ -> cat path)
           else cat path
         in
 

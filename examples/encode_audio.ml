@@ -7,7 +7,7 @@ let () = Printexc.record_backtrace true
 let () =
   if Array.length Sys.argv < 3 then (
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;

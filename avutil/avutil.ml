@@ -17,25 +17,29 @@ type media_type =
 (* Format *)
 type ('line, 'media) format
 
-(* Frame *)
-type 'media frame
-
 external qp2lambda : unit -> int = "ocaml_avutil_qp2lambda"
 
 let qp2lambda = qp2lambda ()
 
-external frame_pts : _ frame -> Int64.t option = "ocaml_avutil_frame_pts"
+(* Frame *)
+module Frame = struct
+  type 'media t
 
-external frame_set_pts : _ frame -> Int64.t option -> unit
-  = "ocaml_avutil_frame_set_pts"
+  external pts : _ t -> Int64.t option = "ocaml_avutil_frame_pts"
 
-external frame_best_effort_timestamp : _ frame -> Int64.t option
-  = "ocaml_avutil_frame_best_effort_timestamp"
+  external set_pts : _ t -> Int64.t option -> unit
+    = "ocaml_avutil_frame_set_pts"
 
-external frame_pkt_duration : _ frame -> Int64.t option
-  = "ocaml_avutil_frame_pkt_duration"
+  external best_effort_timestamp : _ t -> Int64.t option
+    = "ocaml_avutil_frame_best_effort_timestamp"
 
-external frame_copy : 'a frame -> 'b frame -> unit = "ocaml_avutil_frame_copy"
+  external pkt_duration : _ t -> Int64.t option
+    = "ocaml_avutil_frame_pkt_duration"
+
+  external copy : 'a t -> 'b t -> unit = "ocaml_avutil_frame_copy"
+end
+
+type 'media frame = 'media Frame.t
 
 type error =
   [ `Bsf_not_found

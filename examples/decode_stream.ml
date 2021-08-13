@@ -10,7 +10,7 @@ let () =
        writes decoded\n\
       \      audio frames to a audio file named <output file>.\n"
       Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_callback (fun _ -> ());
 
@@ -58,7 +58,7 @@ let () =
 
   let pts = ref 0L in
   let on_frame frame =
-    Avutil.frame_set_pts frame (Some !pts);
+    Avutil.Frame.set_pts frame (Some !pts);
     pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
     Av.write_frame out_stream frame
   in
@@ -96,9 +96,9 @@ let () =
     sample_format;
   let rec f () =
     try
-      ( match Av.read_input container ~audio_frame:[stream] with
+      (match Av.read_input container ~audio_frame:[stream] with
         | `Audio_frame (i, frame) when i = idx -> write_frame frame
-        | _ -> assert false );
+        | _ -> assert false);
       f ()
     with
       | Avutil.Error `Eof -> ()

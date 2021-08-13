@@ -24,23 +24,27 @@ type ('line, 'media) format
 
 (** {1 Frame} *)
 
-type 'media frame
+module Frame : sig
+  type 'media t
 
-(** [Avutil.frame_pts frame] returns the presentation timestamp in time_base
+  (** [Avutil.Frame.pts frame] returns the presentation timestamp in time_base
     units (time when frame should be shown to user). *)
-val frame_pts : _ frame -> Int64.t option
+  val pts : _ t -> Int64.t option
 
-(** [Avutil.frame_set_pts frame pts] sets the presentation time for this frame. *)
-val frame_set_pts : _ frame -> Int64.t option -> unit
+  (** [Avutil.Frame.set_pts frame pts] sets the presentation time for this frame. *)
+  val set_pts : _ t -> Int64.t option -> unit
 
-(** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
-val frame_best_effort_timestamp : _ frame -> Int64.t option
+  (** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
+  val best_effort_timestamp : _ t -> Int64.t option
 
-(** duration of the corresponding packet, expressed in AVStream->time_base units. *)
-val frame_pkt_duration : _ frame -> Int64.t option
+  (** duration of the corresponding packet, expressed in AVStream->time_base units. *)
+  val pkt_duration : _ t -> Int64.t option
 
-(** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
-val frame_copy : 'a frame -> 'b frame -> unit
+  (** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
+  val copy : 'a t -> 'b t -> unit
+end
+
+type 'media frame = 'media Frame.t
 
 (** {1 Exception} *)
 

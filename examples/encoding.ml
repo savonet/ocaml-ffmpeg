@@ -44,7 +44,7 @@ let () =
     Printf.printf
       "Usage: %s <output file> <audio codec> <video codec> <subtitle codec>\n"
       Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
@@ -116,7 +116,7 @@ let () =
     let b = i mod frate / 13 in
 
     ( audio_on_off.(b) |> Resampler.convert rsp |> fun frame ->
-      Avutil.frame_set_pts frame (Some !audio_pts);
+      Avutil.Frame.set_pts frame (Some !audio_pts);
       audio_pts :=
         Int64.add !audio_pts
           (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
@@ -126,7 +126,7 @@ let () =
       (video_on_off.(b) width height i)
       frame
     |> fun frame ->
-    Avutil.frame_set_pts frame (Some !video_pts);
+    Avutil.Frame.set_pts frame (Some !video_pts);
     video_pts := Int64.succ !video_pts;
     Av.write_frame ovs frame
   done;

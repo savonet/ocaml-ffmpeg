@@ -17,7 +17,7 @@ let () =
            usage: %s input [output]\n\
            input and output can be devices or file names\n"
           Sys.argv.(0);
-        exit 0)) );
+        exit 0)));
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
@@ -54,18 +54,18 @@ let () =
       | _ -> print_endline "Unexpected dev to app controle message"))
     dst;
 
-  ( try Avdevice.App_to_dev.(control_messages [Get_volume; Set_volume 0.3]) dst
-    with Avutil.Error err -> prerr_endline (Avutil.string_of_error err) );
+  (try Avdevice.App_to_dev.(control_messages [Get_volume; Set_volume 0.3]) dst
+   with Avutil.Error err -> prerr_endline (Avutil.string_of_error err));
 
   let rec run n =
     if n > 0 then (
       try
-        ( match Av.read_input src ~audio_frame:[ias] with
+        (match Av.read_input src ~audio_frame:[ias] with
           | `Audio_frame (i, frame) when i = idx ->
               Av.write_frame dst_stream frame
-          | _ -> assert false );
+          | _ -> assert false);
         run (n - 1)
-      with Avutil.Error `Eof -> () )
+      with Avutil.Error `Eof -> ())
   in
   run 500;
 

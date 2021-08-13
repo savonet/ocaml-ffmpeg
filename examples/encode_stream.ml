@@ -7,7 +7,7 @@ let () = Printexc.record_backtrace true
 let () =
   if Array.length Sys.argv < 3 then (
     Printf.eprintf "Usage: %s <output file> <codec name>\n" Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
@@ -80,7 +80,7 @@ let () =
   assert (not (Hashtbl.mem output_opt "packetsize"));
 
   let on_frame frame =
-    Avutil.frame_set_pts frame (Some !pts);
+    Avutil.Frame.set_pts frame (Some !pts);
     pts := Int64.add !pts (Int64.of_int (Avutil.Audio.frame_nb_samples frame));
     Av.write_frame stream frame
   in

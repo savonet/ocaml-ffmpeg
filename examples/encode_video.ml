@@ -29,7 +29,7 @@ let () =
   if Array.length Sys.argv < 4 then (
     Printf.eprintf "Usage: %s <output file> <pixel formay> <codec name>\n"
       Sys.argv.(0);
-    exit 1 );
+    exit 1);
 
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
@@ -77,9 +77,9 @@ let () =
          (List.map string_of_flag descriptor.Avutil.Pixel_format.flags))
       (String.concat ",\n  "
          (List.map string_of_comp descriptor.Avutil.Pixel_format.comp))
-      ( match descriptor.Avutil.Pixel_format.alias with
+      (match descriptor.Avutil.Pixel_format.alias with
         | None -> "N/A"
-        | Some a -> a )
+        | Some a -> a)
       (Avutil.Pixel_format.bits descriptor)
   in
 
@@ -101,7 +101,7 @@ let () =
   for i = 0 to 240 do
     Video.frame_visit ~make_writable:true (fill_yuv_image width height i) frame
     |> fun frame ->
-    Avutil.frame_set_pts frame (Some !pts);
+    Avutil.Frame.set_pts frame (Some !pts);
     pts := Int64.succ !pts;
     Av.write_frame ovs frame
   done;
