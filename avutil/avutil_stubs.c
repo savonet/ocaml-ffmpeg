@@ -701,6 +701,48 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avutil_frame_metadata(value _frame) {
+  CAMLparam1(_frame);
+  CAMLlocal4(ans, key, val, pair);
+  AVFrame *frame = Frame_val(_frame);
+  AVDictionary *metadata = frame->metadata;
+  AVDictionaryEntry *entry = NULL;
+  int count = av_dict_count(metadata);
+  int i;
+
+  ans = caml_alloc_tuple(count);
+
+  for (i = 0; i < count; i++) {
+    pair = caml_alloc_tuple(2);
+    entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(pair, 0, caml_copy_string(entry->key));
+    Store_field(pair, 1, caml_copy_string(entry->value));
+    Store_field(ans, i, pair);
+  }
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avutil_frame_set_metadata(value _frame, value _metadata) {
+  CAMLparam2(_frame, _metadata);
+  AVFrame *frame = Frame_val(_frame);
+  AVDictionary *metadata = frame->metadata;
+  AVDictionaryEntry *entry = NULL;
+  int i;
+
+  for (i = 0; i < av_dict_count(metadata); i++) {
+    entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
+    av_dict_set(&metadata, entry->key, NULL, 0);
+  }
+
+  for (i = 0; i < Wosize_val(_metadata); i++) {
+    av_dict_set(&metadata, String_val(Field(Field(_metadata, i), 0)),
+                String_val(Field(Field(_metadata, i), 1)), 0);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avutil_frame_best_effort_timestamp(value _frame) {
   CAMLparam1(_frame);
   CAMLlocal1(ret);

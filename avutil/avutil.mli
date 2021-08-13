@@ -34,6 +34,12 @@ module Frame : sig
   (** [Avutil.Frame.set_pts frame pts] sets the presentation time for this frame. *)
   val set_pts : _ t -> Int64.t option -> unit
 
+  (** [Avutil.Frame.metadata frame] returns the frame's metadata. *)
+  val metadata : _ t -> (string * string) list
+
+  (** [Avutil.Frame.set_metadata frame metadata] sets the frame's metadata. *)
+  val set_metadata : _ t -> (string * string) list -> unit
+
   (** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
   val best_effort_timestamp : _ t -> Int64.t option
 

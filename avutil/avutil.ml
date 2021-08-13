@@ -30,6 +30,16 @@ module Frame = struct
   external set_pts : _ t -> Int64.t option -> unit
     = "ocaml_avutil_frame_set_pts"
 
+  external metadata : _ t -> (string * string) array
+    = "ocaml_avutil_frame_metadata"
+
+  let metadata frame = Array.to_list (metadata frame)
+
+  external set_metadata : _ t -> (string * string) array -> unit
+    = "ocaml_avutil_frame_set_metadata"
+
+  let set_metadata frame metadata = set_metadata frame (Array.of_list metadata)
+
   external best_effort_timestamp : _ t -> Int64.t option
     = "ocaml_avutil_frame_best_effort_timestamp"
 

@@ -59,6 +59,14 @@ let () =
            (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in
 
+  let process_frame frame =
+    let metadata = Avutil.Frame.metadata frame in
+    List.iter
+      (fun (key, value) -> Printf.printf "Frame metadata: %s->%s\n%!" key value)
+      metadata;
+    Avutil.Frame.set_metadata frame (("encoder", "ocaml-ffmpeg") :: metadata)
+  in
+
   let rec f () =
     match
       Av.read_input
@@ -67,14 +75,17 @@ let () =
         ~subtitle_frame:(List.map (fun (_, s, _) -> s) isss)
         src
     with
-      | `Audio_frame (i, pkt) ->
-          Av.write_frame (List.assoc i oass) pkt;
+      | `Audio_frame (i, frame) ->
+          process_frame frame;
+          Av.write_frame (List.assoc i oass) frame;
           f ()
-      | `Video_frame (i, pkt) ->
-          Av.write_frame (List.assoc i ovss) pkt;
+      | `Video_frame (i, frame) ->
+          process_frame frame;
+          Av.write_frame (List.assoc i ovss) frame;
           f ()
-      | `Subtitle_frame (i, pkt) ->
-          Av.write_frame (List.assoc i osss) pkt;
+      | `Subtitle_frame (i, frame) ->
+          process_frame frame;
+          Av.write_frame (List.assoc i osss) frame;
           f ()
       | exception Avutil.Error `Eof -> ()
       | _ -> assert false
