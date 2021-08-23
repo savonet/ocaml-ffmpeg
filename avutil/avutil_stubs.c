@@ -726,19 +726,21 @@ CAMLprim value ocaml_avutil_frame_metadata(value _frame) {
 CAMLprim value ocaml_avutil_frame_set_metadata(value _frame, value _metadata) {
   CAMLparam2(_frame, _metadata);
   AVFrame *frame = Frame_val(_frame);
-  AVDictionary *metadata = frame->metadata;
+  AVDictionary *metadata = NULL;
   AVDictionaryEntry *entry = NULL;
-  int i;
-
-  for (i = 0; i < av_dict_count(metadata); i++) {
-    entry = av_dict_get(metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
-    av_dict_set(&metadata, entry->key, NULL, 0);
-  }
+  int i, ret;
 
   for (i = 0; i < Wosize_val(_metadata); i++) {
-    av_dict_set(&metadata, String_val(Field(Field(_metadata, i), 0)),
-                String_val(Field(Field(_metadata, i), 1)), 0);
+    ret = av_dict_set(&metadata, String_val(Field(Field(_metadata, i), 0)),
+                      String_val(Field(Field(_metadata, i), 1)), 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
   }
+
+  if (frame->metadata) {
+    av_dict_free(frame->metadata);
+  }
+  frame->metadata = metadata;
 
   CAMLreturn(Val_unit);
 }
