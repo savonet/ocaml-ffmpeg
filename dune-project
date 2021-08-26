@@ -116,6 +116,7 @@
  (depends
   (ocaml (>= 4.08.0))
   dune
+  (ffmpeg-av (= :version))
   (ffmpeg-avutil (= :version))
   (ffmpeg-avcodec (= :version))
   (ffmpeg-avfilter (= :version))
