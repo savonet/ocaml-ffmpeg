@@ -784,7 +784,7 @@ static stream_t *allocate_stream_context(av_t *av, int index, AVCodec *codec) {
   return stream;
 }
 
-static stream_t *open_stream_index(av_t *av, int index) {
+static stream_t *open_stream_index(av_t *av, int index, AVCodec *dec) {
   int err;
 
   if (!av->format_context)
@@ -798,10 +798,11 @@ static stream_t *open_stream_index(av_t *av, int index) {
 
   // find decoder for the stream
   AVCodecParameters *dec_param = av->format_context->streams[index]->codecpar;
-
-  caml_release_runtime_system();
-  AVCodec *dec = avcodec_find_decoder(dec_param->codec_id);
-  caml_acquire_runtime_system();
+  if (!dec) {
+    caml_release_runtime_system();
+    dec = avcodec_find_decoder(dec_param->codec_id);
+    caml_acquire_runtime_system();
+  }
 
   if (!dec)
     ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
@@ -828,12 +829,6 @@ static stream_t *open_stream_index(av_t *av, int index) {
 
   return stream;
 }
-
-#define Check_stream(av, index)                                                \
-  {                                                                            \
-    if (!(av)->streams || !(av)->streams[(index)])                             \
-      open_stream_index((av), (index));                                        \
-  }
 
 CAMLprim value ocaml_av_find_best_stream(value _av, value _media_type) {
   CAMLparam2(_av, _media_type);
@@ -924,6 +919,8 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   av_t *av = Av_val(_av);
   AVFrame *frame;
   int i, ret, frame_kind, skip;
+  value _dec;
+  AVCodec *dec = NULL;
 
   if (!av->streams && !allocate_input_context(av))
     caml_raise_out_of_memory();
@@ -948,21 +945,29 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
       skip = 1;
       for (i = 0; i < Wosize_val(_packet); i++)
-        if (Int_val(Field(_packet, i)) == packet->stream_index)
+        if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
+          _dec = Field(Field(_packet, i), 1);
           skip = 0;
+        }
 
       for (i = 0; i < Wosize_val(_frame); i++)
-        if (Int_val(Field(_frame, i)) == packet->stream_index)
+        if (Int_val(Field(Field(_frame, i), 0)) == packet->stream_index) {
+          _dec = Field(Field(_frame, i), 1);
           skip = 0;
+        }
 
       if (skip)
         continue;
 
+      if (_dec != Val_none) {
+        dec = (AVCodec *)Some_val(_dec);
+      }
+
       if ((stream = streams[packet->stream_index]) == NULL)
-        stream = open_stream_index(av, packet->stream_index);
+        stream = open_stream_index(av, packet->stream_index, dec);
 
       for (i = 0; i < Wosize_val(_packet); i++) {
-        if (Int_val(Field(_packet, i)) == packet->stream_index) {
+        if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
           decoded_content = caml_alloc_tuple(2);
           Field(decoded_content, 0) = Val_int(packet->stream_index);
           Field(decoded_content, 1) = value_of_ffmpeg_packet(packet);
@@ -999,7 +1004,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
     skip = 1;
     for (i = 0; i < Wosize_val(_frame); i++) {
-      if (Int_val(Field(_frame, i)) == stream->index) {
+      if (Int_val(Field(Field(_frame, i), 0)) == stream->index) {
         skip = 0;
       }
     }

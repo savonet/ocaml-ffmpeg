@@ -136,6 +136,10 @@ val get_duration : ?format:Time_format.t -> (input, _, _) stream -> Int64.t
 (** Same as {!Av.get_input_metadata} for the input streams. *)
 val get_metadata : (input, _, _) stream -> (string * string) list
 
+(** For the use of a specific decoder for the given input stream. *)
+val set_decoder :
+  (input, 'a, _) stream -> ('a, Avcodec.decode) Avcodec.codec -> unit
+
 type input_result =
   [ `Audio_packet of int * audio Avcodec.Packet.t
   | `Audio_frame of int * audio frame
