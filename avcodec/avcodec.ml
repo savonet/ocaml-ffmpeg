@@ -173,6 +173,8 @@ module Audio = struct
 
   type id = Codec_id.audio
 
+  let codec_ids = Codec_id.audio 
+
   external frame_size : audio encoder -> int = "ocaml_avcodec_frame_size"
   external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_audio_codec_id_name"
@@ -276,6 +278,8 @@ end
 module Video = struct
   type 'mode t = (video, 'mode) codec
   type id = Codec_id.video
+
+  let codec_ids = Codec_id.video
 
   external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
@@ -385,6 +389,8 @@ end
 module Subtitle = struct
   type 'mode t = (subtitle, 'mode) codec
   type id = Codec_id.subtitle
+
+  let codec_ids = Codec_id.subtitle
 
   external get_id : _ t -> id = "ocaml_avcodec_get_subtitle_codec_id"
 

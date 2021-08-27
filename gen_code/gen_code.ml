@@ -78,9 +78,9 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
     if_d ml_oc (fun oc -> output_string oc line)
   in
 
-  let rec loop lines values =
+  let rec loop lines values pvs =
     match lines with
-      | line :: _ when end_pat <> "" && Str.string_match end_re line 0 -> values
+      | line :: _ when end_pat <> "" && Str.string_match end_re line 0 -> values, pvs
       | line :: lines when Str.string_match re line 0 ->
           let id = Str.matched_group 1 line in
           let pv, value = id_to_pv_value id values in
@@ -88,9 +88,9 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
           print_c ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
           print_ml ["  | `"; pv];
 
-          loop lines (value :: values)
-      | _ :: lines -> loop lines values
-      | [] -> values
+          loop lines (value :: values) (pv::pvs)
+      | _ :: lines -> loop lines values pvs
+      | [] -> values, pvs
   in
 
   let has_start_line, lines = find_start_line lines start_re in
@@ -103,7 +103,15 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
 
     print_ml ["type "; ml_type_name; " = ["];
 
-    let values = loop lines [] in
+    let values, pvs = loop lines [] [] in
+
+    print_ml ["]\n"];
+
+    print_ml ["let "; ml_type_name; ": "; ml_type_name; " list  = ["];
+
+    List.iter (fun pv -> print_ml ["`"; pv; ";"]) pvs;
+
+    print_ml ["]\n"];
 
     print_c ["};\n\n#define "; tab_len; " "; string_of_int (List.length values)];
 
@@ -148,9 +156,7 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         "[i][1])return ";
         tab_name;
         "[i][0];\n}\ncaml_raise_not_found();\n}";
-      ];
-
-    print_ml ["]\n"])
+      ])
 
 let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
   match get_path in_names with

@@ -121,6 +121,9 @@ module Audio : sig
       libfdk_aac *)
   type id = Codec_id.audio
 
+  (** List all audio codec IDs. *)
+  val codec_ids : Codec_id.audio list
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
@@ -233,6 +236,9 @@ module Video : sig
       libfdk_aac *)
   type id = Codec_id.video
 
+  (** List all video codec IDs. *)
+  val codec_ids : Codec_id.video list
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
@@ -336,6 +342,9 @@ module Subtitle : sig
   (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac
       and libfdk_aac *)
   type id = Codec_id.subtitle
+
+  (** List all subtitle codec IDs. *)
+  val codec_ids : Codec_id.subtitle list
 
   (** Find an encoder from its name.
 
