@@ -18,9 +18,23 @@ external params : 'media encoder -> 'media params
 external time_base : 'media encoder -> Avutil.rational
   = "ocaml_avcodec_encoder_time_base"
 
+external get_name : _ codec -> string = "ocaml_avcodec_get_name"
+external get_description : _ codec -> string = "ocaml_avcodec_get_description"
 external init : unit -> unit = "ocaml_avcodec_init" [@@noalloc]
 
 let () = init ()
+
+external get_next_codec :
+  unit option -> (('a, 'b) codec * 'c * bool * unit option) option
+  = "ocaml_avcodec_get_next_codec"
+
+let all_codecs =
+  let rec f cur h =
+    match get_next_codec h with
+      | None -> cur
+      | Some (codec, id, is_encoder, h) -> f ((codec, id, is_encoder) :: cur) h
+  in
+  f [] None
 
 external get_input_buffer_padding_size : unit -> int
   = "ocaml_avcodec_get_input_buffer_padding_size"
@@ -173,7 +187,23 @@ module Audio = struct
 
   type id = Codec_id.audio
 
-  let codec_ids = Codec_id.audio 
+  let codec_ids = Codec_id.audio
+  let get_name = get_name
+  let get_description = get_description
+
+  let encoders =
+    List.filter_map
+      (function
+        | c, Some id, true when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
+
+  let decoders =
+    List.filter_map
+      (function
+        | c, Some id, false when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
 
   external frame_size : audio encoder -> int = "ocaml_avcodec_frame_size"
   external get_id : _ t -> id = "ocaml_avcodec_get_audio_codec_id"
@@ -280,6 +310,23 @@ module Video = struct
   type id = Codec_id.video
 
   let codec_ids = Codec_id.video
+
+  let encoders =
+    List.filter_map
+      (function
+        | c, Some id, true when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
+
+  let decoders =
+    List.filter_map
+      (function
+        | c, Some id, false when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
+
+  let get_name = get_name
+  let get_description = get_description
 
   external get_id : _ t -> id = "ocaml_avcodec_get_video_codec_id"
   external string_of_id : id -> string = "ocaml_avcodec_get_video_codec_id_name"
@@ -391,6 +438,23 @@ module Subtitle = struct
   type id = Codec_id.subtitle
 
   let codec_ids = Codec_id.subtitle
+
+  let encoders =
+    List.filter_map
+      (function
+        | c, Some id, true when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
+
+  let decoders =
+    List.filter_map
+      (function
+        | c, Some id, false when List.mem id codec_ids -> Some (Obj.magic c)
+        | _ -> None)
+      all_codecs
+
+  let get_name = get_name
+  let get_description = get_description
 
   external get_id : _ t -> id = "ocaml_avcodec_get_subtitle_codec_id"
 

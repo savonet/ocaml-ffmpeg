@@ -1364,3 +1364,70 @@ CAMLprim value ocaml_avcodec_int_of_flag(value _flag) {
     caml_failwith("Invalid flag type!");
   }
 }
+
+CAMLprim value ocaml_avcodec_get_next_codec(value h) {
+  CAMLparam0();
+  CAMLlocal4(_id, _h, _ans, _ret);
+  void *s;
+  const AVCodec *codec;
+  enum AVCodecID id = VALUE_NOT_FOUND;
+  int i;
+
+  if (h == Val_int(0)) {
+    s = NULL;
+  } else {
+    s = (void *)Field(h, 0);
+  }
+
+  codec = av_codec_iterate(&s);
+
+  if (!codec) {
+    CAMLreturn(Val_int(0));
+  }
+
+  for (i = 0; i < AV_CODEC_ID_AUDIO_TAB_LEN; i++) {
+    if (codec->id == AV_CODEC_ID_AUDIO_TAB[i][1])
+      id = AV_CODEC_ID_AUDIO_TAB[i][0];
+  }
+
+  for (i = 0; i < AV_CODEC_ID_VIDEO_TAB_LEN; i++) {
+    if (codec->id == AV_CODEC_ID_VIDEO_TAB[i][1])
+      id = AV_CODEC_ID_VIDEO_TAB[i][0];
+  }
+
+  for (i = 0; i < AV_CODEC_ID_SUBTITLE_TAB_LEN; i++) {
+    if (codec->id == AV_CODEC_ID_SUBTITLE_TAB[i][1])
+      id = AV_CODEC_ID_SUBTITLE_TAB[i][0];
+  }
+
+  if (id == VALUE_NOT_FOUND)
+    _id = Val_int(0);
+  else {
+    _id = caml_alloc_tuple(1);
+    Store_field(_id, 0, id);
+  }
+
+  _h = caml_alloc_tuple(1);
+  Store_field(_h, 0, (value)s);
+
+  _ans = caml_alloc_tuple(4);
+  Store_field(_ans, 0, (value)codec);
+  Store_field(_ans, 1, _id);
+  Store_field(_ans, 2, Val_bool(av_codec_is_encoder(codec)));
+  Store_field(_ans, 3, _h);
+
+  _ret = caml_alloc_tuple(1);
+  Store_field(_ret, 0, _ans);
+
+  CAMLreturn(_ret);
+}
+
+CAMLprim value ocaml_avcodec_get_name(value codec) {
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(((AVCodec *)codec)->name));
+}
+
+CAMLprim value ocaml_avcodec_get_description(value codec) {
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(((AVCodec *)codec)->long_name));
+}

@@ -121,8 +121,14 @@ module Audio : sig
       libfdk_aac *)
   type id = Codec_id.audio
 
-  (** List all audio codec IDs. *)
+  (** List of all audio codec IDs. *)
   val codec_ids : Codec_id.audio list
+
+  (** List of all available audio encoders. *)
+  val encoders : encode t list
+
+  (** List of all available audio decoders. *)
+  val decoders : decode t list
 
   (** Find an encoder from its name.
 
@@ -202,6 +208,12 @@ module Audio : sig
   (** Get the desired frame_size for this encoder. *)
   val frame_size : audio encoder -> int
 
+  (** Return the name of a codec. *)
+  val get_name : _ codec -> string
+
+  (** Return the description of a codec. *)
+  val get_description : _ codec -> string
+
   (** Return the name of the codec ID. *)
   val string_of_id : id -> string
 
@@ -238,6 +250,12 @@ module Video : sig
 
   (** List all video codec IDs. *)
   val codec_ids : Codec_id.video list
+
+  (** List of all available video encoders. *)
+  val encoders : encode t list
+
+  (** List of all available video decoders. *)
+  val decoders : decode t list
 
   (** Find an encoder from its name.
 
@@ -306,6 +324,12 @@ module Video : sig
     encode t ->
     video encoder
 
+  (** Return the name of a codec. *)
+  val get_name : _ codec -> string
+
+  (** Return the description of a codec. *)
+  val get_description : _ codec -> string
+
   (** Return the name of the codec. *)
   val string_of_id : id -> string
 
@@ -346,6 +370,12 @@ module Subtitle : sig
   (** List all subtitle codec IDs. *)
   val codec_ids : Codec_id.subtitle list
 
+  (** List of all available subtitle encoders. *)
+  val encoders : encode t list
+
+  (** List of all available subtitle decoders. *)
+  val decoders : decode t list
+
   (** Find an encoder from its name.
 
       Raise Error if the codec is not found or is not an audio codec. *)
@@ -365,6 +395,12 @@ module Subtitle : sig
 
       Raise Error if the codec is not found or is not an audio codec. *)
   val find_decoder : id -> decode t
+
+  (** Return the name of a codec. *)
+  val get_name : _ codec -> string
+
+  (** Return the description of a codec. *)
+  val get_description : _ codec -> string
 
   (** Return the name of the codec. *)
   val string_of_id : id -> string

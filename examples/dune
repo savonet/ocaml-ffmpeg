@@ -107,3 +107,8 @@
  (name decoding)
  (modules decoding)
  (libraries ffmpeg-av))
+
+(executable
+ (name all_codecs)
+ (modules all_codecs)
+ (libraries ffmpeg-avcodec))

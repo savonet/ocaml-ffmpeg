@@ -80,7 +80,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
 
   let rec loop lines values pvs =
     match lines with
-      | line :: _ when end_pat <> "" && Str.string_match end_re line 0 -> values, pvs
+      | line :: _ when end_pat <> "" && Str.string_match end_re line 0 ->
+          (values, pvs)
       | line :: lines when Str.string_match re line 0 ->
           let id = Str.matched_group 1 line in
           let pv, value = id_to_pv_value id values in
@@ -88,9 +89,9 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
           print_c ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
           print_ml ["  | `"; pv];
 
-          loop lines (value :: values) (pv::pvs)
+          loop lines (value :: values) (pv :: pvs)
       | _ :: lines -> loop lines values pvs
-      | [] -> values, pvs
+      | [] -> (values, pvs)
   in
 
   let has_start_line, lines = find_start_line lines start_re in
@@ -326,14 +327,14 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "VideoCodecID",
         "video" );
-      ( "",
+      ( "[ \t]*AV_CODEC_ID_FIRST_AUDIO",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "AudioCodecID",
         "audio" );
-      ( "",
+      ( "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
         "AV_CODEC_ID_",
