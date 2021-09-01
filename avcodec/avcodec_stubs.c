@@ -1427,7 +1427,12 @@ CAMLprim value ocaml_avcodec_get_name(value codec) {
   CAMLreturn(caml_copy_string(((AVCodec *)codec)->name));
 }
 
-CAMLprim value ocaml_avcodec_get_description(value codec) {
+CAMLprim value ocaml_avcodec_get_description(value _codec) {
   CAMLparam0();
+  AVCodec *codec = (AVCodec *)_codec;
+
+  if (!codec->long_name)
+    CAMLreturn(caml_copy_string(""));
+
   CAMLreturn(caml_copy_string(((AVCodec *)codec)->long_name));
 }
