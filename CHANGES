@@ -1,8 +1,7 @@
-1.0.0 (unreleased)
+1.0.0 (2021-09-14)
 =====
 * Switch to dune
-* Added Avutil.Video.Frame.pts
-* Added Avfilter
+* Heavy rework of the whole API
 
 0.4.2 (2020-07-04)
 =====
