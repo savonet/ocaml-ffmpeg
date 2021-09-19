@@ -956,8 +956,10 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
           skip = 0;
         }
 
-      if (skip)
+      if (skip) {
+        av_packet_unref(packet);
         continue;
+      }
 
       if (_dec != Val_none) {
         dec = (AVCodec *)Some_val(_dec);
@@ -1009,8 +1011,10 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       }
     }
 
-    if (skip)
+    if (skip) {
+      av_packet_unref(packet);
       continue;
+    }
 
     // Assign OCaml values right away to account for potential exceptions
     // raised below.
@@ -1048,6 +1052,8 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       av_packet_free(&packet);
       ocaml_avutil_raise_error(ret);
     }
+
+    av_packet_unref(packet);
   } while (ret == AVERROR(EAGAIN));
 
   av_packet_free(&packet);
