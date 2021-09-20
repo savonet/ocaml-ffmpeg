@@ -236,8 +236,8 @@ void ocaml_ffmpeg_register_thread() {
 /**** Rational ****/
 void value_of_rational(const AVRational *rational, value *pvalue) {
   *pvalue = caml_alloc_tuple(2);
-  Field(*pvalue, 0) = Val_int(rational->num);
-  Field(*pvalue, 1) = Val_int(rational->den);
+  Store_field(*pvalue, 0, Val_int(rational->num));
+  Store_field(*pvalue, 1, Val_int(rational->den));
 }
 
 value ocaml_avutil_av_d2q(value f) {

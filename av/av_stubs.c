@@ -971,25 +971,25 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       for (i = 0; i < Wosize_val(_packet); i++) {
         if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
           decoded_content = caml_alloc_tuple(2);
-          Field(decoded_content, 0) = Val_int(packet->stream_index);
-          Field(decoded_content, 1) = value_of_ffmpeg_packet(packet);
+          Store_field(decoded_content, 0, Val_int(packet->stream_index));
+          Store_field(decoded_content, 1, value_of_ffmpeg_packet(packet));
 
           ans = caml_alloc_tuple(2);
 
           switch (
               av->streams[packet->stream_index]->codec_context->codec_type) {
           case AVMEDIA_TYPE_AUDIO:
-            Field(ans, 0) = PVV_Audio_packet;
+            Store_field(ans, 0, PVV_Audio_packet);
             break;
           case AVMEDIA_TYPE_VIDEO:
-            Field(ans, 0) = PVV_Video_packet;
+            Store_field(ans, 0, PVV_Video_packet);
             break;
           default:
-            Field(ans, 0) = PVV_Subtitle_packet;
+            Store_field(ans, 0, PVV_Subtitle_packet);
             break;
           }
 
-          Field(ans, 1) = decoded_content;
+          Store_field(ans, 1, decoded_content);
 
           CAMLreturn(ans);
         }
@@ -1059,12 +1059,12 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   av_packet_free(&packet);
 
   decoded_content = caml_alloc_tuple(2);
-  Field(decoded_content, 0) = Val_int(stream->index);
-  Field(decoded_content, 1) = frame_value;
+  Store_field(decoded_content, 0, Val_int(stream->index));
+  Store_field(decoded_content, 1, frame_value);
 
   ans = caml_alloc_tuple(2);
-  Field(ans, 0) = frame_kind;
-  Field(ans, 1) = decoded_content;
+  Store_field(ans, 0, frame_kind);
+  Store_field(ans, 1, decoded_content);
 
   CAMLreturn(ans);
 }
@@ -1205,7 +1205,7 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
     CAMLreturn(Val_none);
 
   ans = caml_alloc_tuple(1);
-  Field(ans, 0) = value_of_outputFormat(guessed);
+  Store_field(ans, 0, value_of_outputFormat(guessed));
 
   CAMLreturn(ans);
 }

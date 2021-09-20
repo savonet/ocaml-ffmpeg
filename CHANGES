@@ -1,5 +1,6 @@
 1.0.1 (unreleased)
 =====
+* Fixed segfault when using `Field(v, i) = v'` instead of `Store_field(v, i, v')`
 
 1.0.0 (2021-09-14)
 =====
