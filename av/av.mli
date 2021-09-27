@@ -54,6 +54,9 @@ type read = bytes -> int -> int -> int
 type write = bytes -> int -> int -> int
 type seek = int -> Unix.seek_command -> int
 
+(** [Av.open_input_stream read] creates an input stream from the given read callback.
+    Exceptions from the callback are caught and result in a native [Avutil.Error `Unknown]
+    error. *)
 val open_input_stream :
   ?format:(input, _) format ->
   ?opts:opts ->
@@ -197,7 +200,8 @@ val open_output :
 (** [Av.open_stream callbacks] open the output container with the given
     callbacks. [opts] may contain any option settable on Ffmpeg avformat. After
     returning, if [opts] was passed, unused options are left in the hash table.
-    Raise Error if the opening failed. *)
+    Raise Error if the opening failed. Exceptions from the callback are caught
+    and result in a native [Avutil.Error `Unknown] error. *)
 val open_output_stream :
   ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
 

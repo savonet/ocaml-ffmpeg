@@ -281,9 +281,13 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   res =
       caml_callback3_exn(avio->read_cb, buffer, Val_int(0), Val_int(buf_size));
   if (Is_exception_result(res)) {
-    res = Extract_exception(res);
     caml_remove_generational_global_root(&buffer);
-    caml_raise(res);
+    return AVERROR_UNKNOWN;
+  }
+
+  if (Int_val(res) < 0) {
+    caml_remove_generational_global_root(&buffer);
+    return Int_val(res);
   }
 
   memcpy(buf, String_val(buffer), Int_val(res));
@@ -311,9 +315,13 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
   res =
       caml_callback3_exn(avio->write_cb, buffer, Val_int(0), Val_int(buf_size));
   if (Is_exception_result(res)) {
-    res = Extract_exception(res);
     caml_remove_generational_global_root(&buffer);
-    caml_raise(res);
+    return AVERROR_UNKNOWN;
+  }
+
+  if (Int_val(res) < 0) {
+    caml_remove_generational_global_root(&buffer);
+    return Int_val(res);
   }
 
   caml_remove_generational_global_root(&buffer);
