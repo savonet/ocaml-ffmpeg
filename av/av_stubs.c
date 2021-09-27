@@ -890,7 +890,7 @@ static int decode_packet(av_t *av, stream_t *stream, AVPacket *packet,
   return ret;
 }
 
-static void read_packet(av_t *av, AVPacket *packet) {
+static int read_packet(av_t *av, AVPacket *packet) {
   int ret;
 
   caml_release_runtime_system();
@@ -902,15 +902,12 @@ static void read_packet(av_t *av, AVPacket *packet) {
     packet->size = 0;
     av->end_of_file = 1;
     caml_acquire_runtime_system();
-    return;
-  }
-
-  if (ret < 0) {
-    caml_acquire_runtime_system();
-    ocaml_avutil_raise_error(ret);
+    return 0;
   }
 
   caml_acquire_runtime_system();
+
+  return ret;
 }
 
 CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
@@ -918,7 +915,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   CAMLlocal3(ans, decoded_content, frame_value);
   av_t *av = Av_val(_av);
   AVFrame *frame;
-  int i, ret, frame_kind, skip;
+  int i, ret, err, frame_kind, skip;
   value _dec;
   AVCodec *dec = NULL;
 
@@ -938,7 +935,13 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
   do {
     if (!av->end_of_file && !av->frames_pending) {
-      read_packet(av, packet);
+      // Don't use ret here as it is the conditional for the
+      // loop.
+      err = read_packet(av, packet);
+      if (err < 0) {
+        av_packet_free(&packet);
+        ocaml_avutil_raise_error(err);
+      }
 
       if (av->end_of_file)
         continue;
