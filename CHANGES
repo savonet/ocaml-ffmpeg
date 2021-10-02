@@ -1,6 +1,7 @@
-1.0.1 (unreleased)
+1.0.1 (2021-10-02)
 =====
 * Fixed segfault when using `Field(v, i) = v'` instead of `Store_field(v, i, v')`
+* Fixed memory leak when avio callback raised exception.
 
 1.0.0 (2021-09-14)
 =====
