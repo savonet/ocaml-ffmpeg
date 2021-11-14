@@ -20,7 +20,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Setup OCaml
-      uses: avsm/setup-ocaml@v2
+      uses: ocaml/setup-ocaml@v2
     - name: Install depext module
       run: opam install -y depext
     - name: Pin locally
