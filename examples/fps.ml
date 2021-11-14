@@ -45,7 +45,7 @@ let () =
           ~codec:video_codec dst ) )
   in
 
-  let filter =
+  let filter, amplify =
     let config = Avfilter.init () in
     let _buffer =
       let time_base = Av.get_time_base video_input in
@@ -80,15 +80,31 @@ let () =
       let fps = Avfilter.find "fps" in
       Avfilter.attach ~args ~name:"fps" fps config
     in
+    let amplify =
+      let args =
+        [
+          `Pair
+            ( "factor",
+              `Int 2)
+        ]
+      in
+      let amplify = Avfilter.find "amplify" in
+      Avfilter.attach ~args ~name:"amplify" amplify config
+    in
     let sink = Avfilter.(attach ~name:"sink" buffersink config) in
     Avfilter.link
       (List.hd Avfilter.(_buffer.io.outputs.video))
       (List.hd Avfilter.(fps.io.inputs.video));
     Avfilter.link
       (List.hd Avfilter.(fps.io.outputs.video))
+      (List.hd Avfilter.(amplify.io.inputs.video));
+    Avfilter.link
+      (List.hd Avfilter.(amplify.io.outputs.video))
       (List.hd Avfilter.(sink.io.inputs.video));
-    Avfilter.launch config
+    Avfilter.launch config, amplify
   in
+
+  Printf.printf "Command response: %s\n%!" (Avfilter.process_command ~cmd:"factor" ~arg:"3" amplify);
 
   let _, output = List.hd Avfilter.(filter.outputs.video) in
   let context = output.context in

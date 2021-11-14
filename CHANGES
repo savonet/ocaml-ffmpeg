@@ -1,3 +1,7 @@
+1.1.0 (unreleased)
+=====
+* Added support for filter commands.
+
 1.0.2 (2021-11-19)
 =====
 * Fix deadlock when raising exceptions in callbacks.

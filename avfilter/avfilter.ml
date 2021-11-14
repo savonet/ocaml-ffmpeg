@@ -235,6 +235,9 @@ let append_io graph ~name filter_name filter_ctx =
         graph.video_outputs <- (name, filter_ctx) :: graph.video_outputs
     | _ -> ()
 
+(* This creates a record with a hidden field in the last position. *)
+external append_context : [ `Unattached ] filter -> filter_ctx -> [ `Attached ] filter = "ocaml_avfilter_append_context"
+
 let attach ?args ~name filter graph =
   if List.mem name graph.names then raise Exists;
   let args = args_of_args args in
@@ -253,7 +256,7 @@ let attach ?args ~name filter graph =
   let filter = { filter with io } in
   graph.names <- name :: graph.names;
   append_io graph ~name filter.name filter_ctx;
-  filter
+  append_context filter filter_ctx
 
 external link : filter_ctx -> int -> filter_ctx -> int -> unit
   = "ocaml_avfilter_link"
@@ -262,6 +265,21 @@ let get_some = function Some x -> x | None -> assert false
 
 let link src dst =
   link (get_some src.filter_ctx) src.idx (get_some dst.filter_ctx) dst.idx
+
+type command_flag = [ `Fast ]
+
+(* For now.. *)
+let int_of_flag = function
+  | `Fast -> 1
+
+external process_command : flags:int -> cmd:string -> arg:string -> filter_ctx -> string = "ocaml_avfilter_process_commands"
+
+external get_context : [ `Attached ] filter ->  filter_ctx = "ocaml_avfilter_get_content" 
+
+let process_command ?(flags=[]) ~cmd ?(arg="") filter = 
+  let flags = List.fold_left (fun cur flag -> cur land (int_of_flag flag)) 0 flags
+  in
+  process_command ~flags ~cmd ~arg (get_context filter)
 
 type ('a, 'b, 'c) parse_node = {
   node_name : string;

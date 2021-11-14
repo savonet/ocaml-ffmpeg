@@ -222,6 +222,42 @@ static void append_avfilter_in_out(AVFilterInOut **filter, char *name,
   cur->next = NULL;
 };
 
+CAMLprim value ocaml_avfilter_process_commands(value _flags, value _cmd,
+                                               value _arg, value _filter) {
+  CAMLparam3(_cmd, _arg, _filter);
+  char buf[4096];
+  char *cmd;
+  char *arg;
+  int err;
+
+  cmd = av_malloc(caml_string_length(_cmd) + 1);
+  if (!cmd)
+    caml_raise_out_of_memory();
+
+  arg = av_malloc(caml_string_length(_arg) + 1);
+  if (!arg) {
+    av_free(cmd);
+    caml_raise_out_of_memory();
+  }
+
+  memset(buf, 0, sizeof(buf));
+  memcpy(cmd, String_val(_cmd), caml_string_length(_cmd) + 1);
+  memcpy(arg, String_val(_arg), caml_string_length(_arg) + 1);
+
+  caml_release_runtime_system();
+  err = avfilter_process_command((AVFilterContext *)_filter, cmd, arg, buf,
+                                 sizeof(buf), Int_val(_flags));
+  caml_acquire_runtime_system();
+
+  av_free(cmd);
+  av_free(arg);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+
+  CAMLreturn(caml_copy_string(buf));
+}
+
 CAMLprim value ocaml_avfilter_parse(value _inputs, value _outputs,
                                     value _filters, value _graph) {
   CAMLparam4(_inputs, _outputs, _filters, _graph);
@@ -278,6 +314,29 @@ CAMLprim value ocaml_avfilter_parse(value _inputs, value _outputs,
     ocaml_avutil_raise_error(err);
 
   CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avfilter_append_context(value _filter, value _ctx) {
+  CAMLparam1(_filter);
+  CAMLlocal1(ret);
+  int n = Wosize_val(_filter);
+  int i;
+
+  ret = caml_alloc_tuple(n + 1);
+
+  for (i = 0; i < n; i++) {
+    Store_field(ret, i, Field(_filter, i));
+  }
+
+  Store_field(ret, n, _ctx);
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avfilter_get_content(value _filter) {
+  CAMLparam1(_filter);
+  int n = Wosize_val(_filter);
+  CAMLreturn(Field(_filter, n - 1));
 }
 
 CAMLprim value ocaml_avfilter_link(value _src, value _srcpad, value _dst,
