@@ -225,7 +225,7 @@ static void append_avfilter_in_out(AVFilterInOut **filter, char *name,
 CAMLprim value ocaml_avfilter_process_commands(value _flags, value _cmd,
                                                value _arg, value _filter) {
   CAMLparam3(_cmd, _arg, _filter);
-  char buf[4096];
+  char buf[4096] = {0};
   char *cmd;
   char *arg;
   int err;
@@ -240,7 +240,6 @@ CAMLprim value ocaml_avfilter_process_commands(value _flags, value _cmd,
     caml_raise_out_of_memory();
   }
 
-  memset(buf, 0, sizeof(buf));
   memcpy(cmd, String_val(_cmd), caml_string_length(_cmd) + 1);
   memcpy(arg, String_val(_arg), caml_string_length(_arg) + 1);
 
