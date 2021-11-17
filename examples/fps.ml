@@ -104,7 +104,9 @@ let () =
     Avfilter.launch config, amplify
   in
 
-  Printf.printf "Command response: %s\n%!" (Avfilter.process_command ~cmd:"factor" ~arg:"3" amplify);
+  (try
+    Printf.printf "Command response: %s\n%!" (Avfilter.process_command ~cmd:"factor" ~arg:"3" amplify);
+   with exn -> Printf.printf "Command didn't work: %s\n%!" (Printexc.to_string exn));
 
   let _, output = List.hd Avfilter.(filter.outputs.video) in
   let context = output.context in
