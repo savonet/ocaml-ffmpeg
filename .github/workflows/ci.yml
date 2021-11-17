@@ -23,7 +23,7 @@ jobs:
       uses: ocaml/setup-ocaml@v2
     - name: Pin locally
       run: opam pin -y add --no-action .
-    - name: Update packages and install locally
+    - name: Install locally
       run: opam install -y ffmpeg
     - name: Run tests locally
-      run: eval $(opam env) && dune runtest
+      run: opam exec dune runtest

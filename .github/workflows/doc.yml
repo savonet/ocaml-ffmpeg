@@ -12,11 +12,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
     - name: Setup OCaml
-      uses: avsm/setup-ocaml@v1.1.3
+      uses: ocaml/setup-ocaml@v2
     - name: Pin locally
       run: opam pin -y add --no-action .
-    - name: Update packages and install locally
-      run: opam depext -u -y -i ffmpeg odoc
+    - name: Install locally
+      run: opam install -y ffmpeg
     - name: Build doc
       run: opam exec dune build @doc
     - name: Deploy doc
