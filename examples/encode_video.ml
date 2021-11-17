@@ -27,7 +27,7 @@ let fill_yuv_image width height frame_index planes =
 
 let () =
   if Array.length Sys.argv < 4 then (
-    Printf.eprintf "Usage: %s <output file> <pixel formay> <codec name>\n"
+    Printf.eprintf "Usage: %s <output file> <pixel format> <codec name>\n"
       Sys.argv.(0);
     exit 1);
 
