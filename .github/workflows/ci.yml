@@ -19,9 +19,13 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout latest code
+      uses: actions/checkout@v1
     - name: Setup OCaml
       uses: ocaml/setup-ocaml@v2
+    - name: Update packages
+      run: |
+        sudo apt-get update
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
