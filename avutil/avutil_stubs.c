@@ -738,7 +738,7 @@ CAMLprim value ocaml_avutil_frame_set_metadata(value _frame, value _metadata) {
   }
 
   if (frame->metadata) {
-    av_dict_free(frame->metadata);
+    av_dict_free(&frame->metadata);
   }
   frame->metadata = metadata;
 

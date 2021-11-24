@@ -1277,28 +1277,37 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
   ret = av_opt_set_dict(av->format_context, options);
 
   if (ret < 0) {
+    free_av(av);
+    if (file_name)
+      free(file_name);
+
     av_dict_free(options);
     caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
-  if (av->format_context->priv_data)
+  if (av->format_context->priv_data) {
     ret = av_opt_set_dict(av->format_context->priv_data, options);
 
-  if (ret < 0) {
-    av_dict_free(options);
-    caml_acquire_runtime_system();
-    ocaml_avutil_raise_error(ret);
+    if (ret < 0) {
+      free_av(av);
+      if (file_name)
+        free(file_name);
+
+      av_dict_free(options);
+      caml_acquire_runtime_system();
+      ocaml_avutil_raise_error(ret);
+    }
   }
 
   // open the output file, if needed
   if (avio_context) {
     if (av->format_context->oformat->flags & AVFMT_NOFILE) {
-      av_dict_free(options);
       free_av(av);
       if (file_name)
         free(file_name);
 
+      av_dict_free(options);
       caml_acquire_runtime_system();
       Fail("Cannot set custom I/O on this format!");
     }
@@ -1311,11 +1320,11 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
                            NULL, options);
 
       if (err < 0) {
-        av_dict_free(options);
         free_av(av);
         if (file_name)
           free(file_name);
 
+        av_dict_free(options);
         caml_acquire_runtime_system();
         ocaml_avutil_raise_error(err);
       }
