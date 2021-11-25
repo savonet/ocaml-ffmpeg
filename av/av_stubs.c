@@ -594,6 +594,11 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
   if (_format != Val_none)
     format = InputFormat_val(Some_val(_format));
 
+  if (format == NULL && url == NULL) {
+    av_dict_free(&options);
+    Fail("At least one format or url must be provided!");
+  }
+
   // open input url
   av_t *av = open_input(url, format, NULL, &options);
 
