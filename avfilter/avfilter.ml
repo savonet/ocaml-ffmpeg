@@ -66,8 +66,8 @@ external frame_rate : filter_ctx -> Avutil.rational
 external width : filter_ctx -> int = "ocaml_avfilter_buffersink_get_w"
 external height : filter_ctx -> int = "ocaml_avfilter_buffersink_get_h"
 
-external sample_aspect_ratio : filter_ctx -> Avutil.rational
-  = "ocaml_avfilter_buffersink_get_sample_aspect_ratio"
+external pixel_aspect : filter_ctx -> Avutil.rational option
+  = "ocaml_avfilter_buffersink_get_pixel_aspect"
 
 external pixel_format : filter_ctx -> Avutil.Pixel_format.t
   = "ocaml_avfilter_buffersink_get_pixel_format"

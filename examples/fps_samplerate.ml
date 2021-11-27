@@ -91,17 +91,19 @@ let () =
   let context = output.context in
   let time_base = Avfilter.time_base context in
   let frame_rate = Avfilter.frame_rate context in
-  let sample_aspect_ratio = Avfilter.sample_aspect_ratio context in
+  let pixel_aspect = Avfilter.pixel_aspect context in
   Printf.printf
     "Sink info:\n\
      time_base: %d/%d\n\
      frame_rate: %d/%d\n\
      width: %d\n\
      height: %d\n\
-     sample_aspect_ratio: %d/%d\n"
+     pixel_aspect: %s\n"
     time_base.Avutil.num time_base.Avutil.den frame_rate.Avutil.num
     frame_rate.Avutil.den (Avfilter.width context) (Avfilter.height context)
-    sample_aspect_ratio.Avutil.num sample_aspect_ratio.Avutil.den;
+    (match pixel_aspect with
+      | None -> "0/1"
+      | Some { Avutil.num; den } -> Printf.sprintf "%d/%d" num den);
 
   let process_video i frm =
     try

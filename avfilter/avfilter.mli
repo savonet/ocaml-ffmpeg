@@ -49,7 +49,7 @@ val time_base : _ context -> Avutil.rational
 val frame_rate : [ `Video ] context -> Avutil.rational
 val width : [ `Video ] context -> int
 val height : [ `Video ] context -> int
-val sample_aspect_ratio : [ `Video ] context -> Avutil.rational
+val pixel_aspect : [ `Video ] context -> Avutil.rational option
 val pixel_format : [ `Video ] context -> Avutil.Pixel_format.t
 val channels : [ `Audio ] context -> int
 val channel_layout : [ `Audio ] context -> Avutil.Channel_layout.t

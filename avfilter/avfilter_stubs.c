@@ -419,16 +419,22 @@ CAMLprim value ocaml_avfilter_buffersink_get_pixel_format(value _src) {
   CAMLreturn(Val_PixelFormat((enum AVPixelFormat)pixel_format));
 }
 
-CAMLprim value ocaml_avfilter_buffersink_get_sample_aspect_ratio(value _src) {
+CAMLprim value ocaml_avfilter_buffersink_get_pixel_aspect(value _src) {
   CAMLparam0();
-  CAMLlocal1(ret);
+  CAMLlocal2(ans, ret);
 
   caml_release_runtime_system();
-  AVRational sample_aspect_ratio =
+  AVRational pixel_aspect =
       av_buffersink_get_sample_aspect_ratio((AVFilterContext *)_src);
   caml_acquire_runtime_system();
 
-  value_of_rational(&sample_aspect_ratio, &ret);
+  if (pixel_aspect.num == 0)
+    CAMLreturn(Val_none);
+
+  value_of_rational(&pixel_aspect, &ans);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
 
   CAMLreturn(ret);
 }
