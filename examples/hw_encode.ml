@@ -149,41 +149,44 @@ let () =
     Gc.full_major ();
     Gc.full_major ()
   in
-  if mode = "device" then (
-    let device_method =
-      List.find_opt
-        (fun { Avcodec.methods; _ } -> List.mem `Hw_device_ctx methods)
-        configs
-    in
-    match device_method with
-      | Some { Avcodec.device_type; _ } ->
-          Printf.printf "Trying device context method..\n%!";
-          let device_context =
-            Avutil.HwContext.create_device_context device_type
-          in
-          encode ~hardware_context:(`Device_context device_context) ()
-      | None ->
-          Printf.printf "No device context method found for codec %s..\n%!"
-            codec_name);
-  if mode = "frame" then (
-    let frame_method =
-      List.find_opt
-        (fun { Avcodec.methods; _ } -> List.mem `Hw_frames_ctx methods)
-        configs
-    in
-    match frame_method with
-      | Some { Avcodec.device_type; pixel_format; _ } ->
-          Printf.printf "Trying frame context method..\n%!";
-          let device_context =
-            Avutil.HwContext.create_device_context device_type
-          in
-          let frame_context =
-            Avutil.HwContext.create_frame_context ~width ~height
-              ~src_pixel_format:`Yuv420p ~dst_pixel_format:pixel_format
-              device_context
-          in
-          encode ~pixel_format ~hardware_context:(`Frame_context frame_context)
-            ()
-      | None ->
-          Printf.printf "No frame context method found for codec %s..\n%!"
-            codec_name)
+  try
+    if mode = "device" then (
+      let device_method =
+        List.find_opt
+          (fun { Avcodec.methods; _ } -> List.mem `Hw_device_ctx methods)
+          configs
+      in
+      match device_method with
+        | Some { Avcodec.device_type; _ } ->
+            Printf.printf "Trying device context method..\n%!";
+            let device_context =
+              Avutil.HwContext.create_device_context device_type
+            in
+            encode ~hardware_context:(`Device_context device_context) ()
+        | None ->
+            Printf.printf "No device context method found for codec %s..\n%!"
+              codec_name);
+    if mode = "frame" then (
+      let frame_method =
+        List.find_opt
+          (fun { Avcodec.methods; _ } -> List.mem `Hw_frames_ctx methods)
+          configs
+      in
+      match frame_method with
+        | Some { Avcodec.device_type; pixel_format; _ } ->
+            Printf.printf "Trying frame context method..\n%!";
+            let device_context =
+              Avutil.HwContext.create_device_context device_type
+            in
+            let frame_context =
+              Avutil.HwContext.create_frame_context ~width ~height
+                ~src_pixel_format:`Yuv420p ~dst_pixel_format:pixel_format
+                device_context
+            in
+            encode ~pixel_format
+              ~hardware_context:(`Frame_context frame_context) ()
+        | None ->
+            Printf.printf "No frame context method found for codec %s..\n%!"
+              codec_name)
+  with exn ->
+    Printf.printf "Optional test failed: %s\n%!" (Printexc.to_string exn)
