@@ -61,9 +61,12 @@ let () =
         [
           `Pair ("video_size", `String (Printf.sprintf "%dx%x" width height));
           `Pair ("pix_fmt", `Int (Avutil.Pixel_format.get_id pixel_format));
-          `Pair ("pixel_aspect", `Rational pixel_aspect);
           `Pair ("time_base", `Rational time_base);
         ]
+        @
+        match pixel_aspect with
+          | Some p -> [`Pair ("pixel_aspect", `Rational p)]
+          | None -> []
       in
       Avfilter.(attach ~args ~name:"buffer" buffer config)
     in

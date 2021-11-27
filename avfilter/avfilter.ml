@@ -236,7 +236,9 @@ let append_io graph ~name filter_name filter_ctx =
     | _ -> ()
 
 (* This creates a record with a hidden field in the last position. *)
-external append_context : [ `Unattached ] filter -> filter_ctx -> [ `Attached ] filter = "ocaml_avfilter_append_context"
+external append_context :
+  [ `Unattached ] filter -> filter_ctx -> [ `Attached ] filter
+  = "ocaml_avfilter_append_context"
 
 let attach ?args ~name filter graph =
   if List.mem name graph.names then raise Exists;
@@ -269,15 +271,18 @@ let link src dst =
 type command_flag = [ `Fast ]
 
 (* For now.. *)
-let int_of_flag = function
-  | `Fast -> 1
+let int_of_flag = function `Fast -> 1
 
-external process_command : flags:int -> cmd:string -> arg:string -> filter_ctx -> string = "ocaml_avfilter_process_commands"
+external process_command :
+  flags:int -> cmd:string -> arg:string -> filter_ctx -> string
+  = "ocaml_avfilter_process_commands"
 
-external get_context : [ `Attached ] filter ->  filter_ctx = "ocaml_avfilter_get_content" 
+external get_context : [ `Attached ] filter -> filter_ctx
+  = "ocaml_avfilter_get_content"
 
-let process_command ?(flags=[]) ~cmd ?(arg="") filter = 
-  let flags = List.fold_left (fun cur flag -> cur land (int_of_flag flag)) 0 flags
+let process_command ?(flags = []) ~cmd ?(arg = "") filter =
+  let flags =
+    List.fold_left (fun cur flag -> cur land int_of_flag flag) 0 flags
   in
   process_command ~flags ~cmd ~arg (get_context filter)
 

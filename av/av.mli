@@ -131,7 +131,7 @@ val set_time_base : (_, _, _) stream -> Avutil.rational -> unit
 val get_frame_size : (output, audio, _) stream -> int
 
 (** [Av.get_pixel_aspect stream] return the pixel aspect of the [stream]. *)
-val get_pixel_aspect : (_, video, _) stream -> Avutil.rational
+val get_pixel_aspect : (_, video, _) stream -> Avutil.rational option
 
 (** Same as {!Av.get_input_duration} for the input streams. *)
 val get_duration : ?format:Time_format.t -> (input, _, _) stream -> Int64.t

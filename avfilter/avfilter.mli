@@ -101,7 +101,12 @@ val link :
 type command_flag = [ `Fast ]
 
 (** Send a command to a attached filter pad. *)
-val process_command : ?flags:(command_flag list) -> cmd:string -> ?arg:string -> [ `Attached ] filter -> string
+val process_command :
+  ?flags:command_flag list ->
+  cmd:string ->
+  ?arg:string ->
+  [ `Attached ] filter ->
+  string
 
 (** Parse a graph described by a string and attach outputs/inputs to it. *)
 type ('a, 'b, 'c) parse_node = {

@@ -143,7 +143,7 @@ external set_time_base : (_, _, _) stream -> Avutil.rational -> unit
 external get_frame_size : (_, audio, _) stream -> int
   = "ocaml_av_get_stream_frame_size"
 
-external get_pixel_aspect : (_, video, _) stream -> Avutil.rational
+external get_pixel_aspect : (_, video, _) stream -> Avutil.rational option
   = "ocaml_av_get_stream_pixel_aspect"
 
 external _get_streams : input container -> media_type -> int list

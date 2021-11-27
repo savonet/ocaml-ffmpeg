@@ -1,6 +1,7 @@
-1.1.0 (unreleased)
+1.1.0 (2021-11-27)
 =====
 * Added support for filter commands.
+* Make [Av.get_pixel_aspect] optional.
 
 1.0.2 (2021-11-19)
 =====

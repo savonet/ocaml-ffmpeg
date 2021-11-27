@@ -217,14 +217,21 @@ CAMLprim value ocaml_av_get_stream_frame_size(value _stream) {
 
 CAMLprim value ocaml_av_get_stream_pixel_aspect(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, ret);
   av_t *av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
+  const AVRational pixel_aspect =
+      av->format_context->streams[index]->sample_aspect_ratio;
 
-  value_of_rational(&av->format_context->streams[index]->sample_aspect_ratio,
-                    &ans);
+  if (pixel_aspect.num == 0)
+    CAMLreturn(Val_none);
 
-  CAMLreturn(ans);
+  value_of_rational(&pixel_aspect, &ans);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
 }
 
 value *ocaml_av_get_control_message_callback(struct AVFormatContext *ctx) {
