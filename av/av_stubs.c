@@ -54,6 +54,7 @@ typedef struct av_t {
   stream_t **streams;
   value control_message_callback;
   int is_input;
+  value interrupt_cb;
 
   // input
   int end_of_file;
@@ -96,8 +97,11 @@ static void close_av(av_t *av) {
   if (!av)
     return;
 
-  if (av->format_context) {
+  if (av->interrupt_cb != Val_none) {
+    caml_remove_generational_global_root(&av->interrupt_cb);
+  }
 
+  if (av->format_context) {
     if (av->streams) {
       unsigned int i;
       for (i = 0; i < av->format_context->nb_streams; i++) {
@@ -368,6 +372,18 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
   return n;
 }
 
+static int ocaml_av_interrupt_callback(void *private) {
+  value res;
+  int n;
+
+  caml_acquire_runtime_system();
+  res = caml_callback((value) private, Val_unit);
+  n = Int_val(res);
+  caml_release_runtime_system();
+
+  return n;
+};
+
 CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
                                   value _write_cb, value _seek_cb) {
   CAMLparam3(_read_cb, _write_cb, _seek_cb);
@@ -529,7 +545,7 @@ CAMLprim value ocaml_av_input_format_get_long_name(value _format) {
 }
 
 static av_t *open_input(char *url, AVInputFormat *format,
-                        AVFormatContext *format_context,
+                        AVFormatContext *format_context, value _interrupt,
                         AVDictionary **options) {
   int err;
 
@@ -540,10 +556,32 @@ static av_t *open_input(char *url, AVInputFormat *format,
     caml_raise_out_of_memory();
   }
 
+  if (format_context) {
+    av->format_context = format_context;
+  } else {
+    av->format_context = avformat_alloc_context();
+  }
+
+  if (!av->format_context) {
+    if (url)
+      free(url);
+    free(av);
+    caml_raise_out_of_memory();
+  }
+
   av->is_input = 1;
   av->frames_pending = 0;
-  av->format_context = format_context;
   av->streams = NULL;
+
+  if (_interrupt != Val_none) {
+    av->interrupt_cb = Some_val(_interrupt);
+    caml_register_generational_global_root(&av->interrupt_cb);
+    av->format_context->interrupt_callback.callback =
+        ocaml_av_interrupt_callback;
+    av->format_context->interrupt_callback.opaque = (void *)av->interrupt_cb;
+  } else {
+    av->interrupt_cb = Val_none;
+  }
 
   caml_release_runtime_system();
   err = avformat_open_input(&av->format_context, url, format, options);
@@ -573,8 +611,9 @@ static av_t *open_input(char *url, AVInputFormat *format,
   return av;
 }
 
-CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
-  CAMLparam3(_url, _format, _opts);
+CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
+                                   value _opts) {
+  CAMLparam4(_url, _format, _interrupt, _opts);
   CAMLlocal3(ret, ans, unused);
   char *url = NULL;
   AVInputFormat *format = NULL;
@@ -607,7 +646,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _opts) {
   }
 
   // open input url
-  av_t *av = open_input(url, format, NULL, &options);
+  av_t *av = open_input(url, format, NULL, _interrupt, &options);
 
   if (url)
     free(url);
@@ -663,7 +702,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
     format = InputFormat_val(Some_val(_format));
 
   // open input format
-  av_t *av = open_input(NULL, format, avio->format_context, &options);
+  av_t *av = open_input(NULL, format, avio->format_context, Val_none, &options);
 
   // Return unused keys
   caml_release_runtime_system();
@@ -1261,8 +1300,11 @@ ocaml_av_output_format_get_subtitle_codec_id(value _output_format) {
 }
 
 static av_t *open_output(AVOutputFormat *format, char *file_name,
-                         AVIOContext *avio_context, AVDictionary **options) {
+                         AVIOContext *avio_context, value _interrupt,
+                         AVDictionary **options) {
   int ret;
+  AVIOInterruptCB interrupt_cb = {ocaml_av_interrupt_callback, NULL};
+  AVIOInterruptCB *interrupt_cb_ptr = NULL;
   av_t *av = (av_t *)calloc(1, sizeof(av_t));
 
   if (!av) {
@@ -1272,18 +1314,28 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
     caml_raise_out_of_memory();
   }
 
+  if (_interrupt != Val_none) {
+    av->interrupt_cb = Some_val(_interrupt);
+    caml_register_generational_global_root(&av->interrupt_cb);
+    interrupt_cb.opaque = (void *)av->interrupt_cb;
+    interrupt_cb_ptr = &interrupt_cb;
+  } else {
+    av->interrupt_cb = Val_none;
+  }
+
   caml_release_runtime_system();
 
-  avformat_alloc_output_context2(&av->format_context, format, NULL, file_name);
+  ret = avformat_alloc_output_context2(&av->format_context, format, NULL,
+                                       file_name);
 
-  if (!av->format_context) {
-    free_av(av);
+  if (ret < 0) {
     if (file_name)
       free(file_name);
-
     av_dict_free(options);
+    free_av(av);
+
     caml_acquire_runtime_system();
-    caml_raise_out_of_memory();
+    ocaml_avutil_raise_error(ret);
   }
 
   ret = av_opt_set_dict(av->format_context, options);
@@ -1294,6 +1346,8 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
       free(file_name);
 
     av_dict_free(options);
+    free_av(av);
+
     caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
@@ -1318,6 +1372,7 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
       free_av(av);
       if (file_name)
         free(file_name);
+      av_dict_free(options);
 
       av_dict_free(options);
       caml_acquire_runtime_system();
@@ -1329,12 +1384,13 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
   } else {
     if (!(av->format_context->oformat->flags & AVFMT_NOFILE)) {
       int err = avio_open2(&av->format_context->pb, file_name, AVIO_FLAG_WRITE,
-                           NULL, options);
+                           interrupt_cb_ptr, options);
 
       if (err < 0) {
         free_av(av);
         if (file_name)
           free(file_name);
+        av_dict_free(options);
 
         av_dict_free(options);
         caml_acquire_runtime_system();
@@ -1353,9 +1409,9 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
   return av;
 }
 
-CAMLprim value ocaml_av_open_output(value _format, value _filename,
-                                    value _opts) {
-  CAMLparam2(_filename, _opts);
+CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
+                                    value _filename, value _opts) {
+  CAMLparam3(_interrupt, _filename, _opts);
   CAMLlocal3(ans, ret, unused);
   char *filename =
       strndup(String_val(_filename), caml_string_length(_filename));
@@ -1380,7 +1436,7 @@ CAMLprim value ocaml_av_open_output(value _format, value _filename,
     format = OutputFormat_val(Some_val(_format));
 
   // open output file
-  av_t *av = open_output(format, filename, NULL, &options);
+  av_t *av = open_output(format, filename, NULL, _interrupt, &options);
 
   // Return unused keys
   caml_release_runtime_system();
@@ -1429,7 +1485,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
   AVOutputFormat *format = OutputFormat_val(_format);
 
   // open output format
-  av_t *av = open_output(format, NULL, NULL, &options);
+  av_t *av = open_output(format, NULL, NULL, Val_none, &options);
 
   // Return unused keys
   caml_release_runtime_system();
@@ -1479,7 +1535,7 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   }
 
   // open output format
-  av_t *av = open_output(format, NULL, avio->avio_context, &options);
+  av_t *av = open_output(format, NULL, avio->avio_context, Val_none, &options);
 
   // Return unused keys
   caml_release_runtime_system();

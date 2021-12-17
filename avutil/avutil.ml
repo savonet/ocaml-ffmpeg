@@ -79,7 +79,7 @@ exception Error of error
 let () =
   Printexc.register_printer (function
     | Error err ->
-        Some (Printf.sprintf "FFmpeg.Avutils.Error(%s)" (string_of_error err))
+        Some (Printf.sprintf "Avutil.Error(%s)" (string_of_error err))
     | _ -> None)
 
 let () =

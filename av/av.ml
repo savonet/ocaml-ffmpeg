@@ -50,12 +50,13 @@ end
 external open_input :
   string ->
   (input, _) format option ->
+  (unit -> bool) option ->
   (string * string) array ->
   input container * string array = "ocaml_av_open_input"
 
-let open_input ?format ?opts url =
+let open_input ?interrupt ?format ?opts url =
   let opts = opts_default opts in
-  let ret, unused = open_input url format (mk_opts_array opts) in
+  let ret, unused = open_input url format interrupt (mk_opts_array opts) in
   filter_opts unused opts;
   ret
 
@@ -234,14 +235,15 @@ let seek ?(flags = []) = seek ~flags:(Array.of_list flags)
 
 (* Output *)
 external open_output :
+  ?interrupt:(unit -> bool) ->
   ?format:(output, _) format ->
   string ->
   (string * string) array ->
   output container * string array = "ocaml_av_open_output"
 
-let open_output ?format ?opts fname =
+let open_output ?interrupt ?format ?opts fname =
   let opts = opts_default opts in
-  let ret, unused = open_output ?format fname (mk_opts_array opts) in
+  let ret, unused = open_output ?interrupt ?format fname (mk_opts_array opts) in
   filter_opts unused opts;
   ret
 

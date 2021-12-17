@@ -24,6 +24,7 @@
   (:aresample ../examples/aresample.exe)
   (:demuxing_decoding ../examples/demuxing_decoding.exe)
   (:read_metadata ../examples/read_metadata.exe)
+  (:interrupt ../examples/interrupt.exe)
   (:test test.exe))
  (action
   (progn
@@ -53,4 +54,5 @@
    (run %{demuxing_decoding} out.mkv vo.raw ao.raw)
    (run %{read_metadata} A4.flac flac A4.mp3 libmp3lame)
    (run %{read_metadata} A4.mp2 mp2 A4.ogg libvorbis)
+   (run %{interrupt})
    (run %{test}))))

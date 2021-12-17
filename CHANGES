@@ -1,3 +1,7 @@
+1.1.1 (unreleased)
+======
+* Added support for interruption callback.
+
 1.1.0 (2021-11-27)
 =====
 * Added support for filter commands.

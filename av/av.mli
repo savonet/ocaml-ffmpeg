@@ -48,7 +48,11 @@ end
     returning, if [opts] was passed, unused options are left in the hash table.
     Raise Error if the opening failed. *)
 val open_input :
-  ?format:(input, _) format -> ?opts:opts -> string -> input container
+  ?interrupt:(unit -> bool) ->
+  ?format:(input, _) format ->
+  ?opts:opts ->
+  string ->
+  input container
 
 type read = bytes -> int -> int -> int
 type write = bytes -> int -> int -> int
@@ -189,13 +193,17 @@ val seek :
 
 (** {5 Output} *)
 
-(** [Av.open_output ?format ?opts filename] open the output file named
-    [filename]. [format] may contain an optional format, [opts] may contain any
-    option settable on the stream's internal AVFormat. After returning, if
-    [opts] was passed, unused options are left in the hash table. Raise Error if
-    the opening failed. *)
+(** [Av.open_output ?interrupt ?format ?opts filename] open the output file named
+    [filename]. [interrupt] is used to interrupt blocking functions, [format] may
+    contain an optional format, [opts] may contain any option settable on the
+    stream's internal AVFormat. After returning, if [opts] was passed, unused
+    options are left in the hash table. Raise Error if the opening failed. *)
 val open_output :
-  ?format:(output, _) format -> ?opts:opts -> string -> output container
+  ?interrupt:(unit -> bool) ->
+  ?format:(output, _) format ->
+  ?opts:opts ->
+  string ->
+  output container
 
 (** [Av.open_stream callbacks] open the output container with the given
     callbacks. [opts] may contain any option settable on Ffmpeg avformat. After

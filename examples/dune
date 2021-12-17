@@ -112,3 +112,8 @@
  (name all_codecs)
  (modules all_codecs)
  (libraries ffmpeg-avcodec))
+
+(executable
+ (name interrupt)
+ (modules interrupt)
+ (libraries ffmpeg-av))
