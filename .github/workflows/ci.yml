@@ -24,6 +24,7 @@ jobs:
     - name: Setup OCaml
       uses: ocaml/setup-ocaml@v2
     - name: Update packages
+      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update
     - name: Pin locally
