@@ -282,6 +282,9 @@ static struct custom_operations avio_ops = {
 static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   value buffer, res;
   avio_t *avio = (avio_t *)private;
+  int ret;
+
+  ret = caml_c_thread_register();
 
   caml_acquire_runtime_system();
 
@@ -294,12 +297,18 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   if (Is_exception_result(res)) {
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
+    if (ret != 0) {
+      caml_c_thread_unregister();
+    }
     return AVERROR_UNKNOWN;
   }
 
   if (Int_val(res) < 0) {
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
+    if (ret != 0) {
+      caml_c_thread_unregister();
+    }
     return Int_val(res);
   }
 
@@ -309,6 +318,10 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
 
   caml_release_runtime_system();
 
+  if (ret != 0) {
+    caml_c_thread_unregister();
+  }
+
   return Int_val(res);
 }
 
@@ -316,6 +329,9 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
                                      int buf_size) {
   value buffer, res;
   avio_t *avio = (avio_t *)private;
+  int ret;
+
+  ret = caml_c_thread_register();
 
   caml_acquire_runtime_system();
 
@@ -330,12 +346,19 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
   if (Is_exception_result(res)) {
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
+    if (ret != 0) {
+      caml_c_thread_unregister();
+    }
     return AVERROR_UNKNOWN;
   }
 
   caml_remove_generational_global_root(&buffer);
 
   caml_release_runtime_system();
+
+  if (ret != 0) {
+    caml_c_thread_unregister();
+  }
 
   return Int_val(res);
 }
@@ -344,7 +367,7 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
                                         int whence) {
   value res;
   avio_t *avio = (avio_t *)private;
-  int _whence;
+  int _whence, ret;
   int64_t n;
 
   switch (whence) {
@@ -361,6 +384,8 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
     return -1;
   }
 
+  ret = caml_c_thread_register();
+
   caml_acquire_runtime_system();
 
   res = caml_callback2(avio->seek_cb, Val_int(offset), Val_int(_whence));
@@ -369,17 +394,28 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
 
   caml_release_runtime_system();
 
+  if (ret != 0) {
+    caml_c_thread_unregister();
+  }
+
   return n;
 }
 
 static int ocaml_av_interrupt_callback(void *private) {
   value res;
-  int n;
+  av_t *av = (av_t *)private;
+  int ret, n;
+
+  ret = caml_c_thread_register();
 
   caml_acquire_runtime_system();
-  res = caml_callback((value) private, Val_unit);
+  res = caml_callback(av->interrupt_cb, Val_unit);
   n = Int_val(res);
   caml_release_runtime_system();
+
+  if (ret != 0) {
+    caml_c_thread_unregister();
+  }
 
   return n;
 };
@@ -578,7 +614,7 @@ static av_t *open_input(char *url, AVInputFormat *format,
     caml_register_generational_global_root(&av->interrupt_cb);
     av->format_context->interrupt_callback.callback =
         ocaml_av_interrupt_callback;
-    av->format_context->interrupt_callback.opaque = (void *)av->interrupt_cb;
+    av->format_context->interrupt_callback.opaque = (void *)av;
   } else {
     av->interrupt_cb = Val_none;
   }
