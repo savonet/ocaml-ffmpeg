@@ -1353,7 +1353,7 @@ static av_t *open_output(AVOutputFormat *format, char *file_name,
   if (_interrupt != Val_none) {
     av->interrupt_cb = Some_val(_interrupt);
     caml_register_generational_global_root(&av->interrupt_cb);
-    interrupt_cb.opaque = (void *)av->interrupt_cb;
+    interrupt_cb.opaque = (void *)av;
     interrupt_cb_ptr = &interrupt_cb;
   } else {
     av->interrupt_cb = Val_none;
