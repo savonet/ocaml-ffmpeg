@@ -16,7 +16,7 @@ jobs:
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
-      run: opam install -y ffmpeg
+      run: opam install -y --with-doc ffmpeg
     - name: Build doc
       run: opam exec dune build @doc
     - name: Deploy doc
