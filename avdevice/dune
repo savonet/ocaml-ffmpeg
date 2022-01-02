@@ -14,4 +14,4 @@
 (rule
  (targets c_flags.sexp c_library_flags.sexp)
  (action
-  (run ./config/discover.exe)))
+  (run ./config/discover.exe --os_type %{os_type})))
