@@ -10,14 +10,14 @@ AVFormatContext * ocaml_av_get_format_context(value *p_av);
 
 /***** AVInputFormat *****/
 
-#define InputFormat_val(v) (*(struct AVInputFormat**)Data_custom_val(v))
+#define InputFormat_val(v) (*(struct AVInputFormat**)Data_abstract_val(v))
 
 void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value);
 
 
 /***** AVOutputFormat *****/
 
-#define OutputFormat_val(v) (*(struct AVOutputFormat**)Data_custom_val(v))
+#define OutputFormat_val(v) (*(struct AVOutputFormat**)Data_abstract_val(v))
 
 value value_of_outputFormat(AVOutputFormat *outputFormat);
 

@@ -575,14 +575,14 @@ CAMLprim value ocaml_avutil_pixelformat_descriptor(value pixel) {
     Store_field(ret, 6, tmp1);
   } else
     Store_field(ret, 6, Val_none);
-  Store_field(ret, 7, (value)pixdesc);
+  Store_field(ret, 7, value_of_avpixfmtdescriptor(tmp1, pixdesc));
 
   CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value d) {
   CAMLparam0();
-  AVPixFmtDescriptor *pixdesc = (AVPixFmtDescriptor *)Field(d, 7);
+  const AVPixFmtDescriptor *pixdesc = AvPixFmtDescriptor_val(Field(d, 7));
 
   CAMLreturn(Val_int(av_get_bits_per_pixel(pixdesc)));
 }
@@ -1123,8 +1123,8 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
 
   switch (_type) {
   case PVV_String:
-    err = av_opt_get((void *)obj, (const char *)String_val(name), search_flags,
-                     &str);
+    err = av_opt_get(AvObj_val(obj), (const char *)String_val(name),
+                     search_flags, &str);
     if (err < 0)
       ocaml_avutil_raise_error(err);
 
@@ -1260,10 +1260,10 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
 
   if (_cursor == Val_none) {
     _opt_cursor = (const struct AVOption *)NULL;
-    _class_cursor = (const AVClass *)_class;
+    _class_cursor = AvClass_val(_class);
   } else {
-    _opt_cursor = (const struct AVOption *)Field(Some_val(_cursor), 0);
-    _class_cursor = (const AVClass *)Field(Some_val(_cursor), 1);
+    _opt_cursor = AvOptions_val(Field(Some_val(_cursor), 0));
+    _class_cursor = AvClass_val(Field(Some_val(_cursor), 1));
   }
 
   if (_class_cursor == NULL)
@@ -1274,7 +1274,7 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   if (_opt_cursor == NULL) {
     do {
       _class_cursor =
-          av_opt_child_class_next((const AVClass *)_class, _class_cursor);
+          av_opt_child_class_next(AvClass_val(_class), _class_cursor);
 
       if (_class_cursor == NULL)
         CAMLreturn(Val_none);
@@ -1303,7 +1303,7 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
   switch (_opt_cursor->type) {
   case AV_OPT_TYPE_CONST:
     _type = PVV_Constant;
-    Store_field(_tmp, 0, (value)_opt_cursor);
+    Store_field(_tmp, 0, value_of_avoptions(_cursor, _opt_cursor));
     Store_field(_spec, 0, _tmp);
     break;
   case AV_OPT_TYPE_BOOL:
@@ -1471,8 +1471,8 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
 
   _tmp = caml_alloc_tuple(1);
   Store_field(_tmp, 0, caml_alloc_tuple(2));
-  Store_field(Field(_tmp, 0), 0, (value)_opt_cursor);
-  Store_field(Field(_tmp, 0), 1, (value)_class_cursor);
+  Store_field(Field(_tmp, 0), 0, value_of_avoptions(_cursor, _opt_cursor));
+  Store_field(Field(_tmp, 0), 1, value_of_avclass(_class, _class_cursor));
   Store_field(_opt, 5, _tmp);
 
   _tmp = caml_alloc_tuple(1);
@@ -1483,17 +1483,17 @@ CAMLprim value ocaml_avutil_av_opt_next(value _cursor, value _class) {
 
 CAMLprim value ocaml_avutil_avopt_default_int64(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_int64(((const AVOption *)_opt)->default_val.i64));
+  CAMLreturn(caml_copy_int64(AvOptions_val(_opt)->default_val.i64));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_double(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_double(((const AVOption *)_opt)->default_val.dbl));
+  CAMLreturn(caml_copy_double(AvOptions_val(_opt)->default_val.dbl));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_string(value _opt) {
   CAMLparam0();
-  CAMLreturn(caml_copy_string(((const AVOption *)_opt)->default_val.str));
+  CAMLreturn(caml_copy_string(AvOptions_val(_opt)->default_val.str));
 }
 
 CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {

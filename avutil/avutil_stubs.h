@@ -8,6 +8,7 @@
 #include <libavutil/samplefmt.h>
 #include <libavutil/channel_layout.h>
 #include <libavutil/frame.h>
+#include <libavutil/pixdesc.h>
 #include <libavcodec/avcodec.h>
 
 #include "polymorphic_variant_values_stubs.h"
@@ -102,5 +103,41 @@ value value_of_frame(AVFrame *frame);
 value value_of_subtitle(AVSubtitle *subtitle);
 
 int subtitle_header_default(AVCodecContext *avctx);
+
+/***** AVPixelFormat *****/
+
+#define AvPixFmtDescriptor_val(v) (*(const AVPixFmtDescriptor**)Data_abstract_val(v))
+
+static inline value value_of_avpixfmtdescriptor(value ret, const AVPixFmtDescriptor *avpixfmtdescriptor) {
+  ret = caml_alloc(1, Abstract_tag);
+  AvPixFmtDescriptor_val(ret) = avpixfmtdescriptor;
+  return ret;
+}
+
+/****** AVOptions ******/
+
+#define AvClass_val(v) (*(const AVClass**)Data_abstract_val(v))
+
+static inline value value_of_avclass(value ret, const AVClass *avclass) {
+  ret = caml_alloc(1, Abstract_tag);
+  AvClass_val(ret) = avclass;
+  return ret;
+}
+
+#define AvOptions_val(v) (*(const struct AVOption**)Data_abstract_val(v))
+
+static inline value value_of_avoptions(value ret, const struct AVOption *avoptions) {
+  ret = caml_alloc(1, Abstract_tag);
+  AvOptions_val(ret) = avoptions;
+  return ret;
+}
+
+#define AvObj_val(v) (*(void**)Data_abstract_val(v))
+
+static inline value value_of_avobj(value ret, void *avobj) {
+  ret = caml_alloc(1, Abstract_tag);
+  AvObj_val(ret) = avobj;
+  return ret;
+}
 
 #endif // _AVUTIL_STUBS_H_ 
