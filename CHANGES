@@ -1,3 +1,8 @@
+1.1.2 (unreleased)
+=====
+* Change error returned on OCaml callback exception
+  to AVERROR_EXTERNAL, add log entry.
+
 1.1.1 (2021-12-26)
 ======
 * Added support for interruption callback.
