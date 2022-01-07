@@ -5,22 +5,25 @@
 
 #include <libavformat/avformat.h>
 
+AVFormatContext *ocaml_av_get_format_context(value *p_av);
 
-AVFormatContext * ocaml_av_get_format_context(value *p_av);
+#if AV_VERSION_INT(59, 0, 100) < LIBAVFORMAT_VERSION_INT
+#define avioformat_const const
+#else
+#define avioformat_const
+#endif
 
 /***** AVInputFormat *****/
 
-#define InputFormat_val(v) (*(struct AVInputFormat**)Data_abstract_val(v))
+#define InputFormat_val(v) (*(avioformat_const AVInputFormat**)Data_abstract_val(v))
 
-void value_of_inputFormat(AVInputFormat *inputFormat, value * p_value);
-
+void value_of_inputFormat(avioformat_const AVInputFormat *inputFormat, value * p_value);
 
 /***** AVOutputFormat *****/
 
-#define OutputFormat_val(v) (*(struct AVOutputFormat**)Data_abstract_val(v))
+#define OutputFormat_val(v) (*(avioformat_const AVOutputFormat**)Data_abstract_val(v))
 
-value value_of_outputFormat(AVOutputFormat *outputFormat);
-
+value value_of_outputFormat(avioformat_const AVOutputFormat *outputFormat);
 
 /***** Control message *****/
 value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx);

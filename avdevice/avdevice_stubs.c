@@ -19,11 +19,11 @@ CAMLprim value ocaml_avdevice_init(value unit) {
   CAMLreturn(Val_unit);
 }
 
-static value
-get_input_devices(AVInputFormat *(*input_device_next)(AVInputFormat *)) {
+static value get_input_devices(avioformat_const AVInputFormat *(
+    *input_device_next)(avioformat_const AVInputFormat *)) {
   CAMLparam0();
   CAMLlocal2(v, ans);
-  AVInputFormat *fmt = NULL;
+  avioformat_const AVInputFormat *fmt = NULL;
   int len = 0;
 
   while ((fmt = input_device_next(fmt)))
@@ -54,11 +54,11 @@ CAMLprim value ocaml_avdevice_get_video_input_formats(value unit) {
   CAMLreturn(get_input_devices(av_input_video_device_next));
 }
 
-static value
-get_output_devices(AVOutputFormat *(*output_device_next)(AVOutputFormat *)) {
+static value get_output_devices(avioformat_const AVOutputFormat *(
+    *output_device_next)(avioformat_const AVOutputFormat *)) {
   CAMLparam0();
   CAMLlocal1(ans);
-  AVOutputFormat *fmt = NULL;
+  avioformat_const AVOutputFormat *fmt = NULL;
   int len = 0;
 
   while ((fmt = output_device_next(fmt)))
@@ -70,7 +70,6 @@ get_output_devices(AVOutputFormat *(*output_device_next)(AVOutputFormat *)) {
   fmt = NULL;
 
   while ((fmt = output_device_next(fmt))) {
-
     Store_field(ans, i, value_of_outputFormat(fmt));
     i++;
   }

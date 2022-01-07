@@ -422,8 +422,8 @@ module Options = struct
     _cursor : _cursor option;
   }
 
-  external av_opt_next : _cursor option -> t -> _opt option
-    = "ocaml_avutil_av_opt_next"
+  external av_opt_iter : _cursor option -> t -> _opt option
+    = "ocaml_avutil_av_opt_iter"
 
   let constant_of_opt opt (name, { _default; _ }) =
     let append fn l = (name, fn (Option.get _default)) :: l in
@@ -576,7 +576,7 @@ module Options = struct
     in
 
     let rec f _cursor _opts =
-      match av_opt_next _cursor v with
+      match av_opt_iter _cursor v with
         | None -> List.map opt_of_opt _opts
         | Some { _name; _spec = `Constant s; _cursor; _unit; _ } ->
             Hashtbl.add constants (Option.get _unit) (_name, s);

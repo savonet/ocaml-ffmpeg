@@ -109,10 +109,22 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
     Store_field(cur, 1, caml_copy_string(f->description));
     Store_field(cur, 2,
                 ocaml_avfilter_alloc_pads(
-                    f->inputs, avfilter_pad_count(f->inputs), f->name));
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
+                    f->inputs, avfilter_pad_count(f->inputs), f->name
+#else
+                    f->inputs, avfilter_filter_pad_count(f, 0), f->name
+#endif
+                )
+    );
     Store_field(cur, 3,
                 ocaml_avfilter_alloc_pads(
-                    f->outputs, avfilter_pad_count(f->outputs), f->name));
+#if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
+                    f->outputs, avfilter_pad_count(f->outputs), f->name
+#else
+                    f->outputs, avfilter_filter_pad_count(f, 0), f->name
+#endif
+                    )
+    );
     Store_field(cur, 4, value_of_avclass(tmp, f->priv_class));
     Store_field(cur, 5, Val_int(f->flags));
 

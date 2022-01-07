@@ -576,7 +576,8 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
 
 /***** AVInputFormat *****/
 
-void value_of_inputFormat(AVInputFormat *inputFormat, value *p_value) {
+void value_of_inputFormat(avioformat_const AVInputFormat *inputFormat,
+                          value *p_value) {
   if (!inputFormat)
     Fail("Empty input format");
 
@@ -594,7 +595,7 @@ CAMLprim value ocaml_av_find_input_format(value _short_name) {
     caml_raise_out_of_memory();
 
   caml_release_runtime_system();
-  AVInputFormat *format = av_find_input_format(short_name);
+  avioformat_const AVInputFormat *format = av_find_input_format(short_name);
   caml_acquire_runtime_system();
 
   free(short_name);
@@ -619,7 +620,7 @@ CAMLprim value ocaml_av_input_format_get_long_name(value _format) {
   CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
-static av_t *open_input(char *url, AVInputFormat *format,
+static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
                         AVFormatContext *format_context, value _interrupt,
                         AVDictionary **options) {
   int err;
@@ -691,7 +692,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
   CAMLparam4(_url, _format, _interrupt, _opts);
   CAMLlocal3(ret, ans, unused);
   char *url = NULL;
-  AVInputFormat *format = NULL;
+  avioformat_const AVInputFormat *format = NULL;
   int ulen = caml_string_length(_url);
   AVDictionary *options = NULL;
   char *key, *val;
@@ -756,7 +757,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
   CAMLparam3(_avio, _format, _opts);
   CAMLlocal3(ret, ans, unused);
   avio_t *avio = Avio_val(_avio);
-  AVInputFormat *format = NULL;
+  avioformat_const AVInputFormat *format = NULL;
   AVDictionary *options = NULL;
   char *key, *val;
   int len = Wosize_val(_opts);
@@ -1275,7 +1276,7 @@ CAMLprim value ocaml_av_seek_bytecode(value *argv, int argn) {
 
 /***** AVOutputFormat *****/
 
-value value_of_outputFormat(AVOutputFormat *outputFormat) {
+value value_of_outputFormat(avioformat_const AVOutputFormat *outputFormat) {
   value v;
   if (!outputFormat)
     Fail("Empty output format");
@@ -1293,7 +1294,7 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
   char *short_name = NULL;
   char *filename = NULL;
   char *mime = NULL;
-  AVOutputFormat *guessed;
+  avioformat_const AVOutputFormat *guessed;
 
   if (caml_string_length(_short_name) > 0) {
     short_name =
@@ -1371,9 +1372,9 @@ ocaml_av_output_format_get_subtitle_codec_id(value _output_format) {
       Val_SubtitleCodecID(OutputFormat_val(_output_format)->subtitle_codec));
 }
 
-static av_t *open_output(AVOutputFormat *format, char *file_name,
-                         AVIOContext *avio_context, value _interrupt,
-                         AVDictionary **options) {
+static av_t *open_output(avioformat_const AVOutputFormat *format,
+                         char *file_name, AVIOContext *avio_context,
+                         value _interrupt, AVDictionary **options) {
   int ret;
   AVIOInterruptCB interrupt_cb = {ocaml_av_interrupt_callback, NULL};
   AVIOInterruptCB *interrupt_cb_ptr = NULL;
@@ -1487,7 +1488,7 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
   CAMLlocal3(ans, ret, unused);
   char *filename =
       strndup(String_val(_filename), caml_string_length(_filename));
-  AVOutputFormat *format = NULL;
+  avioformat_const AVOutputFormat *format = NULL;
   AVDictionary *options = NULL;
   char *key, *val;
   int len = Wosize_val(_opts);
@@ -1554,7 +1555,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
     }
   }
 
-  AVOutputFormat *format = OutputFormat_val(_format);
+  avioformat_const AVOutputFormat *format = OutputFormat_val(_format);
 
   // open output format
   av_t *av = open_output(format, NULL, NULL, Val_none, &options);
@@ -1588,7 +1589,7 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
                                            value _opts) {
   CAMLparam3(_format, _avio, _opts);
   CAMLlocal3(ans, ret, unused);
-  AVOutputFormat *format = OutputFormat_val(_format);
+  avioformat_const AVOutputFormat *format = OutputFormat_val(_format);
   avio_t *avio = Avio_val(_avio);
   AVDictionary *options = NULL;
   char *key, *val;
