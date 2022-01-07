@@ -2,6 +2,8 @@
 =====
 * Change error returned on OCaml callback exception
   to AVERROR_EXTERNAL, add log entry.
+* Get rid of naked pointers.
+* Adapt to most recent FFmpeg API.
 
 1.1.1 (2021-12-26)
 ======
