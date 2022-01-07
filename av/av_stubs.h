@@ -7,10 +7,10 @@
 
 AVFormatContext *ocaml_av_get_format_context(value *p_av);
 
-#if AV_VERSION_INT(59, 0, 100) < LIBAVFORMAT_VERSION_INT
-#define avioformat_const const
-#else
+#if LIBAVFORMAT_VERSION_INT <= AV_VERSION_INT(59, 0, 100)
 #define avioformat_const
+#else
+#define avioformat_const const
 #endif
 
 /***** AVInputFormat *****/
