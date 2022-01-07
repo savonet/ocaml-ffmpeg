@@ -20,15 +20,9 @@ jobs:
     steps:
     - name: Checkout latest code
       uses: actions/checkout@v1
-    - name: Setup OCaml
+    - name: Checkout latest code
+      uses: actions/checkout@v1
+    - name: Install ocaml
       uses: ocaml/setup-ocaml@v2
-    - name: Update packages
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-    - name: Pin locally
-      run: opam pin -y add --no-action .
-    - name: Install locally
-      run: opam install -y ffmpeg
-    - name: Run tests locally
-      run: opam exec dune runtest
+    - name: Install module
+      run: opam install --cli=2.1 --with-test --confirm-level=unsafe-yes .
