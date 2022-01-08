@@ -109,7 +109,15 @@ val time_base : unit -> rational
 
 module Log : sig
   type level =
-    [ `Quiet | `Panic | `Fatal | `Error | `Warning | `Info | `Verbose | `Debug ]
+    [ `Quiet
+    | `Panic
+    | `Fatal
+    | `Error
+    | `Warning
+    | `Info
+    | `Verbose
+    | `Debug
+    | `Trace ]
 
   val set_level : level -> unit
   val set_callback : (string -> unit) -> unit

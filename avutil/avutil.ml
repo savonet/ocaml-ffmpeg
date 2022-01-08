@@ -115,7 +115,15 @@ end
 
 module Log = struct
   type level =
-    [ `Quiet | `Panic | `Fatal | `Error | `Warning | `Info | `Verbose | `Debug ]
+    [ `Quiet
+    | `Panic
+    | `Fatal
+    | `Error
+    | `Warning
+    | `Info
+    | `Verbose
+    | `Debug
+    | `Trace ]
 
   let int_of_level = function
     | `Quiet -> -8
@@ -126,13 +134,13 @@ module Log = struct
     | `Info -> 32
     | `Verbose -> 40
     | `Debug -> 48
+    | `Trace -> 56
 
   external set_level : int -> unit = "ocaml_avutil_set_log_level"
 
   let set_level level = set_level (int_of_level level)
 
   external setup_log_callback : unit -> unit = "ocaml_avutil_setup_log_callback"
-
   external process_log : (string -> unit) -> unit = "ocaml_ffmpeg_process_log"
 
   let log_fn = ref (Printf.printf "%s")
