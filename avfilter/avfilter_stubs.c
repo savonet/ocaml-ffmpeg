@@ -112,7 +112,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
 #if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
                     f->inputs, avfilter_pad_count(f->inputs), f->name
 #else
-                    f->inputs, avfilter_filter_pad_count(f, 0), f->name
+                    f->inputs, f->nb_inputs, f->name
 #endif
                 )
     );
@@ -121,7 +121,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
 #if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
                     f->outputs, avfilter_pad_count(f->outputs), f->name
 #else
-                    f->outputs, avfilter_filter_pad_count(f, 0), f->name
+                    f->outputs, f->nb_outputs, f->name
 #endif
                     )
     );
