@@ -25,11 +25,8 @@ let () =
   let opts = Hashtbl.create 1 in
   Hashtbl.replace opts "listen" (`Int 1);
 
-  let tmp_input = Filename.temp_file "tmp" "input" in
-  let () = Sys.remove tmp_input in
-
   (try
-     ignore (Av.open_input ~interrupt ~opts (Printf.sprintf "unix://%s" tmp_input));
+     ignore (Av.open_input ~interrupt ~opts "rtmp://localhost/foo");
      assert false
    with Avutil.Error `Exit -> ());
 
