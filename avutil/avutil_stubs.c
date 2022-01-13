@@ -163,55 +163,6 @@ CAMLprim value ocaml_avutil_string_of_error(value error) {
 }
 
 /***** Global initialisation *****/
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
-static int lock_manager(void **mtx, enum AVLockOp op) {
-  switch (op) {
-  case AV_LOCK_CREATE:
-    *mtx = malloc(sizeof(pthread_mutex_t));
-
-    if (!*mtx)
-      return 1;
-    return !!pthread_mutex_init(*mtx, NULL);
-
-  case AV_LOCK_OBTAIN:
-    return !!pthread_mutex_lock(*mtx);
-
-  case AV_LOCK_RELEASE:
-    return !!pthread_mutex_unlock(*mtx);
-
-  case AV_LOCK_DESTROY:
-    pthread_mutex_destroy(*mtx);
-    free(*mtx);
-    return 0;
-  }
-  return 1;
-}
-
-CAMLprim value ocaml_avutil_register_lock_manager(value unit) {
-  CAMLparam0();
-  static int registering_done = 0;
-  static pthread_mutex_t registering_mutex = PTHREAD_MUTEX_INITIALIZER;
-
-  if (!registering_done) {
-    pthread_mutex_lock(&registering_mutex);
-
-    if (!registering_done) {
-
-      caml_release_runtime_system();
-      int ret = av_lockmgr_register(lock_manager);
-      caml_acquire_runtime_system();
-
-      if (ret >= 0) {
-        registering_done = 1;
-      }
-      pthread_mutex_unlock(&registering_mutex);
-    }
-  }
-  CAMLreturn(Val_int(registering_done));
-}
-#else
-value ocaml_avutil_register_lock_manager(value unit) { return Val_true; }
-#endif
 
 static pthread_key_t ocaml_c_thread_key;
 static pthread_once_t ocaml_c_thread_key_once = PTHREAD_ONCE_INIT;
