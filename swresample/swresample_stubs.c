@@ -46,7 +46,7 @@ struct swr_t {
   value out_vector;
   int out_vector_nb_samples;
 
-  int (*get_in_samples)(swr_t *, value *);
+  int (*get_in_samples)(swr_t *, value *, int);
   void (*convert)(swr_t *, int, int);
 };
 
@@ -73,7 +73,7 @@ static void alloc_data(struct audio_t *audio, int nb_samples) {
   audio->nb_samples = nb_samples;
 }
 
-static int get_in_samples_frame(swr_t *swr, value *in_vector) {
+static int get_in_samples_frame(swr_t *swr, value *in_vector, int offset) {
   AVFrame *frame = Frame_val(*in_vector);
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 0, 100)
   caml_release_runtime_system();
@@ -82,6 +82,9 @@ static int get_in_samples_frame(swr_t *swr, value *in_vector) {
 #else
   int nb_channels = frame->channels;
 #endif
+
+  if (offset != 0)
+    Fail("Cannot use offset with frame data!");
 
   if (nb_channels != swr->in.nb_channels)
     Fail("Swresample failed to convert %d channels : %d channels were expected",
@@ -98,23 +101,34 @@ static int get_in_samples_frame(swr_t *swr, value *in_vector) {
   return frame->nb_samples;
 }
 
-static int get_in_samples_string(swr_t *swr, value *in_vector) {
+static int get_in_samples_string(swr_t *swr, value *in_vector, int offset) {
   int str_len = caml_string_length(*in_vector);
-  int nb_samples = str_len / (swr->in.bytes_per_samples * swr->in.nb_channels);
+  int bytes_per_sample = swr->in.bytes_per_samples * swr->in.nb_channels;
+  int nb_samples = str_len / bytes_per_sample - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
 
   if (nb_samples > swr->in.nb_samples)
     alloc_data(&swr->in, nb_samples);
 
-  memcpy(swr->in.data[0], (uint8_t *)String_val(*in_vector), str_len);
+  memcpy(swr->in.data[0],
+         (uint8_t *)String_val(*in_vector) + offset * bytes_per_sample,
+         str_len);
 
   return nb_samples;
 }
 
-static int get_in_samples_planar_string(swr_t *swr, value *in_vector) {
+static int get_in_samples_planar_string(swr_t *swr, value *in_vector,
+                                        int offset) {
   CAMLparam0();
   CAMLlocal1(str);
   int str_len = caml_string_length(Field(*in_vector, 0));
-  int i, nb_samples = str_len / swr->in.bytes_per_samples;
+  int i;
+  int nb_samples = str_len / swr->in.bytes_per_samples - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
 
   if (nb_samples > swr->in.nb_samples)
     alloc_data(&swr->in, nb_samples);
@@ -122,19 +136,25 @@ static int get_in_samples_planar_string(swr_t *swr, value *in_vector) {
   for (i = 0; i < swr->in.nb_channels; i++) {
     str = Field(*in_vector, i);
 
-    if (str_len != caml_string_length(str))
+    if (str_len != caml_string_length(str) - offset * swr->in.bytes_per_samples)
       Fail("Swresample failed to convert channel %d's %lu bytes : %d bytes "
            "were expected",
            i, caml_string_length(str), str_len);
 
-    memcpy(swr->in.data[i], (uint8_t *)String_val(str), str_len);
+    memcpy(swr->in.data[i],
+           (uint8_t *)String_val(str) + offset * swr->in.bytes_per_samples,
+           str_len);
   }
   CAMLreturnT(int, nb_samples);
 }
 
-static int get_in_samples_float_array(swr_t *swr, value *in_vector) {
+static int get_in_samples_float_array(swr_t *swr, value *in_vector,
+                                      int offset) {
   int i, linesize = Wosize_val(*in_vector) / Double_wosize;
-  int nb_samples = linesize / swr->in.nb_channels;
+  int nb_samples = linesize / swr->in.nb_channels - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
 
   if (nb_samples > swr->in.nb_samples)
     alloc_data(&swr->in, nb_samples);
@@ -142,17 +162,21 @@ static int get_in_samples_float_array(swr_t *swr, value *in_vector) {
   double *pcm = (double *)swr->in.data[0];
 
   for (i = 0; i < linesize; i++) {
-    pcm[i] = Double_field(*in_vector, i);
+    pcm[i] = Double_field(*in_vector, i + offset);
   }
 
   return nb_samples;
 }
 
-static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector) {
+static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector,
+                                             int offset) {
   CAMLparam0();
   CAMLlocal1(fa);
   int i, j, nb_words = Wosize_val(Field(*in_vector, 0));
-  int nb_samples = nb_words / Double_wosize;
+  int nb_samples = nb_words / Double_wosize - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
 
   if (nb_samples > swr->in.nb_samples)
     alloc_data(&swr->in, nb_samples);
@@ -168,21 +192,32 @@ static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector) {
     double *pcm = (double *)swr->in.data[i];
 
     for (j = 0; j < nb_samples; j++) {
-      pcm[j] = Double_field(fa, j);
+      pcm[j] = Double_field(fa, j + offset);
     }
   }
   CAMLreturnT(int, nb_samples);
 }
 
-static int get_in_samples_ba(swr_t *swr, value *in_vector) {
-  swr->in.data[0] = Caml_ba_data_val(*in_vector);
-  return Caml_ba_array_val(*in_vector)->dim[0] / swr->in.nb_channels;
-}
-
-static int get_in_samples_planar_ba(swr_t *swr, value *in_vector) {
+static int get_in_samples_ba(swr_t *swr, value *in_vector, int offset) {
   CAMLparam0();
   CAMLlocal1(ba);
-  int nb_samples = Caml_ba_array_val(Field(*in_vector, 0))->dim[0];
+  int nb_samples =
+      Caml_ba_array_val(*in_vector)->dim[0] / swr->in.nb_channels - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
+
+  swr->in.data[0] = Caml_ba_data_val(*in_vector) + offset * swr->in.nb_channels;
+  CAMLreturnT(int, nb_samples);
+}
+
+static int get_in_samples_planar_ba(swr_t *swr, value *in_vector, int offset) {
+  CAMLparam0();
+  CAMLlocal1(ba);
+  int nb_samples = Caml_ba_array_val(Field(*in_vector, 0))->dim[0] - offset;
+
+  if (nb_samples < 0)
+    Fail("Invalid offset!");
 
   for (int i = 0; i < swr->in.nb_channels; i++) {
     ba = Field(*in_vector, i);
@@ -192,7 +227,7 @@ static int get_in_samples_planar_ba(swr_t *swr, value *in_vector) {
            "were expected",
            i, Caml_ba_array_val(ba)->dim[0], nb_samples);
 
-    swr->in.data[i] = Caml_ba_data_val(ba);
+    swr->in.data[i] = Caml_ba_data_val(ba) + offset;
   }
   CAMLreturnT(int, nb_samples);
 }
@@ -415,8 +450,9 @@ static void convert_to_planar_ba(swr_t *swr, int in_nb_samples,
   }
 }
 
-CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector) {
-  CAMLparam2(_swr, _in_vector);
+CAMLprim value ocaml_swresample_convert(value _ofs, value _len, value _swr,
+                                        value _in_vector) {
+  CAMLparam4(_ofs, _len, _swr, _in_vector);
   swr_t *swr = Swr_val(_swr);
 
   // consistency check between the input channels and the context ones
@@ -434,9 +470,22 @@ CAMLprim value ocaml_swresample_convert(value _swr, value _in_vector) {
 
   // acquisition of the input samples and the input number of samples per
   // channel
-  int in_nb_samples = swr->get_in_samples(swr, &_in_vector);
+  int offset = 0;
+  if (_ofs != Val_none) {
+    offset = Int_val(Field(_ofs, 0));
+  }
+
+  int in_nb_samples = swr->get_in_samples(swr, &_in_vector, offset);
   if (in_nb_samples < 0)
     ocaml_avutil_raise_error(in_nb_samples);
+
+  if (_len != Val_none) {
+    int asked_nb_samples = Int_val(Field(_len, 0));
+    if (in_nb_samples < asked_nb_samples) {
+      Fail("Input vector too small!");
+    }
+    in_nb_samples = asked_nb_samples;
+  }
 
   // Computation of the output number of samples per channel according to the
   // input ones

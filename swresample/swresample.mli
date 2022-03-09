@@ -80,7 +80,7 @@ module Make (I : AudioData) (O : AudioData) : sig
       format.
 
       Raise Error if the conversion failed. *)
-  val convert : t -> I.t -> O.t
+  val convert : ?offset:int -> ?length:int -> t -> I.t -> O.t
 
   (** [Swresample.convert rpsp] flushes the last remaining data. *)
   val flush : t -> O.t
