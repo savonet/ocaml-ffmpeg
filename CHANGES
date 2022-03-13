@@ -1,9 +1,10 @@
-1.1.2 (unreleased)
+1.1.2 (2022-03-13)
 =====
 * Change error returned on OCaml callback exception
   to AVERROR_EXTERNAL, add log entry.
 * Get rid of naked pointers.
 * Adapt to most recent FFmpeg API.
+* Added offset/length to conversion functions.
 
 1.1.1 (2021-12-26)
 ======

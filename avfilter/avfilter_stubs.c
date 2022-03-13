@@ -114,8 +114,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
 #else
                     f->inputs, f->nb_inputs, f->name
 #endif
-                )
-    );
+                    ));
     Store_field(cur, 3,
                 ocaml_avfilter_alloc_pads(
 #if LIBAVFILTER_VERSION_INT < AV_VERSION_INT(8, 3, 100)
@@ -123,8 +122,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
 #else
                     f->outputs, f->nb_outputs, f->name
 #endif
-                    )
-    );
+                    ));
     Store_field(cur, 4, value_of_avclass(tmp, f->priv_class));
     Store_field(cur, 5, Val_int(f->flags));
 
