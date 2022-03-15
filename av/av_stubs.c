@@ -308,17 +308,17 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
       caml_stat_free(caml_exn);
     }
 
+    if (c_exn) {
+      av_log(avio->avio_context, AV_LOG_ERROR,
+             "Error while executing OCaml read callback: %s\n", c_exn);
+      free(c_exn);
+    }
+
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
 
     if (ret != 0) {
       caml_c_thread_unregister();
-    }
-
-    if (c_exn) {
-      av_log(avio->avio_context, AV_LOG_ERROR,
-             "Error while executing OCaml read callback: %s\n", c_exn);
-      free(c_exn);
     }
 
     return AVERROR_EXTERNAL;
@@ -341,6 +341,10 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
 
   if (ret != 0) {
     caml_c_thread_unregister();
+  }
+
+  if (Int_val(res) == 0) {
+    return AVERROR_EOF;
   }
 
   return Int_val(res);
@@ -380,17 +384,17 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
       caml_stat_free(caml_exn);
     }
 
+    if (c_exn) {
+      av_log(avio->avio_context, AV_LOG_ERROR,
+             "Error while executing OCaml write callback: %s\n", c_exn);
+      free(c_exn);
+    }
+
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
 
     if (ret != 0) {
       caml_c_thread_unregister();
-    }
-
-    if (c_exn) {
-      av_log(avio->avio_context, AV_LOG_ERROR,
-             "Error while executing OCaml write callback: %s\n", c_exn);
-      free(c_exn);
     }
 
     return AVERROR_EXTERNAL;
