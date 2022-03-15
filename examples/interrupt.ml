@@ -26,7 +26,8 @@ let () =
   Hashtbl.replace opts "listen" (`Int 1);
 
   (try
-     ignore (Av.open_input ~interrupt ~opts "rtmp://localhost/foo");
+     let sock = Filename.temp_file "ocaml-ffmpeg" "sock" in
+     ignore (Av.open_input ~interrupt ~opts (Printf.sprintf "unix://%s?listen=1" sock));
      assert false
    with Avutil.Error `Exit -> ());
 
