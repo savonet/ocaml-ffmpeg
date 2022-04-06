@@ -546,19 +546,25 @@ CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
 
   caml_release_runtime_system();
   AVFrame *frame = av_frame_alloc();
-  caml_acquire_runtime_system();
 
-  if (!frame)
+  if (!frame) {
+    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
+  }
 
   frame_value = value_of_frame(frame);
 
   caml_release_runtime_system();
   int err = av_buffersink_get_frame(filter_ctx, frame);
-  caml_acquire_runtime_system();
 
-  if (err < 0)
+  if (err < 0) {
+    av_frame_free(&frame);
+    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(err);
+  }
+
+  caml_acquire_runtime_system();
+  frame_value = value_of_frame(frame);
 
   CAMLreturn(frame_value);
 }
