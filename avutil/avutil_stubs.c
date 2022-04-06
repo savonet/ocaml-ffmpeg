@@ -606,7 +606,14 @@ value value_of_frame(AVFrame *frame) {
   if (!frame)
     Fail("Empty frame");
 
-  ret = caml_alloc_custom(&frame_ops, sizeof(AVFrame *), 0, 1);
+  int size = 0;
+  int n = 0;
+  while (n < AV_NUM_DATA_POINTERS && frame->buf[n] != NULL) {
+    size += frame->buf[n]->size;
+    n++;
+  }
+
+  ret = caml_alloc_custom_mem(&frame_ops, sizeof(AVFrame *), size);
   Frame_val(ret) = frame;
 
   return ret;
