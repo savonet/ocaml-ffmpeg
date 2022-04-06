@@ -552,9 +552,6 @@ CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
     caml_raise_out_of_memory();
   }
 
-  frame_value = value_of_frame(frame);
-
-  caml_release_runtime_system();
   int err = av_buffersink_get_frame(filter_ctx, frame);
 
   if (err < 0) {
