@@ -144,7 +144,12 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   if (!packet)
     Fail("Empty packet");
 
-  ret = caml_alloc_custom(&packet_ops, sizeof(AVPacket *), 0, 1);
+  int size = 0;
+
+  if (packet->buf)
+    size = packet->buf->size;
+
+  ret = caml_alloc_custom_mem(&packet_ops, sizeof(AVPacket *), size);
   Packet_val(ret) = packet;
 
   return ret;
