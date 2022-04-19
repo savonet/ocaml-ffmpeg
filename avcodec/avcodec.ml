@@ -7,6 +7,16 @@ type 'media decoder
 type 'media encoder
 type encode = [ `Encoder ]
 type decode = [ `Decoder ]
+type profile = { id : int; profile_name : string }
+
+type descriptor = {
+  media_type : Avutil.media_type;
+  name : string;
+  long_name : string option;
+  properties : Codec_properties.t list;
+  mime_types : string list;
+  profiles : profile list;
+}
 
 external flag_qscale : unit -> int = "ocaml_avcodec_flag_qscale"
 
@@ -51,6 +61,19 @@ external capabilities : ([< `Audio | `Video ], encode) codec -> capability array
   = "ocaml_avcodec_capabilities"
 
 let capabilities c = Array.to_list (capabilities c)
+
+let mk_descriptor descriptor id =
+  Option.map
+    (fun (media_type, name, long_name, properties, mime_types, profiles) ->
+      {
+        media_type;
+        name;
+        long_name;
+        properties = Array.to_list properties;
+        mime_types = Array.to_list mime_types;
+        profiles = Array.to_list profiles;
+      })
+    (descriptor id)
 
 type hw_config_method = Hw_config_method.t
 
@@ -187,6 +210,17 @@ module Audio = struct
 
   type id = Codec_id.audio
 
+  external audio_descriptor :
+    id ->
+    (Avutil.media_type
+    * string
+    * string option
+    * Codec_properties.t array
+    * string array
+    * profile array)
+    option = "ocaml_avcodec_audio_descriptor"
+
+  let descriptor = mk_descriptor audio_descriptor
   let codec_ids = Codec_id.audio
   let get_name = get_name
   let get_description = get_description
@@ -309,6 +343,17 @@ module Video = struct
   type 'mode t = (video, 'mode) codec
   type id = Codec_id.video
 
+  external video_descriptor :
+    id ->
+    (Avutil.media_type
+    * string
+    * string option
+    * Codec_properties.t array
+    * string array
+    * profile array)
+    option = "ocaml_avcodec_video_descriptor"
+
+  let descriptor = mk_descriptor video_descriptor
   let codec_ids = Codec_id.video
 
   let encoders =
@@ -437,6 +482,17 @@ module Subtitle = struct
   type 'mode t = (subtitle, 'mode) codec
   type id = Codec_id.subtitle
 
+  external subtitle_descriptor :
+    id ->
+    (Avutil.media_type
+    * string
+    * string option
+    * Codec_properties.t array
+    * string array
+    * profile array)
+    option = "ocaml_avcodec_subtitle_descriptor"
+
+  let descriptor = mk_descriptor subtitle_descriptor
   let codec_ids = Codec_id.subtitle
 
   let encoders =

@@ -10,9 +10,7 @@ type 'a container
 type audio = [ `Audio ]
 type video = [ `Video ]
 type subtitle = [ `Subtitle ]
-
-type media_type =
-  [ audio | video | subtitle | `Unknown | `Data | `Attachment | `Nb ]
+type media_type = Media_types.t
 
 (* Format *)
 type ('line, 'media) format

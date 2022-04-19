@@ -27,7 +27,9 @@ let () =
 
   (try
      let sock = Filename.temp_file "ocaml-ffmpeg" "sock" in
-     ignore (Av.open_input ~interrupt ~opts (Printf.sprintf "unix://%s?listen=1" sock));
+     ignore
+       (Av.open_input ~interrupt ~opts
+          (Printf.sprintf "unix://%s?listen=1" sock));
      assert false
    with Avutil.Error `Exit -> ());
 

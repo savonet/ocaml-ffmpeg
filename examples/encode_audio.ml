@@ -45,7 +45,7 @@ let () =
   let out_file = open_out_bin Sys.argv.(1) in
 
   for i = 0 to 2000 do
-    Array.init (2*frame_size) (fun t ->
+    Array.init (2 * frame_size) (fun t ->
         sin (float_of_int (t + (i * frame_size)) *. c))
     |> Resampler.convert ~offset:10 ~length:frame_size rsp
     |> Avcodec.encode encoder (Packet.to_bytes %> output_bytes out_file)

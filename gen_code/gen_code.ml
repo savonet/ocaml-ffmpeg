@@ -429,6 +429,36 @@ let gen_codec_capabilities mode =
     ]
     mode
 
+let gen_codec_properties mode =
+  translate_c_values ~pre_process:false
+    ["/libavcodec/codec_desc.h"; "/libavcodec/avcodec_desc.h"]
+    "codec_properties"
+    [
+      ( "",
+        "#define AV_CODEC_PROP_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_CODEC_PROP_",
+        "uint64_t",
+        "CodecProperties",
+        "t" );
+    ]
+    mode
+
+let gen_media_types mode =
+  translate_c_values ~pre_process:false
+    ["/libavutil/avutil.h"; "/libavutil/avutil.h"]
+    "media_types"
+    [
+      ( "enum AVMediaType",
+        "[ \t]*AVMEDIA_TYPE_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVMEDIA_TYPE_NB",
+        "AVMEDIA_TYPE_",
+        "uint64_t",
+        "MediaTypes",
+        "t" );
+    ]
+    mode
+
 let gen_sample_format mode =
   translate_c_values ~pre_process:true ["/libavutil/samplefmt.h"]
     "sample_format"
@@ -485,4 +515,6 @@ let () =
     | "sample_format" -> gen_sample_format mode
     | "swresample_options" -> gen_swresample_options mode
     | "codec_capabilities" -> gen_codec_capabilities mode
+    | "codec_properties" -> gen_codec_properties mode
+    | "media_types" -> gen_media_types mode
     | _ -> assert false

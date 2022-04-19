@@ -9,7 +9,10 @@
    (:include c_flags.sexp)))
  (c_library_flags
   (:include c_library_flags.sexp))
- (install_c_headers avutil_stubs polymorphic_variant_values_stubs)
+ (install_c_headers
+  avutil_stubs
+  polymorphic_variant_values_stubs
+  media_types_stubs)
  (libraries threads))
 
 (rule
@@ -23,6 +26,7 @@
  (deps
   polymorphic_variant_values_stubs.h
   pixel_format_stubs.h
+  media_types_stubs.h
   hw_device_type_stubs.h
   pixel_format_flag_stubs.h
   sample_format_stubs.h
@@ -51,6 +55,18 @@
    hw_device_type
    ml
    %{read-lines:c_flags})))
+
+(rule
+ (targets media_types_stubs.h)
+ (deps c_flags)
+ (action
+  (run ../gen_code/gen_code.exe "%{cc}" media_types h %{read-lines:c_flags})))
+
+(rule
+ (targets media_types.ml)
+ (deps media_types_stubs.h c_flags)
+ (action
+  (run ../gen_code/gen_code.exe "%{cc}" media_types ml %{read-lines:c_flags})))
 
 (rule
  (targets polymorphic_variant_values_stubs.h)

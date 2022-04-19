@@ -9,6 +9,16 @@ type 'media decoder
 type 'media encoder
 type encode = [ `Encoder ]
 type decode = [ `Decoder ]
+type profile = { id : int; profile_name : string }
+
+type descriptor = {
+  media_type : Avutil.media_type;
+  name : string;
+  long_name : string option;
+  properties : Codec_properties.t list;
+  mime_types : string list;
+  profiles : profile list;
+}
 
 (** {5 Constants} *)
 
@@ -120,6 +130,9 @@ module Audio : sig
   (** Audio codec ids. Careful: different codecs share the same ID, e.g. aac and
       libfdk_aac *)
   type id = Codec_id.audio
+
+  (** Get the codec descriptor. *)
+  val descriptor : id -> descriptor option
 
   (** List of all audio codec IDs. *)
   val codec_ids : Codec_id.audio list
@@ -248,6 +261,9 @@ module Video : sig
       libfdk_aac *)
   type id = Codec_id.video
 
+  (** Get the codec descriptor. *)
+  val descriptor : id -> descriptor option
+
   (** List all video codec IDs. *)
   val codec_ids : Codec_id.video list
 
@@ -366,6 +382,9 @@ module Subtitle : sig
   (** Subtitle codec ids. Careful: different codecs share the same ID, e.g. aac
       and libfdk_aac *)
   type id = Codec_id.subtitle
+
+  (** Get the codec descriptor. *)
+  val descriptor : id -> descriptor option
 
   (** List all subtitle codec IDs. *)
   val codec_ids : Codec_id.subtitle list
