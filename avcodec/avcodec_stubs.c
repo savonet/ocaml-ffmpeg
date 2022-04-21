@@ -1107,6 +1107,11 @@ CAMLprim value ocaml_avcodec_descriptor(enum AVCodecID id) {
   CAMLreturn(tmp);
 }
 
+CAMLprim value ocaml_avcodec_params_descriptor(value _params) {
+  CAMLparam1(_params);
+  CAMLreturn(ocaml_avcodec_descriptor(CodecParameters_val(_params)->codec_id));
+}
+
 value ocaml_avcodec_audio_descriptor(value _codec_id) {
   return ocaml_avcodec_descriptor(AudioCodecID_val(_codec_id));
 }

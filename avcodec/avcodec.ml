@@ -62,7 +62,7 @@ external capabilities : ([< `Audio | `Video ], encode) codec -> capability array
 
 let capabilities c = Array.to_list (capabilities c)
 
-let mk_descriptor descriptor id =
+let mk_descriptor d =
   Option.map
     (fun (media_type, name, long_name, properties, mime_types, profiles) ->
       {
@@ -73,7 +73,19 @@ let mk_descriptor descriptor id =
         mime_types = Array.to_list mime_types;
         profiles = Array.to_list profiles;
       })
-    (descriptor id)
+    d
+
+external params_descriptor :
+  'media params ->
+  (Avutil.media_type
+  * string
+  * string option
+  * Codec_properties.t array
+  * string array
+  * profile array)
+  option = "ocaml_avcodec_params_descriptor"
+
+let descriptor p = mk_descriptor (params_descriptor p)
 
 type hw_config_method = Hw_config_method.t
 
@@ -220,7 +232,7 @@ module Audio = struct
     * profile array)
     option = "ocaml_avcodec_audio_descriptor"
 
-  let descriptor = mk_descriptor audio_descriptor
+  let descriptor id = mk_descriptor (audio_descriptor id)
   let codec_ids = Codec_id.audio
   let get_name = get_name
   let get_description = get_description
@@ -353,7 +365,7 @@ module Video = struct
     * profile array)
     option = "ocaml_avcodec_video_descriptor"
 
-  let descriptor = mk_descriptor video_descriptor
+  let descriptor id = mk_descriptor (video_descriptor id)
   let codec_ids = Codec_id.video
 
   let encoders =
@@ -492,7 +504,7 @@ module Subtitle = struct
     * profile array)
     option = "ocaml_avcodec_subtitle_descriptor"
 
-  let descriptor = mk_descriptor subtitle_descriptor
+  let descriptor id = mk_descriptor (subtitle_descriptor id)
   let codec_ids = Codec_id.subtitle
 
   let encoders =
