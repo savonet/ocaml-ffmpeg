@@ -431,7 +431,7 @@ let gen_codec_capabilities mode =
 
 let gen_codec_properties mode =
   translate_c_values ~pre_process:false
-    ["/libavcodec/codec_desc.h"; "/libavcodec/avcodec_desc.h"]
+    ["/libavcodec/codec_desc.h"; "/libavcodec/avcodec.h"]
     "codec_properties"
     [
       ( "",
