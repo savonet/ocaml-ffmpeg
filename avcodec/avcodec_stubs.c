@@ -7,6 +7,8 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
+#include <libavcodec/bsf.h>
+
 #include "avcodec_stubs.h"
 #include "avutil_stubs.h"
 #include "codec_capabilities_stubs.h"
@@ -971,6 +973,12 @@ CAMLprim value ocaml_avcodec_get_audio_codec_id_name(value _codec_id) {
       avcodec_get_name((enum AVCodecID)AudioCodecID_val(_codec_id))));
 }
 
+CAMLprim value ocaml_avcodec_get_codec_id_name(value _codec_id) {
+  CAMLparam1(_codec_id);
+  CAMLreturn(caml_copy_string(
+      avcodec_get_name((enum AVCodecID)CodecID_val(_codec_id))));
+}
+
 CAMLprim value ocaml_avcodec_find_audio_encoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
@@ -1559,4 +1567,193 @@ CAMLprim value ocaml_avcodec_get_description(value _codec) {
     CAMLreturn(caml_copy_string(""));
 
   CAMLreturn(caml_copy_string(codec->long_name));
+}
+
+#define BsfCursor_val(v) (*(void **)Data_abstract_val(v))
+
+CAMLprim value ocaml_avcodec_bsf_next(value _cursor) {
+  CAMLparam1(_cursor);
+  CAMLlocal2(ans, tmp);
+  int len;
+  enum AVCodecID *codec_id;
+  void *cursor = NULL;
+  if (_cursor != Val_none)
+    cursor = BsfCursor_val(Field(_cursor, 0));
+
+  const AVBitStreamFilter *filter = av_bsf_iterate(&cursor);
+
+  if (!filter)
+    CAMLreturn(Val_none);
+
+  ans = caml_alloc_tuple(4);
+  Store_field(ans, 0, caml_copy_string(filter->name));
+
+  len = 0;
+  codec_id = (enum AVCodecID *)filter->codec_ids;
+  while (codec_id && *codec_id != AV_CODEC_ID_NONE) {
+    codec_id++;
+    len++;
+  }
+
+  tmp = caml_alloc_tuple(len);
+  len = 0;
+  codec_id = (enum AVCodecID *)filter->codec_ids;
+  while (codec_id && *codec_id != AV_CODEC_ID_NONE) {
+    Store_field(tmp, len, Val_CodecID(*codec_id));
+    codec_id++;
+    len++;
+  }
+  Store_field(ans, 1, tmp);
+  Store_field(ans, 2, value_of_avclass(tmp, filter->priv_class));
+
+  tmp = caml_alloc(1, Abstract_tag);
+  BsfCursor_val(tmp) = cursor;
+
+  Store_field(ans, 3, tmp);
+
+  tmp = caml_alloc_tuple(1);
+  Store_field(tmp, 0, ans);
+
+  CAMLreturn(tmp);
+}
+
+#define BsfFilter_val(v) (*(AVBSFContext **)Data_custom_val(v))
+
+static void finalize_bsf_filter(value v) {
+  AVBSFContext *filter = BsfFilter_val(v);
+  av_bsf_free(&filter);
+}
+
+static struct custom_operations bsf_filter_ops = {
+    "bsf_filter_parameters",  finalize_bsf_filter,
+    custom_compare_default,   custom_hash_default,
+    custom_serialize_default, custom_deserialize_default};
+
+CAMLprim value ocaml_avcodec_bsf_init(value _opts, value _name, value _params) {
+  CAMLparam3(_opts, _name, _params);
+  CAMLlocal3(tmp, ans, unused);
+  AVCodecParameters *params = CodecParameters_val(_params);
+  AVBSFContext *bsf;
+  const AVBitStreamFilter *filter;
+  AVDictionary *options = NULL;
+  int ret;
+
+  filter = av_bsf_get_by_name(String_val(_name));
+
+  if (!filter) {
+    caml_raise_not_found();
+  }
+
+  char *key, *val;
+  int len = Wosize_val(_opts);
+  int i, err, count;
+
+  for (i = 0; i < len; i++) {
+    // Dictionaries copy key/values by default!
+    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
+    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
+    err = av_dict_set(&options, key, val, 0);
+    if (err < 0) {
+      av_dict_free(&options);
+      ocaml_avutil_raise_error(err);
+    }
+  }
+
+  caml_release_runtime_system();
+  ret = av_bsf_alloc(filter, &bsf);
+  if (ret < 0) {
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  ret = avcodec_parameters_copy(bsf->par_in, params);
+  if (ret < 0) {
+    av_bsf_free(&bsf);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  ret = av_opt_set_dict(bsf, &options);
+  if (ret < 0) {
+    av_bsf_free(&bsf);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  ret = av_bsf_init(bsf);
+  if (ret < 0) {
+    av_bsf_free(&bsf);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  // Return unused keys
+  count = av_dict_count(options);
+
+  caml_acquire_runtime_system();
+
+  unused = caml_alloc_tuple(count);
+  AVDictionaryEntry *entry = NULL;
+  for (i = 0; i < count; i++) {
+    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
+    Store_field(unused, i, caml_copy_string(entry->key));
+  }
+
+  av_dict_free(&options);
+
+  tmp = caml_alloc_custom(&bsf_filter_ops, sizeof(AVBSFContext *), 0, 1);
+  BsfFilter_val(tmp) = bsf;
+
+  ans = caml_alloc_tuple(3);
+  Store_field(ans, 0, tmp);
+
+  value_of_codec_parameters_copy(bsf->par_out, &tmp);
+  Store_field(ans, 1, tmp);
+
+  Store_field(ans, 2, unused);
+
+  CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avcodec_bsf_send_packet(value _filter, value _packet) {
+  CAMLparam2(_filter, _packet);
+  int ret;
+  AVPacket *packet = Packet_val(_packet);
+  AVBSFContext *bsf = BsfFilter_val(_filter);
+
+  caml_release_runtime_system();
+  ret = av_bsf_send_packet(bsf, packet);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) {
+    ocaml_avutil_raise_error(ret);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
+  CAMLparam1(_filter);
+  int ret;
+  AVPacket *packet;
+
+  caml_release_runtime_system();
+  packet = av_packet_alloc();
+
+  if (!packet) {
+    caml_acquire_runtime_system();
+    caml_raise_out_of_memory();
+  }
+
+  ret = av_bsf_receive_packet(BsfFilter_val(_filter), packet);
+
+  if (ret < 0) {
+    av_packet_free(&packet);
+    caml_acquire_runtime_system();
+    ocaml_avutil_raise_error(ret);
+  }
+
+  caml_acquire_runtime_system();
+
+  CAMLreturn(value_of_ffmpeg_packet(packet));
 }

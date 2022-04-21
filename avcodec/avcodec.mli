@@ -434,6 +434,29 @@ module Subtitle : sig
   val get_params_id : subtitle params -> id
 end
 
+(* This also includes the fake codecs. *)
+type id = Codec_id.codec_id
+
+val string_of_id : id -> string
+
+module BitstreamFilter : sig
+  type filter = private {
+    name : string;
+    codecs : id list;
+    options : Avutil.Options.t;
+  }
+
+  type 'a t
+
+  val filters : filter list
+
+  (** Init a filter with optional options and input params. Returns initialized filter with output params. *)
+  val init : ?opts:opts -> filter -> 'a params -> 'a t * 'a params
+
+  val send_packet : 'a t -> 'a Packet.t -> unit
+  val receive_packet : 'a t -> 'a Packet.t
+end
+
 (** [Avcodec.decode decoder f packet] applies function [f] to the decoded frames
     frome the [packet] according to the [decoder] configuration.
 

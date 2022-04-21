@@ -1,6 +1,7 @@
 1.1.4 (unreleased)
 =====
 * Added codec descriptor API.
+* Added quick & dirty API to use h264_mp4toannexb
 
 1.1.3 (2022-04-06)
 =====

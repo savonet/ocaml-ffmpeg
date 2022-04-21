@@ -7,6 +7,7 @@
  (package ffmpeg)
  (deps
   (:all_codecs ../examples/all_codecs.exe)
+  (:all_bitstream_filters ../examples/all_bitstream_filters.exe)
   (:hw_encode ../examples/hw_encode.exe)
   (:list_filters ../examples/list_filters.exe)
   (:encode_audio ../examples/encode_audio.exe)
@@ -30,6 +31,7 @@
   (progn
    (run %{list_filters})
    (run %{all_codecs})
+   (run %{all_bitstream_filters})
    (run %{hw_encode} nvenc.mp4 h264_nvenc device)
    (run %{hw_encode} nvenc.mp4 h264_nvenc frame)
    (run %{encode_audio} A4.flac flac)

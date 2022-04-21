@@ -114,6 +114,11 @@
  (libraries ffmpeg-avcodec))
 
 (executable
+ (name all_bitstream_filters)
+ (modules all_bitstream_filters)
+ (libraries ffmpeg-avcodec))
+
+(executable
  (name interrupt)
  (modules interrupt)
  (libraries ffmpeg-av))

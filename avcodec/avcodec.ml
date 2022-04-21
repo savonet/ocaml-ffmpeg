@@ -594,3 +594,49 @@ let flush_encoder encoder f =
   receive_packet encoder f;
   _flush_encoder encoder;
   receive_packet encoder f
+
+type id = Codec_id.codec_id
+
+external string_of_id : id -> string = "ocaml_avcodec_get_codec_id_name"
+
+module BitstreamFilter = struct
+  type filter = { name : string; codecs : id list; options : Avutil.Options.t }
+  type 'a t
+  type cursor
+
+  external get_next :
+    cursor option -> (string * id array * Avutil.Options.t * cursor) option
+    = "ocaml_avcodec_bsf_next"
+
+  let get_next cursor =
+    Option.map
+      (fun (name, codecs, options, cursor) ->
+        ({ name; codecs = Array.to_list codecs; options }, cursor))
+      (get_next cursor)
+
+  let filters =
+    let rec f cursor filters =
+      match get_next cursor with
+        | None -> filters
+        | Some (filter, cursor) -> f (Some cursor) (filter :: filters)
+    in
+    f None []
+
+  external init :
+    (string * string) array ->
+    string ->
+    'a params ->
+    'a t * 'a params * string array = "ocaml_avcodec_bsf_init"
+
+  let init ?opts { name; _ } params =
+    let opts = opts_default opts in
+    let filter, params, unused = init (mk_opts_array opts) name params in
+    filter_opts unused opts;
+    (filter, params)
+
+  external send_packet : 'a t -> 'a Packet.t -> unit
+    = "ocaml_avcodec_bsf_send_packet"
+
+  external receive_packet : 'a t -> 'a Packet.t
+    = "ocaml_avcodec_bsf_receive_packet"
+end
