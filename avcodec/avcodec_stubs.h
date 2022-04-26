@@ -1,14 +1,8 @@
 #ifndef _AVCODEC_STUBS_H_               
 #define _AVCODEC_STUBS_H_
 
-#include "config.h"
-
 #include <caml/mlvalues.h>
 #include <libavcodec/avcodec.h>
-
-#ifdef HAS_BSF_H
-#include <libavcodec/bsf.h>
-#endif
 
 /***** AVCodec *****/
 

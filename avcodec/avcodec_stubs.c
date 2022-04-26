@@ -15,6 +15,12 @@
 #include "hw_config_method_stubs.h"
 #include "media_types_stubs.h"
 
+#include "config.h"
+
+#ifdef HAS_BSF_H
+#include <libavcodec/bsf.h>
+#endif
+
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
 #endif
