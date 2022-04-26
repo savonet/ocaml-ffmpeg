@@ -7,10 +7,6 @@
 #include <caml/mlvalues.h>
 #include <caml/threads.h>
 
-#ifndef AVCODEC_BSF_H
-#include <libavcodec/bsf.h>
-#endif
-
 #include "avcodec_stubs.h"
 #include "avutil_stubs.h"
 #include "codec_capabilities_stubs.h"
@@ -18,6 +14,10 @@
 #include "codec_properties_stubs.h"
 #include "hw_config_method_stubs.h"
 #include "media_types_stubs.h"
+
+#ifndef AVCODEC_BSF_H
+#include <libavcodec/bsf.h>
+#endif
 
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
