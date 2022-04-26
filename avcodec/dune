@@ -22,6 +22,7 @@
  (targets avcodec_stubs.c)
  (mode fallback)
  (deps
+  config.h
   hw_config_method_stubs.h
   codec_capabilities_stubs.h
   codec_properties_stubs.h
