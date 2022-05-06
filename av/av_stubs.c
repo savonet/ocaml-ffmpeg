@@ -100,6 +100,7 @@ static void close_av(av_t *av) {
 
   if (av->interrupt_cb != Val_none) {
     caml_remove_generational_global_root(&av->interrupt_cb);
+    av->interrupt_cb = Val_none;
   }
 
   if (av->format_context) {
@@ -453,6 +454,11 @@ static int ocaml_av_interrupt_callback(void *private) {
   value res;
   av_t *av = (av_t *)private;
   int ret, n;
+
+  // This only happen when closing av_t so
+  // we want to return immediately.
+  if (av->interrupt_cb == Val_none)
+    return 1;
 
   ret = caml_c_thread_register();
 
