@@ -31,13 +31,8 @@ let () =
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs;
 
       let has_bsf_h =
-        C.c_test 
-          ~c_flags:conf.cflags
-          ~link_flags:conf.libs c
-          has_bsf_h_code
+        C.c_test ~c_flags:conf.cflags ~link_flags:conf.libs c has_bsf_h_code
       in
 
       C.C_define.gen_header_file c ~fname:"config.h"
-        [
-          ("HAS_BSF_H", Switch has_bsf_h)
-        ])
+        [("HAS_BSF_H", Switch has_bsf_h)])

@@ -1210,6 +1210,7 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
 CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   CAMLparam2(_cursor, _class);
   CAMLlocal4(_opt, _type, _tmp, _spec);
+  int unimplement_option = 0;
 
   const AVClass *class;
   const struct AVOption *option;
@@ -1424,7 +1425,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     }
     break;
   default:
-    caml_failwith("Invalid option type!");
+    unimplement_option = 1;
   }
 
   _tmp = caml_alloc_tuple(2);
@@ -1453,6 +1454,10 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
 #endif
   Store_field(Field(_tmp, 0), 1, value_of_avclass(_class, class));
   Store_field(_opt, 5, _tmp);
+
+  if (unimplement_option)
+    caml_raise_with_arg(*caml_named_value("av_opt_iter_not_implemented"),
+                        Field(_opt, 5));
 
   _tmp = caml_alloc_tuple(1);
   Store_field(_tmp, 0, _opt);

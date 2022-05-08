@@ -420,6 +420,12 @@ module Options = struct
     _cursor : _cursor option;
   }
 
+  exception Av_opt_iter_not_implemented of _cursor option
+
+  let () =
+    Callback.register_exception "av_opt_iter_not_implemented"
+      (Av_opt_iter_not_implemented None)
+
   external av_opt_iter : _cursor option -> t -> _opt option
     = "ocaml_avutil_av_opt_iter"
 
@@ -580,6 +586,7 @@ module Options = struct
             Hashtbl.add constants (Option.get _unit) (_name, s);
             f _cursor _opts
         | Some _opt -> f _opt._cursor (_opt :: _opts)
+        | exception Av_opt_iter_not_implemented _cursor -> f _cursor _opts
     in
 
     f None []
