@@ -639,4 +639,6 @@ module BitstreamFilter = struct
 
   external receive_packet : 'a t -> 'a Packet.t
     = "ocaml_avcodec_bsf_receive_packet"
+
+  external send_eof : 'a t -> unit = "ocaml_avcodec_bsf_send_eof"
 end

@@ -1736,6 +1736,22 @@ CAMLprim value ocaml_avcodec_bsf_send_packet(value _filter, value _packet) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avcodec_bsf_send_eof(value _filter) {
+  CAMLparam1(_filter);
+  int ret;
+  AVBSFContext *bsf = BsfFilter_val(_filter);
+
+  caml_release_runtime_system();
+  ret = av_bsf_send_packet(bsf, NULL);
+  caml_acquire_runtime_system();
+
+  if (ret < 0) {
+    ocaml_avutil_raise_error(ret);
+  }
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
   CAMLparam1(_filter);
   int ret;

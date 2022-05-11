@@ -454,6 +454,7 @@ module BitstreamFilter : sig
   val init : ?opts:opts -> filter -> 'a params -> 'a t * 'a params
 
   val send_packet : 'a t -> 'a Packet.t -> unit
+  val send_eof : 'a t -> unit
   val receive_packet : 'a t -> 'a Packet.t
 end
 
