@@ -3,6 +3,7 @@
 * Added codec descriptor API.
 * Added quick & dirty API to use h264_mp4toannexb
 * Fixed issues with unimplements AvOptions types.
+* Fixed memory cleanup when raising exception in `open_input` (#55)
 
 1.1.3 (2022-04-06)
 =====
