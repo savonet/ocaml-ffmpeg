@@ -1,7 +1,7 @@
 1.1.4 (2022-06-18)
 =====
 * Added codec descriptor API.
-* Added quick & dirty API to use h264_mp4toannexb
+* Added bitstream filters API
 * Fixed issues with unimplements AvOptions types.
 * Fixed memory cleanup when raising exception in `open_input` (#55)
 
