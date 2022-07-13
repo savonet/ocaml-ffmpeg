@@ -127,7 +127,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][0])return ";
         tab_name;
-        "[i][1];\n}\ncaml_raise_not_found();\n}";
+        "[i][1];\n}\nFail(\"Could not find C value for " ^ tab_name
+        ^ ". Do you need to recompile the ffmpeg binding?\");\nreturn -1;\n}";
       ];
 
     print_c
@@ -156,7 +157,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][1])return ";
         tab_name;
-        "[i][0];\n}\ncaml_raise_not_found();\n}";
+        "[i][0];\n}\nFail(\"Could not find C value for " ^ tab_name
+        ^ ". Do you need to recompile the ffmpeg binding?\");\nreturn -1;\n}";
       ])
 
 let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
@@ -195,6 +197,7 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
         in
 
         if_d h_oc (fun oc ->
+            output_string oc "#include \"avutil_stubs.h\"\n\n";
             output_string oc "#define VALUE_NOT_FOUND 0xFFFFFFF\n\n");
 
         List.iter
