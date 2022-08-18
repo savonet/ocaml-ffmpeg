@@ -2,6 +2,7 @@
 ======
 * Fix segfault when flushing an encoder that
   hasn't been started yet.
+* Added flac to codec_attr.
 
 1.1.4 (2022-06-18)
 =====

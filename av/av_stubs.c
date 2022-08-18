@@ -2413,6 +2413,8 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
     } else {
       snprintf(attr, sizeof(attr), "avc1");
     }
+  } else if (stream->codecpar->codec_id == AV_CODEC_ID_FLAC) {
+      snprintf(attr, sizeof(attr), "fLaC");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
     uint8_t *data = stream->codecpar->extradata;
     int profile = FF_PROFILE_UNKNOWN;
