@@ -2273,6 +2273,8 @@ CAMLprim value ocaml_av_flush(value _av) {
   av_t *av = Av_val(_av);
   int ret;
 
+  if (!av->header_written) CAMLreturn(Val_unit);
+
   caml_release_runtime_system();
   ret = av_interleaved_write_frame(av->format_context, NULL);
   if (ret >= 0 && av->format_context->pb)
