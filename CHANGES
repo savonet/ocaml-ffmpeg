@@ -1,4 +1,4 @@
-1.1.5 (unreleased)
+1.1.5 (2022-08-28)
 ======
 * Fix segfault when flushing an encoder that
   hasn't been started yet.
