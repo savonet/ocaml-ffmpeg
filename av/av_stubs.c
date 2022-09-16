@@ -252,8 +252,6 @@ void ocaml_av_set_control_message_callback(value *p_av,
 
 typedef struct avio_t {
   AVFormatContext *format_context;
-  unsigned char *buffer;
-  int buffer_size;
   AVIOContext *avio_context;
   value read_cb;
   value write_cb;
@@ -467,6 +465,8 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   int (*write_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
   int64_t (*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
   int write_flag = 0;
+  unsigned char *buffer;
+  int buffer_size;
 
   avio_t *avio = (avio_t *)calloc(1, sizeof(avio_t));
   if (!avio)
@@ -483,11 +483,11 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
     caml_raise_out_of_memory();
   }
 
-  avio->buffer_size = Int_val(bufsize);
-  avio->buffer = av_malloc(avio->buffer_size);
+  buffer_size = Int_val(bufsize);
+  buffer = av_malloc(buffer_size);
 
-  if (!avio->buffer) {
-    av_freep(avio->format_context);
+  if (!buffer) {
+    avformat_free_context(avio->format_context);
     free(avio);
     caml_raise_out_of_memory();
   }
@@ -512,14 +512,21 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   }
 
   avio->avio_context =
-      avio_alloc_context(avio->buffer, avio->buffer_size, write_flag,
-                         (void *)avio, read_cb, write_cb, seek_cb);
+      avio_alloc_context(buffer, buffer_size, write_flag, (void *)avio, read_cb,
+                         write_cb, seek_cb);
 
   if (!avio->avio_context) {
-    av_freep(avio->buffer);
-    av_freep(avio->format_context);
-    caml_acquire_runtime_system();
+    if (avio->read_cb)
+      caml_remove_generational_global_root(&avio->read_cb);
 
+    if (avio->write_cb)
+      caml_remove_generational_global_root(&avio->write_cb);
+
+    if (avio->seek_cb)
+      caml_remove_generational_global_root(&avio->seek_cb);
+
+    av_freep(buffer);
+    avformat_free_context(avio->format_context);
     free(avio);
     caml_raise_out_of_memory();
   }
@@ -535,10 +542,11 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
 CAMLprim value caml_av_input_io_finalise(value _avio) {
   CAMLparam1(_avio);
-  // format_context and the buffer are freed as part of av_close.
   avio_t *avio = Avio_val(_avio);
 
-  av_freep(avio->avio_context);
+  // format_context is freed as part of close_av.
+  av_free(avio->avio_context->buffer);
+  avio_context_free(avio->avio_context);
 
   if (avio->read_cb)
     caml_remove_generational_global_root(&avio->read_cb);
@@ -2276,6 +2284,8 @@ CAMLprim value ocaml_av_close(value _av) {
       caml_acquire_runtime_system();
     }
   }
+
+  close_av(av);
 
   CAMLreturn(Val_unit);
 }
