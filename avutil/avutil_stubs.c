@@ -330,10 +330,8 @@ CAMLprim value ocaml_avutil_get_channel_layout_description(
   char buf[1024];
   uint64_t channel_layout = ChannelLayout_val(_channel_layout);
 
-  caml_release_runtime_system();
   av_get_channel_layout_string(buf, sizeof(buf), Int_val(channels),
                                channel_layout);
-  caml_acquire_runtime_system();
 
   CAMLreturn(caml_copy_string(buf));
 }
@@ -348,9 +346,7 @@ ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout) {
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels) {
   CAMLparam0();
 
-  caml_release_runtime_system();
   int64_t ret = av_get_default_channel_layout(Int_val(_nb_channels));
-  caml_acquire_runtime_system();
 
   if (ret == 0)
     caml_raise_not_found();
@@ -365,9 +361,7 @@ CAMLprim value ocaml_avutil_get_channel_layout(value _name) {
   if (!name)
     caml_raise_out_of_memory();
 
-  caml_release_runtime_system();
   int64_t ret = av_get_channel_layout(name);
-  caml_acquire_runtime_system();
 
   free(name);
 
@@ -418,9 +412,7 @@ CAMLprim value ocaml_avutil_find_sample_fmt(value _name) {
   if (!name)
     caml_raise_out_of_memory();
 
-  caml_release_runtime_system();
   enum AVSampleFormat ret = av_get_sample_fmt(name);
-  caml_acquire_runtime_system();
 
   free(name);
 
@@ -438,9 +430,7 @@ CAMLprim value ocaml_avutil_get_sample_fmt_name(value _sample_fmt) {
   if (sample_fmt == AV_SAMPLE_FMT_NONE)
     CAMLreturn(Val_none);
 
-  caml_release_runtime_system();
   const char *name = av_get_sample_fmt_name(SampleFormat_val(_sample_fmt));
-  caml_acquire_runtime_system();
 
   if (!name)
     CAMLreturn(Val_none);
@@ -564,9 +554,7 @@ CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel) {
   if (p == AV_PIX_FMT_NONE)
     CAMLreturn(Val_none);
 
-  caml_release_runtime_system();
   const char *name = av_get_pix_fmt_name(p);
-  caml_acquire_runtime_system();
 
   if (!name)
     CAMLreturn(Val_none);
@@ -579,9 +567,7 @@ CAMLprim value ocaml_avutil_pixelformat_to_string(value pixel) {
 CAMLprim value ocaml_avutil_pixelformat_of_string(value name) {
   CAMLparam1(name);
 
-  caml_release_runtime_system();
   enum AVPixelFormat p = av_get_pix_fmt(String_val(name));
-  caml_acquire_runtime_system();
 
   if (p == AV_PIX_FMT_NONE)
     Fail("Invalid format name");
@@ -722,9 +708,7 @@ CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
   AVFrame *dst = Frame_val(_dst);
   int ret;
 
-  caml_release_runtime_system();
   ret = av_frame_copy(dst, src);
-  caml_acquire_runtime_system();
 
   if (ret < 0)
     ocaml_avutil_raise_error(ret);
@@ -735,9 +719,7 @@ CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
                                                value _format) {
   CAMLparam1(_format);
-  caml_release_runtime_system();
   AVFrame *frame = av_frame_alloc();
-  caml_acquire_runtime_system();
   if (!frame)
     caml_raise_out_of_memory();
 
@@ -745,9 +727,7 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
   frame->width = Int_val(_w);
   frame->height = Int_val(_h);
 
-  caml_release_runtime_system();
   int ret = av_frame_get_buffer(frame, 32);
-  caml_acquire_runtime_system();
 
   if (ret < 0) {
     av_frame_free(&frame);
@@ -769,9 +749,7 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
   int nb_samples = Int_val(_samples);
   int ret;
 
-  caml_release_runtime_system();
   AVFrame *frame = av_frame_alloc();
-  caml_acquire_runtime_system();
 
   if (!frame)
     caml_raise_out_of_memory();
@@ -781,9 +759,7 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
   frame->sample_rate = sample_rate;
   frame->nb_samples = nb_samples;
 
-  caml_release_runtime_system();
   ret = av_frame_get_buffer(frame, 0);
-  caml_acquire_runtime_system();
 
   if (ret < 0) {
     av_frame_free(&frame);
@@ -927,17 +903,13 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(
   int i;
 
   if (Bool_val(_make_writable)) {
-    caml_release_runtime_system();
     int ret = av_frame_make_writable(frame);
-    caml_acquire_runtime_system();
 
     if (ret < 0)
       ocaml_avutil_raise_error(ret);
   }
 
-  caml_release_runtime_system();
   int nb_planes = av_pix_fmt_count_planes((enum AVPixelFormat)frame->format);
-  caml_acquire_runtime_system();
 
   if (nb_planes < 0)
     ocaml_avutil_raise_error(nb_planes);
@@ -1002,10 +974,8 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
   subtitle->end_display_time = (uint32_t)end_time;
   subtitle->pts = start_time;
 
-  caml_release_runtime_system();
   subtitle->rects =
       (AVSubtitleRect **)av_malloc_array(nb_lines, sizeof(AVSubtitleRect *));
-  caml_acquire_runtime_system();
 
   if (!subtitle->rects)
     caml_raise_out_of_memory();
@@ -1016,9 +986,7 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
   for (i = 0; i < nb_lines; i++) {
     const char *text = String_val(Field(_lines, i));
 
-    caml_release_runtime_system();
     subtitle->rects[i] = (AVSubtitleRect *)av_mallocz(sizeof(AVSubtitleRect));
-    caml_acquire_runtime_system();
 
     if (!subtitle->rects[i])
       caml_raise_out_of_memory();
@@ -1580,9 +1548,7 @@ CAMLprim value ocaml_avutil_create_device_context(value _device_type,
   }
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1613,9 +1579,7 @@ CAMLprim value ocaml_avutil_create_frame_context(value _width, value _height,
   AVHWFramesContext *frames_ctx = NULL;
   int ret;
 
-  caml_release_runtime_system();
   hw_frames_ref = av_hwframe_ctx_alloc(BufferRef_val(_device_ctx));
-  caml_acquire_runtime_system();
 
   if (!hw_frames_ref)
     caml_raise_out_of_memory();

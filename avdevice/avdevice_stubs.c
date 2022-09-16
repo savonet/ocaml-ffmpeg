@@ -13,9 +13,7 @@
 
 CAMLprim value ocaml_avdevice_init(value unit) {
   CAMLparam0();
-  caml_release_runtime_system();
   avdevice_register_all();
-  caml_acquire_runtime_system();
   CAMLreturn(Val_unit);
 }
 

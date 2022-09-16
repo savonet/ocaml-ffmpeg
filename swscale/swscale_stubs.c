@@ -237,9 +237,7 @@ static int alloc_out_frame(sws_t *sws, value *v) {
   int ret;
 
   do {
-    caml_release_runtime_system();
     AVFrame *frame = av_frame_alloc();
-    caml_acquire_runtime_system();
 
     if (!frame)
       caml_raise_out_of_memory();
@@ -249,17 +247,12 @@ static int alloc_out_frame(sws_t *sws, value *v) {
     frame->format = sws->out.pixel_format;
 
     // allocate the buffers for the frame data
-    caml_release_runtime_system();
-
     ret = av_frame_get_buffer(frame, 32);
 
     if (ret < 0) {
       av_frame_free(&frame);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
-
-    caml_acquire_runtime_system();
 
     sws->out.slice = frame->data;
     sws->out.stride = frame->linesize;
@@ -470,18 +463,16 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
   caml_release_runtime_system();
   int ret = av_image_fill_linesizes(sws->out.stride, sws->out.pixel_format,
                                     sws->out.width);
+  caml_acquire_runtime_system();
 
   if (ret < 0) {
     swscale_free(sws);
-    caml_acquire_runtime_system();
     Fail("Failed to create Swscale context");
   }
 
   for (sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes];
        sws->out.nb_planes++)
     ;
-
-  caml_acquire_runtime_system();
 
   ret = sws->alloc_out(sws, &tmp);
   if (ret < 0) {

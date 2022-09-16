@@ -69,11 +69,9 @@ static AVCodecContext *create_AVCodecContext(AVCodecParameters *params,
   AVCodecContext *codec_context;
   int ret = 0;
 
-  caml_release_runtime_system();
   codec_context = avcodec_alloc_context3(codec);
 
   if (!codec_context) {
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
@@ -82,20 +80,18 @@ static AVCodecContext *create_AVCodecContext(AVCodecParameters *params,
 
   if (ret < 0) {
     avcodec_free_context(&codec_context);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
   // Open the codec
+  caml_release_runtime_system();
   ret = avcodec_open2(codec_context, codec, NULL);
+  caml_acquire_runtime_system();
 
   if (ret < 0) {
     avcodec_free_context(&codec_context);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
-
-  caml_acquire_runtime_system();
 
   return codec_context;
 }
@@ -116,16 +112,12 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value *pvalue) {
   if (!src)
     Fail("Failed to get codec parameters");
 
-  caml_release_runtime_system();
   AVCodecParameters *dst = avcodec_parameters_alloc();
-  caml_acquire_runtime_system();
 
   if (!dst)
     caml_raise_out_of_memory();
 
-  caml_release_runtime_system();
   int ret = avcodec_parameters_copy(dst, src);
-  caml_acquire_runtime_system();
 
   if (ret < 0)
     ocaml_avutil_raise_error(ret);
@@ -333,13 +325,14 @@ static void free_parser(parser_t *parser) {
   if (!parser)
     return;
 
-  caml_release_runtime_system();
-  if (parser->context)
+  if (parser->context) {
+    caml_release_runtime_system();
     av_parser_close(parser->context);
+    caml_acquire_runtime_system();
+  }
 
   if (parser->codec_context)
     avcodec_free_context(&parser->codec_context);
-  caml_acquire_runtime_system();
 
   free(parser);
 }
@@ -398,14 +391,10 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
   size_t len = init_len;
   int ret = 0;
 
-  caml_release_runtime_system();
   AVPacket *packet = av_packet_alloc();
-  caml_acquire_runtime_system();
 
   if (!packet)
     caml_raise_out_of_memory();
-
-  caml_release_runtime_system();
 
   do {
     ret = av_parser_parse2(parser->context, parser->codec_context,
@@ -417,11 +406,8 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
 
   if (ret < 0) {
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
-
-  caml_acquire_runtime_system();
 
   if (packet->size) {
     val_packet = value_of_ffmpeg_packet(packet);
@@ -434,10 +420,7 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
     ans = caml_alloc(1, 0);
     Store_field(ans, 0, tuple);
   } else {
-    caml_release_runtime_system();
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
-
     ans = Val_int(0);
   }
 
@@ -506,9 +489,7 @@ CAMLprim value ocaml_avcodec_encoder_params(value _encoder) {
 
   codec_context_t *ctx = CodecContext_val(_encoder);
 
-  caml_release_runtime_system();
   int err = avcodec_parameters_from_context(params, ctx->codec_context);
-  caml_acquire_runtime_system();
 
   if (err < 0) {
     avcodec_parameters_free(&params);
@@ -533,7 +514,8 @@ CAMLprim value ocaml_avcodec_encoder_time_base(value _encoder) {
 }
 
 CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
-                                                  value _codec, value _channels, value _opts) {
+                                                  value _codec, value _channels,
+                                                  value _opts) {
   CAMLparam2(_opts, _codec);
   CAMLlocal3(ret, ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
@@ -563,11 +545,9 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
 
   ctx->codec = codec;
 
-  caml_release_runtime_system();
   ctx->codec_context = avcodec_alloc_context3(codec);
 
   if (!ctx->codec_context) {
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
@@ -579,6 +559,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
 #endif
 
   // Open the codec
+  caml_release_runtime_system();
   err = avcodec_open2(ctx->codec_context, ctx->codec, &options);
   caml_acquire_runtime_system();
 
@@ -586,9 +567,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
     ocaml_avutil_raise_error(err);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -649,12 +628,9 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
   CodecContext_val(ans) = ctx;
 
   ctx->codec = codec;
-  caml_release_runtime_system();
   ctx->codec_context = avcodec_alloc_context3(codec);
-  caml_acquire_runtime_system();
 
   if (!ctx->codec_context) {
-    caml_acquire_runtime_system();
     av_dict_free(&options);
     caml_raise_out_of_memory();
   }
@@ -665,7 +641,6 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
     ctx->codec_context->hw_device_ctx = av_buffer_ref(device_ctx);
     if (!ctx->codec_context->hw_device_ctx) {
       av_dict_free(&options);
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
   }
@@ -674,7 +649,6 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
     ctx->codec_context->hw_frames_ctx = av_buffer_ref(frame_ctx);
     if (!ctx->codec_context->hw_frames_ctx) {
       av_dict_free(&options);
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
   }
@@ -690,9 +664,7 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
   }
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -738,11 +710,9 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
   codec_context_t *ctx = CodecContext_val(_ctx);
   int ret = 0;
 
-  caml_release_runtime_system();
   AVFrame *frame = av_frame_alloc();
 
   if (!frame) {
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
@@ -750,43 +720,42 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
     AVFrame *hw_frame = av_frame_alloc();
 
     if (!hw_frame) {
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
 
+    caml_release_runtime_system();
     ret = av_hwframe_get_buffer(ctx->codec_context->hw_frames_ctx, hw_frame, 0);
+    caml_acquire_runtime_system();
 
     if (ret < 0) {
       av_frame_free(&hw_frame);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
     if (!hw_frame->hw_frames_ctx) {
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
 
+    caml_release_runtime_system();
     ret = av_hwframe_transfer_data(hw_frame, frame, 0);
+    caml_acquire_runtime_system();
 
     if (ret < 0) {
       av_frame_free(&hw_frame);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
     frame = hw_frame;
   }
 
+  caml_release_runtime_system();
   ret = avcodec_receive_frame(ctx->codec_context, frame);
+  caml_acquire_runtime_system();
 
   if (ret < 0 && ret != AVERROR(EAGAIN)) {
     av_frame_free(&frame);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
-
-  caml_acquire_runtime_system();
 
   if (ret == AVERROR(EAGAIN)) {
     ans = Val_int(0);
@@ -814,7 +783,6 @@ static void send_frame(codec_context_t *ctx, AVFrame *frame) {
     hw_frame = av_frame_alloc();
 
     if (!hw_frame) {
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
 
@@ -822,12 +790,10 @@ static void send_frame(codec_context_t *ctx, AVFrame *frame) {
 
     if (ret < 0) {
       av_frame_free(&hw_frame);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
     if (!hw_frame->hw_frames_ctx) {
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
 
@@ -835,7 +801,6 @@ static void send_frame(codec_context_t *ctx, AVFrame *frame) {
 
     if (ret < 0) {
       av_frame_free(&hw_frame);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
 
@@ -870,9 +835,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
   codec_context_t *ctx = CodecContext_val(_ctx);
   int ret = 0;
 
-  caml_release_runtime_system();
   AVPacket *packet = av_packet_alloc();
-  caml_acquire_runtime_system();
 
   if (!packet)
     caml_raise_out_of_memory();
@@ -882,9 +845,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
   caml_acquire_runtime_system();
 
   if (ret < 0) {
-    caml_release_runtime_system();
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
 
     if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
       ans = Val_int(0);
@@ -907,9 +868,7 @@ CAMLprim value ocaml_avcodec_flush_encoder(value _ctx) {
 
 static const AVCodec *find_encoder_by_name(const char *name,
                                            enum AVMediaType type) {
-  caml_release_runtime_system();
   const AVCodec *codec = avcodec_find_encoder_by_name(name);
-  caml_acquire_runtime_system();
 
   if (!codec || codec->type != type)
     ocaml_avutil_raise_error(AVERROR_ENCODER_NOT_FOUND);
@@ -918,9 +877,7 @@ static const AVCodec *find_encoder_by_name(const char *name,
 }
 
 static const AVCodec *find_encoder(enum AVCodecID id, enum AVMediaType type) {
-  caml_release_runtime_system();
   const AVCodec *codec = avcodec_find_encoder(id);
-  caml_acquire_runtime_system();
 
   if (!codec || codec->type != type)
     ocaml_avutil_raise_error(AVERROR_ENCODER_NOT_FOUND);
@@ -930,9 +887,7 @@ static const AVCodec *find_encoder(enum AVCodecID id, enum AVMediaType type) {
 
 static const AVCodec *find_decoder_by_name(const char *name,
                                            enum AVMediaType type) {
-  caml_release_runtime_system();
   const AVCodec *codec = avcodec_find_decoder_by_name(name);
-  caml_acquire_runtime_system();
 
   if (!codec || codec->type != type)
     ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
@@ -941,9 +896,7 @@ static const AVCodec *find_decoder_by_name(const char *name,
 }
 
 static const AVCodec *find_decoder(enum AVCodecID id, enum AVMediaType type) {
-  caml_release_runtime_system();
   const AVCodec *codec = avcodec_find_decoder(id);
-  caml_acquire_runtime_system();
 
   if (!codec || codec->type != type)
     ocaml_avutil_raise_error(AVERROR_DECODER_NOT_FOUND);
@@ -1668,38 +1621,34 @@ CAMLprim value ocaml_avcodec_bsf_init(value _opts, value _name, value _params) {
     }
   }
 
-  caml_release_runtime_system();
   ret = av_bsf_alloc(filter, &bsf);
   if (ret < 0) {
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
   ret = avcodec_parameters_copy(bsf->par_in, params);
   if (ret < 0) {
     av_bsf_free(&bsf);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
   ret = av_opt_set_dict(bsf, &options);
   if (ret < 0) {
     av_bsf_free(&bsf);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
+  caml_release_runtime_system();
   ret = av_bsf_init(bsf);
+  caml_acquire_runtime_system();
+
   if (ret < 0) {
     av_bsf_free(&bsf);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
   // Return unused keys
   count = av_dict_count(options);
-
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1762,23 +1711,20 @@ CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
   int ret;
   AVPacket *packet;
 
-  caml_release_runtime_system();
   packet = av_packet_alloc();
 
   if (!packet) {
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
+  caml_release_runtime_system();
   ret = av_bsf_receive_packet(BsfFilter_val(_filter), packet);
+  caml_acquire_runtime_system();
 
   if (ret < 0) {
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
-
-  caml_acquire_runtime_system();
 
   CAMLreturn(value_of_ffmpeg_packet(packet));
 }
