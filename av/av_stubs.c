@@ -28,12 +28,10 @@
 /**** Init ****/
 
 value ocaml_av_init(value unit) {
-  caml_release_runtime_system();
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
   av_register_all();
 #endif
   avformat_network_init();
-  caml_acquire_runtime_system();
   return Val_unit;
 }
 
@@ -95,9 +93,6 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
-  if (!av)
-    return;
-
   if (av->interrupt_cb != Val_none) {
     caml_remove_generational_global_root(&av->interrupt_cb);
     av->interrupt_cb = Val_none;
@@ -130,24 +125,13 @@ static void close_av(av_t *av) {
     av->best_video_stream = NULL;
     av->best_subtitle_stream = NULL;
   }
-}
-
-static void free_av(av_t *av) {
-  if (!av)
-    return;
-
-  close_av(av);
 
   if (av->control_message_callback) {
-    caml_acquire_runtime_system();
     caml_remove_generational_global_root(&av->control_message_callback);
-    caml_release_runtime_system();
   }
-
-  free(av);
 }
 
-static void finalize_av(value v) { free_av(Av_val(v)); }
+static void finalize_av(value v) { free(Av_val(v)); }
 
 static struct custom_operations av_ops = {
     "ocaml_av_context",       finalize_av,
@@ -492,12 +476,10 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   avio->write_cb = (value)NULL;
   avio->seek_cb = (value)NULL;
 
-  caml_release_runtime_system();
   avio->format_context = avformat_alloc_context();
 
   if (!avio->format_context) {
     free(avio);
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
 
@@ -506,12 +488,9 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
   if (!avio->buffer) {
     av_freep(avio->format_context);
-    caml_acquire_runtime_system();
     free(avio);
     caml_raise_out_of_memory();
   }
-
-  caml_acquire_runtime_system();
 
   if (_read_cb != Val_none) {
     avio->read_cb = Some_val(_read_cb);
@@ -532,14 +511,11 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
     seek_cb = ocaml_avio_seek_callback;
   }
 
-  caml_release_runtime_system();
   avio->avio_context =
       avio_alloc_context(avio->buffer, avio->buffer_size, write_flag,
                          (void *)avio, read_cb, write_cb, seek_cb);
-  caml_acquire_runtime_system();
 
   if (!avio->avio_context) {
-    caml_release_runtime_system();
     av_freep(avio->buffer);
     av_freep(avio->format_context);
     caml_acquire_runtime_system();
@@ -562,11 +538,7 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   // format_context and the buffer are freed as part of av_close.
   avio_t *avio = Avio_val(_avio);
 
-  caml_register_generational_global_root(&_avio);
-
-  caml_release_runtime_system();
   av_freep(avio->avio_context);
-  caml_acquire_runtime_system();
 
   if (avio->read_cb)
     caml_remove_generational_global_root(&avio->read_cb);
@@ -578,8 +550,6 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
     caml_remove_generational_global_root(&avio->seek_cb);
 
   free(avio);
-
-  caml_remove_generational_global_root(&_avio);
 
   CAMLreturn(Val_unit);
 }
@@ -747,9 +717,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
     free(url);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -800,9 +768,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
   av_t *av = open_input(NULL, format, avio->format_context, Val_none, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -844,22 +810,13 @@ CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index) {
 
   List_init(list);
 
-  caml_release_runtime_system();
-
   while ((tag = av_dict_get(metadata, "", tag, AV_DICT_IGNORE_SUFFIX))) {
-
-    caml_acquire_runtime_system();
-
     pair = caml_alloc_tuple(2);
     Store_field(pair, 0, caml_copy_string(tag->key));
     Store_field(pair, 1, caml_copy_string(tag->value));
 
     List_add(list, cons, pair);
-
-    caml_release_runtime_system();
   }
-
-  caml_acquire_runtime_system();
 
   CAMLreturn(list);
 }
@@ -925,15 +882,11 @@ static stream_t *allocate_stream_context(av_t *av, int index,
   if (!codec)
     return stream;
 
-  caml_release_runtime_system();
   stream->codec_context = avcodec_alloc_context3(codec);
 
   if (!stream->codec_context) {
-    caml_acquire_runtime_system();
     caml_raise_out_of_memory();
   }
-
-  caml_acquire_runtime_system();
 
   return stream;
 }
@@ -966,15 +919,14 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
     caml_raise_out_of_memory();
 
   // initialize the stream parameters with demuxer information
-  caml_release_runtime_system();
   err = avcodec_parameters_to_context(stream->codec_context, dec_param);
 
   if (err < 0) {
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(err);
   }
 
   // Open the decoder
+  caml_release_runtime_system();
   err = avcodec_open2(stream->codec_context, dec, NULL);
   caml_acquire_runtime_system();
 
@@ -1186,9 +1138,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       frame_kind = PVV_Subtitle_frame;
       frame_value = value_of_subtitle((AVSubtitle *)frame);
     } else {
-      caml_release_runtime_system();
       frame = av_frame_alloc();
-      caml_acquire_runtime_system();
 
       if (!frame) {
         av_packet_free(&packet);
@@ -1415,8 +1365,6 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     av->interrupt_cb = Val_none;
   }
 
-  caml_release_runtime_system();
-
   ret = avformat_alloc_output_context2(&av->format_context, format, NULL,
                                        file_name);
 
@@ -1424,23 +1372,21 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     if (file_name)
       free(file_name);
     av_dict_free(options);
-    free_av(av);
+    free(av);
 
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
   ret = av_opt_set_dict(av->format_context, options);
 
   if (ret < 0) {
-    free_av(av);
+    free(av);
     if (file_name)
       free(file_name);
 
     av_dict_free(options);
-    free_av(av);
+    free(av);
 
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
@@ -1448,12 +1394,11 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     ret = av_opt_set_dict(av->format_context->priv_data, options);
 
     if (ret < 0) {
-      free_av(av);
+      free(av);
       if (file_name)
         free(file_name);
 
       av_dict_free(options);
-      caml_acquire_runtime_system();
       ocaml_avutil_raise_error(ret);
     }
   }
@@ -1461,13 +1406,12 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   // open the output file, if needed
   if (avio_context) {
     if (av->format_context->oformat->flags & AVFMT_NOFILE) {
-      free_av(av);
+      free(av);
       if (file_name)
         free(file_name);
       av_dict_free(options);
 
       av_dict_free(options);
-      caml_acquire_runtime_system();
       Fail("Cannot set custom I/O on this format!");
     }
 
@@ -1475,17 +1419,18 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     av->custom_io = 1;
   } else {
     if (!(av->format_context->oformat->flags & AVFMT_NOFILE)) {
+      caml_release_runtime_system();
       int err = avio_open2(&av->format_context->pb, file_name, AVIO_FLAG_WRITE,
                            interrupt_cb_ptr, options);
+      caml_acquire_runtime_system();
 
       if (err < 0) {
-        free_av(av);
+        free(av);
         if (file_name)
           free(file_name);
         av_dict_free(options);
 
         av_dict_free(options);
-        caml_acquire_runtime_system();
         ocaml_avutil_raise_error(err);
       }
 
@@ -1495,8 +1440,6 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
 
   if (file_name)
     free(file_name);
-
-  caml_acquire_runtime_system();
 
   return av;
 }
@@ -1531,9 +1474,7 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
   av_t *av = open_output(format, filename, NULL, _interrupt, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1580,9 +1521,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
   av_t *av = open_output(format, NULL, NULL, Val_none, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1630,9 +1569,7 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   av_t *av = open_output(format, NULL, avio->avio_context, Val_none, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1733,13 +1670,10 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
   if (av->format_context->oformat->flags & AVFMT_GLOBALHEADER)
     enc_ctx->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
-  caml_release_runtime_system();
-
   if (device_ctx) {
     enc_ctx->hw_device_ctx = av_buffer_ref(device_ctx);
     if (!enc_ctx->hw_device_ctx) {
       av_dict_free(options);
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
   }
@@ -1748,16 +1682,16 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
     enc_ctx->hw_frames_ctx = av_buffer_ref(frame_ctx);
     if (!enc_ctx->hw_frames_ctx) {
       av_dict_free(options);
-      caml_acquire_runtime_system();
       caml_raise_out_of_memory();
     }
   }
 
+  caml_release_runtime_system();
   ret = avcodec_open2(enc_ctx, enc_ctx->codec, options);
+  caml_acquire_runtime_system();
 
   if (ret < 0) {
     av_dict_free(options);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
@@ -1768,11 +1702,8 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
 
   if (ret < 0) {
     av_dict_free(options);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
-
-  caml_acquire_runtime_system();
 }
 
 static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
@@ -1813,7 +1744,8 @@ CAMLprim value ocaml_av_new_stream_copy(value _av, value _params) {
 }
 
 CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
-                                         value _codec, value _channels, value _opts) {
+                                         value _codec, value _channels,
+                                         value _opts) {
   CAMLparam2(_av, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
@@ -1834,13 +1766,11 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
     }
   }
 
-  stream_t *stream =
-      new_audio_stream(Av_val(_av), Int_val(_sample_fmt), Int_val(_channels), codec, &options);
+  stream_t *stream = new_audio_stream(Av_val(_av), Int_val(_sample_fmt),
+                                      Int_val(_channels), codec, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1908,9 +1838,7 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
       new_video_stream(device_ctx, frame_ctx, Av_val(_av), codec, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -1936,9 +1864,7 @@ static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
 
   int ret = subtitle_header_default(stream->codec_context);
   if (ret < 0) {
-    caml_release_runtime_system();
     av_dict_free(options);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(ret);
   }
 
@@ -1972,9 +1898,7 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
   stream_t *stream = new_subtitle_stream(Av_val(_av), codec, &options);
 
   // Return unused keys
-  caml_release_runtime_system();
   count = av_dict_count(options);
-  caml_acquire_runtime_system();
 
   unused = caml_alloc_tuple(count);
   AVDictionaryEntry *entry = NULL;
@@ -2217,21 +2141,20 @@ static void write_subtitle_frame(av_t *av, int stream_index,
   packet->data = NULL;
   packet->size = 0;
 
-  caml_release_runtime_system();
   err = av_new_packet(packet, size);
 
   if (err < 0) {
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(err);
   }
 
+  caml_release_runtime_system();
   err = avcodec_encode_subtitle(stream->codec_context, packet->data,
                                 packet->size, subtitle);
+  caml_acquire_runtime_system();
 
   if (err < 0) {
     av_packet_free(&packet);
-    caml_acquire_runtime_system();
     ocaml_avutil_raise_error(err);
   }
 
@@ -2243,10 +2166,11 @@ static void write_subtitle_frame(av_t *av, int stream_index,
   packet->stream_index = stream_index;
   packet->pos = -1;
 
+  caml_release_runtime_system();
   err = av_interleaved_write_frame(av->format_context, packet);
+  caml_acquire_runtime_system();
 
   av_packet_free(&packet);
-  caml_acquire_runtime_system();
 
   if (err < 0)
     ocaml_avutil_raise_error(err);
@@ -2278,7 +2202,8 @@ CAMLprim value ocaml_av_flush(value _av) {
   av_t *av = Av_val(_av);
   int ret;
 
-  if (!av->header_written) CAMLreturn(Val_unit);
+  if (!av->header_written)
+    CAMLreturn(Val_unit);
 
   caml_release_runtime_system();
   ret = av_interleaved_write_frame(av->format_context, NULL);
@@ -2345,17 +2270,21 @@ CAMLprim value ocaml_av_close(value _av) {
     }
 
     // write the trailer
-    caml_release_runtime_system();
-    if (av->header_written)
+    if (av->header_written) {
+      caml_release_runtime_system();
       av_write_trailer(av->format_context);
-    caml_acquire_runtime_system();
+      caml_acquire_runtime_system();
+    }
   }
 
-  caml_register_generational_global_root(&_av);
-  caml_release_runtime_system();
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_av_cleanup_av(value _av) {
+  CAMLparam1(_av);
+  av_t *av = Av_val(_av);
+
   close_av(av);
-  caml_acquire_runtime_system();
-  caml_remove_generational_global_root(&_av);
 
   CAMLreturn(Val_unit);
 }
@@ -2419,7 +2348,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       snprintf(attr, sizeof(attr), "avc1");
     }
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_FLAC) {
-      snprintf(attr, sizeof(attr), "fLaC");
+    snprintf(attr, sizeof(attr), "fLaC");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
     uint8_t *data = stream->codecpar->extradata;
     int profile = FF_PROFILE_UNKNOWN;

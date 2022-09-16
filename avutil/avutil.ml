@@ -647,14 +647,12 @@ let string_of_opts opts =
     opts []
   |> String.concat ","
 
-let add_audio_opts ~sample_rate ~sample_format
-    ~time_base opts =
+let add_audio_opts ~sample_rate ~sample_format ~time_base opts =
   Hashtbl.add opts "ar" (`Int sample_rate);
   Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
 
-let mk_audio_opts ?opts ~sample_rate ~sample_format
-    ~time_base () =
+let mk_audio_opts ?opts ~sample_rate ~sample_format ~time_base () =
   let opts = opts_default opts in
   add_audio_opts ~sample_rate ~sample_format ~time_base opts;
   opts

@@ -46,6 +46,8 @@ module Format = struct
     guess_output_format short_name filename mime
 end
 
+external ocaml_av_cleanup_av : _ container -> unit = "ocaml_av_cleanup_av"
+
 (* Input *)
 external open_input :
   string ->
@@ -58,6 +60,7 @@ let open_input ?interrupt ?format ?opts url =
   let opts = opts_default opts in
   let ret, unused = open_input url format interrupt (mk_opts_array opts) in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
 
 type avio
@@ -95,6 +98,7 @@ let ocaml_av_open_input_stream ?format ?opts avio =
     ocaml_av_open_input_stream avio format (mk_opts_array opts)
   in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
 
 external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
@@ -245,6 +249,7 @@ let open_output ?interrupt ?format ?opts fname =
   let opts = opts_default opts in
   let ret, unused = open_output ?interrupt ?format fname (mk_opts_array opts) in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
 
 external ocaml_av_open_output_stream :
@@ -261,6 +266,7 @@ let open_output_stream ?opts ?seek write format =
     ocaml_av_open_output_stream format avio (mk_opts_array opts)
   in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av output;
   Gc.finalise_last cleanup output;
   output
 
@@ -290,11 +296,9 @@ external new_audio_stream :
 
 let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
     ~time_base ~codec container =
-  let opts =
-    mk_audio_opts ?opts ~sample_rate ~sample_format
-      ~time_base ()
-  in
-    let channels = match channels, channel_layout with
+  let opts = mk_audio_opts ?opts ~sample_rate ~sample_format ~time_base () in
+  let channels =
+    match (channels, channel_layout) with
       | Some n, _ -> n
       | None, Some layout -> Avutil.Channel_layout.get_nb_channels layout
       | None, None ->
@@ -302,7 +306,7 @@ let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
             (Error
                (`Failure
                  "At least one of channels or channel_layout must be passed!"))
-    in
+  in
   let ret, unused =
     new_audio_stream container
       (Sample_format.get_id sample_format)
