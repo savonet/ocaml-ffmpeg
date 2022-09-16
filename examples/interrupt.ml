@@ -1,4 +1,5 @@
 let () = Printexc.record_backtrace true
+let () = if Sys.getenv_opt "GITHUB_ACTIONS" <> None then exit 0
 
 let () =
   Avutil.Log.set_callback (fun _ -> ());
