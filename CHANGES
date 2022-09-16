@@ -1,3 +1,9 @@
+1.1.6 (unreleased)
+======
+* Fix channel layout breakage with recent FFmpeg with new channel layout API.
+* Fix memory leak with streams.
+* Cleanup internal C binding.
+
 1.1.5 (2022-08-28)
 ======
 * Fix segfault when flushing an encoder that
