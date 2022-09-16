@@ -25,13 +25,13 @@ let () =
   let opts = Hashtbl.create 1 in
   Hashtbl.replace opts "listen" (`Int 1);
 
+  let sock = Filename.temp_file "ocaml-ffmpeg" "sock" in
   (try
-     let sock = Filename.temp_file "ocaml-ffmpeg" "sock" in
      ignore
        (Av.open_input ~interrupt ~opts
           (Printf.sprintf "unix://%s?listen=1" sock));
      assert false
-   with Avutil.Error `Exit -> ());
+   with Avutil.Error `Exit -> Unix.unlink sock);
 
   (try
      ignore (Av.open_output ~interrupt "http://localhost/foo.mp3");

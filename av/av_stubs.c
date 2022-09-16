@@ -93,11 +93,6 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
-  if (av->interrupt_cb != Val_none) {
-    caml_remove_generational_global_root(&av->interrupt_cb);
-    av->interrupt_cb = Val_none;
-  }
-
   if (av->format_context) {
     if (av->streams) {
       unsigned int i;
@@ -128,6 +123,11 @@ static void close_av(av_t *av) {
 
   if (av->control_message_callback) {
     caml_remove_generational_global_root(&av->control_message_callback);
+  }
+
+  if (av->interrupt_cb != Val_none) {
+    caml_remove_generational_global_root(&av->interrupt_cb);
+    av->interrupt_cb = Val_none;
   }
 }
 
@@ -436,11 +436,6 @@ static int ocaml_av_interrupt_callback(void *private) {
   value res;
   av_t *av = (av_t *)private;
   int ret, n;
-
-  // This only happen when closing av_t so
-  // we want to return immediately.
-  if (av->interrupt_cb == Val_none)
-    return 1;
 
   ret = caml_c_thread_register();
 
@@ -1388,6 +1383,11 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   ret = av_opt_set_dict(av->format_context, options);
 
   if (ret < 0) {
+    if (av->interrupt_cb != Val_none) {
+      caml_remove_generational_global_root(&av->interrupt_cb);
+      av->interrupt_cb = Val_none;
+    }
+
     free(av);
     if (file_name)
       free(file_name);
@@ -1433,6 +1433,11 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
       caml_acquire_runtime_system();
 
       if (err < 0) {
+        if (av->interrupt_cb != Val_none) {
+          caml_remove_generational_global_root(&av->interrupt_cb);
+          av->interrupt_cb = Val_none;
+        }
+
         free(av);
         if (file_name)
           free(file_name);
