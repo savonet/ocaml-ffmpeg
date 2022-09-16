@@ -13,6 +13,8 @@ jobs:
       uses: actions/checkout@v1
     - name: Setup OCaml
       uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: 4.14.x
     - name: Pin locally
       run: opam pin -y add --no-action .
     - name: Install locally
