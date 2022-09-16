@@ -127,7 +127,7 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][0])return ";
         tab_name;
-        "[i][1];\n}\nFail(\"Could not find C value for %d in " ^ tab_name
+        "[i][1];\n}\nFail(\"Could not find C value for %ld in " ^ tab_name
         ^ ". Do you need to recompile the ffmpeg binding?\", v);\nreturn -1;\n}";
       ];
 
