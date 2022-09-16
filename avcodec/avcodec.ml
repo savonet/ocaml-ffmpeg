@@ -331,6 +331,7 @@ module Audio = struct
   external create_encoder :
     int ->
     [ `Encoder ] t ->
+    int ->
     (string * string) array ->
     audio encoder * string array = "ocaml_avcodec_create_audio_encoder"
 
@@ -338,13 +339,22 @@ module Audio = struct
       ~time_base codec =
     let opts = opts_default opts in
     let _opts =
-      mk_audio_opts ~opts ?channels ?channel_layout ~sample_rate ~sample_format
+      mk_audio_opts ~opts ~sample_rate ~sample_format
         ~time_base ()
+    in
+    let channels = match channels, channel_layout with
+      | Some n, _ -> n
+      | None, Some layout -> Avutil.Channel_layout.get_nb_channels layout
+      | None, None -> 
+          raise
+            (Error
+               (`Failure
+                 "At least one of channels or channel_layout must be passed!"))
     in
     let encoder, unused =
       create_encoder
         (Sample_format.get_id sample_format)
-        codec (mk_opts_array _opts)
+        codec channels (mk_opts_array _opts)
     in
     filter_opts unused opts;
     encoder

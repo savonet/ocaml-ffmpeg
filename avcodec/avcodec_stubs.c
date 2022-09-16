@@ -533,7 +533,7 @@ CAMLprim value ocaml_avcodec_encoder_time_base(value _encoder) {
 }
 
 CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
-                                                  value _codec, value _opts) {
+                                                  value _codec, value _channels, value _opts) {
   CAMLparam2(_opts, _codec);
   CAMLlocal3(ret, ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
@@ -572,6 +572,11 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   }
 
   ctx->codec_context->sample_fmt = Int_val(_sample_fmt);
+  ctx->codec_context->channels = Int_val(_channels);
+// Detect new API
+#ifdef AV_CHANNEL_LAYOUT_MONO
+  av_channel_layout_default(&ctx->codec_context->ch_layout, Int_val(_channels));
+#endif
 
   // Open the codec
   err = avcodec_open2(ctx->codec_context, ctx->codec, &options);

@@ -1776,13 +1776,18 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
 }
 
 static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
-                                  const AVCodec *codec,
+                                  int channels, const AVCodec *codec,
                                   AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
   enc_ctx->sample_fmt = sample_fmt;
+  enc_ctx->channels = channels;
+// Detect new API
+#ifdef AV_CHANNEL_LAYOUT_MONO
+  av_channel_layout_default(&enc_ctx->ch_layout, channels);
+#endif
 
   init_stream_encoder(NULL, NULL, av, stream, options);
 
@@ -1808,7 +1813,7 @@ CAMLprim value ocaml_av_new_stream_copy(value _av, value _params) {
 }
 
 CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
-                                         value _codec, value _opts) {
+                                         value _codec, value _channels, value _opts) {
   CAMLparam2(_av, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
@@ -1830,7 +1835,7 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
   }
 
   stream_t *stream =
-      new_audio_stream(Av_val(_av), Int_val(_sample_fmt), codec, &options);
+      new_audio_stream(Av_val(_av), Int_val(_sample_fmt), Int_val(_channels), codec, &options);
 
   // Return unused keys
   caml_release_runtime_system();
