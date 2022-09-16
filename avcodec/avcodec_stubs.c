@@ -1185,7 +1185,7 @@ CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec) {
   const AVCodec *codec = AvCodec_val(_codec);
 
   if (codec->channel_layouts) {
-    for (i = 0; codec->channel_layouts[i] != -1; i++)
+    for (i = 0; codec->channel_layouts[i] != 0; i++)
       List_add(list, cons, Val_ChannelLayout(codec->channel_layouts[i]));
   }
 
