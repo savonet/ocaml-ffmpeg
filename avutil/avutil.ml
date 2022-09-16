@@ -647,14 +647,32 @@ let string_of_opts opts =
     opts []
   |> String.concat ","
 
-let add_audio_opts ~sample_rate ~sample_format ~time_base opts =
+let on_opt v fn = match v with None -> () | Some v -> fn v
+
+let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts =
   Hashtbl.add opts "ar" (`Int sample_rate);
+  on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
+  on_opt channel_layout (fun channel_layout ->
+      Hashtbl.add opts "channel_layout"
+        (`Int64 (Channel_layout.get_id channel_layout)));
   Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
 
-let mk_audio_opts ?opts ~sample_rate ~sample_format ~time_base () =
+let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base () =
+  let () =
+    match (channels, channel_layout) with
+      | None, None ->
+          raise
+            (Error
+               (`Failure
+                 "At least one of channels or channel_layout must be passed!"))
+      | _ -> ()
+  in
   let opts = opts_default opts in
-  add_audio_opts ~sample_rate ~sample_format ~time_base opts;
+  add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
+    ~time_base opts;
   opts
 
 let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =

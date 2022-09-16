@@ -1,7 +1,6 @@
 open Avcodec
 module Resampler = Swresample.Make (Swresample.FloatArray) (Swresample.Frame)
 
-let ( %> ) f g x = g (f x)
 let () = Printexc.record_backtrace true
 
 let () =

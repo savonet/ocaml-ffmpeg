@@ -400,6 +400,8 @@ val string_of_opts : opts -> string
 
 val mk_audio_opts :
   ?opts:opts ->
+  ?channels:int ->
+  ?channel_layout:Channel_layout.t ->
   sample_rate:int ->
   sample_format:Sample_format.t ->
   time_base:rational ->

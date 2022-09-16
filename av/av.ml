@@ -296,7 +296,10 @@ external new_audio_stream :
 
 let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
     ~time_base ~codec container =
-  let opts = mk_audio_opts ?opts ~sample_rate ~sample_format ~time_base () in
+  let opts =
+    mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+      ~time_base ()
+  in
   let channels =
     match (channels, channel_layout) with
       | Some n, _ -> n
