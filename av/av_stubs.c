@@ -93,6 +93,8 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
+  caml_release_runtime_system();
+
   if (av->format_context) {
     if (av->streams) {
       unsigned int i;
@@ -120,6 +122,8 @@ static void close_av(av_t *av) {
     av->best_video_stream = NULL;
     av->best_subtitle_stream = NULL;
   }
+
+  caml_acquire_runtime_system();
 
   if (av->control_message_callback) {
     caml_remove_generational_global_root(&av->control_message_callback);
@@ -986,8 +990,11 @@ static int decode_packet(av_t *av, stream_t *stream, AVPacket *packet,
   } else if (dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
     ret = avcodec_decode_subtitle2(dec, (AVSubtitle *)frame, &stream->got_frame,
                                    packet);
-    if (ret >= 0)
+    if (ret >= 0) {
       av_packet_unref(packet);
+      caml_acquire_runtime_system();
+      return ret;
+    }
   }
 
   av_packet_unref(packet);
