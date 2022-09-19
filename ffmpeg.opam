@@ -9,7 +9,7 @@ homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
   "ocaml" {>= "4.08.0"}
-  "dune" {>= "3.0"}
+  "dune" {>= "2.9"}
   "ffmpeg-av" {= version}
   "ffmpeg-avutil" {= version}
   "ffmpeg-avcodec" {= version}
@@ -28,9 +28,11 @@ build: [
     name
     "-j"
     jobs
+    "--promote-install-files=false"
     "@install"
     "@runtest" {with-test}
     "@doc" {with-doc}
   ]
+  ["dune" "install" "-p" name "--create-install-files" name]
 ]
 dev-repo: "git+https://github.com/savonet/ocaml-ffmpeg.git"
