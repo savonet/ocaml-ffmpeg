@@ -1,3 +1,5 @@
+#define CAML_NAME_SPACE 1
+
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>

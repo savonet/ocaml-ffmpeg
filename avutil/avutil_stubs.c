@@ -2,6 +2,8 @@
 #include <pthread.h>
 #include <string.h>
 
+#define CAML_NAME_SPACE 1
+
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>
@@ -787,7 +789,11 @@ CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame) {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
 
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(59, 19, 100)
   CAMLreturn(Val_int(frame->channels));
+#else
+  CAMLreturn(Val_int(frame->ch_layout.nb_channels));
+#endif
 }
 
 CAMLprim value ocaml_avutil_audio_frame_get_channel_layout(value _frame) {

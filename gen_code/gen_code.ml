@@ -127,8 +127,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][0])return ";
         tab_name;
-        "[i][1];\n}\nFail(\"Could not find C value for %ld in " ^ tab_name
-        ^ ". Do you need to recompile the ffmpeg binding?\", v);\nreturn -1;\n}";
+        "[i][1];\n}\nFail(\"Could not find C value for %llu in " ^ tab_name
+        ^ ". Do you need to recompile the ffmpeg binding?\", (uint64_t)v);\nreturn -1;\n}";
       ];
 
     print_c
@@ -157,8 +157,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][1])return ";
         tab_name;
-        "[i][0];\n}\nFail(\"Could not find OCaml value for %d in " ^ tab_name
-        ^ ". Do you need to recompile the ffmpeg binding?\", t);\nreturn -1;\n}";
+        "[i][0];\n}\nFail(\"Could not find OCaml value for %llu in " ^ tab_name
+        ^ ". Do you need to recompile the ffmpeg binding?\", (uint64_t)t);\nreturn -1;\n}";
       ])
 
 let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =

@@ -1,5 +1,7 @@
 #include <string.h>
 
+#define CAML_NAME_SPACE 1
+
 #include <caml/alloc.h>
 #include <caml/callback.h>
 #include <caml/custom.h>

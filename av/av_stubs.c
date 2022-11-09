@@ -1,5 +1,7 @@
 #include <string.h>
 
+#define CAML_NAME_SPACE 1
+
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>
@@ -545,7 +547,7 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
 
   // format_context is freed as part of close_av.
   av_free(avio->avio_context->buffer);
-  avio_context_free(avio->avio_context);
+  avio_context_free(&avio->avio_context);
 
   if (avio->read_cb)
     caml_remove_generational_global_root(&avio->read_cb);

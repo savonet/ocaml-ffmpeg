@@ -1,3 +1,5 @@
+#define CAML_NAME_SPACE 1
+
 #include <caml/alloc.h>
 #include <caml/bigarray.h>
 #include <caml/callback.h>
@@ -73,8 +75,10 @@ static int get_in_samples_frame(swr_t *swr, value *in_vector, int offset) {
   AVFrame *frame = Frame_val(*in_vector);
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 0, 100)
   int nb_channels = av_frame_get_channels(frame);
-#else
+#elif LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(59, 19, 100)
   int nb_channels = frame->channels;
+#else
+  int nb_channels = frame->ch_layout.nb_channels;
 #endif
 
   if (offset != 0)
