@@ -1,3 +1,8 @@
+1.1.7 (unreleased)
+=====
+* Filter `NaN` when converting floats to and from
+  OCaml in `swresample`.
+
 1.1.6 (2022-09-26)
 ======
 * Fix channel layout breakage with recent FFmpeg with new channel layout API.

@@ -28,6 +28,12 @@
 #include "swresample_options_stubs.h"
 #include "swresample_stubs.h"
 
+static inline double filter_nan(double s) {
+  if (s != s)
+    return 0;
+  return s;
+}
+
 /***** Contexts *****/
 struct audio_t {
   uint8_t **data;
@@ -160,7 +166,7 @@ static int get_in_samples_float_array(swr_t *swr, value *in_vector,
   double *pcm = (double *)swr->in.data[0];
 
   for (i = 0; i < linesize; i++) {
-    pcm[i] = Double_field(*in_vector, i + offset);
+    pcm[i] = filter_nan(Double_field(*in_vector, i + offset));
   }
 
   return nb_samples;
@@ -190,7 +196,7 @@ static int get_in_samples_planar_float_array(swr_t *swr, value *in_vector,
     double *pcm = (double *)swr->in.data[i];
 
     for (j = 0; j < nb_samples; j++) {
-      pcm[j] = Double_field(fa, j + offset);
+      pcm[j] = filter_nan(Double_field(fa, j + offset));
     }
   }
   CAMLreturnT(int, nb_samples);
@@ -348,7 +354,7 @@ static void convert_to_float_array(swr_t *swr, int in_nb_samples,
   double *pcm = (double *)swr->out.data[0];
 
   for (i = 0; i < len; i++) {
-    Store_double_field(swr->out_vector, i, pcm[i]);
+    Store_double_field(swr->out_vector, i, filter_nan(pcm[i]));
   }
 }
 
@@ -379,7 +385,7 @@ static void convert_to_planar_float_array(swr_t *swr, int in_nb_samples,
     pcm = (double *)swr->out.data[i];
 
     for (j = 0; j < ret; j++)
-      Store_double_field(Field(swr->out_vector, i), j, pcm[j]);
+      Store_double_field(Field(swr->out_vector, i), j, filter_nan(pcm[j]));
   }
 }
 
