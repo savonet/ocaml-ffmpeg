@@ -1747,13 +1747,21 @@ static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
   return stream;
 }
 
-CAMLprim value ocaml_av_new_stream_copy(value _av, value _params) {
-  CAMLparam2(_av, _params);
+CAMLprim value ocaml_av_new_uninitialized_stream_copy(value _av) {
+  CAMLparam1(_av);
   av_t *av = Av_val(_av);
 
   stream_t *stream = new_stream(av, NULL);
 
-  AVStream *avstream = av->format_context->streams[stream->index];
+  CAMLreturn(Val_int(stream->index));
+}
+
+CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
+                                               value _params) {
+  CAMLparam2(_av, _params);
+  av_t *av = Av_val(_av);
+
+  AVStream *avstream = av->format_context->streams[Int_val(_stream_index)];
 
   int err =
       avcodec_parameters_copy(avstream->codecpar, CodecParameters_val(_params));
@@ -1762,7 +1770,7 @@ CAMLprim value ocaml_av_new_stream_copy(value _av, value _params) {
 
   avstream->codecpar->codec_tag = 0;
 
-  CAMLreturn(Val_int(stream->index));
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,

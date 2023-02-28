@@ -279,12 +279,20 @@ let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
 let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 let get_output s = s.container
 
-external new_stream_copy : output container -> _ Avcodec.params -> int
-  = "ocaml_av_new_stream_copy"
+type uninitialized_stream_copy = output container * int
+
+external new_uninitialized_stream_copy : output container -> int
+  = "ocaml_av_new_uninitialized_stream_copy"
+
+let new_uninitialized_stream_copy container =
+  container, new_uninitialized_stream_copy container
+
+external initialize_stream_copy : output container -> int -> _ Avcodec.params -> unit = "ocaml_av_initialize_stream_copy"
+
+let initialize_stream_copy ~params (container, index) = initialize_stream_copy container index params;  mk_stream container index
 
 let new_stream_copy ~params container =
-  let ret = new_stream_copy container params in
-  mk_stream container ret
+  initialize_stream_copy ~params (new_uninitialized_stream_copy container)
 
 external new_audio_stream :
   _ container ->
