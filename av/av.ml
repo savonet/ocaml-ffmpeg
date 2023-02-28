@@ -285,11 +285,15 @@ external new_uninitialized_stream_copy : output container -> int
   = "ocaml_av_new_uninitialized_stream_copy"
 
 let new_uninitialized_stream_copy container =
-  container, new_uninitialized_stream_copy container
+  (container, new_uninitialized_stream_copy container)
 
-external initialize_stream_copy : output container -> int -> _ Avcodec.params -> unit = "ocaml_av_initialize_stream_copy"
+external initialize_stream_copy :
+  output container -> int -> _ Avcodec.params -> unit
+  = "ocaml_av_initialize_stream_copy"
 
-let initialize_stream_copy ~params (container, index) = initialize_stream_copy container index params;  mk_stream container index
+let initialize_stream_copy ~params (container, index) =
+  initialize_stream_copy container index params;
+  mk_stream container index
 
 let new_stream_copy ~params container =
   initialize_stream_copy ~params (new_uninitialized_stream_copy container)

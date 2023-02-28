@@ -127,7 +127,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][0])return ";
         tab_name;
-        "[i][1];\n}\nFail(\"Could not find C value for %llu in " ^ tab_name
+        "[i][1];\n}\nFail(\"Could not find C value for \" PRId64 \" in "
+        ^ tab_name
         ^ ". Do you need to recompile the ffmpeg binding?\", (uint64_t)v);\n\
            return -1;\n\
            }";
@@ -159,7 +160,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         tab_name;
         "[i][1])return ";
         tab_name;
-        "[i][0];\n}\nFail(\"Could not find OCaml value for %llu in " ^ tab_name
+        "[i][0];\n}\nFail(\"Could not find OCaml value for \" PRId64 \" in "
+        ^ tab_name
         ^ ". Do you need to recompile the ffmpeg binding?\", (uint64_t)t);\n\
            return -1;\n\
            }";
@@ -201,7 +203,8 @@ let translate_c_values_opt ?h_oc ?ml_oc ~pre_process in_names enums_labels =
         in
 
         if_d h_oc (fun oc ->
-            output_string oc "#include \"avutil_stubs.h\"\n\n";
+            output_string oc "#include \"avutil_stubs.h\"\n";
+            output_string oc "#include <inttypes.h>\n\n";
             output_string oc "#define VALUE_NOT_FOUND 0xFFFFFFF\n\n");
 
         List.iter

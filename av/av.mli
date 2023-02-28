@@ -240,10 +240,14 @@ type uninitialized_stream_copy
 
 (* Create a new uninitialized stream copy. This can be used to reserve a stream index
    in the output container while waiting for its actual parameters. *)
-val new_uninitialized_stream_copy : output container -> uninitialized_stream_copy
+val new_uninitialized_stream_copy :
+  output container -> uninitialized_stream_copy
 
 (* Initialize a stream copy. *)
-val initialize_stream_copy : params:'mode Avcodec.params -> uninitialized_stream_copy -> (output, 'mode, [ `Packet ]) stream
+val initialize_stream_copy :
+  params:'mode Avcodec.params ->
+  uninitialized_stream_copy ->
+  (output, 'mode, [ `Packet ]) stream
 
 (** Add a new audio stream to the given container. Stream only supports frames
     and encodes its input.
