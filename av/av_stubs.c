@@ -56,6 +56,7 @@ typedef struct av_t {
   value control_message_callback;
   int is_input;
   value interrupt_cb;
+  int closed;
 
   // input
   int end_of_file;
@@ -69,7 +70,13 @@ typedef struct av_t {
   int custom_io;
 } av_t;
 
-#define Av_val(v) (*(av_t **)Data_custom_val(v))
+#define Av_base_val(v) (*(av_t **)Data_custom_val(v))
+static inline av_t *Av_val(value v) {
+  av_t *av = Av_base_val(v);
+  if (av->closed)
+    Fail("Container closed!");
+  return av;
+}
 
 /***** Stream handler *****/
 
@@ -135,9 +142,11 @@ static void close_av(av_t *av) {
     caml_remove_generational_global_root(&av->interrupt_cb);
     av->interrupt_cb = Val_none;
   }
+
+  av->closed = 1;
 }
 
-static void finalize_av(value v) { free(Av_val(v)); }
+static void finalize_av(value v) { free(Av_base_val(v)); }
 
 static struct custom_operations av_ops = {
     "ocaml_av_context",       finalize_av,
@@ -634,6 +643,7 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
     caml_raise_out_of_memory();
   }
 
+  av->closed = 0;
   av->is_input = 1;
   av->frames_pending = 0;
   av->streams = NULL;
@@ -739,7 +749,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
-  Av_val(ans) = av;
+  Av_base_val(ans) = av;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -790,7 +800,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
-  Av_val(ans) = av;
+  Av_base_val(ans) = av;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -1368,6 +1378,8 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     caml_raise_out_of_memory();
   }
 
+  av->closed = 0;
+
   if (_interrupt != Val_none) {
     av->interrupt_cb = Some_val(_interrupt);
     caml_register_generational_global_root(&av->interrupt_cb);
@@ -1509,7 +1521,7 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
-  Av_val(ans) = av;
+  Av_base_val(ans) = av;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -1556,7 +1568,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
-  Av_val(ans) = av;
+  Av_base_val(ans) = av;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -1604,7 +1616,7 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
 
   // allocate format context
   ans = caml_alloc_custom(&av_ops, sizeof(av_t *), 0, 1);
-  Av_val(ans) = av;
+  Av_base_val(ans) = av;
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -2314,7 +2326,7 @@ CAMLprim value ocaml_av_close(value _av) {
 
 CAMLprim value ocaml_av_cleanup_av(value _av) {
   CAMLparam1(_av);
-  av_t *av = Av_val(_av);
+  av_t *av = Av_base_val(_av);
 
   close_av(av);
 

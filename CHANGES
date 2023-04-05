@@ -2,6 +2,7 @@
 =====
 * Added asynchronous stream copy creation API.
 * Added `pkt_dts` API for AVFrame.
+* Raise exception when re-using a closed container.
 
 1.1.7 (2023-02-08)
 =====
