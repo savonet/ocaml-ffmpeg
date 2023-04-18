@@ -263,6 +263,10 @@ let gen_polymorphic_variant_h () =
       "Discard";
       "Trusted";
       "Disposable";
+      (* Avpacket sidedata types. *)
+      "Replaygain";
+      "Strings_metadata";
+      "Metadata_update";
       (* Options *)
       "Constant";
       "Flags";

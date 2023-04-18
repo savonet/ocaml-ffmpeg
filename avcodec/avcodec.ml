@@ -116,6 +116,56 @@ module Packet = struct
       []
       [`Keyframe; `Corrupt; `Discard; `Trusted; `Disposable]
 
+  type replaygain = {
+    track_gain : int;
+    track_peak : int;
+    album_gain : int;
+    album_peak : int;
+  }
+
+  type side_data =
+    [ `Replaygain of replaygain
+    | `Strings_metadata of (string * string) list
+    | `Metadata_update of (string * string) list ]
+
+  type _side_data =
+    [ `Replaygain of replaygain
+    | `Strings_metadata of string
+    | `Metadata_update of string ]
+
+  external add_side_data : 'media t -> _side_data -> unit
+    = "ocaml_avcodec_packet_add_side_data"
+
+  let concat_meta m =
+    String.concat "\000" (List.map (fun (k, v) -> k ^ "\000" ^ v) m)
+
+  let add_side_data p d =
+    let d =
+      match d with
+        | `Replaygain r -> `Replaygain r
+        | `Strings_metadata m -> `Strings_metadata (concat_meta m)
+        | `Metadata_update m -> `Metadata_update (concat_meta m)
+    in
+    add_side_data p d
+
+  external side_data : _ t -> _side_data array
+    = "ocaml_avcodec_packet_side_data"
+
+  let split_metadata s =
+    let rec split_meta m = function
+      | [_] | [] -> m
+      | k :: v :: l -> split_meta ((k, v) :: m) l
+    in
+    split_meta [] (String.split_on_char '\000' s)
+
+  let side_data packet =
+    List.map
+      (function
+        | `Replaygain r -> `Replaygain r
+        | `Strings_metadata s -> `Strings_metadata (split_metadata s)
+        | `Metadata_update s -> `Metadata_update (split_metadata s))
+      (Array.to_list (side_data packet))
+
   external dup : 'a t -> 'a t = "ocaml_avcodec_packet_dup"
   external get_size : 'a t -> int = "ocaml_avcodec_get_packet_size"
 

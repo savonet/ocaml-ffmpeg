@@ -17,6 +17,8 @@
 #include "hw_config_method_stubs.h"
 #include "media_types_stubs.h"
 
+#include <libavutil/replaygain.h>
+
 #include "config.h"
 
 #ifdef HAS_BSF_H
@@ -156,6 +158,124 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
 
   return ret;
 }
+
+CAMLprim value ocaml_avcodec_packet_add_side_data(value _packet,
+                                                  value _side_data) {
+  CAMLparam2(_packet, _side_data);
+  AVPacket *packet = Packet_val(_packet);
+  enum AVPacketSideDataType type;
+  uint8_t *data;
+  AVReplayGain *replay_gain;
+  size_t len;
+
+  switch (Field(_side_data, 0)) {
+  case PVV_Metadata_update:
+    type = AV_PKT_DATA_METADATA_UPDATE;
+    break;
+  case PVV_Strings_metadata:
+    type = AV_PKT_DATA_STRINGS_METADATA;
+    break;
+  case PVV_Replaygain:
+    type = AV_PKT_DATA_REPLAYGAIN;
+    break;
+  default:
+    Fail("Invalid value");
+  }
+
+  switch (type) {
+  case AV_PKT_DATA_METADATA_UPDATE:
+  case AV_PKT_DATA_STRINGS_METADATA:
+    len = caml_string_length(Field(_side_data, 1));
+    data = av_malloc(len);
+    if (!data)
+      caml_raise_out_of_memory();
+    memcpy(data, String_val(Field(_side_data, 1)), len);
+    av_packet_add_side_data(packet, type, data, len);
+    break;
+  case AV_PKT_DATA_REPLAYGAIN:
+    len = sizeof(AVReplayGain);
+    data = av_malloc(len);
+    if (!data)
+      caml_raise_out_of_memory();
+    replay_gain = (AVReplayGain *)data;
+    replay_gain->track_gain = Int_val(Field(Field(_side_data, 1), 0));
+    replay_gain->track_peak = Int_val(Field(Field(_side_data, 1), 1));
+    replay_gain->album_gain = Int_val(Field(Field(_side_data, 1), 2));
+    replay_gain->album_peak = Int_val(Field(Field(_side_data, 1), 3));
+    av_packet_add_side_data(packet, type, data, len);
+    break;
+  default:
+    Fail("Invalid value");
+  }
+
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avcodec_packet_side_data(value _packet) {
+  CAMLparam1(_packet);
+  CAMLlocal3(ret, tmp, tmp2);
+  AVPacket *packet = Packet_val(_packet);
+  int len = 0;
+  int i;
+  value type;
+  AVReplayGain *replay_gain;
+
+  for (i = 0; i < packet->side_data_elems; i++) {
+    switch (packet->side_data[i].type) {
+    case AV_PKT_DATA_METADATA_UPDATE:
+    case AV_PKT_DATA_STRINGS_METADATA:
+    case AV_PKT_DATA_REPLAYGAIN:
+      len++;
+    default:
+      break;
+    }
+  }
+
+  ret = caml_alloc_tuple(len);
+
+  for (i = 0; i < len; i++) {
+    switch (packet->side_data[i].type) {
+    case AV_PKT_DATA_METADATA_UPDATE:
+    case AV_PKT_DATA_STRINGS_METADATA:
+      type = packet->side_data[i].type == AV_PKT_DATA_METADATA_UPDATE
+                 ? PVV_Metadata_update
+                 : PVV_Strings_metadata;
+
+      tmp = caml_alloc_initialized_string(packet->side_data[i].size,
+                                          packet->side_data[i].data);
+
+      tmp2 = caml_alloc_tuple(2);
+      Store_field(tmp2, 0, type);
+      Store_field(tmp2, 1, tmp);
+
+      Store_field(ret, i, tmp2);
+      break;
+
+    case AV_PKT_DATA_REPLAYGAIN:
+      if (packet->side_data[i].size < sizeof(AVReplayGain))
+        Fail("Invalid side_data");
+      replay_gain = (AVReplayGain *)packet->side_data[i].data;
+
+      tmp = caml_alloc_tuple(4);
+      Store_field(tmp, 0, Val_int(replay_gain->track_gain));
+      Store_field(tmp, 1, Val_int(replay_gain->track_peak));
+      Store_field(tmp, 2, Val_int(replay_gain->album_gain));
+      Store_field(tmp, 3, Val_int(replay_gain->album_peak));
+
+      tmp2 = caml_alloc_tuple(2);
+      Store_field(tmp2, 0, PVV_Replaygain);
+      Store_field(tmp2, 1, tmp);
+
+      Store_field(ret, i, tmp2);
+      break;
+
+    default:
+      break;
+    }
+  }
+
+  CAMLreturn(ret);
+};
 
 CAMLprim value ocaml_avcodec_packet_dup(value _packet) {
   CAMLparam1(_packet);

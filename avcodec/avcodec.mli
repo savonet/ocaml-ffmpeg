@@ -66,6 +66,25 @@ module Packet : sig
   (** Packet flags *)
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
+  type replaygain = {
+    track_gain : int;
+    track_peak : int;
+    album_gain : int;
+    album_peak : int;
+  }
+
+  (** Packet side_data (incomplete) *)
+  type side_data =
+    [ `Replaygain of replaygain
+    | `Strings_metadata of (string * string) list
+    | `Metadata_update of (string * string) list ]
+
+  (** Add a side data to a packet. *)
+  val add_side_data : 'media t -> side_data -> unit
+
+  (** Return a packet side_data. *)
+  val side_data : 'media t -> side_data list
+
   (** Return a fresh packet refereing the same data. *)
   val dup : 'media t -> 'media t
 

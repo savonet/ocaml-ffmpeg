@@ -51,6 +51,38 @@ let () =
     with
       | `Audio_packet (i, pkt) ->
           let time_base = Av.get_time_base (List.assoc i oass) in
+          Avcodec.Packet.add_side_data pkt
+            (`Strings_metadata [("foo", "bar"); ("gni", "gno")]);
+          Avcodec.Packet.add_side_data pkt
+            (`Metadata_update [("foo", "bar"); ("gni", "gno")]);
+          Avcodec.Packet.add_side_data pkt
+            (`Replaygain
+              {
+                Avcodec.Packet.track_gain = 1;
+                track_peak = 2;
+                album_gain = 3;
+                album_peak = 4;
+              });
+          List.iter
+            (function
+              | `Strings_metadata m ->
+                  Printf.printf "[side data] string metadata: %s\n%!"
+                    (String.concat ", "
+                       (List.map (fun (k, v) -> k ^ ": " ^ v) m))
+              | `Metadata_update m ->
+                  Printf.printf "[side data] metadata update: %s\n%!"
+                    (String.concat ", "
+                       (List.map (fun (k, v) -> k ^ ": " ^ v) m))
+              | `Replaygain
+                  {
+                    Avcodec.Packet.track_gain;
+                    track_peak;
+                    album_gain;
+                    album_peak;
+                  } ->
+                  Printf.printf "[side data] Replaygain: %d/%d/%d/%d\n%!"
+                    track_gain track_peak album_gain album_peak)
+            (Avcodec.Packet.side_data pkt);
           Av.write_packet (List.assoc i oass) time_base pkt;
           f ()
       | `Video_packet (i, pkt) ->
