@@ -386,10 +386,14 @@ void swscale_free(sws_t *sws) {
   free(sws);
 }
 
-static void finalize_swscale(value v) { swscale_free(Sws_val(v)); }
+CAMLprim ocaml_swscale_finalize(value v) {
+  CAMLparam1(v);
+  swscale_free(Sws_val(v));
+  CAMLreturn(Val_unit);
+}
 
 static struct custom_operations sws_ops = {
-    "ocaml_swscale_context",  finalize_swscale,
+    "ocaml_swscale_context",  custom_finalize_default,
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 

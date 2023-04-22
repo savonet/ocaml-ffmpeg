@@ -540,10 +540,14 @@ void swresample_free(swr_t *swr) {
   free(swr);
 }
 
-static void finalize_swresample(value v) { swresample_free(Swr_val(v)); }
+CAMLprim ocaml_swresample_finalize(value v) {
+  CAMLparam1(v);
+  swresample_free(Swr_val(v));
+  CAMLreturn(Val_unit);
+}
 
 static struct custom_operations swr_ops = {
-    "ocaml_swresample_context", finalize_swresample,
+    "ocaml_swresample_context", custom_finalize_default,
     custom_compare_default,     custom_hash_default,
     custom_serialize_default,   custom_deserialize_default};
 

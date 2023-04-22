@@ -8,11 +8,16 @@ type pixel_format = Avutil.Pixel_format.t
 type flag = Fast_bilinear | Bilinear | Bicubic | Print_info
 type t
 
+external finalize : t -> unit = "ocaml_swscale_finalize"
+
 external create :
   flag array -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
   = "ocaml_swscale_get_context_byte" "ocaml_swscale_get_context"
 
-let create flags = create (Array.of_list flags)
+let create flags =
+  let h = create (Array.of_list flags) in
+  Gc.finalise finalize h;
+  h
 
 type planes = (data * int) array
 

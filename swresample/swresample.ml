@@ -265,6 +265,8 @@ type ('i, 'o) ctx
 module Make (I : AudioData) (O : AudioData) = struct
   type t = (I.t, O.t) ctx
 
+  external finalize : t -> unit = "ocaml_swresample_finalize"
+
   external create :
     vector_kind ->
     CL.t ->
@@ -296,8 +298,12 @@ module Make (I : AudioData) (O : AudioData) = struct
         | _ ->
             raise (Error (`Failure "Swresample output sample format undefined"))
     in
-    create I.vk in_channel_layout in_sample_format in_sample_rate O.vk
-      out_channel_layout out_sample_format out_sample_rate opts
+    let h =
+      create I.vk in_channel_layout in_sample_format in_sample_rate O.vk
+        out_channel_layout out_sample_format out_sample_rate opts
+    in
+    Gc.finalise finalize h;
+    h
 
   let from_codec ?options in_codec out_channel_layout ?out_sample_format
       out_sample_rate =
