@@ -14,8 +14,8 @@ external create :
   flag array -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
   = "ocaml_swscale_get_context_byte" "ocaml_swscale_get_context"
 
-let create flags =
-  let h = create (Array.of_list flags) in
+let create flags in_w in_h in_pf out_w out_h out_pf =
+  let h = create (Array.of_list flags) in_w in_h in_pf out_w out_h out_pf in
   Gc.finalise finalize h;
   h
 
