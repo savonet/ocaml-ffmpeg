@@ -646,6 +646,32 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avutil_frame_duration(value _frame) {
+  CAMLparam1(_frame);
+  CAMLlocal1(ret);
+  AVFrame *frame = Frame_val(_frame);
+
+  if (frame->duration == 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(frame->duration));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_frame_set_duration(value _frame, value _duration) {
+  CAMLparam2(_frame, _duration);
+  AVFrame *frame = Frame_val(_frame);
+
+  if (_duration == Val_none)
+    frame->duration = 0;
+  else
+    frame->duration = Int64_val(Field(_duration, 0));
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avutil_frame_pkt_dts(value _frame) {
   CAMLparam1(_frame);
   CAMLlocal1(ret);

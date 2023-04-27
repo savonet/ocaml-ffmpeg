@@ -28,6 +28,11 @@ module Frame = struct
   external set_pts : _ t -> Int64.t option -> unit
     = "ocaml_avutil_frame_set_pts"
 
+  external duration : _ t -> Int64.t option = "ocaml_avutil_frame_duration"
+
+  external set_duration : _ t -> Int64.t option -> unit
+    = "ocaml_avutil_frame_set_duration"
+
   external pkt_dts : _ t -> Int64.t option = "ocaml_avutil_frame_pkt_dts"
 
   external set_pkt_dts : _ t -> Int64.t option -> unit

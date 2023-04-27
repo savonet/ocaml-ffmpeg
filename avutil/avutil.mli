@@ -32,6 +32,13 @@ module Frame : sig
   (** [Avutil.Frame.set_pts frame pts] sets the presentation time for this frame. *)
   val set_pts : _ t -> Int64.t option -> unit
 
+  (** [Avutil.Frame.duration frame] returns the frame duration in time_base,
+    when available. *)
+  val duration : _ t -> Int64.t option
+
+  (** [Avutil.Frame.set_duration frame duration] sets the frame duration. *)
+  val set_duration : _ t -> Int64.t option -> unit
+
   (** [Avutil.Frame.pkt_dts frame] returns DTS copied from the AVPacket that
     triggered returning this frame. *)
   val pkt_dts : _ t -> Int64.t option
