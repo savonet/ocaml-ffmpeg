@@ -648,6 +648,7 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
 
 CAMLprim value ocaml_avutil_frame_duration(value _frame) {
   CAMLparam1(_frame);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 30, 100)
   CAMLlocal1(ret);
   AVFrame *frame = Frame_val(_frame);
 
@@ -658,16 +659,21 @@ CAMLprim value ocaml_avutil_frame_duration(value _frame) {
   Store_field(ret, 0, caml_copy_int64(frame->duration));
 
   CAMLreturn(ret);
+#else
+  CAMLreturn(Val_none);
+#endif
 }
 
 CAMLprim value ocaml_avutil_frame_set_duration(value _frame, value _duration) {
   CAMLparam2(_frame, _duration);
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(57, 30, 100)
   AVFrame *frame = Frame_val(_frame);
 
   if (_duration == Val_none)
     frame->duration = 0;
   else
     frame->duration = Int64_val(Field(_duration, 0));
+#endif
 
   CAMLreturn(Val_unit);
 }
