@@ -6,6 +6,7 @@
 * Move caml_remove_generational_global_root to ocaml finalizers
   to follow OCaml 5 memory model.
 * Added `Avutil.Frame.{duration, set_duration}`
+* Reset metadata before setting new value.
 
 1.1.7 (2023-02-08)
 =====

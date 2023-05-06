@@ -223,7 +223,7 @@ val output_started : output container -> bool
 val set_output_metadata : output container -> (string * string) list -> unit
 
 (** Same as {!Av.set_output_metadata} for the output streams. *)
-val set_metadata : (output, _, _) stream -> (string * string) list -> unit
+val set_metadata : (_, _, _) stream -> (string * string) list -> unit
 
 (** Return the output container of the output stream. *)
 val get_output : (output, _, _) stream -> output container

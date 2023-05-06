@@ -1647,6 +1647,7 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index,
 
   int i, ret, len = Wosize_val(_tags);
 
+  av_dict_free(&metadata);
   for (i = 0; i < len; i++) {
 
     pair = Field(_tags, i);
