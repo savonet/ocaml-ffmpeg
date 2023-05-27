@@ -40,7 +40,7 @@ type 'a filter = {
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
-type 'a input = 'a Avutil.frame -> unit
+type 'a input = [ `Frame of 'a Avutil.frame | `Flush ] -> unit
 type 'a context = filter_ctx
 type 'a output = { context : 'a context; handler : unit -> 'a Avutil.frame }
 type 'a entries = (string * 'a) list
@@ -355,6 +355,13 @@ external config : _config -> unit = "ocaml_avfilter_config"
 external write_frame : _config -> filter_ctx -> 'a Avutil.frame -> unit
   = "ocaml_avfilter_write_frame"
 
+external write_eof_frame : _config -> filter_ctx -> unit
+  = "ocaml_avfilter_write_eof_frame"
+
+let write_frame config filter = function
+  | `Frame frame -> write_frame config filter frame
+  | `Flush -> write_eof_frame config filter
+
 (* First argument is not used but here to make sure that _config is not GCed while
    using the filters. *)
 external get_frame : _config -> filter_ctx -> 'b Avutil.frame
@@ -399,7 +406,7 @@ let launch graph =
 module Utils = struct
   type audio_converter = {
     time_base : Avutil.rational;
-    filter_in : Avutil.audio Avutil.frame -> unit;
+    filter_in : [ `Frame of Avutil.audio Avutil.frame | `Flush ] -> unit;
     filter_out : unit -> Avutil.audio Avutil.frame;
   }
 
@@ -498,7 +505,7 @@ module Utils = struct
       with Avutil.Error `Eagain -> ()
     in
     filter_in frame;
-    flush ()
+    try flush () with Avutil.Error `Eof when frame = `Flush -> ()
 
   let time_base { time_base; _ } = time_base
 end
