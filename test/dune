@@ -48,7 +48,7 @@
    (run %{audio_decoding} A4.ogg ogg A4)
    (run %{audio_decoding} out.mkv matroska out)
    (run %{remuxing} out.mkv out.mp4)
-   (run %{transcode_aac} A4.ogg A4.mp4)
+   (run %{transcode_aac} A4.ogg A4.mp4 %{system})
    (run %{transcoding} out.mkv out.mp4)
    (run %{decoding} out.mkv)
    (run %{fps} out.mkv out.mp4)
