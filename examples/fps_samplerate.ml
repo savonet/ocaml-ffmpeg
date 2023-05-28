@@ -117,7 +117,9 @@ let () =
         with Avutil.Error `Eagain -> ()
       in
       flush ()
-    with Not_found -> ()
+    with
+      | Not_found -> ()
+      | Avutil.Error `Eof when frm = `Flush -> ()
   in
 
   let process_audio i frm =
@@ -135,9 +137,9 @@ let () =
           process_audio i frame;
           f ()
       | `Video_frame (i, frame) ->
-          process_video i frame;
+          process_video i (`Frame frame);
           f ()
-      | exception Avutil.Error `Eof -> ()
+      | exception Avutil.Error `Eof -> process_video (fst ovss) `Flush
       | _ -> f ()
   in
   f ();

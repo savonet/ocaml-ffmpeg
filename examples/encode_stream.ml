@@ -88,9 +88,11 @@ let () =
     Array.init out_frame_size (fun t ->
         sin (float_of_int (t + (i * out_frame_size)) *. c))
     |> Resampler.convert rsp
-    |> Avfilter.Utils.convert_audio audio_filter on_frame
+    |> fun frame ->
+    Avfilter.Utils.convert_audio audio_filter on_frame (`Frame frame)
   done;
 
+  Avfilter.Utils.convert_audio audio_filter on_frame `Flush;
   Av.close output;
   Unix.close fd;
 

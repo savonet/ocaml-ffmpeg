@@ -65,7 +65,7 @@ let () =
 
   let write_frame frame =
     let filter = get_filter frame in
-    Avfilter.Utils.convert_audio filter on_frame frame
+    Avfilter.Utils.convert_audio filter on_frame (`Frame frame)
   in
 
   let read = Unix.read in_fd in
@@ -101,7 +101,8 @@ let () =
         | _ -> assert false);
       f ()
     with
-      | Avutil.Error `Eof -> ()
+      | Avutil.Error `Eof ->
+          Avfilter.Utils.convert_audio (Option.get !filter) on_frame `Flush
       | Avutil.Error `Invalid_data -> f ()
   in
   f ();

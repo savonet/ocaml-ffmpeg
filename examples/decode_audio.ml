@@ -82,7 +82,7 @@ let () =
 
   let write_frame frame =
     let filter = get_filter frame in
-    Avfilter.Utils.convert_audio filter on_frame frame
+    Avfilter.Utils.convert_audio filter on_frame (`Frame frame)
   in
 
   Compat.map_file in_fd Bigarray.Int8_unsigned Bigarray.c_layout false [| -1 |]
@@ -91,6 +91,7 @@ let () =
 
   Avcodec.flush_decoder decoder @@ write_frame;
 
+  Avfilter.Utils.convert_audio (Option.get !filter) on_frame `Flush;
   Unix.close in_fd;
   Av.close out_file;
 

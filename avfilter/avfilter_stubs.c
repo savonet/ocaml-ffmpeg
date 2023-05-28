@@ -519,6 +519,20 @@ CAMLprim value ocaml_avfilter_write_frame(value _config, value _filter,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_avfilter_write_eof_frame(value _config, value _filter) {
+  CAMLparam1(_config);
+  AVFilterContext *filter_ctx = AvFilterContext_val(_filter);
+
+  caml_release_runtime_system();
+  int err = av_buffersrc_write_frame(filter_ctx, NULL);
+  caml_acquire_runtime_system();
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
   CAMLparam1(_config);
   CAMLlocal1(frame_value);

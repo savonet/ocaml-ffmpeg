@@ -36,7 +36,7 @@ type 'a filter = {
   io : (('a, [ `Input ]) pads, ('a, [ `Output ]) pads) io;
 }
 
-type 'a input = 'a frame -> unit
+type 'a input = [ `Frame of 'a frame | `Flush ] -> unit
 type 'a context
 type 'a output = { context : 'a context; handler : unit -> 'a frame }
 type 'a entries = (string * 'a) list
@@ -151,6 +151,6 @@ module Utils : sig
   val convert_audio :
     audio_converter ->
     (Avutil.audio Avutil.frame -> unit) ->
-    Avutil.audio Avutil.frame ->
+    [ `Frame of Avutil.audio Avutil.frame | `Flush ] ->
     unit
 end

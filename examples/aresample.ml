@@ -112,9 +112,10 @@ let () =
   let rec f () =
     match Av.read_input ~audio_frame:[audio_input] src with
       | `Audio_frame (i, frame) ->
-          process_audio i frame;
+          process_audio i (`Frame frame);
           f ()
-      | exception Avutil.Error `Eof -> ()
+      | exception Avutil.Error `Eof -> (
+          try process_audio idx `Flush with Avutil.Error `Eof -> ())
       | _ -> f ()
   in
   f ();
