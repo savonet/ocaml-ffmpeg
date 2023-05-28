@@ -369,6 +369,14 @@ let new_subtitle_stream ?opts ~time_base ~codec container =
   filter_opts unused opts;
   mk_stream container ret
 
+external new_data_stream :
+  _ container -> Avcodec.Unknown.id -> Avutil.rational -> int
+  = "ocaml_av_new_data_stream"
+
+let new_data_stream ~time_base ~codec container =
+  let ret = new_data_stream container codec time_base in
+  mk_stream container ret
+
 external codec_attr : _ stream -> string option = "ocaml_av_codec_attr"
 external bitrate : _ stream -> int option = "ocaml_av_stream_bitrate"
 

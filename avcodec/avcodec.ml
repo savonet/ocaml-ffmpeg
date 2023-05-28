@@ -103,6 +103,8 @@ module Packet = struct
   (** Packet type *)
   type 'a t
 
+  external create : string -> 'a t = "ocaml_avcodec_create_packet"
+
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
   external int_of_flag : flag -> int = "ocaml_avcodec_int_of_flag"
@@ -604,6 +606,15 @@ module Subtitle = struct
 
   external get_params_id : subtitle params -> id
     = "ocaml_avcodec_parameters_get_subtitle_codec_id"
+end
+
+module Unknown = struct
+  type 'mode t = ([ `Data ], 'mode) codec
+  type id = Codec_id.unknown
+
+  let codec_ids = Codec_id.unknown
+
+  external find_encoder : id -> encode t = "ocaml_avcodec_find_unknown_encoder"
 end
 
 external _send_packet : 'media decoder -> 'media Packet.t -> unit

@@ -142,6 +142,9 @@ module Packet : sig
 
   (** Same as {!Avcodec.Packet.parse_data} with bytes array. *)
   val parse_bytes : 'media parser -> ('media t -> unit) -> bytes -> int -> unit
+
+  (** Advanced users: create a packet with the given data. *)
+  val create : string -> 'media t
 end
 
 (** Audio codecs. *)
@@ -453,7 +456,22 @@ module Subtitle : sig
   val get_params_id : subtitle params -> id
 end
 
-(* This also includes the fake codecs. *)
+module Unknown : sig
+  type 'mode t = ([ `Data ], 'mode) codec
+
+  (* Unkown codecs seem used for data mostly. *)
+  type id = Codec_id.unknown
+
+  (** List of all unknown codec IDs. *)
+  val codec_ids : Codec_id.unknown list
+
+  (** Find an encoder from its id.
+
+      Raise Error if the codec is not found or is not an unknown codec. *)
+  val find_encoder : id -> encode t
+end
+
+(* This includes all the codec. *)
 type id = Codec_id.codec_id
 
 val string_of_id : id -> string

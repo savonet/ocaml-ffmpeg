@@ -324,6 +324,19 @@ val new_subtitle_stream :
   output container ->
   (output, subtitle, [ `Frame ]) stream
 
+(** Add a new data stream to the given container.
+
+    [opts] may contain any option settable on the stream's internal AVCodec.
+    After returning, if [opts] was passed, unused options are left in the hash
+    table.
+
+    Raise Error if the opening failed. *)
+val new_data_stream :
+  time_base:Avutil.rational ->
+  codec:Avcodec.Unknown.id ->
+  output container ->
+  (output, [ `Data ], [ `Packet ]) stream
+
 (** Return a codec attribute suitable for HLS playlists when available. *)
 val codec_attr : _ stream -> string option
 

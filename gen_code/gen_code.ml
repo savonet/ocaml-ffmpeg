@@ -355,6 +355,13 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "SubtitleCodecID",
         "subtitle" );
+      ( "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
+        "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_CODEC_ID_",
+        "enum AVCodecID",
+        "UnknownCodecID",
+        "unknown" );
       ( "[ \t]*AV_CODEC_ID_NONE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "",

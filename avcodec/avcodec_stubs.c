@@ -159,6 +159,26 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   return ret;
 }
 
+CAMLprim value ocaml_avcodec_create_packet(value _data) {
+  CAMLparam1(_data);
+  AVPacket *packet;
+  int len = caml_string_length(_data);
+
+  packet = av_packet_alloc();
+  if (!packet)
+    caml_raise_out_of_memory();
+
+  int err = av_new_packet(packet, len);
+  if (err != 0) {
+    av_freep(packet);
+    ocaml_avutil_raise_error(err);
+  }
+
+  memcpy(packet->data, String_val(_data), len);
+
+  CAMLreturn(value_of_ffmpeg_packet(packet));
+}
+
 CAMLprim value ocaml_avcodec_packet_add_side_data(value _packet,
                                                   value _side_data) {
   CAMLparam2(_packet, _side_data);
@@ -1540,6 +1560,13 @@ CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
       ret, find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
+}
+
+CAMLprim value ocaml_avcodec_find_unknown_encoder(value _id) {
+  CAMLparam1(_id);
+  CAMLlocal1(ret);
+  CAMLreturn(value_of_avcodec(
+      ret, find_encoder(UnknownCodecID_val(_id), AVMEDIA_TYPE_DATA)));
 }
 
 /**** Subtitle codec parameters ****/

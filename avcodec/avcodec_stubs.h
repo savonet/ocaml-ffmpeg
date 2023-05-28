@@ -1,4 +1,4 @@
-#ifndef _AVCODEC_STUBS_H_               
+#ifndef _AVCODEC_STUBS_H_
 #define _AVCODEC_STUBS_H_
 
 #include <caml/mlvalues.h>
@@ -6,7 +6,7 @@
 
 /***** AVCodec *****/
 
-#define AvCodec_val(v) (*(const AVCodec**)Data_abstract_val(v))
+#define AvCodec_val(v) (*(const AVCodec **)Data_abstract_val(v))
 
 static inline value value_of_avcodec(value ret, const AVCodec *avcodec) {
   ret = caml_alloc(1, Abstract_tag);
@@ -16,13 +16,14 @@ static inline value value_of_avcodec(value ret, const AVCodec *avcodec) {
 
 /***** Codec parameters *****/
 
-#define CodecParameters_val(v) (*(struct AVCodecParameters**)Data_custom_val(v))
+#define CodecParameters_val(v)                                                 \
+  (*(struct AVCodecParameters **)Data_custom_val(v))
 
-void value_of_codec_parameters_copy(AVCodecParameters *src, value * pvalue);
+void value_of_codec_parameters_copy(AVCodecParameters *src, value *pvalue);
 
 /***** Packet *****/
 
-#define Packet_val(v) (*(struct AVPacket**)Data_custom_val(v))
+#define Packet_val(v) (*(struct AVPacket **)Data_custom_val(v))
 
 value value_of_ffmpeg_packet(AVPacket *packet);
 
@@ -44,4 +45,10 @@ enum AVCodecID SubtitleCodecID_val(value v);
 
 value Val_SubtitleCodecID(enum AVCodecID id);
 
-#endif // _AVCODEC_STUBS_H_ 
+/**** Unknown codec ID ****/
+
+enum AVCodecID UnknownCodecID_val(value v);
+
+value Val_UnknownCodecID(enum AVCodecID id);
+
+#endif // _AVCODEC_STUBS_H_

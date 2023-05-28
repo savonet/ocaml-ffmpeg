@@ -941,6 +941,7 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
   err = avcodec_parameters_to_context(stream->codec_context, dec_param);
 
   if (err < 0) {
+    free(stream);
     ocaml_avutil_raise_error(err);
   }
 
@@ -949,8 +950,10 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
   err = avcodec_open2(stream->codec_context, dec, NULL);
   caml_acquire_runtime_system();
 
-  if (err < 0)
+  if (err < 0) {
+    free(stream);
     ocaml_avutil_raise_error(err);
+  }
 
   return stream;
 }
@@ -1686,9 +1689,14 @@ static stream_t *new_stream(av_t *av, const AVCodec *codec) {
   stream_t *stream =
       allocate_stream_context(av, av->format_context->nb_streams, codec);
 
-  AVStream *avstream = avformat_new_stream(av->format_context, codec);
-  if (!avstream)
+  if (!stream)
     caml_raise_out_of_memory();
+
+  AVStream *avstream = avformat_new_stream(av->format_context, codec);
+  if (!avstream) {
+    free(stream);
+    caml_raise_out_of_memory();
+  }
 
   avstream->id = av->format_context->nb_streams - 1;
 
@@ -1837,9 +1845,6 @@ static stream_t *new_video_stream(AVBufferRef *device_ctx,
                                   AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
 
-  if (!stream)
-    return NULL;
-
   init_stream_encoder(device_ctx, frame_ctx, av, stream, options);
 
   return stream;
@@ -1902,8 +1907,6 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
 static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
                                      AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
-  if (!stream)
-    return NULL;
 
   int ret = subtitle_header_default(stream->codec_context);
   if (ret < 0) {
@@ -1957,6 +1960,23 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
   Store_field(ans, 1, unused);
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_new_data_stream(value _av, value _codec_id,
+                                        value _time_base) {
+  CAMLparam2(_av, _time_base);
+  CAMLlocal2(ans, unused);
+  const enum AVCodecID codec_id = UnknownCodecID_val(_codec_id);
+  av_t *av = Av_val(_av);
+
+  stream_t *stream = new_stream(av, NULL);
+  AVStream *s = av->format_context->streams[stream->index];
+
+  s->time_base = rational_of_value(_time_base);
+  s->codecpar->codec_type = AVMEDIA_TYPE_DATA;
+  s->codecpar->codec_id = codec_id;
+
+  CAMLreturn(Val_int(stream->index));
 }
 
 CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
