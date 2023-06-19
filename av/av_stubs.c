@@ -86,7 +86,8 @@ static inline av_t *Av_val(value v) {
 /**** Media Type ****/
 
 static const enum AVMediaType MEDIA_TYPES[] = {
-    AVMEDIA_TYPE_AUDIO, AVMEDIA_TYPE_VIDEO, AVMEDIA_TYPE_SUBTITLE};
+    AVMEDIA_TYPE_AUDIO, AVMEDIA_TYPE_VIDEO, AVMEDIA_TYPE_DATA,
+    AVMEDIA_TYPE_SUBTITLE};
 #define MEDIA_TYPES_LEN (sizeof(MEDIA_TYPES) / sizeof(enum AVMediaType))
 
 enum AVMediaType MediaType_val(value v) { return MEDIA_TYPES[Int_val(v)]; }
@@ -1080,13 +1081,20 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       skip = 1;
       for (i = 0; i < Wosize_val(_packet); i++)
         if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
-          _dec = Field(Field(_packet, i), 1);
           skip = 0;
         }
 
       for (i = 0; i < Wosize_val(_frame); i++)
         if (Int_val(Field(Field(_frame, i), 0)) == packet->stream_index) {
           _dec = Field(Field(_frame, i), 1);
+
+          if (_dec != Val_none) {
+            dec = AvCodec_val(Some_val(_dec));
+          }
+
+          if ((stream = streams[packet->stream_index]) == NULL)
+            stream = open_stream_index(av, packet->stream_index, dec);
+
           skip = 0;
         }
 
@@ -1094,13 +1102,6 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
         av_packet_unref(packet);
         continue;
       }
-
-      if (_dec != Val_none) {
-        dec = AvCodec_val(Some_val(_dec));
-      }
-
-      if ((stream = streams[packet->stream_index]) == NULL)
-        stream = open_stream_index(av, packet->stream_index, dec);
 
       for (i = 0; i < Wosize_val(_packet); i++) {
         if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
@@ -1110,13 +1111,15 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
 
           ans = caml_alloc_tuple(2);
 
-          switch (
-              av->streams[packet->stream_index]->codec_context->codec_type) {
-          case AVMEDIA_TYPE_AUDIO:
+          switch (Field(Field(_packet, i), 1)) {
+          case PVV_Audio:
             Store_field(ans, 0, PVV_Audio_packet);
             break;
-          case AVMEDIA_TYPE_VIDEO:
+          case PVV_Video:
             Store_field(ans, 0, PVV_Video_packet);
+            break;
+          case PVV_Data:
+            Store_field(ans, 0, PVV_Data_packet);
             break;
           default:
             Store_field(ans, 0, PVV_Subtitle_packet);

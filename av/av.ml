@@ -132,7 +132,7 @@ type ('a, 'b, 'c) stream = {
   mutable decoder : ('b, Avcodec.decode) Avcodec.codec option;
 }
 
-type media_type = MT_audio | MT_video | MT_subtitle
+type media_type = MT_audio | MT_video | MT_data | MT_subtitle
 
 let mk_stream container index = { container; index; decoder = None }
 
@@ -163,6 +163,7 @@ let get_streams input media_type =
 let get_audio_streams input = get_streams input MT_audio
 let get_video_streams input = get_streams input MT_video
 let get_subtitle_streams input = get_streams input MT_subtitle
+let get_data_streams input = get_streams input MT_data
 let set_decoder s decoder = s.decoder <- Some decoder
 
 external _find_best_stream : input container -> media_type -> int
@@ -190,32 +191,43 @@ type input_result =
   | `Video_packet of int * video Avcodec.Packet.t
   | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * subtitle frame ]
+  | `Subtitle_frame of int * subtitle frame
+  | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
 external read_input :
-  (int * ('a, Avcodec.decode) Avcodec.codec option) array ->
+  (int * Avutil.media_type) array ->
   (int * ('a, Avcodec.decode) Avcodec.codec option) array ->
   input container ->
   input_result = "ocaml_av_read_input"
 
-let _get input =
+let _get_packet media_type input =
+  List.map (fun { index; container; _ } ->
+      if container != input then
+        raise (Failure "Inconsistent stream and input!");
+      (index, media_type))
+
+let _get_frame input =
   List.map (fun { index; container; decoder } ->
       if container != input then
         raise (Failure "Inconsistent stream and input!");
       (index, Obj.magic decoder))
 
 let read_input ?(audio_packet = []) ?(audio_frame = []) ?(video_packet = [])
-    ?(video_frame = []) ?(subtitle_packet = []) ?(subtitle_frame = []) input =
+    ?(video_frame = []) ?(subtitle_packet = []) ?(subtitle_frame = [])
+    ?(data_packet = []) input =
   let packet =
     Array.of_list
-      (_get input audio_packet @ _get input video_packet
-     @ _get input subtitle_packet)
+      (_get_packet `Audio input audio_packet
+      @ _get_packet `Video input video_packet
+      @ _get_packet `Subtitle input subtitle_packet
+      @ _get_packet `Data input data_packet)
   in
   let frame =
     Array.of_list
-      (_get input audio_frame @ _get input video_frame
-     @ _get input subtitle_frame)
+      (_get_frame input audio_frame
+      @ _get_frame input video_frame
+      @ _get_frame input subtitle_frame)
   in
   read_input packet frame input
 

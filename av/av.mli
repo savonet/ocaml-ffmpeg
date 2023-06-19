@@ -99,6 +99,11 @@ val get_subtitle_streams :
   input container ->
   (int * (input, subtitle, 'a) stream * subtitle Avcodec.params) list
 
+(** Same as {!Av.get_audio_streams} for the data streams. *)
+val get_data_streams :
+  input container ->
+  (int * (input, [ `Data ], 'a) stream * [ `Data ] Avcodec.params) list
+
 (** Return the best audio stream of the input. The result is a tuple containing
     the index of the stream in the container, the stream and the codec of the
     stream. Raise Error if no stream could be found. *)
@@ -153,10 +158,11 @@ type input_result =
   | `Video_packet of int * video Avcodec.Packet.t
   | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * subtitle frame ]
+  | `Subtitle_frame of int * subtitle frame
+  | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
-    [Audio] [Video] or [Subtitle] index and packet or frame of the input or [Error `Eof]
+    [Audio] [Video] [Subtitle] of [Data] index and packet or frame of the input or [Error `Eof]
     if the end of the input is reached. Raise Error if the reading failed.
 
     Only packet and frames from the specified streams are returned. *)
@@ -167,6 +173,7 @@ val read_input :
   ?video_frame:(input, video, [ `Frame ]) stream list ->
   ?subtitle_packet:(input, subtitle, [ `Packet ]) stream list ->
   ?subtitle_frame:(input, subtitle, [ `Frame ]) stream list ->
+  ?data_packet:(input, [ `Data ], [ `Packet ]) stream list ->
   input container ->
   input_result
 

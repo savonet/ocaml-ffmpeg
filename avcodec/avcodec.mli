@@ -145,6 +145,9 @@ module Packet : sig
 
   (** Advanced users: create a packet with the given data. *)
   val create : string -> 'media t
+
+  (** Advanced users: return the packet's content. *)
+  val content : 'media t -> string
 end
 
 (** Audio codecs. *)
@@ -465,10 +468,11 @@ module Unknown : sig
   (** List of all unknown codec IDs. *)
   val codec_ids : Codec_id.unknown list
 
-  (** Find an encoder from its id.
+  (** Return the name of the codec. *)
+  val string_of_id : id -> string
 
-      Raise Error if the codec is not found or is not an unknown codec. *)
-  val find_encoder : id -> encode t
+  (** Return the id of the codec params. *)
+  val get_params_id : [ `Data ] params -> id
 end
 
 (* This includes all the codec. *)

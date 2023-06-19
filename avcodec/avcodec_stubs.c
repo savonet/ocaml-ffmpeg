@@ -51,6 +51,11 @@ static value value_of_subtitle_codec_id(enum AVCodecID id) {
   return ret;
 }
 
+static value value_of_unknown_codec_id(enum AVCodecID id) {
+  value ret = Val_UnknownCodecID(id);
+  return ret;
+}
+
 CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
   CAMLparam0();
   CAMLreturn(Val_int(AV_CODEC_FLAG_QSCALE));
@@ -179,6 +184,12 @@ CAMLprim value ocaml_avcodec_create_packet(value _data) {
   CAMLreturn(value_of_ffmpeg_packet(packet));
 }
 
+CAMLprim value ocaml_avcodec_packet_content(value _packet) {
+  CAMLparam1(_packet);
+  AVPacket *packet = Packet_val(_packet);
+  CAMLreturn(caml_alloc_initialized_string(packet->size, (char *)packet->data));
+}
+
 CAMLprim value ocaml_avcodec_packet_add_side_data(value _packet,
                                                   value _side_data) {
   CAMLparam2(_packet, _side_data);
@@ -262,7 +273,7 @@ CAMLprim value ocaml_avcodec_packet_side_data(value _packet) {
                  : PVV_Strings_metadata;
 
       tmp = caml_alloc_initialized_string(packet->side_data[i].size,
-                                          packet->side_data[i].data);
+                                          (char *)packet->side_data[i].data);
 
       tmp2 = caml_alloc_tuple(2);
       Store_field(tmp2, 0, type);
@@ -1526,6 +1537,18 @@ CAMLprim value ocaml_avcodec_parameters_video_copy_byte(value *argv, int argn) {
                                              argv[4], argv[5], argv[7]);
 }
 
+/**** Unknown codec ID *****/
+
+CAMLprim value ocaml_avcodec_get_unknown_codec_id_name(value _codec_id) {
+  CAMLparam1(_codec_id);
+  CAMLreturn(caml_copy_string(avcodec_get_name(UnknownCodecID_val(_codec_id))));
+}
+
+CAMLprim value ocaml_avcodec_parameters_get_unknown_codec_id(value _cp) {
+  CAMLparam1(_cp);
+  CAMLreturn(value_of_unknown_codec_id(CodecParameters_val(_cp)->codec_id));
+}
+
 /**** Subtitle codec ID ****/
 
 CAMLprim value ocaml_avcodec_get_subtitle_codec_id_name(value _codec_id) {
@@ -1560,13 +1583,6 @@ CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
       ret, find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
-}
-
-CAMLprim value ocaml_avcodec_find_unknown_encoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      ret, find_encoder(UnknownCodecID_val(_id), AVMEDIA_TYPE_DATA)));
 }
 
 /**** Subtitle codec parameters ****/

@@ -238,6 +238,7 @@ let gen_polymorphic_variant_h () =
       "Subtitle_frame";
       "Subtitle_packet";
       "Data";
+      "Data_packet";
       "Attachment";
       "Nb";
       "Packet";

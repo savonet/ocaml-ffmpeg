@@ -104,6 +104,7 @@ module Packet = struct
   type 'a t
 
   external create : string -> 'a t = "ocaml_avcodec_create_packet"
+  external content : 'a t -> string = "ocaml_avcodec_packet_content"
 
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
@@ -614,7 +615,11 @@ module Unknown = struct
 
   let codec_ids = Codec_id.unknown
 
-  external find_encoder : id -> encode t = "ocaml_avcodec_find_unknown_encoder"
+  external get_params_id : [ `Data ] params -> id
+    = "ocaml_avcodec_parameters_get_unknown_codec_id"
+
+  external string_of_id : id -> string
+    = "ocaml_avcodec_get_unknown_codec_id_name"
 end
 
 external _send_packet : 'media decoder -> 'media Packet.t -> unit
