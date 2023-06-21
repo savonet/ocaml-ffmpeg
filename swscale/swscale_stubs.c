@@ -181,11 +181,10 @@ struct sws_t {
   int srcSliceH;
   struct video_t in;
   struct video_t out;
-  value out_vector;
 
   int (*get_in_pixels)(sws_t *, value *);
-  int (*alloc_out)(sws_t *, value *);
-  int (*copy_out)(sws_t *);
+  int (*alloc_out)(sws_t *, value *, value *);
+  int (*copy_out)(sws_t *, value *);
 };
 
 #define Sws_val(v) (*(sws_t **)Data_custom_val(v))
@@ -235,42 +234,37 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector) {
   CAMLreturnT(int, nb_planes);
 }
 
-static int alloc_out_frame(sws_t *sws, value *v) {
+static int alloc_out_frame(sws_t *sws, value *out_vect, value *tmp) {
   int ret;
+  AVFrame *frame = av_frame_alloc();
 
-  do {
-    AVFrame *frame = av_frame_alloc();
+  if (!frame)
+    caml_raise_out_of_memory();
 
-    if (!frame)
-      caml_raise_out_of_memory();
+  frame->width = sws->out.width;
+  frame->height = sws->out.height;
+  frame->format = sws->out.pixel_format;
 
-    frame->width = sws->out.width;
-    frame->height = sws->out.height;
-    frame->format = sws->out.pixel_format;
+  // allocate the buffers for the frame data
+  ret = av_frame_get_buffer(frame, 32);
 
-    // allocate the buffers for the frame data
-    ret = av_frame_get_buffer(frame, 32);
+  if (ret < 0) {
+    av_frame_free(&frame);
+    ocaml_avutil_raise_error(ret);
+  }
 
-    if (ret < 0) {
-      av_frame_free(&frame);
-      ocaml_avutil_raise_error(ret);
-    }
+  sws->out.slice = frame->data;
+  sws->out.stride = frame->linesize;
 
-    sws->out.slice = frame->data;
-    sws->out.stride = frame->linesize;
-
-    caml_modify_generational_global_root(&sws->out_vector,
-                                         value_of_frame(frame));
-  } while (0);
+  *out_vect = value_of_frame(frame);
 
   return ret;
 }
 
-static int alloc_out_string(sws_t *sws, value *v) {
+static int alloc_out_string(sws_t *sws, value *out_vect, value *tmp) {
   int i, len;
 
-  caml_modify_generational_global_root(&sws->out_vector,
-                                       caml_alloc_tuple(sws->out.nb_planes));
+  *out_vect = caml_alloc_tuple(sws->out.nb_planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
     len = sws->out.stride[i] * sws->out.height;
@@ -280,23 +274,23 @@ static int alloc_out_string(sws_t *sws, value *v) {
       sws->out.sizes_tab[i] = len;
     }
 
-    *v = caml_alloc_tuple(2);
-    Store_field(*v, 0, caml_alloc_string(len));
-    Store_field(*v, 1, Val_int(sws->out.stride[i]));
+    *tmp = caml_alloc_tuple(2);
+    Store_field(*tmp, 0, caml_alloc_string(len));
+    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
 
-    Store_field(sws->out_vector, i, *v);
+    Store_field(*out_vect, i, *tmp);
   }
 
   return 0;
 }
 
-static int copy_out_string(sws_t *sws) {
+static int copy_out_string(sws_t *sws, value *out_vect) {
   CAMLparam0();
   CAMLlocal1(str);
   int i;
 
   for (i = 0; i < sws->out.nb_planes; i++) {
-    str = Field(Field(sws->out_vector, i), 0);
+    str = Field(Field(*out_vect, i), 0);
 
     memcpy((uint8_t *)String_val(str), sws->out.slice[i],
            sws->out.sizes_tab[i]);
@@ -305,27 +299,26 @@ static int copy_out_string(sws_t *sws) {
   CAMLreturnT(int, 0);
 }
 
-static int alloc_out_ba(sws_t *sws, value *v) {
+static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
   int i;
   intnat out_size;
 
-  caml_modify_generational_global_root(&sws->out_vector,
-                                       caml_alloc_tuple(sws->out.nb_planes));
+  *out_vect = caml_alloc_tuple(sws->out.nb_planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
     // Some filters and swscale can read up to 16 bytes beyond the planes, 16
     // extra bytes must be allocated.
     out_size = sws->out.stride[i] * sws->out.height + 16;
 
-    *v = caml_alloc_tuple(2);
+    *tmp = caml_alloc_tuple(2);
     Store_field(
-        *v, 0,
+        *tmp, 0,
         caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
-    Store_field(*v, 1, Val_int(sws->out.stride[i]));
+    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
 
-    sws->out.slice[i] = Caml_ba_data_val(Field(*v, 0));
+    sws->out.slice[i] = Caml_ba_data_val(Field(*tmp, 0));
 
-    Store_field(sws->out_vector, i, *v);
+    Store_field(*out_vect, i, *tmp);
   }
 
   return 0;
@@ -333,7 +326,7 @@ static int alloc_out_ba(sws_t *sws, value *v) {
 
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
   CAMLparam2(_sws, _in_vector);
-  CAMLlocal1(tmp);
+  CAMLlocal2(out_vect, tmp);
   sws_t *sws = Sws_val(_sws);
 
   // acquisition of the input pixels
@@ -341,7 +334,7 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
   if (ret < 0)
     Fail("Failed to get input pixels");
 
-  ret = sws->alloc_out(sws, &tmp);
+  ret = sws->alloc_out(sws, &out_vect, &tmp);
   if (ret < 0)
     ocaml_avutil_raise_error(ret);
 
@@ -356,12 +349,12 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
     ocaml_avutil_raise_error(ret);
 
   if (sws->copy_out) {
-    ret = sws->copy_out(sws);
+    ret = sws->copy_out(sws, &out_vect);
     if (ret < 0)
       ocaml_avutil_raise_error(ret);
   }
 
-  CAMLreturn(sws->out_vector);
+  CAMLreturn(out_vect);
 }
 
 void swscale_free(sws_t *sws) {
@@ -380,33 +373,26 @@ void swscale_free(sws_t *sws) {
       free(sws->out.slice[i]);
   }
 
-  if (sws->out_vector)
-    caml_remove_generational_global_root(&sws->out_vector);
-
   free(sws);
 }
 
-CAMLprim ocaml_swscale_finalize(value v) {
-  CAMLparam1(v);
-  swscale_free(Sws_val(v));
-  CAMLreturn(Val_unit);
-}
+static void ocaml_swscale_finalize(value v) { swscale_free(Sws_val(v)); }
 
 static struct custom_operations sws_ops = {
-    "ocaml_swscale_context",  custom_finalize_default,
+    "ocaml_swscale_context",  ocaml_swscale_finalize,
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 
 CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
                                     value in_width_, value in_height_,
                                     value in_pixel_format_,
-                                    value out_vector_kind_, value out_width_,
+                                    value out_vect_kind_, value out_width_,
                                     value out_height_,
                                     value out_pixel_format_) {
   CAMLparam1(flags_);
-  CAMLlocal2(ans, tmp);
+  CAMLlocal1(ans);
   vector_kind in_vector_kind = Int_val(in_vector_kind_);
-  vector_kind out_vector_kind = Int_val(out_vector_kind_);
+  vector_kind out_vect_kind = Int_val(out_vect_kind_);
   int flags = 0, i;
 
   sws_t *sws = (sws_t *)calloc(1, sizeof(sws_t));
@@ -453,12 +439,9 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
     sws->get_in_pixels = get_in_pixels_ba;
   }
 
-  sws->out_vector = Val_unit;
-  caml_register_generational_global_root(&sws->out_vector);
-
-  if (out_vector_kind == Frm) {
+  if (out_vect_kind == Frm) {
     sws->alloc_out = alloc_out_frame;
-  } else if (out_vector_kind == Str) {
+  } else if (out_vect_kind == Str) {
     sws->alloc_out = alloc_out_string;
     sws->copy_out = copy_out_string;
     sws->out.owns_data = 1;
@@ -479,12 +462,6 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
   for (sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes];
        sws->out.nb_planes++)
     ;
-
-  ret = sws->alloc_out(sws, &tmp);
-  if (ret < 0) {
-    swscale_free(sws);
-    Fail("Failed to create Swscale context");
-  }
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t *), 0, 1);
   Sws_val(ans) = sws;
