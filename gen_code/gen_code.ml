@@ -378,7 +378,7 @@ let gen_pixel_format mode =
     [
       ( "enum AVPixelFormat",
         "[ \t]*AV_PIX_FMT_\\([A-Z0-9_]+\\)",
-        "[ \t]*AV_PIX_FMT_DRM_PRIME",
+        "[ \t]*AV_PIX_FMT_NB",
         "AV_PIX_FMT_",
         "enum AVPixelFormat",
         "PixelFormat",
