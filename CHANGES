@@ -1,4 +1,4 @@
-1.1.8 (unreleased)
+1.1.8 (2023-07-01)
 =====
 * Added asynchronous stream copy creation API.
 * Added `pkt_dts` API for AVFrame.
