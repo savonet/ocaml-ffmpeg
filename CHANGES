@@ -1,3 +1,8 @@
+1.1.9 (unreleased)
+=====
+* Added support for AV_CODEC_ID_WRAPPED_AVFRAME
+  as valid audio/video codec.
+
 1.1.8 (2023-07-01)
 =====
 * Added asynchronous stream copy creation API.
