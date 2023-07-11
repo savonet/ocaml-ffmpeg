@@ -61,7 +61,8 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
         enum_prefix,
         c_type_name,
         c_fun_radix,
-        ml_type_name ) =
+        ml_type_name,
+        extra_entries ) =
     labels
   in
 
@@ -78,17 +79,21 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
     if_d ml_oc (fun oc -> output_string oc line)
   in
 
+  let print_entry ~values id =
+    let pv, value = id_to_pv_value id values in
+
+    print_c ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
+    print_ml ["  | `"; pv];
+    (pv, value)
+  in
+
   let rec loop lines values pvs =
     match lines with
       | line :: _ when end_pat <> "" && Str.string_match end_re line 0 ->
           (values, pvs)
       | line :: lines when Str.string_match re line 0 ->
           let id = Str.matched_group 1 line in
-          let pv, value = id_to_pv_value id values in
-
-          print_c ["  {("; Int64.to_string value; "), "; enum_prefix; id; "},"];
-          print_ml ["  | `"; pv];
-
+          let pv, value = print_entry ~values id in
           loop lines (value :: values) (pv :: pvs)
       | _ :: lines -> loop lines values pvs
       | [] -> (values, pvs)
@@ -104,7 +109,14 @@ let translate_enum_lines ?h_oc ?ml_oc lines labels =
 
     print_ml ["type "; ml_type_name; " = ["];
 
-    let values, pvs = loop lines [] [] in
+    let pvs, values =
+      List.fold_left
+        (fun (pvs, values) extra ->
+          let pv, value = print_entry ~values extra in
+          (pv :: pvs, value :: values))
+        ([], []) extra_entries
+    in
+    let values, pvs = loop lines values pvs in
 
     print_ml ["]\n"];
 
@@ -341,35 +353,40 @@ let gen_codec_id mode =
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "VideoCodecID",
-        "video" );
+        "video",
+        ["WRAPPED_AVFRAME"] );
       ( "[ \t]*AV_CODEC_ID_FIRST_AUDIO",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "AudioCodecID",
-        "audio" );
+        "audio",
+        ["WRAPPED_AVFRAME"] );
       ( "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "SubtitleCodecID",
-        "subtitle" );
+        "subtitle",
+        [] );
       ( "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "",
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "UnknownCodecID",
-        "unknown" );
+        "unknown",
+        [] );
       ( "[ \t]*AV_CODEC_ID_NONE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "",
         "AV_CODEC_ID_",
         "enum AVCodecID",
         "CodecID",
-        "codec_id" );
+        "codec_id",
+        [] );
     ]
     mode
 
@@ -382,7 +399,8 @@ let gen_pixel_format mode =
         "AV_PIX_FMT_",
         "enum AVPixelFormat",
         "PixelFormat",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -396,7 +414,8 @@ let gen_pixel_format_flag mode =
         "AV_PIX_FMT_FLAG_",
         "uint64_t",
         "PixelFormatFlag",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -410,7 +429,8 @@ let gen_hw_config_method mode =
         "AV_CODEC_HW_CONFIG_METHOD_",
         "uint64_t",
         "HwConfigMethod",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -424,7 +444,8 @@ let gen_hw_device_type mode =
         "AV_HWDEVICE_TYPE_",
         "enum AVHWDeviceType",
         "HwDeviceType",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -439,7 +460,8 @@ let gen_channel_layout mode =
         "AV_CH_LAYOUT_",
         "uint64_t",
         "ChannelLayout",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -454,7 +476,8 @@ let gen_codec_capabilities mode =
         "AV_CODEC_CAP_",
         "uint64_t",
         "CodecCapabilities",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -469,7 +492,8 @@ let gen_codec_properties mode =
         "AV_CODEC_PROP_",
         "uint64_t",
         "CodecProperties",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -484,7 +508,8 @@ let gen_media_types mode =
         "AVMEDIA_TYPE_",
         "uint64_t",
         "MediaTypes",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -498,7 +523,8 @@ let gen_sample_format mode =
         "AV_SAMPLE_FMT_",
         "enum AVSampleFormat",
         "SampleFormat",
-        "t" );
+        "t",
+        [] );
     ]
     mode
 
@@ -513,21 +539,24 @@ let gen_swresample_options mode =
         "SWR_",
         "enum SwrDitherType",
         "DitherType",
-        "dither_type" );
+        "dither_type",
+        [] );
       ( "enum SwrEngine",
         "[ \t]*SWR_\\([A-Z0-9_]+\\)",
         "[ \t]*SWR_ENGINE_NB",
         "SWR_",
         "enum SwrEngine",
         "Engine",
-        "engine" );
+        "engine",
+        [] );
       ( "enum SwrFilterType",
         "[ \t]*SWR_\\([A-Z0-9_]+\\)",
         "\\};",
         "SWR_",
         "enum SwrFilterType",
         "FilterType",
-        "filter_type" );
+        "filter_type",
+        [] );
     ]
     mode
 
