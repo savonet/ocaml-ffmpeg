@@ -31,7 +31,6 @@ let () =
 
   let codec = Avcodec.Audio.find_encoder_by_name "flac" in
   let channel_layout = Avcodec.Audio.get_channel_layout params in
-  let channels = Avcodec.Audio.get_nb_channels params in
   let sample_format = Avcodec.Audio.get_sample_format params in
   let sample_rate = Avcodec.Audio.get_sample_rate params in
   let time_base = { Avutil.num = 1; den = sample_rate } in
@@ -43,8 +42,8 @@ let () =
     with Avutil.Error _ -> Av.open_output Sys.argv.(2)
   in
   let dst_stream =
-    Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
-      ~time_base ~codec dst
+    Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
+      ~codec dst
   in
 
   Avdevice.Dev_to_app.(

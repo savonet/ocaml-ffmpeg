@@ -1717,7 +1717,7 @@ static stream_t *new_stream(av_t *av, const AVCodec *codec) {
 
   AVStream *avstream = avformat_new_stream(av->format_context, codec);
   if (!avstream) {
-    free(stream);
+    free_stream(stream);
     caml_raise_out_of_memory();
   }
 
@@ -1773,18 +1773,21 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
 }
 
 static stream_t *new_audio_stream(av_t *av, enum AVSampleFormat sample_fmt,
-                                  int channels, const AVCodec *codec,
+                                  AVChannelLayout *channel_layout,
+                                  const AVCodec *codec,
                                   AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
+  int ret;
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
   enc_ctx->sample_fmt = sample_fmt;
-  enc_ctx->channels = channels;
-// Detect new API
-#ifdef AV_CHANNEL_LAYOUT_MONO
-  av_channel_layout_default(&enc_ctx->ch_layout, channels);
-#endif
+  ret = av_channel_layout_copy(&enc_ctx->ch_layout, channel_layout);
+
+  if (ret < 0) {
+    free_stream(stream);
+    ocaml_avutil_raise_error(ret);
+  }
 
   init_stream_encoder(NULL, NULL, av, stream, options);
 
@@ -1818,7 +1821,7 @@ CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
 }
 
 CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
-                                         value _codec, value _channels,
+                                         value _codec, value _channel_layout,
                                          value _opts) {
   CAMLparam2(_av, _opts);
   CAMLlocal2(ans, unused);
@@ -1840,8 +1843,9 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
     }
   }
 
-  stream_t *stream = new_audio_stream(Av_val(_av), Int_val(_sample_fmt),
-                                      Int_val(_channels), codec, &options);
+  stream_t *stream =
+      new_audio_stream(Av_val(_av), Int_val(_sample_fmt),
+                       AVChannelLayout_val(_channel_layout), codec, &options);
 
   // Return unused keys
   count = av_dict_count(options);

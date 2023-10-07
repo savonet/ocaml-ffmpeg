@@ -17,7 +17,9 @@ let () =
   let in_fd = Unix.openfile Sys.argv.(1) [Unix.O_RDONLY] 0 in
   let out_file = Av.open_output Sys.argv.(2) in
   let codec = Avcodec.Audio.find_encoder_by_name Sys.argv.(3) in
-  let channel_layout = Avcodec.Audio.find_best_channel_layout codec `Stereo in
+  let channel_layout =
+    Avcodec.Audio.find_best_channel_layout codec Avutil.Channel_layout.stereo
+  in
   let sample_format = Avcodec.Audio.find_best_sample_format codec `Dbl in
   let sample_rate = Avcodec.Audio.find_best_sample_rate codec 44100 in
   let time_base = { Avutil.num = 1; den = sample_rate } in

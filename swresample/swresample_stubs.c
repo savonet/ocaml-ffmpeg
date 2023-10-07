@@ -49,7 +49,7 @@ struct swr_t {
   SwrContext *context;
   struct audio_t in;
   struct audio_t out;
-  int64_t out_channel_layout;
+  AVChannelLayout out_ch_layout;
   int out_sample_rate;
   int out_vect_nb_samples;
 
@@ -246,7 +246,13 @@ static void alloc_out_frame(swr_t *swr, int nb_samples, value *out_vect) {
   }
 
   frame->nb_samples = nb_samples;
-  frame->channel_layout = swr->out_channel_layout;
+
+  ret = av_channel_layout_copy(&frame->ch_layout, &swr->out_ch_layout);
+  if (ret < 0) {
+    av_frame_free(&frame);
+    ocaml_avutil_raise_error(ret);
+  }
+
   frame->format = swr->out.sample_fmt;
   frame->sample_rate = swr->out_sample_rate;
 
@@ -539,19 +545,22 @@ static struct custom_operations swr_ops = {
 
 #define NB_OPTIONS_TYPES 3
 
-static SwrContext *swresample_set_context(
-    swr_t *swr, int64_t in_channel_layout, enum AVSampleFormat in_sample_fmt,
-    int in_sample_rate, int64_t out_channel_layout,
-    enum AVSampleFormat out_sample_fmt, int out_sample_rate, value options[]) {
+static SwrContext *
+swresample_set_context(swr_t *swr, AVChannelLayout *in_channel_layout,
+                       enum AVSampleFormat in_sample_fmt, int in_sample_rate,
+                       AVChannelLayout *out_channel_layout,
+                       enum AVSampleFormat out_sample_fmt, int out_sample_rate,
+                       value options[]) {
   if (!swr->context && !(swr->context = swr_alloc()))
     caml_raise_out_of_memory();
 
   SwrContext *ctx = swr->context;
+  int ret;
 
   if (in_channel_layout) {
-    av_opt_set_channel_layout(ctx, "in_channel_layout", in_channel_layout, 0);
+    av_opt_set_chlayout(ctx, "in_chlayout", in_channel_layout, 0);
 
-    swr->in.nb_channels = av_get_channel_layout_nb_channels(in_channel_layout);
+    swr->in.nb_channels = in_channel_layout->nb_channels;
   }
 
   if (in_sample_fmt != AV_SAMPLE_FMT_NONE) {
@@ -565,10 +574,14 @@ static SwrContext *swresample_set_context(
   }
 
   if (out_channel_layout) {
-    av_opt_set_channel_layout(ctx, "out_channel_layout", out_channel_layout, 0);
-    swr->out_channel_layout = out_channel_layout;
-    swr->out.nb_channels =
-        av_get_channel_layout_nb_channels(out_channel_layout);
+    av_opt_set_chlayout(ctx, "out_chlayout", out_channel_layout, 0);
+
+    ret = av_channel_layout_copy(&swr->out_ch_layout, out_channel_layout);
+
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
+
+    swr->out.nb_channels = out_channel_layout->nb_channels;
   }
 
   if (out_sample_fmt != AV_SAMPLE_FMT_NONE) {
@@ -581,7 +594,7 @@ static SwrContext *swresample_set_context(
     swr->out_sample_rate = out_sample_rate;
   }
 
-  int i, ret = 0;
+  int i;
 
   for (i = 0; options[i]; i++) {
     int64_t val = DitherType_val_no_raise(options[i]);
@@ -618,9 +631,11 @@ static SwrContext *swresample_set_context(
   return ctx;
 }
 
-swr_t *swresample_create(vector_kind in_vector_kind, int64_t in_channel_layout,
+swr_t *swresample_create(vector_kind in_vector_kind,
+                         AVChannelLayout *in_channel_layout,
                          enum AVSampleFormat in_sample_fmt, int in_sample_rate,
-                         vector_kind out_vect_kind, int64_t out_channel_layout,
+                         vector_kind out_vect_kind,
+                         AVChannelLayout *out_channel_layout,
                          enum AVSampleFormat out_sample_fmt,
                          int out_sample_rate, value options[]) {
   swr_t *swr = (swr_t *)calloc(1, sizeof(swr_t));
@@ -707,11 +722,12 @@ CAMLprim value ocaml_swresample_create(
   CAMLlocal1(ans);
 
   vector_kind in_vector_kind = Int_val(_in_vector_kind);
-  int64_t in_channel_layout = ChannelLayout_val(_in_channel_layout);
+  AVChannelLayout *in_channel_layout = AVChannelLayout_val(_in_channel_layout);
   enum AVSampleFormat in_sample_fmt = SampleFormat_val(_in_sample_fmt);
   int in_sample_rate = Int_val(_in_sample_rate);
   vector_kind out_vect_kind = Int_val(_out_vect_kind);
-  int64_t out_channel_layout = ChannelLayout_val(_out_channel_layout);
+  AVChannelLayout *out_channel_layout =
+      AVChannelLayout_val(_out_channel_layout);
   enum AVSampleFormat out_sample_fmt = SampleFormat_val(_out_sample_fmt);
   int out_sample_rate = Int_val(_out_sample_rate);
   value options[NB_OPTIONS_TYPES + 1];
