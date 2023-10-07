@@ -62,15 +62,15 @@ let () =
   let audio_pts = ref 0L in
   let sample_format = Avcodec.Audio.find_best_sample_format codec `Dbl in
   let oas =
-    Av.new_audio_stream ~channel_layout:`Stereo ~time_base ~sample_rate
-      ~sample_format ~codec dst
+    Av.new_audio_stream ~channel_layout:Avutil.Channel_layout.stereo ~time_base
+      ~sample_rate ~sample_format ~codec dst
   in
   let params = Av.get_codec_params oas in
   let audio_frame_size = Av.get_frame_size oas in
 
   Av.set_metadata oas [("Media", "Audio")];
 
-  let rsp = Resampler.to_codec `Mono sample_rate params in
+  let rsp = Resampler.to_codec Avutil.Channel_layout.mono sample_rate params in
 
   let c = 2. *. pi *. 440. /. float_of_int sample_rate in
 

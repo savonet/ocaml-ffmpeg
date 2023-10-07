@@ -55,9 +55,6 @@ module Frame : sig
   (** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
   val best_effort_timestamp : _ t -> Int64.t option
 
-  (** duration of the corresponding packet, expressed in AVStream->time_base units. *)
-  val pkt_duration : _ t -> Int64.t option
-
   (** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
   val copy : 'a t -> 'b t -> unit
 end
@@ -141,7 +138,19 @@ end
 (** Formats for channels layouts. *)
 module Channel_layout : sig
   (** Channel layout formats. *)
-  type t = Channel_layout.t
+  type layout = Channel_layout.t
+
+  type t
+
+  (** List of standard channel layouts. *)
+  val standard_layouts : t list
+
+  val stereo : t
+  val mono : t
+  val five_point_one : t
+
+  (** Compare two channel layouts. *)
+  val compare : t -> t -> bool
 
   (** Return a channel layout id that matches name. Raises [Not_found]
       otherwise. name can be one or several of the following notations,
@@ -158,7 +167,7 @@ module Channel_layout : sig
   val find : string -> t
 
   (** Return a description of the channel layout. *)
-  val get_description : ?channels:int -> t -> string
+  val get_description : t -> string
 
   (** Return the number of channels in the channel layout. *)
   val get_nb_channels : t -> int
@@ -167,9 +176,8 @@ module Channel_layout : sig
       [Not_found] if not found. *)
   val get_default : int -> t
 
-  (** Return the internal ID for a channel layout. This number should be passed
-      as the "channel_layout" [opts] in [Av.new_audio_stream] .*)
-  val get_id : t -> int64
+  (** Return a native channel layout ID, suitable for filters channel_layout. *)
+  val get_native_id : t -> int64 option
 end
 
 (** Formats for audio samples. *)

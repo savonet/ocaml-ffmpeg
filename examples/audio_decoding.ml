@@ -33,7 +33,10 @@ let () =
 
   let options = [`Engine_soxr] in
 
-  let rsp = FrameToS32Bytes.from_codec ~options icodec `Stereo 44100 in
+  let rsp =
+    FrameToS32Bytes.from_codec ~options icodec Avutil.Channel_layout.stereo
+      44100
+  in
 
   let rec f () =
     match Av.read_input ~audio_frame:[istream] input with
