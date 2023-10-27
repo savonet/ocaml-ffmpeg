@@ -354,7 +354,7 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "VideoCodecID",
         "video",
-        ["WRAPPED_AVFRAME"] );
+        ["WRAPPED_AVFRAME"; "NONE"] );
       ( "[ \t]*AV_CODEC_ID_FIRST_AUDIO",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
@@ -362,7 +362,7 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "AudioCodecID",
         "audio",
-        ["WRAPPED_AVFRAME"] );
+        ["WRAPPED_AVFRAME"; "NONE"] );
       ( "[ \t]*AV_CODEC_ID_FIRST_SUBTITLE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
@@ -370,7 +370,7 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "SubtitleCodecID",
         "subtitle",
-        [] );
+        ["NONE"] );
       ( "[ \t]*AV_CODEC_ID_FIRST_UNKNOWN",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "",
@@ -378,7 +378,7 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "UnknownCodecID",
         "unknown",
-        [] );
+        ["NONE"] );
       ( "[ \t]*AV_CODEC_ID_NONE",
         "[ \t]*AV_CODEC_ID_\\([A-Z0-9_]+\\)",
         "",
@@ -386,7 +386,7 @@ let gen_codec_id mode =
         "enum AVCodecID",
         "CodecID",
         "codec_id",
-        [] );
+        ["NONE"] );
     ]
     mode
 
