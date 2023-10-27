@@ -1,7 +1,10 @@
-1.1.9 (unreleased)
+1.1.9 (202310-27)
 =====
 * Added support for AV_CODEC_ID_WRAPPED_AVFRAME
   as valid audio/video codec.
+* Added AV_CODEC_ID_NONE to all codec id classes
+  to prevent unecessary failures when passing it
+  as detected coded_id.
 
 1.1.8 (2023-07-01)
 =====
