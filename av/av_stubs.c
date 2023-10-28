@@ -2413,7 +2413,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       snprintf(attr, sizeof(attr), "avc1.%02x%02x%02x", data[5], data[6],
                data[7]);
     } else {
-      snprintf(attr, sizeof(attr), "avc1");
+      goto fail;
     }
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_FLAC) {
     snprintf(attr, sizeof(attr), "fLaC");
@@ -2445,10 +2445,10 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         rbsp_buf =
             ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
         if (!rbsp_buf)
-          break;
+          goto fail;
         if (rbsp_size < 13) {
           av_freep(&rbsp_buf);
-          break;
+          goto fail;
         }
         /* skip sps_video_parameter_set_id   u(4),
          *      sps_max_sub_layers_minus1    u(3),
@@ -2457,7 +2457,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         /* skip 8 + 8 + 32 + 4 + 43 + 1 bit */
         level = rbsp_buf[12];
         av_freep(&rbsp_buf);
-        break;
+        goto fail;
       }
       data++;
     }
@@ -2481,6 +2481,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_EAC3) {
     snprintf(attr, sizeof(attr), "ec-3");
   } else {
+fail:
     CAMLreturn(Val_none);
   }
 
