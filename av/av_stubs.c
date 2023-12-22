@@ -16,6 +16,7 @@
 #define Bytes_val String_val
 #endif
 
+#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavformat/avio.h>
 #include <libavutil/audio_fifo.h>
@@ -2473,15 +2474,16 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP3) {
     snprintf(attr, sizeof(attr), "mp4a.40.34");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_AAC) {
-    /* TODO : For HE-AAC, HE-AACv2, the last digit needs to be set to 5 and 29
-     * respectively */
-    snprintf(attr, sizeof(attr), "mp4a.40.2");
+    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
+      snprintf(attr, sizeof(attr), "mp4a.40.%d", stream->codecpar->profile + 1);
+    else
+      goto fail;
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_AC3) {
     snprintf(attr, sizeof(attr), "ac-3");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_EAC3) {
     snprintf(attr, sizeof(attr), "ec-3");
   } else {
-fail:
+  fail:
     CAMLreturn(Val_none);
   }
 
