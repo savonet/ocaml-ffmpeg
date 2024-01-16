@@ -200,14 +200,16 @@ val seek :
 
 (** {5 Output} *)
 
-(** [Av.open_output ?interrupt ?format ?opts filename] open the output file named
+(** [Av.open_output ?interrupt ?format ?interleaved ?opts filename] open the output file named
     [filename]. [interrupt] is used to interrupt blocking functions, [format] may
-    contain an optional format, [opts] may contain any option settable on the
+    contain an optional format, [interleaved] indicates if FFmpeg's interleaved
+    API should be used, [opts] may contain any option settable on the
     stream's internal AVFormat. After returning, if [opts] was passed, unused
     options are left in the hash table. Raise Error if the opening failed. *)
 val open_output :
   ?interrupt:(unit -> bool) ->
   ?format:(output, _) format ->
+  ?interleaved:bool ->
   ?opts:opts ->
   string ->
   output container
@@ -218,7 +220,12 @@ val open_output :
     Raise Error if the opening failed. Exceptions from the callback are caught
     and result in a native [Avutil.Error `Unknown] error. *)
 val open_output_stream :
-  ?opts:opts -> ?seek:seek -> write -> (output, _) format -> output container
+  ?opts:opts ->
+  ?interleaved:bool ->
+  ?seek:seek ->
+  write ->
+  (output, _) format ->
+  output container
 
 (** Returns [true] if the output has already started, in which case no new *
     stream or metadata can be added. *)

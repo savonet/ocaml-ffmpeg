@@ -61,6 +61,7 @@ let open_default_video_input () =
 
 external open_output_format :
   (output, _) format ->
+  bool ->
   (string * string) array ->
   output container * string array = "ocaml_av_open_output_format"
 
@@ -85,30 +86,34 @@ let filter_opts unused = function
         (fun k v -> if Array.mem k unused then Some v else None)
         opts
 
-let open_audio_output ?opts name =
+let open_audio_output ?(interleaved = true) ?opts name =
   let ret, unused =
-    open_output_format (find_audio_output name) (mk_opts opts)
+    open_output_format (find_audio_output name) interleaved (mk_opts opts)
   in
   filter_opts unused opts;
   ret
 
-let open_default_audio_output ?opts () =
+let open_default_audio_output ?(interleaved = true) ?opts () =
   let ret, unused =
-    open_output_format (get_default_audio_output_format ()) (mk_opts opts)
+    open_output_format
+      (get_default_audio_output_format ())
+      interleaved (mk_opts opts)
   in
   filter_opts unused opts;
   ret
 
-let open_video_output ?opts name =
+let open_video_output ?(interleaved = true) ?opts name =
   let ret, unused =
-    open_output_format (find_video_output name) (mk_opts opts)
+    open_output_format (find_video_output name) interleaved (mk_opts opts)
   in
   filter_opts unused opts;
   ret
 
-let open_default_video_output ?opts () =
+let open_default_video_output ?(interleaved = true) ?opts () =
   let ret, unused =
-    open_output_format (get_default_video_output_format ()) (mk_opts opts)
+    open_output_format
+      (get_default_video_output_format ())
+      interleaved (mk_opts opts)
   in
   filter_opts unused opts;
   ret

@@ -50,19 +50,23 @@ val open_default_video_input : unit -> input container
 
 (** Open the audio output device from its name. Raise Error if the device is not
     found. *)
-val open_audio_output : ?opts:opts -> string -> output container
+val open_audio_output :
+  ?interleaved:bool -> ?opts:opts -> string -> output container
 
 (** Open the default audio output device from its name. Raise Error if the
     device is not found. *)
-val open_default_audio_output : ?opts:opts -> unit -> output container
+val open_default_audio_output :
+  ?interleaved:bool -> ?opts:opts -> unit -> output container
 
 (** Open the video output device from its name. Raise Error if the device is not
     found. *)
-val open_video_output : ?opts:opts -> string -> output container
+val open_video_output :
+  ?interleaved:bool -> ?opts:opts -> string -> output container
 
 (** Open the default video output device from its name. Raise Error if the
     device is not found. *)
-val open_default_video_output : ?opts:opts -> unit -> output container
+val open_default_video_output :
+  ?interleaved:bool -> ?opts:opts -> unit -> output container
 
 (** Application to device communication *)
 module App_to_dev : sig

@@ -254,12 +254,15 @@ external open_output :
   ?interrupt:(unit -> bool) ->
   ?format:(output, _) format ->
   string ->
+  bool ->
   (string * string) array ->
   output container * string array = "ocaml_av_open_output"
 
-let open_output ?interrupt ?format ?opts fname =
+let open_output ?interrupt ?format ?(interleaved = true) ?opts fname =
   let opts = opts_default opts in
-  let ret, unused = open_output ?interrupt ?format fname (mk_opts_array opts) in
+  let ret, unused =
+    open_output ?interrupt ?format fname interleaved (mk_opts_array opts)
+  in
   filter_opts unused opts;
   Gc.finalise ocaml_av_cleanup_av ret;
   ret
@@ -267,15 +270,16 @@ let open_output ?interrupt ?format ?opts fname =
 external ocaml_av_open_output_stream :
   (output, _) format ->
   avio ->
+  bool ->
   (string * string) array ->
   output container * string array = "ocaml_av_open_output_stream"
 
-let open_output_stream ?opts ?seek write format =
+let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   let opts = opts_default opts in
   let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
   let cleanup () = caml_av_input_io_finalise avio in
   let output, unused =
-    ocaml_av_open_output_stream format avio (mk_opts_array opts)
+    ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
   in
   filter_opts unused opts;
   Gc.finalise ocaml_av_cleanup_av output;

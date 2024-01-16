@@ -68,6 +68,7 @@ typedef struct av_t {
 
   // output
   int header_written;
+  int (*write_frame)(AVFormatContext *, AVPacket *);
   int custom_io;
 } av_t;
 
@@ -1372,7 +1373,8 @@ ocaml_av_output_format_get_subtitle_codec_id(value _output_format) {
 
 static av_t *open_output(avioformat_const AVOutputFormat *format,
                          char *file_name, AVIOContext *avio_context,
-                         value _interrupt, AVDictionary **options) {
+                         value _interrupt, int interleaved,
+                         AVDictionary **options) {
   int ret;
   AVIOInterruptCB interrupt_cb = {ocaml_av_interrupt_callback, NULL};
   AVIOInterruptCB *interrupt_cb_ptr = NULL;
@@ -1386,6 +1388,12 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   }
 
   av->closed = 0;
+
+  if (interleaved) {
+    av->write_frame = &av_interleaved_write_frame;
+  } else {
+    av->write_frame = &av_write_frame;
+  }
 
   if (_interrupt != Val_none) {
     av->interrupt_cb = Some_val(_interrupt);
@@ -1486,7 +1494,8 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
 }
 
 CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
-                                    value _filename, value _opts) {
+                                    value _filename, value _interleaved,
+                                    value _opts) {
   CAMLparam3(_interrupt, _filename, _opts);
   CAMLlocal3(ans, ret, unused);
   char *filename =
@@ -1512,7 +1521,8 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
     format = OutputFormat_val(Some_val(_format));
 
   // open output file
-  av_t *av = open_output(format, filename, NULL, _interrupt, &options);
+  av_t *av = open_output(format, filename, NULL, _interrupt,
+                         Bool_val(_interleaved), &options);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -1537,7 +1547,8 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
+CAMLprim value ocaml_av_open_output_format(value _format, value _interleaved,
+                                           value _opts) {
   CAMLparam2(_format, _opts);
   CAMLlocal3(ans, ret, unused);
   AVDictionary *options = NULL;
@@ -1559,7 +1570,8 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
   avioformat_const AVOutputFormat *format = OutputFormat_val(_format);
 
   // open output format
-  av_t *av = open_output(format, NULL, NULL, Val_none, &options);
+  av_t *av = open_output(format, NULL, NULL, Val_none, Bool_val(_interleaved),
+                         &options);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -1585,7 +1597,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _opts) {
 }
 
 CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
-                                           value _opts) {
+                                           value _interleaved, value _opts) {
   CAMLparam3(_format, _avio, _opts);
   CAMLlocal3(ans, ret, unused);
   avioformat_const AVOutputFormat *format = OutputFormat_val(_format);
@@ -1607,7 +1619,8 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   }
 
   // open output format
-  av_t *av = open_output(format, NULL, avio->avio_context, Val_none, &options);
+  av_t *av = open_output(format, NULL, avio->avio_context, Val_none,
+                         Bool_val(_interleaved), &options);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -2016,7 +2029,7 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
   av_packet_rescale_ts(packet, rational_of_value(_time_base),
                        avstream->time_base);
 
-  ret = av_interleaved_write_frame(av->format_context, packet);
+  ret = av->write_frame(av->format_context, packet);
   av->streams[stream_index]->was_keyframe = packet->flags & AV_PKT_FLAG_KEY;
 
   caml_acquire_runtime_system();
@@ -2135,7 +2148,7 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     packet->pos = -1;
     av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
 
-    ret = av_interleaved_write_frame(av->format_context, packet);
+    ret = av->write_frame(av->format_context, packet);
   }
 
   if (hw_frame)
@@ -2234,7 +2247,7 @@ static void write_subtitle_frame(av_t *av, int stream_index,
   packet->pos = -1;
 
   caml_release_runtime_system();
-  err = av_interleaved_write_frame(av->format_context, packet);
+  err = av->write_frame(av->format_context, packet);
   caml_acquire_runtime_system();
 
   av_packet_free(&packet);
@@ -2273,7 +2286,7 @@ CAMLprim value ocaml_av_flush(value _av) {
     CAMLreturn(Val_unit);
 
   caml_release_runtime_system();
-  ret = av_interleaved_write_frame(av->format_context, NULL);
+  ret = av->write_frame(av->format_context, NULL);
   if (ret >= 0 && av->format_context->pb)
     avio_flush(av->format_context->pb);
   caml_acquire_runtime_system();

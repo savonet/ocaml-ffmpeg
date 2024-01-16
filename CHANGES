@@ -1,6 +1,7 @@
 1.1.10 (unreleased)
 ======
 * Fixed codec attribute for AAC.
+* Added non-interleaved API for Av.
 
 1.1.9 (202310-27)
 =====
