@@ -1,9 +1,9 @@
-1.1.10 (unreleased)
+1.1.10 (2024-01-17)
 ======
 * Fixed codec attribute for AAC.
 * Added non-interleaved API for Av.
 
-1.1.9 (202310-27)
+1.1.9 (2023-10-27)
 =====
 * Added support for AV_CODEC_ID_WRAPPED_AVFRAME
   as valid audio/video codec.
