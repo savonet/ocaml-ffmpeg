@@ -1994,9 +1994,10 @@ CAMLprim value ocaml_av_new_data_stream(value _av, value _codec_id,
   CAMLreturn(Val_int(stream->index));
 }
 
-CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
+CAMLprim value ocaml_av_write_stream_packet(value _flush_on_keyframe,
+                                            value _stream, value _time_base,
                                             value _packet) {
-  CAMLparam3(_stream, _time_base, _packet);
+  CAMLparam4(_flush_on_keyframe, _stream, _time_base, _packet);
   av_t *av = StreamAv_val(_stream);
   int ret = 0, stream_index = StreamIndex_val(_stream);
   AVPacket *packet = Packet_val(_packet);
@@ -2022,6 +2023,19 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
     av->header_written = 1;
   }
 
+  if (packet->flags & AV_PKT_FLAG_KEY && _flush_on_keyframe != Val_none) {
+    ret = av->write_frame(av->format_context, NULL);
+
+    caml_acquire_runtime_system();
+
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
+
+    caml_callback(Field(_flush_on_keyframe, 0), Val_unit);
+
+    caml_release_runtime_system();
+  }
+
   packet->stream_index = stream_index;
   packet->pos = -1;
   av_packet_rescale_ts(packet, rational_of_value(_time_base),
@@ -2038,7 +2052,7 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
 }
 
 static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
-                        AVFrame *frame) {
+                        value _flush_on_keyframe, AVFrame *frame) {
   AVStream *avstream = av->format_context->streams[stream_index];
   AVFrame *hw_frame = NULL;
   int ret;
@@ -2136,6 +2150,19 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     if (ret < 0)
       break;
 
+    if (packet->flags & AV_PKT_FLAG_KEY && _flush_on_keyframe != Val_none) {
+      ret = av->write_frame(av->format_context, NULL);
+
+      caml_acquire_runtime_system();
+
+      if (ret < 0)
+        ocaml_avutil_raise_error(ret);
+
+      caml_callback(Field(_flush_on_keyframe, 0), Val_unit);
+
+      caml_release_runtime_system();
+    }
+
     packet->stream_index = stream_index;
     packet->pos = -1;
     av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
@@ -2156,7 +2183,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     ocaml_avutil_raise_error(ret);
 }
 
-static void write_audio_frame(av_t *av, int stream_index, AVFrame *frame) {
+static void write_audio_frame(av_t *av, int stream_index,
+                              value _flush_on_keyframe, AVFrame *frame) {
   int err, frame_size;
 
   if (av->format_context->nb_streams < stream_index)
@@ -2169,10 +2197,11 @@ static void write_audio_frame(av_t *av, int stream_index, AVFrame *frame) {
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
-  write_frame(av, stream_index, enc_ctx, frame);
+  write_frame(av, stream_index, enc_ctx, _flush_on_keyframe, frame);
 }
 
-static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
+static void write_video_frame(av_t *av, int stream_index,
+                              value _flush_on_keyframe, AVFrame *frame) {
   if (av->format_context->nb_streams < stream_index)
     Fail("Stream index not found!");
 
@@ -2186,7 +2215,7 @@ static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
-  write_frame(av, stream_index, enc_ctx, frame);
+  write_frame(av, stream_index, enc_ctx, _flush_on_keyframe, frame);
 }
 
 static void write_subtitle_frame(av_t *av, int stream_index,
@@ -2246,8 +2275,9 @@ static void write_subtitle_frame(av_t *av, int stream_index,
     ocaml_avutil_raise_error(err);
 }
 
-CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame) {
-  CAMLparam2(_stream, _frame);
+CAMLprim value ocaml_av_write_stream_frame(value _flush_on_keyframe,
+                                           value _stream, value _frame) {
+  CAMLparam3(_flush_on_keyframe, _stream, _frame);
   av_t *av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
 
@@ -2257,9 +2287,9 @@ CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame) {
   enum AVMediaType type = av->streams[index]->codec_context->codec_type;
 
   if (type == AVMEDIA_TYPE_AUDIO) {
-    write_audio_frame(av, index, Frame_val(_frame));
+    write_audio_frame(av, index, _flush_on_keyframe, Frame_val(_frame));
   } else if (type == AVMEDIA_TYPE_VIDEO) {
-    write_video_frame(av, index, Frame_val(_frame));
+    write_video_frame(av, index, _flush_on_keyframe, Frame_val(_frame));
   } else if (type == AVMEDIA_TYPE_SUBTITLE) {
     write_subtitle_frame(av, index, Subtitle_val(_frame));
   }
@@ -2302,9 +2332,9 @@ CAMLprim value ocaml_av_close(value _av) {
         continue;
 
       if (enc_ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
-        write_audio_frame(av, i, NULL);
+        write_audio_frame(av, i, Val_none, NULL);
       } else if (enc_ctx->codec_type == AVMEDIA_TYPE_VIDEO) {
-        write_video_frame(av, i, NULL);
+        write_video_frame(av, i, Val_none, NULL);
       }
     }
 

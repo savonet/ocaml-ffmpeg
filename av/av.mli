@@ -355,23 +355,34 @@ val codec_attr : _ stream -> string option
 (** Return the stream's bitrate when available, suitable for HLS playlists. *)
 val bitrate : _ stream -> int option
 
-(** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
+(** [Av.write_packet ?flush_on_keyframe os time_base pkt] write the [pkt] packet to the [os] output stream.
     [time_base] is the packet's PTS/DTS/duration time base.
+
+    If [flush_on_keyframe] is provided, the stream is flushed before any keyframe and
+    the given callback is executed.
 
     Raise Error if the writing failed. *)
 val write_packet :
+  ?flush_on_keyframe:(unit -> unit) ->
   (output, 'media, [ `Packet ]) stream ->
   Avutil.rational ->
   'media Avcodec.Packet.t ->
   unit
 
-(** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
+(** [Av.write_frame ?flush_on_keyframe os frm] write the [frm] frame to the [os] output stream.
 
     Frame PTS should be set and counted in units of [time_base], as passed
     when creating the stream
 
+    If [flush_on_keyframe] is provided, the stream is flushed before any keyframe and
+    the given callback is executed.
+
     Raise Error if the writing failed. *)
-val write_frame : (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
+val write_frame :
+  ?flush_on_keyframe:(unit -> unit) ->
+  (output, 'media, [ `Frame ]) stream ->
+  'media frame ->
+  unit
 
 (** Flush the underlying muxer. *)
 val flush : output container -> unit

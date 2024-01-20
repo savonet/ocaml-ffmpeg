@@ -397,14 +397,17 @@ external codec_attr : _ stream -> string option = "ocaml_av_codec_attr"
 external bitrate : _ stream -> int option = "ocaml_av_stream_bitrate"
 
 external write_packet :
+  ?flush_on_keyframe:(unit -> unit) ->
   (output, 'media, [ `Packet ]) stream ->
   Avutil.rational ->
   'media Avcodec.Packet.t ->
   unit = "ocaml_av_write_stream_packet"
 
 external write_frame :
-  (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
-  = "ocaml_av_write_stream_frame"
+  ?flush_on_keyframe:(unit -> unit) ->
+  (output, 'media, [ `Frame ]) stream ->
+  'media frame ->
+  unit = "ocaml_av_write_stream_frame"
 
 external flush : output container -> unit = "ocaml_av_flush"
 external close : _ container -> unit = "ocaml_av_close"
