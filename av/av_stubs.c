@@ -173,7 +173,6 @@ CAMLprim value ocaml_av_get_streams(value _av, value _media_type) {
   List_init(list);
 
   for (i = 0; i < av->format_context->nb_streams; i++) {
-    printf("stream %d\n", i);
     if (av->format_context->streams[i]->codecpar->codec_type == type)
       List_add(list, cons, Val_int(i));
   }
