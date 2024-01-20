@@ -86,23 +86,21 @@ type ('line, 'media, 'mode) stream
     containing the index of the stream in the container, the stream and the
     codec of the stream. *)
 val get_audio_streams :
-  input container ->
-  (int * (input, audio, 'a) stream * audio Avcodec.params) list
+  'a container -> (int * ('a, audio, 'b) stream * audio Avcodec.params) list
 
 (** Same as {!Av.get_audio_streams} for the video streams. *)
 val get_video_streams :
-  input container ->
-  (int * (input, video, 'a) stream * video Avcodec.params) list
+  'a container -> (int * ('a, video, 'b) stream * video Avcodec.params) list
 
 (** Same as {!Av.get_audio_streams} for the subtitle streams. *)
 val get_subtitle_streams :
-  input container ->
-  (int * (input, subtitle, 'a) stream * subtitle Avcodec.params) list
+  'a container ->
+  (int * ('a, subtitle, 'b) stream * subtitle Avcodec.params) list
 
 (** Same as {!Av.get_audio_streams} for the data streams. *)
 val get_data_streams :
-  input container ->
-  (int * (input, [ `Data ], 'a) stream * [ `Data ] Avcodec.params) list
+  'a container ->
+  (int * ('a, [ `Data ], 'b) stream * [ `Data ] Avcodec.params) list
 
 (** Return the best audio stream of the input. The result is a tuple containing
     the index of the stream in the container, the stream and the codec of the
@@ -359,6 +357,7 @@ val bitrate : _ stream -> int option
 
 (** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
     [time_base] is the packet's PTS/DTS/duration time base.
+
     Raise Error if the writing failed. *)
 val write_packet :
   (output, 'media, [ `Packet ]) stream ->
@@ -373,18 +372,6 @@ val write_packet :
 
     Raise Error if the writing failed. *)
 val write_frame : (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
-
-(** [true] if the last processed frame was a video key frame. *)
-val was_keyframe : (output, _, _) stream -> bool
-
-(** [Av.write_audio_frame dst frm] write the [frm] audio frame to the [dst]
-    output audio container. Raise Error if the output format is not defined or
-    if the output media type is not compatible with the frame or if the writing
-    failed. *)
-val write_audio_frame : output container -> audio frame -> unit
-
-(** Same as {!Av.write_audio_frame} for output video container. *)
-val write_video_frame : output container -> video frame -> unit
 
 (** Flush the underlying muxer. *)
 val flush : output container -> unit

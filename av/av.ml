@@ -151,19 +151,19 @@ external get_frame_size : (_, audio, _) stream -> int
 external get_pixel_aspect : (_, video, _) stream -> Avutil.rational option
   = "ocaml_av_get_stream_pixel_aspect"
 
-external _get_streams : input container -> media_type -> int list
+external _get_streams : _ container -> media_type -> int list
   = "ocaml_av_get_streams"
 
-let get_streams input media_type =
-  _get_streams input media_type
+let get_streams container media_type =
+  _get_streams container media_type
   |> List.rev_map (fun i ->
-         let s = mk_stream input i in
+         let s = mk_stream container i in
          (i, s, get_codec_params s))
 
-let get_audio_streams input = get_streams input MT_audio
-let get_video_streams input = get_streams input MT_video
-let get_subtitle_streams input = get_streams input MT_subtitle
-let get_data_streams input = get_streams input MT_data
+let get_audio_streams container = get_streams container MT_audio
+let get_video_streams container = get_streams container MT_video
+let get_subtitle_streams container = get_streams container MT_subtitle
+let get_data_streams container = get_streams container MT_data
 let set_decoder s decoder = s.decoder <- Some decoder
 
 external _find_best_stream : input container -> media_type -> int
@@ -407,12 +407,4 @@ external write_frame :
   = "ocaml_av_write_stream_frame"
 
 external flush : output container -> unit = "ocaml_av_flush"
-external was_keyframe : (output, _, _) stream -> bool = "ocaml_av_was_keyframe"
-
-external write_audio_frame : output container -> audio frame -> unit
-  = "ocaml_av_write_audio_frame"
-
-external write_video_frame : output container -> video frame -> unit
-  = "ocaml_av_write_video_frame"
-
 external close : _ container -> unit = "ocaml_av_close"
