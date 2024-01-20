@@ -1,6 +1,7 @@
 let string_of_properties = function
   | `Intra_only -> "Intra only"
   | `Lossy -> "Lossy"
+  | `Fields -> "Fields"
   | `Lossless -> "Lossless"
   | `Reorder -> "Reorder"
   | `Bitmap_sub -> "Bitmap sub"
