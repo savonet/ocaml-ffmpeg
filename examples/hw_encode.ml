@@ -90,6 +90,7 @@ let () =
         | `Alpha -> "alpha"
         | `Bayer -> "bayer"
         | `Float -> "float"
+        | `Xyz -> "xyz"
       in
       let string_of_comp
           { Avutil.Pixel_format.plane; step; shift; offset; depth } =
