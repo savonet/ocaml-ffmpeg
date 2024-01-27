@@ -680,7 +680,7 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
   caml_acquire_runtime_system();
 
   if (err < 0) {
-    avformat_free_context(av->format_context);
+    avformat_close_input(&av->format_context);
     if (av->interrupt_cb != Val_none) {
       caml_remove_generational_global_root(&av->interrupt_cb);
       av->interrupt_cb = Val_none;
