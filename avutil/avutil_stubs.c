@@ -643,6 +643,8 @@ CAMLprim value ocaml_avutil_frame_set_pts(value _frame, value _pts) {
   else
     frame->pts = Int64_val(Field(_pts, 0));
 
+  frame->best_effort_timestamp = frame->pts;
+
   CAMLreturn(Val_unit);
 }
 
