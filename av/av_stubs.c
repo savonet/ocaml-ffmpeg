@@ -2495,19 +2495,24 @@ CAMLprim value ocaml_av_stream_bitrate(value _stream) {
   if (!stream)
     CAMLreturn(Val_none);
 
-  AVCPBProperties *props = (AVCPBProperties *)av_stream_get_side_data(
-      stream, AV_PKT_DATA_CPB_PROPERTIES, NULL);
+  if (stream->codecpar->bit_rate) {
+    ans = caml_alloc_tuple(1);
+    Store_field(ans, 0, Val_int(stream->codecpar->bit_rate));
+    CAMLreturn(ans);
+  }
 
-  if (!stream->codecpar->bit_rate && !props)
+  const AVPacketSideData *side_data = av_packet_side_data_get(
+      stream->codecpar->coded_side_data, stream->codecpar->nb_coded_side_data,
+      AV_PKT_DATA_CPB_PROPERTIES);
+  if (!side_data)
+    CAMLreturn(Val_none);
+
+  AVCPBProperties *props = (AVCPBProperties *)side_data->data;
+
+  if (!props)
     CAMLreturn(Val_none);
 
   ans = caml_alloc_tuple(1);
-
-  if (stream->codecpar->bit_rate) {
-    Store_field(ans, 0, Val_int(stream->codecpar->bit_rate));
-  } else if (props) {
-    Store_field(ans, 0, Val_int(props->max_bitrate));
-  }
-
+  Store_field(ans, 0, Val_int(props->max_bitrate));
   CAMLreturn(ans);
 }

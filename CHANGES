@@ -1,6 +1,7 @@
 1.2.0 (unreleased)
 =====
 * Removed unused `Av.write_audio_frame`/`Av.write_video_frame`.
+* Remove use of deprecated `av_packet_side_data_get`
 * Added support to get all streams from output container
 * Removed unreliable `Av.was_keyframe`
 * Added `on_keyframe` to `Av.write_frame`.
