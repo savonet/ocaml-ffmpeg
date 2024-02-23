@@ -2486,6 +2486,7 @@ CAMLprim value ocaml_av_stream_bitrate(value _stream) {
 
   av_t *av = StreamAv_val(_stream);
   int index = StreamIndex_val(_stream);
+  AVCPBProperties *props = NULL;
 
   if (!av->format_context || !av->format_context->streams)
     CAMLreturn(Val_none);
@@ -2501,13 +2502,19 @@ CAMLprim value ocaml_av_stream_bitrate(value _stream) {
     CAMLreturn(ans);
   }
 
+#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(60, 15, 100)
   const AVPacketSideData *side_data = av_packet_side_data_get(
       stream->codecpar->coded_side_data, stream->codecpar->nb_coded_side_data,
       AV_PKT_DATA_CPB_PROPERTIES);
+
   if (!side_data)
     CAMLreturn(Val_none);
 
-  AVCPBProperties *props = (AVCPBProperties *)side_data->data;
+  props = (AVCPBProperties *)side_data->data;
+#else
+  props = (AVCPBProperties *)av_stream_get_side_data(
+      stream, AV_PKT_DATA_CPB_PROPERTIES, NULL);
+#endif
 
   if (!props)
     CAMLreturn(Val_none);
