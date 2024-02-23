@@ -31,21 +31,58 @@ let frate = float_of_int rate
 
 let test () =
   let dst1 = open_out_bin "test_swresample_out1.raw" in
-  let r = R.create `Mono rate `Stereo 44100 in
+  let r =
+    R.create Avutil.Channel_layout.mono rate Avutil.Channel_layout.stereo 44100
+  in
 
   let dst2 = open_out_bin "test_swresample_out2.raw" in
 
-  let r0 = R0.create `Mono rate `_5point1 96000 in
-  let r1 = R1.create `_5point1 ~in_sample_format:`S16 96000 `Stereo 16000 in
-  let r2 = R2.create `Stereo 16000 `Surround 44100 in
-  let r3 = R3.create `Surround 44100 `Stereo 48000 in
-  let r4 = R4.create `Stereo 48000 `Stereo_downmix 31000 in
-  let r5 = R5.create `Stereo_downmix 31000 `Stereo 73347 in
-  let r6 = R6.create `Stereo 73347 `Stereo 44100 in
-  let r7 = R7.create `Stereo 44100 `Stereo 48000 in
-  let r8 = R8.create `Stereo 48000 `Stereo 96000 in
-  let r9 = R9.create `Stereo 96000 `Stereo 44100 in
-  let r10 = R10.create `Stereo 44100 `Mono 44100 in
+  let r0 =
+    R0.create Avutil.Channel_layout.mono rate
+      Avutil.Channel_layout.five_point_one 96000
+  in
+  let r1 =
+    R1.create Avutil.Channel_layout.five_point_one ~in_sample_format:`S16 96000
+      Avutil.Channel_layout.stereo 16000
+  in
+  let r2 =
+    R2.create Avutil.Channel_layout.stereo 16000 Avutil.Channel_layout.stereo
+      44100
+  in
+  let r3 =
+    R3.create Avutil.Channel_layout.stereo 44100 Avutil.Channel_layout.stereo
+      48000
+  in
+  let r4 =
+    R4.create Avutil.Channel_layout.stereo 48000
+      Avutil.Channel_layout.(find "downmix")
+      31000
+  in
+  let r5 =
+    R5.create
+      Avutil.Channel_layout.(find "downmix")
+      31000 Avutil.Channel_layout.stereo 73347
+  in
+  let r6 =
+    R6.create Avutil.Channel_layout.stereo 73347 Avutil.Channel_layout.stereo
+      44100
+  in
+  let r7 =
+    R7.create Avutil.Channel_layout.stereo 44100 Avutil.Channel_layout.stereo
+      48000
+  in
+  let r8 =
+    R8.create Avutil.Channel_layout.stereo 48000 Avutil.Channel_layout.stereo
+      96000
+  in
+  let r9 =
+    R9.create Avutil.Channel_layout.stereo 96000 Avutil.Channel_layout.stereo
+      44100
+  in
+  let r10 =
+    R10.create Avutil.Channel_layout.stereo 44100 Avutil.Channel_layout.mono
+      44100
+  in
 
   for note = 0 to 95 do
     let freq = 22.5 *. (2. ** (foi note /. 12.)) in
@@ -84,7 +121,9 @@ let test () =
          try
            let src = Av.open_input url in
            let idx, is, ic = src |> Av.find_best_audio_stream in
-           let rsp = Converter.from_codec ic `Stereo 44100 in
+           let rsp =
+             Converter.from_codec ic Avutil.Channel_layout.stereo 44100
+           in
 
            let p = try String.rindex url '/' + 1 with Not_found -> 0 in
            let audio_output_filename =

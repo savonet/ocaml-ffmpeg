@@ -318,30 +318,20 @@ external new_audio_stream :
   _ container ->
   int ->
   [ `Encoder ] Avcodec.Audio.t ->
-  int ->
+  Channel_layout.t ->
   (string * string) array ->
   int * string array = "ocaml_av_new_audio_stream"
 
-let new_audio_stream ?opts ?channels ?channel_layout ~sample_rate ~sample_format
+let new_audio_stream ?opts ~channel_layout ~sample_rate ~sample_format
     ~time_base ~codec container =
   let opts =
-    mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
-      ~time_base ()
-  in
-  let channels =
-    match (channels, channel_layout) with
-      | Some n, _ -> n
-      | None, Some layout -> Avutil.Channel_layout.get_nb_channels layout
-      | None, None ->
-          raise
-            (Error
-               (`Failure
-                 "At least one of channels or channel_layout must be passed!"))
+    mk_audio_opts ?opts ~channel_layout ~sample_rate ~sample_format ~time_base
+      ()
   in
   let ret, unused =
     new_audio_stream container
       (Sample_format.get_id sample_format)
-      codec channels (mk_opts_array opts)
+      codec channel_layout (mk_opts_array opts)
   in
   filter_opts unused opts;
   mk_stream container ret

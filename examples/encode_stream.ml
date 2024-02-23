@@ -20,8 +20,8 @@ let () =
   let out_sample_rate = if Sys.argv.(2) = "flac" then 22050 else 44100 in
 
   let rsp =
-    Resampler.create `Mono sample_rate `Stereo ~out_sample_format
-      out_sample_rate
+    Resampler.create Avutil.Channel_layout.mono sample_rate
+      Avutil.Channel_layout.stereo ~out_sample_format out_sample_rate
   in
 
   let c = 2. *. pi *. 440. /. float_of_int sample_rate in
@@ -50,8 +50,9 @@ let () =
   Hashtbl.add opts "foo" (`String "bla");
 
   let stream =
-    Av.new_audio_stream ~channels:2 ~time_base ~sample_format:out_sample_format
-      ~sample_rate:out_sample_rate ~codec ~opts output
+    Av.new_audio_stream ~channel_layout:Avutil.Channel_layout.stereo ~time_base
+      ~sample_format:out_sample_format ~sample_rate:out_sample_rate ~codec ~opts
+      output
   in
 
   let out_frame_size =
@@ -63,7 +64,7 @@ let () =
     let in_params =
       {
         Avfilter.Utils.sample_rate = out_sample_rate;
-        channel_layout = `Stereo;
+        channel_layout = Avutil.Channel_layout.stereo;
         sample_format = out_sample_format;
       }
     in
