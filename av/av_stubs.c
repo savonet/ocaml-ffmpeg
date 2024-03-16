@@ -183,6 +183,11 @@ CAMLprim value ocaml_av_get_streams(value _av, value _media_type) {
   CAMLreturn(list);
 }
 
+CAMLprim value ocaml_av_dummy_cleanup(value _av) {
+  CAMLparam1(_av);
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
   CAMLparam1(_stream);
   CAMLlocal1(ans);
