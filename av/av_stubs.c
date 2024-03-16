@@ -82,7 +82,6 @@ static inline av_t *Av_val(value v) {
 
 /***** Stream handler *****/
 
-#define StreamAv_val(v) Av_val(Field(v, 0))
 #define StreamIndex_val(v) Int_val(Field(v, 1))
 
 /**** Media Type ****/
@@ -105,6 +104,9 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
+  if (av->closed)
+    return;
+
   caml_release_runtime_system();
 
   if (av->format_context) {
@@ -185,8 +187,9 @@ CAMLprim value ocaml_av_get_streams(value _av, value _media_type) {
 
 CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal1(ans);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal2(ans, _av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   value_of_codec_parameters_copy(av->format_context->streams[index]->codecpar,
@@ -197,8 +200,9 @@ CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
 
 CAMLprim value ocaml_av_get_stream_time_base(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal1(ans);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal2(ans, _av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   value_of_rational(&av->format_context->streams[index]->time_base, &ans);
@@ -208,7 +212,9 @@ CAMLprim value ocaml_av_get_stream_time_base(value _stream) {
 
 CAMLprim value ocaml_av_set_stream_time_base(value _stream, value _time_base) {
   CAMLparam2(_stream, _time_base);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   av->format_context->streams[index]->time_base = rational_of_value(_time_base);
@@ -218,7 +224,9 @@ CAMLprim value ocaml_av_set_stream_time_base(value _stream, value _time_base) {
 
 CAMLprim value ocaml_av_get_stream_frame_size(value _stream) {
   CAMLparam1(_stream);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   CAMLreturn(Val_int(av->streams[index]->codec_context->frame_size));
@@ -226,8 +234,9 @@ CAMLprim value ocaml_av_get_stream_frame_size(value _stream) {
 
 CAMLprim value ocaml_av_get_stream_pixel_aspect(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal2(ans, ret);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal3(ans, ret, _av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
   const AVRational pixel_aspect =
       av->format_context->streams[index]->sample_aspect_ratio;
@@ -1999,7 +2008,9 @@ CAMLprim value ocaml_av_new_data_stream(value _av, value _codec_id,
 CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
                                             value _packet) {
   CAMLparam3(_stream, _time_base, _packet);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int ret = 0, stream_index = StreamIndex_val(_stream);
   AVPacket *packet = Packet_val(_packet);
   AVStream *avstream = av->format_context->streams[stream_index];
@@ -2258,7 +2269,9 @@ static void write_subtitle_frame(av_t *av, int stream_index,
 
 CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame) {
   CAMLparam2(_stream, _frame);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   if (!av->streams)
@@ -2299,7 +2312,9 @@ CAMLprim value ocaml_av_flush(value _av) {
 
 CAMLprim value ocaml_av_was_keyframe(value _stream) {
   CAMLparam1(_stream);
-  av_t *av = StreamAv_val(_stream);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   if (!av->streams)
@@ -2406,10 +2421,11 @@ uint8_t *ocaml_av_ff_nal_unit_extract_rbsp(const uint8_t *src, uint32_t src_len,
 // This from libavformat/hlsenc.c
 CAMLprim value ocaml_av_codec_attr(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal2(ans, _attr);
+  CAMLlocal3(ans, _attr, _av);
 
   char attr[32];
-  av_t *av = StreamAv_val(_stream);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   if (!av->format_context || !av->format_context->streams)
@@ -2510,9 +2526,10 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
 
 CAMLprim value ocaml_av_stream_bitrate(value _stream) {
   CAMLparam1(_stream);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, _av);
 
-  av_t *av = StreamAv_val(_stream);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
   int index = StreamIndex_val(_stream);
 
   if (!av->format_context || !av->format_context->streams)
