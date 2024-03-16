@@ -102,6 +102,9 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
+  if (av->closed)
+    return;
+
   caml_release_runtime_system();
 
   if (av->format_context) {
