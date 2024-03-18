@@ -134,15 +134,7 @@ type ('a, 'b, 'c) stream = {
 
 type media_type = MT_audio | MT_video | MT_data | MT_subtitle
 
-(* Dummy function to prevent the container from being
-   collected before the stream is. *)
-external dummy_cleanup : _ container -> unit = "ocaml_av_dummy_cleanup"
-
-let mk_stream container index =
-  let finalise () = dummy_cleanup container in
-  let s = { container; index; decoder = None } in
-  Gc.finalise_last finalise s;
-  s
+let mk_stream container index = { container; index; decoder = None }
 
 external get_codec_params : (_, 'm, _) stream -> 'm Avcodec.params
   = "ocaml_av_get_stream_codec_parameters"
