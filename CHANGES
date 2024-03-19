@@ -1,4 +1,4 @@
-1.1.11 (unreleased)
+1.1.11 (2024-03-19)
 ======
 * Fix segfault with the new OCaml 5 concurrent GC.
 
