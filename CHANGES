@@ -6,6 +6,10 @@
 * Removed unreliable `Av.was_keyframe`
 * Added `on_keyframe` to `Av.write_frame`.
 
+1.1.11 (2024-03-19)
+======
+* Fix segfault with the new OCaml 5 concurrent GC.
+
 1.1.10 (2024-01-17)
 ======
 * Fixed codec attribute for AAC.
