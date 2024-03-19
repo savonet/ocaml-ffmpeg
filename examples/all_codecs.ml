@@ -5,6 +5,7 @@ let string_of_properties = function
   | `Reorder -> "Reorder"
   | `Bitmap_sub -> "Bitmap sub"
   | `Text_sub -> "Text sub"
+  | `Fields -> "fields"
 
 let string_of_media_type = function
   | `Unknown -> "unknown"
