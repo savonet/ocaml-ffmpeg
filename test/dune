@@ -3,7 +3,7 @@
  (libraries ffmpeg-av ffmpeg-swresample))
 
 (rule
- (alias runtest)
+ (alias citest)
  (package ffmpeg)
  (deps
   (:all_codecs ../examples/all_codecs.exe)
