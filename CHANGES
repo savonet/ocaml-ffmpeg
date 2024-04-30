@@ -5,6 +5,7 @@
 * Added support to get all streams from output container
 * Removed unreliable `Av.was_keyframe`
 * Added `on_keyframe` to `Av.write_frame`.
+* Switched to new channel layout API.
 
 1.1.11 (2024-03-19)
 ======

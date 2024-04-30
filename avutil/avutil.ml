@@ -51,9 +51,6 @@ module Frame = struct
   external best_effort_timestamp : _ t -> Int64.t option
     = "ocaml_avutil_frame_best_effort_timestamp"
 
-  external pkt_duration : _ t -> Int64.t option
-    = "ocaml_avutil_frame_pkt_duration"
-
   external copy : 'a t -> 'b t -> unit = "ocaml_avutil_frame_copy"
 end
 
@@ -201,12 +198,13 @@ module Pixel_format = struct
 end
 
 module Channel_layout = struct
-  type t = Channel_layout.t
+  type layout = Channel_layout.t
+  type t
 
-  external get_description : t -> int -> string
+  external compare : t -> t -> bool = "ocaml_avutil_compare_channel_layout"
+
+  external get_description : t -> string
     = "ocaml_avutil_get_channel_layout_description"
-
-  let get_description ?(channels = -1) ch = get_description ch channels
 
   external find : string -> t = "ocaml_avutil_get_channel_layout"
 
@@ -214,8 +212,27 @@ module Channel_layout = struct
     = "ocaml_avutil_get_channel_layout_nb_channels"
 
   external get_default : int -> t = "ocaml_avutil_get_default_channel_layout"
-  external get_id : t -> int64 = "ocaml_avutil_get_channel_layout_id"
-  external from_id : int64 -> t = "ocaml_avutil_channel_layout_of_id"
+
+  type opaque
+
+  external start_standard_iteration : unit -> opaque
+    = "ocaml_avutil_start_standard_iteration"
+
+  external get_standard : opaque -> t option = "ocaml_avutil_get_standard"
+
+  let standard_layouts =
+    let start = start_standard_iteration () in
+    let rec f ret =
+      match get_standard start with Some l -> f (l :: ret) | None -> ret
+    in
+    f []
+
+  let mono = find "mono"
+  let stereo = find "stereo"
+  let five_point_one = find "5.1"
+
+  external get_native_id : t -> int64 option
+    = "ocaml_avutil_get_channel_native_id"
 end
 
 module Sample_format = struct
@@ -498,7 +515,7 @@ module Options = struct
                 spec with
                 values =
                   append
-                    (fun v -> Channel_layout.from_id (default_int64 v))
+                    (fun v -> Channel_layout.find (default_string v))
                     values;
               }
         | `Sample_fmt ({ values; _ } as spec) ->
@@ -665,7 +682,7 @@ let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
   on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
   on_opt channel_layout (fun channel_layout ->
       Hashtbl.add opts "channel_layout"
-        (`Int64 (Channel_layout.get_id channel_layout)));
+        (`String (Channel_layout.get_description channel_layout)));
   Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
 

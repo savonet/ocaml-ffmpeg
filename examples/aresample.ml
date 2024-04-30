@@ -15,15 +15,14 @@ let () =
   let audio_params, audio_input, idx, oass =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
     let channel_layout = Avcodec.Audio.get_channel_layout params in
-    let channels = Avcodec.Audio.get_nb_channels params in
     let sample_format = Avcodec.Audio.get_sample_format params in
     let sample_rate = Avcodec.Audio.get_sample_rate params in
     let time_base = { Avutil.num = 1; den = sample_rate } in
     ( params,
       audio_input,
       i,
-      Av.new_audio_stream ~channels ~channel_layout ~sample_format ~sample_rate
-        ~time_base ~codec:audio_codec dst )
+      Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
+        ~codec:audio_codec dst )
   in
 
   let frame_size =
@@ -40,9 +39,8 @@ let () =
         Avutil.Sample_format.get_id
           (Avcodec.Audio.get_sample_format audio_params)
       in
-      let channels = Avcodec.Audio.get_nb_channels audio_params in
       let channel_layout =
-        Avutil.Channel_layout.get_id
+        Avutil.Channel_layout.get_description
           (Avcodec.Audio.get_channel_layout audio_params)
       in
       let args =
@@ -50,8 +48,7 @@ let () =
           `Pair ("time_base", `Rational time_base);
           `Pair ("sample_rate", `Int sample_rate);
           `Pair ("sample_fmt", `Int sample_format);
-          `Pair ("channels", `Int channels);
-          `Pair ("channel_layout", `Int64 channel_layout);
+          `Pair ("channel_layout", `String channel_layout);
         ]
       in
       {

@@ -114,6 +114,11 @@
  (libraries ffmpeg-avcodec))
 
 (executable
+ (name all_channel_layouts)
+ (modules all_channel_layouts)
+ (libraries ffmpeg-avutil))
+
+(executable
  (name all_bitstream_filters)
  (modules all_bitstream_filters)
  (libraries ffmpeg-avcodec))

@@ -17,8 +17,8 @@
 #include "hw_config_method_stubs.h"
 #include "media_types_stubs.h"
 
-#include <libavutil/replaygain.h>
 #include <libavcodec/bsf.h>
+#include <libavutil/replaygain.h>
 
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
@@ -662,7 +662,8 @@ CAMLprim value ocaml_avcodec_encoder_time_base(value _encoder) {
 }
 
 CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
-                                                  value _codec, value _channels,
+                                                  value _codec,
+                                                  value _channel_layout,
                                                   value _opts) {
   CAMLparam2(_opts, _codec);
   CAMLlocal3(ret, ans, unused);
@@ -700,11 +701,11 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   }
 
   ctx->codec_context->sample_fmt = Int_val(_sample_fmt);
-  ctx->codec_context->channels = Int_val(_channels);
-// Detect new API
-#ifdef AV_CHANNEL_LAYOUT_MONO
-  av_channel_layout_default(&ctx->codec_context->ch_layout, Int_val(_channels));
-#endif
+
+  err = av_channel_layout_copy(&ctx->codec_context->ch_layout,
+                               AVChannelLayout_val(_channel_layout));
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
 
   // Open the codec
   caml_release_runtime_system();
@@ -1290,9 +1291,9 @@ CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec) {
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
 
-  if (codec->channel_layouts) {
-    for (i = 0; codec->channel_layouts[i] != 0; i++)
-      List_add(list, cons, Val_ChannelLayout(codec->channel_layouts[i]));
+  if (codec->ch_layouts) {
+    for (i = 0; codec->ch_layouts[i].nb_channels != 0; i++)
+      List_add(list, cons, value_of_channel_layout(&codec->ch_layouts[i]));
   }
 
   CAMLreturn(list);
@@ -1338,16 +1339,12 @@ CAMLprim value ocaml_avcodec_parameters_get_channel_layout(value _cp) {
   CAMLparam1(_cp);
   AVCodecParameters *cp = CodecParameters_val(_cp);
 
-  if (cp->channel_layout == 0) {
-    cp->channel_layout = av_get_default_channel_layout(cp->channels);
-  }
-
-  CAMLreturn(Val_ChannelLayout(cp->channel_layout));
+  CAMLreturn(value_of_channel_layout(&cp->ch_layout));
 }
 
 CAMLprim value ocaml_avcodec_parameters_get_nb_channels(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(Val_int(CodecParameters_val(_cp)->channels));
+  CAMLreturn(Val_int(CodecParameters_val(_cp)->ch_layout.nb_channels));
 }
 
 CAMLprim value ocaml_avcodec_parameters_get_sample_format(value _cp) {
@@ -1359,27 +1356,6 @@ CAMLprim value ocaml_avcodec_parameters_get_sample_format(value _cp) {
 CAMLprim value ocaml_avcodec_parameters_get_sample_rate(value _cp) {
   CAMLparam1(_cp);
   CAMLreturn(Val_int(CodecParameters_val(_cp)->sample_rate));
-}
-
-CAMLprim value ocaml_avcodec_parameters_audio_copy(value _codec_id,
-                                                   value _channel_layout,
-                                                   value _sample_format,
-                                                   value _sample_rate,
-                                                   value _cp) {
-  CAMLparam4(_codec_id, _channel_layout, _sample_format, _cp);
-  CAMLlocal1(ans);
-
-  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
-
-  AVCodecParameters *dst = CodecParameters_val(ans);
-
-  dst->codec_id = AudioCodecID_val(_codec_id);
-  dst->channel_layout = ChannelLayout_val(_channel_layout);
-  dst->channels = av_get_channel_layout_nb_channels(dst->channel_layout);
-  dst->format = SampleFormat_val(_sample_format);
-  dst->sample_rate = Int_val(_sample_rate);
-
-  CAMLreturn(ans);
 }
 
 /**** Video codec ID ****/
