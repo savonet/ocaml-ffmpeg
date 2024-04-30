@@ -357,7 +357,7 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   return Int_val(res);
 }
 
-static int ocaml_avio_write_callback(void *private, uint8_t *buf,
+static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
                                      int buf_size) {
   value buffer, res;
   avio_t *avio = (avio_t *)private;
@@ -481,7 +481,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   CAMLlocal1(ret);
 
   int (*read_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
-  int (*write_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
+  int (*write_cb)(void *opaque, const uint8_t *buf, int buf_size) = NULL;
   int64_t (*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
   int write_flag = 0;
   unsigned char *buffer;
