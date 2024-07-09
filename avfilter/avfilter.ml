@@ -424,7 +424,9 @@ module Utils = struct
         `Pair ("time_base", `Rational in_time_base);
         `Pair
           ( "channel_layout",
-            `Int64 (Avutil.Channel_layout.get_id in_params.channel_layout) );
+            `String
+              (Avutil.Channel_layout.get_description in_params.channel_layout)
+          );
         `Pair
           ( "sample_fmt",
             `Int (Avutil.Sample_format.get_id in_params.sample_format) );
@@ -447,19 +449,20 @@ module Utils = struct
               [
                 `Pair ("in_sample_rate", `Int in_params.sample_rate);
                 `Pair
-                  ( "in_channel_layout",
-                    `Int64
-                      (Avutil.Channel_layout.get_id in_params.channel_layout) );
+                  ( "in_chlayout",
+                    `String
+                      (Avutil.Channel_layout.get_description
+                         in_params.channel_layout) );
                 `Pair
                   ( "in_sample_fmt",
                     `Int (Avutil.Sample_format.get_id in_params.sample_format)
                   );
                 `Pair ("out_sample_rate", `Int out_params.sample_rate);
                 `Pair
-                  ( "out_channel_layout",
-                    `Int64
-                      (Avutil.Channel_layout.get_id out_params.channel_layout)
-                  );
+                  ( "out_chlayout",
+                    `String
+                      (Avutil.Channel_layout.get_description
+                         out_params.channel_layout) );
                 `Pair
                   ( "out_sample_fmt",
                     `Int (Avutil.Sample_format.get_id out_params.sample_format)

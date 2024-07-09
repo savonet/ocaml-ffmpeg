@@ -326,14 +326,119 @@ CAMLprim value ocaml_avutil_time_base() {
 }
 
 /**** Channel layout ****/
-CAMLprim value ocaml_avutil_get_channel_layout_description(
-    value _channel_layout, value channels) {
+
+static void finalize_channel_layout(value v) {
+  AVChannelLayout *channel_layout = AVChannelLayout_val(v);
+  av_channel_layout_uninit(channel_layout);
+  av_free(channel_layout);
+}
+
+static struct custom_operations channel_layout_ops = {
+    "ocaml_avchannel_layout", finalize_channel_layout,
+    custom_compare_default,   custom_hash_default,
+    custom_serialize_default, custom_deserialize_default};
+
+value value_of_channel_layout(const AVChannelLayout *channel_layout) {
+  value ret;
+  AVChannelLayout *ch_layout;
+  int err;
+
+  if (!channel_layout)
+    Fail("Empty channel_layout");
+
+  ch_layout = av_malloc(sizeof(AVChannelLayout));
+  err = av_channel_layout_copy(ch_layout, channel_layout);
+
+  if (err) {
+    av_free(ch_layout);
+    ocaml_avutil_raise_error(err);
+  }
+
+  ret = caml_alloc_custom(&channel_layout_ops, sizeof(AVChannelLayout *), 0, 1);
+  AVChannelLayout_val(ret) = ch_layout;
+
+  return ret;
+}
+
+#define AVChannelLayoutOpaque_val(v) (*(void ***)Data_custom_val(v))
+
+static void finalize_opaque(value v) {
+  void **opaque = AVChannelLayoutOpaque_val(v);
+  av_free(opaque);
+}
+
+static struct custom_operations opaque_ops = {
+    "ocaml_avchannel_layout_opaque", finalize_opaque,
+    custom_compare_default,          custom_hash_default,
+    custom_serialize_default,        custom_deserialize_default};
+
+CAMLprim value ocaml_avutil_start_standard_iteration() {
+  CAMLparam0();
+  CAMLlocal1(ret);
+
+  void **opaque = av_malloc(sizeof(void *));
+
+  if (!opaque)
+    caml_raise_out_of_memory();
+
+  *opaque = NULL;
+
+  ret = caml_alloc_custom(&opaque_ops, sizeof(void *), 0, 1);
+  AVChannelLayoutOpaque_val(ret) = opaque;
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_get_standard(value _opaque) {
+  CAMLparam1(_opaque);
+  CAMLlocal1(ret);
+  void **opaque = AVChannelLayoutOpaque_val(_opaque);
+  const AVChannelLayout *channel_layout = av_channel_layout_standard(opaque);
+
+  if (!channel_layout)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, value_of_channel_layout(channel_layout));
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_compare_channel_layout(value _layout1,
+                                                   value _layout2) {
+  CAMLparam2(_layout1, _layout2);
+  int ret = av_channel_layout_compare(AVChannelLayout_val(_layout1),
+                                      AVChannelLayout_val(_layout2));
+
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
+
+  CAMLreturn(Val_bool(!ret));
+}
+
+CAMLprim value ocaml_avutil_get_channel_native_id(value _channel_layout) {
+  CAMLparam1(_channel_layout);
+  CAMLlocal1(ans);
+
+  AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
+
+  if (channel_layout->order != AV_CHANNEL_ORDER_NATIVE)
+    CAMLreturn(Val_none);
+
+  ans = caml_alloc_tuple(1);
+  Store_field(ans, 0, caml_copy_int64(channel_layout->u.mask));
+  CAMLreturn(ans);
+}
+
+CAMLprim value
+ocaml_avutil_get_channel_layout_description(value _channel_layout) {
   CAMLparam1(_channel_layout);
   char buf[1024];
-  uint64_t channel_layout = ChannelLayout_val(_channel_layout);
+  AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
+  int err = av_channel_layout_describe(channel_layout, buf, sizeof(buf));
 
-  av_get_channel_layout_string(buf, sizeof(buf), Int_val(channels),
-                               channel_layout);
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
 
   CAMLreturn(caml_copy_string(buf));
 }
@@ -341,46 +446,36 @@ CAMLprim value ocaml_avutil_get_channel_layout_description(
 CAMLprim value
 ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout) {
   CAMLparam1(_channel_layout);
-  CAMLreturn(Val_int(
-      av_get_channel_layout_nb_channels(ChannelLayout_val(_channel_layout))));
+  AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
+  CAMLreturn(Val_int(channel_layout->nb_channels));
 }
 
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels) {
   CAMLparam0();
+  CAMLlocal1(ret);
+  AVChannelLayout channel_layout;
 
-  int64_t ret = av_get_default_channel_layout(Int_val(_nb_channels));
+  av_channel_layout_default(&channel_layout, Int_val(_nb_channels));
 
-  if (ret == 0)
-    caml_raise_not_found();
+  ret = value_of_channel_layout(&channel_layout);
+  av_channel_layout_uninit(&channel_layout);
 
-  CAMLreturn(Val_ChannelLayout(ret));
+  CAMLreturn(ret);
 }
 
 CAMLprim value ocaml_avutil_get_channel_layout(value _name) {
   CAMLparam1(_name);
-  char *name = strndup(String_val(_name), caml_string_length(_name));
+  CAMLlocal1(ret);
+  AVChannelLayout channel_layout;
+  int err = av_channel_layout_from_string(&channel_layout, String_val(_name));
 
-  if (!name)
-    caml_raise_out_of_memory();
+  if (err)
+    ocaml_avutil_raise_error(err);
 
-  int64_t ret = av_get_channel_layout(name);
+  ret = value_of_channel_layout(&channel_layout);
+  av_channel_layout_uninit(&channel_layout);
 
-  free(name);
-
-  if (ret == 0)
-    caml_raise_not_found();
-
-  CAMLreturn(Val_ChannelLayout(ret));
-}
-
-CAMLprim value ocaml_avutil_get_channel_layout_id(value _channel_layout) {
-  CAMLparam1(_channel_layout);
-  CAMLreturn(caml_copy_int64(ChannelLayout_val(_channel_layout)));
-}
-
-CAMLprim value ocaml_avutil_channel_layout_of_id(value v) {
-  CAMLparam0();
-  CAMLreturn(Val_ChannelLayout(Int64_val(v)));
+  CAMLreturn(ret);
 }
 
 /**** Sample format ****/
@@ -606,20 +701,6 @@ value value_of_frame(AVFrame *frame) {
   return ret;
 }
 
-CAMLprim value ocaml_avutil_frame_pkt_duration(value _frame) {
-  CAMLparam1(_frame);
-  CAMLlocal1(ret);
-  AVFrame *frame = Frame_val(_frame);
-
-  if (frame->pkt_duration == 0)
-    CAMLreturn(Val_none);
-
-  ret = caml_alloc_tuple(1);
-  Store_field(ret, 0, caml_copy_int64(frame->pkt_duration));
-
-  CAMLreturn(ret);
-}
-
 CAMLprim value ocaml_avutil_frame_pts(value _frame) {
   CAMLparam1(_frame);
   CAMLlocal1(ret);
@@ -806,7 +887,7 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
                                                value _samples) {
   CAMLparam2(_sample_fmt, _channel_layout);
   enum AVSampleFormat sample_fmt = SampleFormat_val(_sample_fmt);
-  uint64_t channel_layout = ChannelLayout_val(_channel_layout);
+  AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
   int sample_rate = Int_val(_samplerate);
   int nb_samples = Int_val(_samples);
   int ret;
@@ -817,7 +898,13 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
     caml_raise_out_of_memory();
 
   frame->format = sample_fmt;
-  frame->channel_layout = channel_layout;
+
+  ret = av_channel_layout_copy(&frame->ch_layout, channel_layout);
+  if (ret < 0) {
+    av_frame_free(&frame);
+    ocaml_avutil_raise_error(ret);
+  }
+
   frame->sample_rate = sample_rate;
   frame->nb_samples = nb_samples;
 
@@ -849,18 +936,14 @@ CAMLprim value ocaml_avutil_audio_frame_get_channels(value _frame) {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
 
-#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(59, 19, 100)
-  CAMLreturn(Val_int(frame->channels));
-#else
   CAMLreturn(Val_int(frame->ch_layout.nb_channels));
-#endif
 }
 
 CAMLprim value ocaml_avutil_audio_frame_get_channel_layout(value _frame) {
   CAMLparam1(_frame);
   AVFrame *frame = Frame_val(_frame);
 
-  CAMLreturn(Val_ChannelLayout((frame->channel_layout)));
+  CAMLreturn(value_of_channel_layout(&frame->ch_layout));
 }
 
 CAMLprim value ocaml_avutil_audio_frame_nb_samples(value _frame) {
@@ -882,13 +965,12 @@ CAMLprim value ocaml_avutil_audio_frame_copy_samples(value _src, value _src_ofs,
   int len = Int_val(_len);
 
   int planar = av_sample_fmt_is_planar(dst->format);
-  int channels = dst->channels;
+  int channels = dst->ch_layout.nb_channels;
   int planes = planar ? channels : 1;
   int i;
 
   if (src->nb_samples < src_ofs + len || dst->nb_samples < dst_ofs + len ||
-      dst->channels != src->channels ||
-      dst->channel_layout != src->channel_layout)
+      av_channel_layout_compare(&dst->ch_layout, &src->ch_layout))
     ocaml_avutil_raise_error(AVERROR(EINVAL));
 
   av_assert2(!src->channel_layout ||
@@ -1103,6 +1185,7 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
   double d;
   AVRational r;
   int w_out, h_out;
+  AVChannelLayout channel_layout;
   enum AVPixelFormat pf;
   enum AVSampleFormat sf;
   AVDictionary *dict = NULL;
@@ -1206,12 +1289,15 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
     break;
 
   case PVV_Channel_layout:
-    err = av_opt_get_channel_layout((void *)obj, (const char *)String_val(name),
-                                    search_flags, &i);
+    err = av_opt_get_chlayout((void *)obj, (const char *)String_val(name),
+                              search_flags, &channel_layout);
     if (err < 0)
       ocaml_avutil_raise_error(err);
 
-    CAMLreturn(Val_ChannelLayout(i));
+    ret = value_of_channel_layout(&channel_layout);
+    av_channel_layout_uninit(&channel_layout);
+
+    CAMLreturn(ret);
     break;
 
   case PVV_Dict:
@@ -1245,6 +1331,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   CAMLparam2(_cursor, _class);
   CAMLlocal4(_opt, _type, _tmp, _spec);
   int unimplement_option = 0;
+  AVChannelLayout channel_layout;
 
   const AVClass *class;
   const struct AVOption *option;
@@ -1321,11 +1408,14 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
       Store_field(_spec, 0, _tmp);
     }
     break;
-  case AV_OPT_TYPE_CHANNEL_LAYOUT:
+  case AV_OPT_TYPE_CHLAYOUT:
     _type = PVV_Channel_layout;
-    if (av_get_channel_name(option->default_val.i64)) {
-      Store_field(_tmp, 0, Val_ChannelLayout(option->default_val.i64));
+    if (option->default_val.str &&
+        av_channel_layout_from_string(&channel_layout,
+                                      option->default_val.str)) {
+      Store_field(_tmp, 0, value_of_channel_layout(&channel_layout));
       Store_field(_spec, 0, _tmp);
+      av_channel_layout_uninit(&channel_layout);
     }
     break;
   case AV_OPT_TYPE_PIXEL_FMT:

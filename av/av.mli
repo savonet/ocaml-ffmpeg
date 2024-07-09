@@ -268,8 +268,6 @@ val initialize_stream_copy :
     After returning, if [opts] was passed, unused options are left in the hash
     table.
 
-    At least one of [channels] or [channel_layout] must be passed.
-
     Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/sample_rate] is usually a good value for the
     [time_base].
@@ -285,8 +283,7 @@ val initialize_stream_copy :
     Raise Error if the opening failed. *)
 val new_audio_stream :
   ?opts:opts ->
-  ?channels:int ->
-  ?channel_layout:Channel_layout.t ->
+  channel_layout:Channel_layout.t ->
   sample_rate:int ->
   sample_format:Avutil.Sample_format.t ->
   time_base:Avutil.rational ->

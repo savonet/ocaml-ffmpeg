@@ -30,7 +30,9 @@ let () =
 
   let audio_index, audio_stream, audio_codec = Av.find_best_audio_stream src in
 
-  let a_ctx = AudioConverter.from_codec audio_codec `Stereo 44100 in
+  let a_ctx =
+    AudioConverter.from_codec audio_codec Avutil.Channel_layout.stereo 44100
+  in
   let audio_output_file = open_out_bin audio_output_filename in
 
   let video_index, video_stream, _ = Av.find_best_video_stream src in

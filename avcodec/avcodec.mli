@@ -238,8 +238,7 @@ module Audio : sig
       Raise Error if the encoder creation failed. *)
   val create_encoder :
     ?opts:opts ->
-    ?channels:int ->
-    ?channel_layout:Channel_layout.t ->
+    channel_layout:Channel_layout.t ->
     sample_rate:int ->
     sample_format:Avutil.Sample_format.t ->
     time_base:Avutil.rational ->

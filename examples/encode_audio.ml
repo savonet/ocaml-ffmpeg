@@ -19,7 +19,7 @@ let () =
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
   let time_base = { Avutil.num = 1; den = sample_rate } in
   let encoder =
-    Audio.create_encoder ~channel_layout:`Stereo ~channels:2 ~time_base
+    Audio.create_encoder ~channel_layout:Avutil.Channel_layout.stereo ~time_base
       ~sample_format:out_sample_format ~sample_rate codec
   in
 
@@ -37,7 +37,8 @@ let () =
   let out_sample_format = Audio.find_best_sample_format codec `Dbl in
 
   let rsp =
-    Resampler.create `Mono sample_rate `Stereo ~out_sample_format sample_rate
+    Resampler.create Avutil.Channel_layout.mono sample_rate
+      Avutil.Channel_layout.stereo ~out_sample_format sample_rate
   in
 
   let c = 2. *. pi *. 440. /. float_of_int sample_rate in

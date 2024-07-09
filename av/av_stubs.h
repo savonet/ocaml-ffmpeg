@@ -1,4 +1,4 @@
-#ifndef _AV_STUBS_H_               
+#ifndef _AV_STUBS_H_
 #define _AV_STUBS_H_
 
 #include <caml/mlvalues.h>
@@ -15,19 +15,24 @@ AVFormatContext *ocaml_av_get_format_context(value *p_av);
 
 /***** AVInputFormat *****/
 
-#define InputFormat_val(v) (*(avioformat_const AVInputFormat**)Data_abstract_val(v))
+#define InputFormat_val(v)                                                     \
+  (*(avioformat_const AVInputFormat **)Data_abstract_val(v))
 
-void value_of_inputFormat(avioformat_const AVInputFormat *inputFormat, value * p_value);
+void value_of_inputFormat(avioformat_const AVInputFormat *inputFormat,
+                          value *p_value);
 
 /***** AVOutputFormat *****/
 
-#define OutputFormat_val(v) (*(avioformat_const AVOutputFormat**)Data_abstract_val(v))
+#define OutputFormat_val(v)                                                    \
+  (*(avioformat_const AVOutputFormat **)Data_abstract_val(v))
 
 value value_of_outputFormat(avioformat_const AVOutputFormat *outputFormat);
 
 /***** Control message *****/
-value * ocaml_av_get_control_message_callback(struct AVFormatContext *ctx);
+value *ocaml_av_get_control_message_callback(struct AVFormatContext *ctx);
 
-void ocaml_av_set_control_message_callback(value *p_av, av_format_control_message c_callback, value *p_ocaml_callback);
+void ocaml_av_set_control_message_callback(value *p_av,
+                                           av_format_control_message c_callback,
+                                           value *p_ocaml_callback);
 
-#endif // _AV_STUBS_H_ 
+#endif // _AV_STUBS_H_

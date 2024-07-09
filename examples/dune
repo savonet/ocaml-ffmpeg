@@ -96,7 +96,7 @@
 (executable
  (name transcode_aac)
  (modules transcode_aac)
- (libraries ffmpeg-av))
+ (libraries ffmpeg-av ffmpeg-avfilter))
 
 (executable
  (name transcoding)
@@ -112,6 +112,11 @@
  (name all_codecs)
  (modules all_codecs)
  (libraries ffmpeg-avcodec))
+
+(executable
+ (name all_channel_layouts)
+ (modules all_channel_layouts)
+ (libraries ffmpeg-avutil))
 
 (executable
  (name all_bitstream_filters)
