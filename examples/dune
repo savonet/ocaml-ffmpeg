@@ -96,7 +96,7 @@
 (executable
  (name transcode_aac)
  (modules transcode_aac)
- (libraries ffmpeg-av))
+ (libraries ffmpeg-av ffmpeg-avfilter))
 
 (executable
  (name transcoding)

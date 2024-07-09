@@ -681,8 +681,17 @@ let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
   Hashtbl.add opts "ar" (`Int sample_rate);
   on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
   on_opt channel_layout (fun channel_layout ->
-      Hashtbl.add opts "channel_layout"
-        (`String (Channel_layout.get_description channel_layout)));
+      let param =
+        match Channel_layout.get_native_id channel_layout with
+          | Some id -> `Int64 id
+          | None ->
+              let channel_layout =
+                Channel_layout.get_default
+                  (Channel_layout.get_nb_channels channel_layout)
+              in
+              `Int64 (Option.get (Channel_layout.get_native_id channel_layout))
+      in
+      Hashtbl.add opts "channel_layout" param);
   Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base))
 
