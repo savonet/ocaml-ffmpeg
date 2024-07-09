@@ -481,7 +481,11 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   CAMLlocal1(ret);
 
   int (*read_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(60, 12, 100)
+  int (*write_cb)(void *opaque, uint8_t *buf, int buf_size) = NULL;
+#else
   int (*write_cb)(void *opaque, const uint8_t *buf, int buf_size) = NULL;
+#endif
   int64_t (*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
   int write_flag = 0;
   unsigned char *buffer;
