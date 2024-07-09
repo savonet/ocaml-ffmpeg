@@ -357,8 +357,13 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   return Int_val(res);
 }
 
+#if LIBAVFORMAT_VERSION_INT < AV_VERSION_INT(60, 12, 100)
+static int ocaml_avio_write_callback(void *private, uint8_t *buf,
+                                     int buf_size) {
+#else
 static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
                                      int buf_size) {
+#endif
   value buffer, res;
   avio_t *avio = (avio_t *)private;
   int ret;
