@@ -23,6 +23,7 @@
 #include <libavutil/avstring.h>
 #include <libavutil/opt.h>
 #include <libavutil/timestamp.h>
+#include <libavutil/parseutils.h>
 
 #include "av_stubs.h"
 #include "avcodec_stubs.h"
@@ -1739,6 +1740,7 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
                                 av_t *av, stream_t *stream,
                                 AVDictionary **options) {
   AVCodecContext *enc_ctx = stream->codec_context;
+  AVDictionaryEntry *framerate;
   int ret;
 
   // Some formats want stream headers to be separate.
@@ -1772,6 +1774,11 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
 
   AVStream *avstream = av->format_context->streams[stream->index];
   avstream->time_base = enc_ctx->time_base;
+
+  framerate = av_dict_get(*options, "r", NULL, 0);
+
+  if (framerate)
+    av_parse_video_rate(&avstream->avg_frame_rate, framerate->value);
 
   ret = avcodec_parameters_from_context(avstream->codecpar, enc_ctx);
 
@@ -1818,12 +1825,13 @@ CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
   av_t *av = Av_val(_av);
 
   AVStream *avstream = av->format_context->streams[Int_val(_stream_index)];
+  AVCodecParameters *params = CodecParameters_val(_params);
 
-  int err =
-      avcodec_parameters_copy(avstream->codecpar, CodecParameters_val(_params));
+  int err = avcodec_parameters_copy(avstream->codecpar, params);
   if (err < 0)
     ocaml_avutil_raise_error(err);
 
+  avstream->avg_frame_rate = params->framerate;
   avstream->codecpar->codec_tag = 0;
 
   CAMLreturn(Val_unit);
