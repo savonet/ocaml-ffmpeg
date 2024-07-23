@@ -1831,7 +1831,6 @@ CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
   if (err < 0)
     ocaml_avutil_raise_error(err);
 
-  avstream->avg_frame_rate = params->framerate;
   avstream->codecpar->codec_tag = 0;
 
   CAMLreturn(Val_unit);
