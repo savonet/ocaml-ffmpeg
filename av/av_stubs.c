@@ -22,8 +22,8 @@
 #include <libavutil/audio_fifo.h>
 #include <libavutil/avstring.h>
 #include <libavutil/opt.h>
-#include <libavutil/timestamp.h>
 #include <libavutil/parseutils.h>
+#include <libavutil/timestamp.h>
 
 #include "av_stubs.h"
 #include "avcodec_stubs.h"
@@ -194,6 +194,42 @@ CAMLprim value ocaml_av_get_stream_codec_parameters(value _stream) {
                                  &ans);
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_get_stream_avg_frame_rate(value _stream) {
+  CAMLparam1(_stream);
+  CAMLlocal3(ans, ret, _av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
+  int index = StreamIndex_val(_stream);
+  AVStream *st = av->format_context->streams[index];
+
+  if (!st->avg_frame_rate.num)
+    CAMLreturn(Val_none);
+
+  value_of_rational(&av->format_context->streams[index]->avg_frame_rate, &ans);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_av_set_stream_avg_frame_rate(value _stream,
+                                                  value _avg_frame_rate) {
+  CAMLparam2(_stream, _avg_frame_rate);
+  CAMLlocal1(_av);
+  _av = Field(_stream, 0);
+  av_t *av = Av_val(_av);
+  int index = StreamIndex_val(_stream);
+  AVStream *st = av->format_context->streams[index];
+
+  if (_avg_frame_rate == Val_none)
+    st->avg_frame_rate = (AVRational){0, 1};
+
+  st->avg_frame_rate = rational_of_value(Field(_avg_frame_rate, 0));
+
+  CAMLreturn(Val_unit);
 }
 
 CAMLprim value ocaml_av_get_stream_time_base(value _stream) {

@@ -127,6 +127,12 @@ val get_index : (_, _, _) stream -> int
     codec allocation failed. *)
 val get_codec_params : (_, 'media, _) stream -> 'media Avcodec.params
 
+(** [get_avg_frame_rate stream] returns the average frame rate, if set. *)
+val get_avg_frame_rate : (_, video, _) stream -> Avutil.rational option
+
+(** [set_avg_frame_rate stream rate] sets the average frame rate, if set. *)
+val set_avg_frame_rate : (_, video, _) stream -> Avutil.rational option -> unit
+
 (** [Av.get_time_base stream] return the time base of the [stream]. *)
 val get_time_base : (_, _, _) stream -> Avutil.rational
 

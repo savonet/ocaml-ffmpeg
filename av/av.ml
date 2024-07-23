@@ -139,6 +139,13 @@ let mk_stream container index = { container; index; decoder = None }
 external get_codec_params : (_, 'm, _) stream -> 'm Avcodec.params
   = "ocaml_av_get_stream_codec_parameters"
 
+external get_avg_frame_rate : (_, video, _) stream -> Avutil.rational option
+  = "ocaml_av_get_stream_avg_frame_rate"
+
+external set_avg_frame_rate :
+  (_, video, _) stream -> Avutil.rational option -> unit
+  = "ocaml_av_set_stream_avg_frame_rate"
+
 external get_time_base : (_, _, _) stream -> Avutil.rational
   = "ocaml_av_get_stream_time_base"
 
