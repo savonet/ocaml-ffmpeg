@@ -224,8 +224,10 @@ CAMLprim value ocaml_av_set_stream_avg_frame_rate(value _stream,
   int index = StreamIndex_val(_stream);
   AVStream *st = av->format_context->streams[index];
 
-  if (_avg_frame_rate == Val_none)
+  if (_avg_frame_rate == Val_none) {
     st->avg_frame_rate = (AVRational){0, 1};
+    CAMLreturn(Val_unit);
+  }
 
   st->avg_frame_rate = rational_of_value(Field(_avg_frame_rate, 0));
 
