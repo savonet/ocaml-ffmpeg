@@ -1778,7 +1778,6 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
                                 av_t *av, stream_t *stream,
                                 AVDictionary **options) {
   AVCodecContext *enc_ctx = stream->codec_context;
-  AVDictionaryEntry *framerate;
   int ret;
 
   // Some formats want stream headers to be separate.
@@ -1812,11 +1811,6 @@ static void init_stream_encoder(AVBufferRef *device_ctx, AVBufferRef *frame_ctx,
 
   AVStream *avstream = av->format_context->streams[stream->index];
   avstream->time_base = enc_ctx->time_base;
-
-  framerate = av_dict_get(*options, "r", NULL, 0);
-
-  if (framerate)
-    av_parse_video_rate(&avstream->avg_frame_rate, framerate->value);
 
   ret = avcodec_parameters_from_context(avstream->codecpar, enc_ctx);
 
