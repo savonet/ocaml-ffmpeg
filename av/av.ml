@@ -367,7 +367,9 @@ let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
       (mk_opts_array opts)
   in
   filter_opts unused opts;
-  mk_stream container ret
+  let s = mk_stream container ret in
+  set_avg_frame_rate s frame_rate;
+  s
 
 external new_subtitle_stream :
   _ container ->
