@@ -217,12 +217,13 @@ static int get_in_samples_ba(swr_t *swr, value *in_vector, int offset) {
 static int get_in_samples_planar_ba(swr_t *swr, value *in_vector, int offset) {
   CAMLparam0();
   CAMLlocal1(ba);
+  int i;
   int nb_samples = Caml_ba_array_val(Field(*in_vector, 0))->dim[0] - offset;
 
   if (nb_samples < 0)
     Fail("Invalid offset!");
 
-  for (int i = 0; i < swr->in.nb_channels; i++) {
+  for (i = 0; i < swr->in.nb_channels; i++) {
     ba = Field(*in_vector, i);
 
     if (nb_samples != Caml_ba_array_val(ba)->dim[0])
