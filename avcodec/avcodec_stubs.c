@@ -1286,14 +1286,16 @@ CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
 
 CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec) {
   CAMLparam1(_codec);
-  CAMLlocal2(list, cons);
+  CAMLlocal3(list, cons, ch_layout);
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
 
   if (codec->ch_layouts) {
-    for (i = 0; codec->ch_layouts[i].nb_channels != 0; i++)
-      List_add(list, cons, value_of_channel_layout(&codec->ch_layouts[i]));
+    for (i = 0; codec->ch_layouts[i].nb_channels != 0; i++) {
+      value_of_channel_layout(&ch_layout, &codec->ch_layouts[i]);
+      List_add(list, cons, ch_layout);
+    }
   }
 
   CAMLreturn(list);
@@ -1337,9 +1339,12 @@ CAMLprim value ocaml_avcodec_parameters_get_audio_codec_id(value _cp) {
 
 CAMLprim value ocaml_avcodec_parameters_get_channel_layout(value _cp) {
   CAMLparam1(_cp);
+  CAMLlocal1(_ch_layout);
   AVCodecParameters *cp = CodecParameters_val(_cp);
 
-  CAMLreturn(value_of_channel_layout(&cp->ch_layout));
+  value_of_channel_layout(&_ch_layout, &cp->ch_layout);
+
+  CAMLreturn(_ch_layout);
 }
 
 CAMLprim value ocaml_avcodec_parameters_get_nb_channels(value _cp) {

@@ -467,11 +467,10 @@ CAMLprim value ocaml_avfilter_buffersink_get_channel_layout(value _src) {
   CAMLparam0();
   CAMLlocal1(ret);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
-  AVChannelLayout channel_layout;
-  int err = av_buffersink_get_ch_layout(filter_ctx, &channel_layout);
+  AVChannelLayout *channel_layout =
+      caml_avutil_alloc_custom_channel_layout(&ret);
 
-  ret = value_of_channel_layout(&channel_layout);
-  av_channel_layout_uninit(&channel_layout);
+  int err = av_buffersink_get_ch_layout(filter_ctx, channel_layout);
 
   CAMLreturn(ret);
 }
