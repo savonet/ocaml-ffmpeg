@@ -293,7 +293,7 @@ static int alloc_out_string(sws_t *sws, value *out_vect) {
     Store_field(*out_vect, i, tmp);
   }
 
-  return 0;
+  CAMLreturnT(int, 0);
 }
 
 static int copy_out_string(sws_t *sws, value *out_vect) {
@@ -350,16 +350,16 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
 
     len = sws->out.stride[i] * height;
 
-    planes = caml_alloc_tuple(2);
-    Store_field(planes, i, planes);
+    plane = caml_alloc_tuple(2);
     Store_field(plane, 0, caml_ba_sub(_data, Val_long(offset), Val_long(len)));
     Store_field(plane, 1, Val_long(sws->out.stride[i]));
+    Store_field(planes, i, planes);
 
     sws->out.slice[i] = data + offset;
     offset += len;
   }
 
-  return 0;
+  CAMLreturnT(int, 0);
 }
 
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
