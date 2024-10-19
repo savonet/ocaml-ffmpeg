@@ -353,7 +353,7 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
     plane = caml_alloc_tuple(2);
     Store_field(plane, 0, caml_ba_sub(_data, Val_long(offset), Val_long(len)));
     Store_field(plane, 1, Val_long(sws->out.stride[i]));
-    Store_field(planes, i, planes);
+    Store_field(planes, i, plane);
 
     sws->out.slice[i] = data + offset;
     offset += len;
