@@ -276,7 +276,7 @@ static int alloc_out_string(sws_t *sws, value *out_vect) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0 & i < 4)
+    if (0 < i & i < 4)
       height = height >> sws->out.h_shift;
 
     len = sws->out.stride[i] * height;
@@ -324,7 +324,7 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0 & i < 4)
+    if (0 < i & i < 4)
       height = height >> sws->out.h_shift;
 
     out_size += sws->out.stride[i] * height;
@@ -345,7 +345,7 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0 & i < 4)
+    if (0 < i & i < 4)
       height = height >> sws->out.h_shift;
 
     len = sws->out.stride[i] * height;
