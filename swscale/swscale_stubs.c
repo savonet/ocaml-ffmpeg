@@ -184,7 +184,7 @@ struct sws_t {
   struct video_t out;
 
   int (*get_in_pixels)(sws_t *, value *);
-  int (*alloc_out)(sws_t *, value *, value *);
+  int (*alloc_out)(sws_t *, value *);
   int (*copy_out)(sws_t *, value *);
 };
 
@@ -238,7 +238,7 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector) {
   CAMLreturnT(int, nb_planes);
 }
 
-static int alloc_out_frame(sws_t *sws, value *out_vect, value *tmp) {
+static int alloc_out_frame(sws_t *sws, value *out_vect) {
   int ret;
   AVFrame *frame = av_frame_alloc();
 
@@ -265,7 +265,9 @@ static int alloc_out_frame(sws_t *sws, value *out_vect, value *tmp) {
   return ret;
 }
 
-static int alloc_out_string(sws_t *sws, value *out_vect, value *tmp) {
+static int alloc_out_string(sws_t *sws, value *out_vect) {
+  CAMLparam0();
+  CAMLlocal1(tmp);
   int i, len;
   int height;
 
@@ -284,11 +286,11 @@ static int alloc_out_string(sws_t *sws, value *out_vect, value *tmp) {
       sws->out.sizes_tab[i] = len;
     }
 
-    *tmp = caml_alloc_tuple(2);
-    Store_field(*tmp, 0, caml_alloc_string(len));
-    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
+    tmp = caml_alloc_tuple(2);
+    Store_field(tmp, 0, caml_alloc_string(len));
+    Store_field(tmp, 1, Val_int(sws->out.stride[i]));
 
-    Store_field(*out_vect, i, *tmp);
+    Store_field(*out_vect, i, tmp);
   }
 
   return 0;
@@ -311,7 +313,9 @@ static int copy_out_string(sws_t *sws, value *out_vect) {
 
 CAMLextern value caml_ba_sub(value vb, value vofs, value vlen);
 
-static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
+static int alloc_out_ba(sws_t *sws, value *out_vect) {
+  CAMLparam0();
+  CAMLlocal3(_data, planes, plane);
   int i, height;
   intnat out_size = 0;
   intnat len, offset = 0;
@@ -330,15 +334,13 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
   // extra bytes must be allocated.
   out_size += 16;
 
-  *tmp = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
-  data = Caml_ba_data_val(*tmp);
+  _data = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
+  data = Caml_ba_data_val(_data);
   *out_vect = caml_alloc_tuple(2);
+  planes = caml_alloc_tuple(sws->out.nb_planes);
 
-  Store_field(*out_vect, 0, *tmp);
-  Store_field(*out_vect, 1, caml_alloc_tuple(sws->out.nb_planes));
-
-#define planes Field(*out_vect, 1)
-#define plane Field(planes, i)
+  Store_field(*out_vect, 0, _data);
+  Store_field(*out_vect, 1, planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
@@ -348,23 +350,21 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
 
     len = sws->out.stride[i] * height;
 
-    Store_field(planes, i, caml_alloc_tuple(2));
-    Store_field(plane, 0, caml_ba_sub(*tmp, Val_long(offset), Val_long(len)));
+    planes = caml_alloc_tuple(2);
+    Store_field(planes, i, planes);
+    Store_field(plane, 0, caml_ba_sub(_data, Val_long(offset), Val_long(len)));
     Store_field(plane, 1, Val_long(sws->out.stride[i]));
 
     sws->out.slice[i] = data + offset;
     offset += len;
   }
 
-#undef planes 
-#undef plane
-
   return 0;
 }
 
 CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
   CAMLparam2(_sws, _in_vector);
-  CAMLlocal2(out_vect, tmp);
+  CAMLlocal1(out_vect);
   sws_t *sws = Sws_val(_sws);
 
   // acquisition of the input pixels
@@ -372,7 +372,7 @@ CAMLprim value ocaml_swscale_convert(value _sws, value _in_vector) {
   if (ret < 0)
     Fail("Failed to get input pixels");
 
-  ret = sws->alloc_out(sws, &out_vect, &tmp);
+  ret = sws->alloc_out(sws, &out_vect);
   if (ret < 0)
     ocaml_avutil_raise_error(ret);
 
