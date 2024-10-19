@@ -276,7 +276,7 @@ static int alloc_out_string(sws_t *sws, value *out_vect) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0)
+    if (i != 0 & i < 4)
       height = height >> sws->out.h_shift;
 
     len = sws->out.stride[i] * height;
@@ -324,7 +324,7 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0)
+    if (i != 0 & i < 4)
       height = height >> sws->out.h_shift;
 
     out_size += sws->out.stride[i] * height;
@@ -336,16 +336,16 @@ static int alloc_out_ba(sws_t *sws, value *out_vect) {
 
   _data = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
   data = Caml_ba_data_val(_data);
-  *out_vect = caml_alloc_tuple(2);
   planes = caml_alloc_tuple(sws->out.nb_planes);
 
+  *out_vect = caml_alloc_tuple(2);
   Store_field(*out_vect, 0, _data);
   Store_field(*out_vect, 1, planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
 
-    if (i != 0)
+    if (i != 0 & i < 4)
       height = height >> sws->out.h_shift;
 
     len = sws->out.stride[i] * height;
