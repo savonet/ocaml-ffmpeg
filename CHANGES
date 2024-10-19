@@ -1,3 +1,7 @@
+1.3.0 (unreleased)
+=====
+BREAKING: Make all `swscale` bigarray data views over a larger planar array.
+
 1.2.0 (2024-09-24)
 =====
 * Removed unused `Av.write_audio_frame`/`Av.write_video_frame`.
