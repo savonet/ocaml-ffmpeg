@@ -70,7 +70,7 @@ end
 
 (** Unsigned 8 bit bigarray. *)
 module BigArray : sig
-  (* Input: data is ignored.
+  (* Input: data is ignored and can be anything, typically the first plane.
      Output: planes are views over the main data array. *)
   type t = {
     data: data;
