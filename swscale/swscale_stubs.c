@@ -223,11 +223,14 @@ static int get_in_pixels_string(sws_t *sws, value *in_vector) {
 
 static int get_in_pixels_ba(sws_t *sws, value *in_vector) {
   CAMLparam0();
-  CAMLlocal1(v);
-  int i, nb_planes = Wosize_val(*in_vector);
+  CAMLlocal2(planes, v);
+  int i, nb_planes;
+
+  planes = Field(*in_vector, 1);
+  nb_planes = Wosize_val(planes);
 
   for (i = 0; i < nb_planes && i < 4; i++) {
-    v = Field(*in_vector, i);
+    v = Field(planes, i);
     sws->in.slice[i] = Caml_ba_data_val(Field(v, 0));
     sws->in.stride[i] = Int_val(Field(v, 1));
   }
