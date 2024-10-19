@@ -165,7 +165,6 @@ struct video_t {
   int height;
   enum AVPixelFormat pixel_format;
   int nb_planes;
-  int h_shift;
   uint8_t *slice_tab[4];
   int stride_tab[4];
   int sizes_tab[4];
@@ -264,17 +263,11 @@ static int alloc_out_frame(sws_t *sws, value *out_vect, value *tmp) {
 
 static int alloc_out_string(sws_t *sws, value *out_vect, value *tmp) {
   int i, len;
-  int height;
 
   *out_vect = caml_alloc_tuple(sws->out.nb_planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
-    height = sws->out.height;
-
-    if (i != 0)
-      height = height >> sws->out.h_shift;
-
-    len = sws->out.stride[i] * height;
+    len = sws->out.stride[i] * sws->out.height;
 
     if (sws->out.sizes_tab[i] < len) {
       sws->out.slice[i] = (uint8_t *)realloc(sws->out.slice[i], len + 16);
@@ -306,51 +299,26 @@ static int copy_out_string(sws_t *sws, value *out_vect) {
   CAMLreturnT(int, 0);
 }
 
-CAMLextern value caml_ba_sub(value vb, value vofs, value vlen);
-
 static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
-  int i, height;
-  intnat out_size = 0;
-  intnat len, offset = 0;
-  uint8_t *data;
+  int i;
+  intnat out_size;
 
-  for (i = 0; i < sws->out.nb_planes; i++) {
-    height = sws->out.height;
-
-    if (i != 0)
-      height = height >> sws->out.h_shift;
-
-    out_size += sws->out.stride[i] * height;
-  }
-
-  // Some filters and swscale can read up to 16 bytes beyond the planes, 16
-  // extra bytes must be allocated.
-  out_size += 16;
-
-  *tmp = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
-  data = Caml_ba_data_val(*tmp);
   *out_vect = caml_alloc_tuple(sws->out.nb_planes);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
-    height = sws->out.height;
+    // Some filters and swscale can read up to 16 bytes beyond the planes, 16
+    // extra bytes must be allocated.
+    out_size = sws->out.stride[i] * sws->out.height + 16;
 
-    if (i != 0)
-      height = height >> sws->out.h_shift;
+    *tmp = caml_alloc_tuple(2);
+    Store_field(
+        *tmp, 0,
+        caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
+    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
 
-    len = sws->out.stride[i] * height;
+    sws->out.slice[i] = Caml_ba_data_val(Field(*tmp, 0));
 
-    Store_field(*out_vect, i, caml_alloc_tuple(2));
-
-    if (i == 0)
-      Store_field(Field(*out_vect, i), 0, *tmp);
-    else
-      Store_field(Field(*out_vect, i), 0,
-                  caml_ba_sub(*tmp, Val_long(offset), Val_long(len)));
-
-    Store_field(Field(*out_vect, i), 1, Val_long(sws->out.stride[i]));
-
-    sws->out.slice[i] = data + offset;
-    offset += len;
+    Store_field(*out_vect, i, *tmp);
   }
 
   return 0;
@@ -481,24 +449,19 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
     sws->alloc_out = alloc_out_ba;
   }
 
+  caml_release_runtime_system();
   int ret = av_image_fill_linesizes(sws->out.stride, sws->out.pixel_format,
                                     sws->out.width);
+  caml_acquire_runtime_system();
 
   if (ret < 0) {
     swscale_free(sws);
     Fail("Failed to create Swscale context");
   }
 
-  sws->out.nb_planes = av_pix_fmt_count_planes(sws->out.pixel_format);
-
-  int v_shift;
-  ret = av_pix_fmt_get_chroma_sub_sample(sws->out.pixel_format,
-                                         &sws->out.h_shift, &v_shift);
-
-  if (ret < 0) {
-    swscale_free(sws);
-    Fail("Failed to create Swscale context");
-  }
+  for (sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes];
+       sws->out.nb_planes++)
+    ;
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t *), 0, 1);
   Sws_val(ans) = sws;
