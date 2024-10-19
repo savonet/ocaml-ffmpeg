@@ -29,7 +29,10 @@ module type VideoData = sig
 end
 
 module BigArray = struct
-  type t = planes
+  type t = {
+    data: data;
+    planes: planes
+  }
 
   let vk = Ba
 end

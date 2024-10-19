@@ -329,7 +329,9 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
 
   *tmp = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
   data = Caml_ba_data_val(*tmp);
-  *out_vect = caml_alloc_tuple(sws->out.nb_planes);
+  *out_vect = caml_alloc_tuple(sws->out.nb_planes + 1);
+
+  Store_field(*out_vect, 0, *tmp);
 
   for (i = 0; i < sws->out.nb_planes; i++) {
     height = sws->out.height;
@@ -339,15 +341,12 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
 
     len = sws->out.stride[i] * height;
 
-    Store_field(*out_vect, i, caml_alloc_tuple(2));
+    Store_field(*out_vect, i + 1, caml_alloc_tuple(2));
 
-    if (i == 0)
-      Store_field(Field(*out_vect, i), 0, *tmp);
-    else
-      Store_field(Field(*out_vect, i), 0,
-                  caml_ba_sub(*tmp, Val_long(offset), Val_long(len)));
+    Store_field(Field(*out_vect, i + 1), 0,
+                caml_ba_sub(*tmp, Val_long(offset), Val_long(len)));
 
-    Store_field(Field(*out_vect, i), 1, Val_long(sws->out.stride[i]));
+    Store_field(Field(*out_vect, i + 1), 1, Val_long(sws->out.stride[i]));
 
     sws->out.slice[i] = data + offset;
     offset += len;

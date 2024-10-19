@@ -70,7 +70,12 @@ end
 
 (** Unsigned 8 bit bigarray. *)
 module BigArray : sig
-  type t = planes
+  (* Input: data is ignored.
+     Output: planes are views over the main data array. *)
+  type t = {
+    data: data;
+    planes: planes
+  }
 
   val vk : vector_kind
 end
