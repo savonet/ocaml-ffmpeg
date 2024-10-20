@@ -27,7 +27,7 @@ val scale : t -> planes -> int -> int -> planes -> int -> unit
 
 (**/**)
 
-type vector_kind = Ba | Frm | Str
+type vector_kind = PackedBa | Ba | Frm | Str
 
 (**/**)
 
@@ -68,9 +68,17 @@ module Make (I : VideoData) (O : VideoData) : sig
   val convert : t -> I.t -> O.t
 end
 
-(** Unsigned 8 bit bigarray. *)
+(** Unsigned 8 bit bigarray split by planes. *)
 module BigArray : sig
   type t = planes
+
+  val vk : vector_kind
+end
+
+(** Unsigned 8 bit bigarray in a single packed array.. *)
+module PackedBigArray : sig
+  type plane = { plane_size : int; stride : int }
+  type t = { data : data; planes : plane array }
 
   val vk : vector_kind
 end

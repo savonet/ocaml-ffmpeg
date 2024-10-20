@@ -158,7 +158,7 @@ CAMLprim value ocaml_swscale_scale_byte(value *argv, int argn) {
 
 /***** Contexts *****/
 
-typedef enum _vector_kind { Ba, Frm, Str } vector_kind;
+typedef enum _vector_kind { PackedBa, Ba, Frm, Str } vector_kind;
 
 struct video_t {
   int width;
@@ -230,6 +230,27 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector) {
     v = Field(*in_vector, i);
     sws->in.slice[i] = Caml_ba_data_val(Field(v, 0));
     sws->in.stride[i] = Int_val(Field(v, 1));
+  }
+
+  CAMLreturnT(int, nb_planes);
+}
+
+static int get_in_pixels_packed_ba(sws_t *sws, value *in_vector) {
+  CAMLparam0();
+  CAMLlocal1(v);
+  uint8_t *data = Caml_ba_data_val(Field(*in_vector, 0));
+  int i, nb_planes = Wosize_val(Field(*in_vector, 1));
+  int stride, plane_size, offset = 0;
+
+  for (i = 0; i < nb_planes && i < 4; i++) {
+    v = Field(Field(*in_vector, 1), i);
+    plane_size = Int_val(Field(v, 0));
+    stride = Int_val(Field(v, 1));
+
+    sws->in.slice[i] = data + offset;
+    sws->in.stride[i] = stride;
+
+    offset += plane_size;
   }
 
   CAMLreturnT(int, nb_planes);
@@ -320,6 +341,38 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
     sws->out.slice[i] = Caml_ba_data_val(Field(*tmp, 0));
 
     Store_field(*out_vect, i, *tmp);
+  }
+
+  return 0;
+}
+
+static int alloc_out_packed_ba(sws_t *sws, value *out_vect, value *tmp) {
+  int i, offset = 0;
+  intnat out_size = 0;
+  uint8_t *data;
+
+  for (i = 0; i < sws->out.nb_planes; i++)
+    out_size += sws->out.plane_sizes[i];
+
+  out_size += 16;
+
+  *out_vect = caml_alloc_tuple(2);
+  Store_field(
+      *out_vect, 0,
+      caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
+  Store_field(*out_vect, 1, caml_alloc_tuple(sws->out.nb_planes));
+
+  data = Caml_ba_data_val(Field(*out_vect, 0));
+
+  for (i = 0; i < sws->out.nb_planes; i++) {
+    *tmp = caml_alloc_tuple(2);
+    Store_field(*tmp, 0, Val_int(sws->out.plane_sizes[i]));
+    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
+
+    Store_field(Field(*out_vect, 1), i, *tmp);
+
+    sws->out.slice[i] = data + offset;
+    offset += sws->out.plane_sizes[i];
   }
 
   return 0;
@@ -436,6 +489,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
   } else if (in_vector_kind == Str) {
     sws->get_in_pixels = get_in_pixels_string;
     sws->in.owns_data = 1;
+  } else if (in_vector_kind == PackedBa) {
+    sws->get_in_pixels = get_in_pixels_packed_ba;
   } else {
     sws->get_in_pixels = get_in_pixels_ba;
   }
@@ -446,6 +501,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
     sws->alloc_out = alloc_out_string;
     sws->copy_out = copy_out_string;
     sws->out.owns_data = 1;
+  } else if (out_vect_kind == PackedBa) {
+    sws->alloc_out = alloc_out_packed_ba;
   } else {
     sws->alloc_out = alloc_out_ba;
   }
