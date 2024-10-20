@@ -167,6 +167,7 @@ struct video_t {
   int nb_planes;
   uint8_t *slice_tab[4];
   int stride_tab[4];
+  size_t plane_sizes[4];
   int sizes_tab[4];
   uint8_t **slice;
   int *stride;
@@ -308,7 +309,7 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
   for (i = 0; i < sws->out.nb_planes; i++) {
     // Some filters and swscale can read up to 16 bytes beyond the planes, 16
     // extra bytes must be allocated.
-    out_size = sws->out.stride[i] * sws->out.height + 16;
+    out_size = sws->out.plane_sizes[i] + 16;
 
     *tmp = caml_alloc_tuple(2);
     Store_field(
@@ -449,19 +450,27 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
     sws->alloc_out = alloc_out_ba;
   }
 
-  caml_release_runtime_system();
   int ret = av_image_fill_linesizes(sws->out.stride, sws->out.pixel_format,
                                     sws->out.width);
-  caml_acquire_runtime_system();
 
   if (ret < 0) {
     swscale_free(sws);
     Fail("Failed to create Swscale context");
   }
 
-  for (sws->out.nb_planes = 0; sws->out.stride[sws->out.nb_planes];
-       sws->out.nb_planes++)
-    ;
+  ptrdiff_t linesizes[4];
+  for (i = 0; i < 4; i++)
+    linesizes[i] = sws->out.stride[i];
+
+  ret = av_image_fill_plane_sizes(sws->out.plane_sizes, sws->out.pixel_format,
+                                  sws->out.height, linesizes);
+
+  if (ret < 0) {
+    swscale_free(sws);
+    Fail("Failed to create Swscale context");
+  }
+
+  sws->out.nb_planes = av_pix_fmt_count_planes(sws->out.pixel_format);
 
   ans = caml_alloc_custom(&sws_ops, sizeof(sws_t *), 0, 1);
   Sws_val(ans) = sws;
