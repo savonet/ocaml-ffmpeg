@@ -1,3 +1,9 @@
+1.2.1 (unreleased)
+======
+* Fixed plane size when allocating big array planes in `swscale`.
+* Added packed big array API to `swscale` where all planes are alloacted in
+  on contiguous memory region.
+
 1.2.0 (2024-09-24)
 =====
 * Removed unused `Av.write_audio_frame`/`Av.write_video_frame`.
