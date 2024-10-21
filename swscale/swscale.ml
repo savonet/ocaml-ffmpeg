@@ -20,7 +20,7 @@ type planes = (data * int) array
 external scale : t -> planes -> int -> int -> planes -> int -> unit
   = "ocaml_swscale_scale_byte" "ocaml_swscale_scale"
 
-type vector_kind = Ba | Frm | Str
+type vector_kind = PackedBa | Ba | Frm | Str
 
 module type VideoData = sig
   type t
@@ -32,6 +32,13 @@ module BigArray = struct
   type t = planes
 
   let vk = Ba
+end
+
+module PackedBigArray = struct
+  type plane = { plane_size : int; stride : int }
+  type t = { data : data; planes : plane array }
+
+  let vk = PackedBa
 end
 
 module Frame = struct
