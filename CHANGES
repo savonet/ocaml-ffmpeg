@@ -1,4 +1,4 @@
-1.2.1 (unreleased)
+1.2.1 (2024-10-29)
 ======
 * Fixed plane size when allocating big array planes in `swscale`.
 * Added packed big array API to `swscale` where all planes are alloacted in
