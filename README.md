@@ -7,6 +7,8 @@ ocaml-ffmpeg
 
 ocaml-ffmpeg is an OCaml interface for the [FFmpeg](http://ffmpeg.org/) Multimedia framework.
 
+Currently, it requires FFmpeg 7.0 or later to compile.
+
 The modules currently available are :
 
 `Avutil` : base module containing the share types and utilities
