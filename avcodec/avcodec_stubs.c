@@ -926,6 +926,9 @@ static void send_frame(codec_context_t *ctx, AVFrame *frame) {
   int ret;
   AVFrame *hw_frame = NULL;
 
+  if (ctx->flushed)
+    ocaml_avutil_raise_error(AVERROR_EOF);
+
   ctx->flushed = !frame;
 
   if (ctx->codec_context->hw_frames_ctx && frame) {
