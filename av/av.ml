@@ -106,7 +106,13 @@ external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 let open_input_stream ?format ?opts ?seek read =
   let avio = ocaml_av_create_read_io 4096 ?seek read in
   let cleanup () = caml_av_input_io_finalise avio in
-  let input = ocaml_av_open_input_stream ?format ?opts avio in
+  let input =
+    try ocaml_av_open_input_stream ?format ?opts avio
+    with exn ->
+      let bt = Printexc.get_raw_backtrace () in
+      cleanup ();
+      Printexc.raise_with_backtrace exn bt
+  in
   Gc.finalise_last cleanup input;
   input
 
@@ -286,7 +292,11 @@ let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
   let cleanup () = caml_av_input_io_finalise avio in
   let output, unused =
-    ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
+    try ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
+    with exn ->
+      let bt = Printexc.get_raw_backtrace () in
+      cleanup ();
+      Printexc.raise_with_backtrace exn bt
   in
   filter_opts unused opts;
   Gc.finalise ocaml_av_cleanup_av output;
