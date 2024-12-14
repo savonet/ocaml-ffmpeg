@@ -1,3 +1,9 @@
+1.2.2 (unreleased)
+======
+* Fixed memory leak when an exception is raised
+  while initializing a container with a `avio`
+  data source.
+
 1.2.1 (2024-10-29)
 ======
 * Fixed plane size when allocating big array planes in `swscale`.
