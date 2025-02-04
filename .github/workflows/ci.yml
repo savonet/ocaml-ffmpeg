@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-24.04]
-        compiler: [4.14.2, 5.2.0]
+        compiler: [4.14, 5.3]
     steps:
     - name: Build and test module
       uses: savonet/build-and-test-ocaml-module@main
