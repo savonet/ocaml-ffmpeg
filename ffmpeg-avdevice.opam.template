@@ -1,3 +1,4 @@
+x-maintenance-intent: ["(latest)"]
 post-messages: [
   """\
 We're sorry that your install failed. Make sure to check the README.md file
