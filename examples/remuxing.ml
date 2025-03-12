@@ -59,12 +59,12 @@ let () =
             (`Metadata_update [("foo", "bar"); ("gni", "gno")]);
           Avcodec.Packet.add_side_data pkt
             (`Replaygain
-              {
-                Avcodec.Packet.track_gain = 1;
-                track_peak = 2;
-                album_gain = 3;
-                album_peak = 4;
-              });
+               {
+                 Avcodec.Packet.track_gain = 1;
+                 track_peak = 2;
+                 album_gain = 3;
+                 album_peak = 4;
+               });
           List.iter
             (function
               | `Strings_metadata m ->

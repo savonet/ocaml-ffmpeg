@@ -10,7 +10,8 @@ type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm
 
 (**/**)
 
-(** Audio data modules for Swresample module input and output parameterization. *)
+(** Audio data modules for Swresample module input and output parameterization.
+*)
 module type AudioData = sig
   type t
 
@@ -27,7 +28,7 @@ module Make (I : AudioData) (O : AudioData) : sig
   type t = (I.t, O.t) ctx
 
   (** [Swresample.create in_cl ~in_sample_format:in_sf in_sr out_cl
-      ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl]
+       ~out_sample_format:out_sf out_sr] create a Swresample.t with [in_cl]
       channel layout, [in_sf] sample format and [in_sr] sample rate as input
       format and [out_cl] channel layout, [out_sf] sample format and [out_sr]
       sample rate as output format. If a sample format parameter is not

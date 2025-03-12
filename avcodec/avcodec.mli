@@ -100,28 +100,23 @@ module Packet : sig
   (** Set the stream index of the packet. *)
   val set_stream_index : 'media t -> int -> unit
 
-  (** Return the packet PTS (Presentation Time) in its
-      stream's base_time unit. *)
+  (** Return the packet PTS (Presentation Time) in its stream's base_time unit.
+  *)
   val get_pts : 'media t -> Int64.t option
 
-  (** Set the packet PTS (Presentation Time) in its
-      stream's base_time unit. *)
+  (** Set the packet PTS (Presentation Time) in its stream's base_time unit. *)
   val set_pts : 'media t -> Int64.t option -> unit
 
-  (** Return the packet DTS (Decoding Time) in its
-      stream's base_time unit. *)
+  (** Return the packet DTS (Decoding Time) in its stream's base_time unit. *)
   val get_dts : 'media t -> Int64.t option
 
-  (** Set the packet DTS (Decoding Time) in its
-      stream's base_time unit. *)
+  (** Set the packet DTS (Decoding Time) in its stream's base_time unit. *)
   val set_dts : 'media t -> Int64.t option -> unit
 
-  (** Return the packet duration in its
-      stream's base_time unit.*)
+  (** Return the packet duration in its stream's base_time unit.*)
   val get_duration : 'media t -> Int64.t option
 
-  (** Set the packet duration in its
-      stream's base_time unit.*)
+  (** Set the packet duration in its stream's base_time unit.*)
   val set_duration : 'media t -> Int64.t option -> unit
 
   (** Return the packet byte position in stream. *)
@@ -227,8 +222,8 @@ module Audio : sig
       Raise Error if the decoder creation failed. *)
   val create_decoder : ?params:audio params -> decode t -> audio decoder
 
-  (** [Avcodec.Audio.sample_format decoder] returns the output sample format
-      for the given decoder. *)
+  (** [Avcodec.Audio.sample_format decoder] returns the output sample format for
+      the given decoder. *)
   val sample_format : audio decoder -> Sample_format.t
 
   (** [Avcodec.Audio.create_encoder] create an audio encoder.
@@ -490,7 +485,8 @@ module BitstreamFilter : sig
 
   val filters : filter list
 
-  (** Init a filter with optional options and input params. Returns initialized filter with output params. *)
+  (** Init a filter with optional options and input params. Returns initialized
+      filter with output params. *)
   val init : ?opts:opts -> filter -> 'a params -> 'a t * 'a params
 
   val send_packet : 'a t -> 'a Packet.t -> unit

@@ -26,21 +26,22 @@ module Frame : sig
   type 'media t
 
   (** [Avutil.Frame.pts frame] returns the presentation timestamp in time_base
-    units (time when frame should be shown to user). *)
+      units (time when frame should be shown to user). *)
   val pts : _ t -> Int64.t option
 
-  (** [Avutil.Frame.set_pts frame pts] sets the presentation time for this frame. *)
+  (** [Avutil.Frame.set_pts frame pts] sets the presentation time for this
+      frame. *)
   val set_pts : _ t -> Int64.t option -> unit
 
   (** [Avutil.Frame.duration frame] returns the frame duration in time_base,
-    when available. *)
+      when available. *)
   val duration : _ t -> Int64.t option
 
   (** [Avutil.Frame.set_duration frame duration] sets the frame duration. *)
   val set_duration : _ t -> Int64.t option -> unit
 
   (** [Avutil.Frame.pkt_dts frame] returns DTS copied from the AVPacket that
-    triggered returning this frame. *)
+      triggered returning this frame. *)
   val pkt_dts : _ t -> Int64.t option
 
   (** [Avutil.Frame.set_pkt_dts frame dts] sets pkt_dts value for this frame. *)
@@ -52,7 +53,8 @@ module Frame : sig
   (** [Avutil.Frame.set_metadata frame metadata] sets the frame's metadata. *)
   val set_metadata : _ t -> (string * string) list -> unit
 
-  (** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp estimated using various heuristics, in stream time base *)
+  (** [Avutil.frame_best_effort_timestamp frame] returns the frame timestamp
+      estimated using various heuristics, in stream time base *)
   val best_effort_timestamp : _ t -> Int64.t option
 
   (** [Avutil.frame_copy src dst] copies data from [src] into [dst] *)
@@ -228,8 +230,8 @@ module Pixel_format : sig
     alias : string option;
   }
 
-  (** Return the pixel's format descriptor. Raises [Not_found]
-      if descriptor could not be found. *)
+  (** Return the pixel's format descriptor. Raises [Not_found] if descriptor
+      could not be found. *)
   val descriptor : t -> descriptor
 
   (** Return the number of bits of the pixel format. *)
@@ -254,8 +256,8 @@ module Pixel_format : sig
 end
 
 module Audio : sig
-  (** [Avutil.Audio.create_frame sample_format channel_layout sample_rate samples]
-      allocates a new audio frame. *)
+  (** [Avutil.Audio.create_frame sample_format channel_layout sample_rate
+       samples] allocates a new audio frame. *)
   val create_frame :
     Sample_format.t -> Channel_layout.t -> int -> int -> audio frame
 
@@ -280,8 +282,8 @@ module Audio : sig
   val frame_nb_samples : audio frame -> int
 
   (** [Abutil.Audio.frame_copy_samples src src_offset dst dst_offset len] copies
-      [len] samples from [src] starting at position [src_offset] into [dst] starting
-      at position [dst_offset]. *)
+      [len] samples from [src] starting at position [src_offset] into [dst]
+      starting at position [dst_offset]. *)
   val frame_copy_samples :
     audio frame -> int -> audio frame -> int -> int -> unit
 end
@@ -290,11 +292,13 @@ module Video : sig
   type planes = (data * int) array
 
   (** [Avutil.Video.create_frame w h pf] create a video frame with [w] width,
-      [h] height and [pf] pixel format. Raises Error if the allocation failed. *)
+      [h] height and [pf] pixel format. Raises Error if the allocation failed.
+  *)
   val create_frame : int -> int -> Pixel_format.t -> video frame
 
   (** [Avutil.Video.frame_get_linesize vf n] return the line size of the [n]
-      plane of the [vf] video frame. Raises Error if [n] is out of boundaries. *)
+      plane of the [vf] video frame. Raises Error if [n] is out of boundaries.
+  *)
   val frame_get_linesize : video frame -> int -> int
 
   (** [Avutil.Video.frame_visit ~make_writable:wrt f vf] call the [f] function
@@ -313,10 +317,12 @@ module Video : sig
   (** [Avutil.Video.frame_get_height frame] returns the frame height *)
   val frame_get_height : video frame -> int
 
-  (** [Avutil.Video.frame_get_pixel_format frame] returns frame's pixel format. *)
+  (** [Avutil.Video.frame_get_pixel_format frame] returns frame's pixel format.
+  *)
   val frame_get_pixel_format : video frame -> Pixel_format.t
 
-  (** [Avutil.Video.frame_get_pixel_aspect frame] returns the frame's pixel aspect. *)
+  (** [Avutil.Video.frame_get_pixel_aspect frame] returns the frame's pixel
+      aspect. *)
   val frame_get_pixel_aspect : video frame -> rational option
 end
 

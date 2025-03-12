@@ -461,7 +461,7 @@ module Options = struct
 
     let spec =
       (* See: https://ffmpeg.org/doxygen/trunk/opt_8c_source.html#l01281 *)
-      match opt.spec with
+        match opt.spec with
         (* Int *)
         | `Flags ({ values; _ } as spec) ->
             `Int64 { spec with values = append default_int64 values }
@@ -703,7 +703,7 @@ let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
           raise
             (Error
                (`Failure
-                 "At least one of channels or channel_layout must be passed!"))
+                  "At least one of channels or channel_layout must be passed!"))
       | _ -> ()
   in
   let opts = opts_default opts in

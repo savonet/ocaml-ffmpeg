@@ -14,7 +14,8 @@ type t
 (** [Swscale.create flags in_w in_h in_pf out_w out_h out_pf] create a Swscale.t
     scale context with the [flags] flag list defining the conversion type, the
     [in_w] width, [in_h] height and [in_pf] pixel format for input format and
-    [out_w] width, [out_h] height and [out_pf] pixel format for output format. *)
+    [out_w] width, [out_h] height and [out_pf] pixel format for output format.
+*)
 val create :
   flag list -> int -> int -> pixel_format -> int -> int -> pixel_format -> t
 

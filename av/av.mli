@@ -58,9 +58,9 @@ type read = bytes -> int -> int -> int
 type write = bytes -> int -> int -> int
 type seek = int -> Unix.seek_command -> int
 
-(** [Av.open_input_stream read] creates an input stream from the given read callback.
-    Exceptions from the callback are caught and result in a native [Avutil.Error `Unknown]
-    error. *)
+(** [Av.open_input_stream read] creates an input stream from the given read
+    callback. Exceptions from the callback are caught and result in a native
+    [Avutil.Error `Unknown] error. *)
 val open_input_stream :
   ?format:(input, _) format ->
   ?opts:opts ->
@@ -76,7 +76,8 @@ val get_input_duration :
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
 
-(** Return a value of type [obj], suited for use with [Avutils.Options] getters. *)
+(** Return a value of type [obj], suited for use with [Avutils.Options] getters.
+*)
 val input_obj : input container -> Options.obj
 
 (** Input/output, audio/video/subtitle, mode stream type *)
@@ -140,7 +141,8 @@ val get_time_base : (_, _, _) stream -> Avutil.rational
     [time_base]. *)
 val set_time_base : (_, _, _) stream -> Avutil.rational -> unit
 
-(** [Av.get_frame_size stream] return the frame size for the given audio stream. *)
+(** [Av.get_frame_size stream] return the frame size for the given audio stream.
+*)
 val get_frame_size : (output, audio, _) stream -> int
 
 (** [Av.get_pixel_aspect stream] return the pixel aspect of the [stream]. *)
@@ -166,8 +168,9 @@ type input_result =
   | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
-    [Audio] [Video] [Subtitle] of [Data] index and packet or frame of the input or [Error `Eof]
-    if the end of the input is reached. Raise Error if the reading failed.
+    [Audio] [Video] [Subtitle] of [Data] index and packet or frame of the input
+    or [Error `Eof] if the end of the input is reached. Raise Error if the
+    reading failed.
 
     Only packet and frames from the specified streams are returned. *)
 val read_input :
@@ -188,10 +191,11 @@ type seek_flag =
   | Seek_flag_any
   | Seek_flag_frame
 
-(** [Av.seek ?flags ?stream ?min_ts ?max_ts ~fmt ~ts container] seek in the container [container]
-    to position [ts]. You can pass an optional [stream] to use for seeking, [max_ts] and [min_ts]
-    to force seeking to happen within a given timestamp window and [flags] to speficy certain
-    property of the seeking operation. Raise Error if the seeking failed. *)
+(** [Av.seek ?flags ?stream ?min_ts ?max_ts ~fmt ~ts container] seek in the
+    container [container] to position [ts]. You can pass an optional [stream] to
+    use for seeking, [max_ts] and [min_ts] to force seeking to happen within a
+    given timestamp window and [flags] to speficy certain property of the
+    seeking operation. Raise Error if the seeking failed. *)
 val seek :
   ?flags:seek_flag list ->
   ?stream:(input, _, _) stream ->
@@ -204,12 +208,13 @@ val seek :
 
 (** {5 Output} *)
 
-(** [Av.open_output ?interrupt ?format ?interleaved ?opts filename] open the output file named
-    [filename]. [interrupt] is used to interrupt blocking functions, [format] may
-    contain an optional format, [interleaved] indicates if FFmpeg's interleaved
-    API should be used, [opts] may contain any option settable on the
-    stream's internal AVFormat. After returning, if [opts] was passed, unused
-    options are left in the hash table. Raise Error if the opening failed. *)
+(** [Av.open_output ?interrupt ?format ?interleaved ?opts filename] open the
+    output file named [filename]. [interrupt] is used to interrupt blocking
+    functions, [format] may contain an optional format, [interleaved] indicates
+    if FFmpeg's interleaved API should be used, [opts] may contain any option
+    settable on the stream's internal AVFormat. After returning, if [opts] was
+    passed, unused options are left in the hash table. Raise Error if the
+    opening failed. *)
 val open_output :
   ?interrupt:(unit -> bool) ->
   ?format:(output, _) format ->
@@ -324,8 +329,8 @@ val new_video_stream :
   output container ->
   (output, video, [ `Frame ]) stream
 
-(** Add a new subtitle stream to the given container. Stream only supports frames
-    and encodes its input.
+(** Add a new subtitle stream to the given container. Stream only supports
+    frames and encodes its input.
 
     [opts] may contain any option settable on the stream's internal AVCodec.
     After returning, if [opts] was passed, unused options are left in the hash
@@ -358,8 +363,8 @@ val codec_attr : _ stream -> string option
 (** Return the stream's bitrate when available, suitable for HLS playlists. *)
 val bitrate : _ stream -> int option
 
-(** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output stream.
-    [time_base] is the packet's PTS/DTS/duration time base.
+(** [Av.write_packet os time_base pkt] write the [pkt] packet to the [os] output
+    stream. [time_base] is the packet's PTS/DTS/duration time base.
 
     Raise Error if the writing failed. *)
 val write_packet :
@@ -368,13 +373,14 @@ val write_packet :
   'media Avcodec.Packet.t ->
   unit
 
-(** [Av.write_frame ?on_keyframe os frm] write the [frm] frame to the [os] output stream.
+(** [Av.write_frame ?on_keyframe os frm] write the [frm] frame to the [os]
+    output stream.
 
-    Frame PTS should be set and counted in units of [time_base], as passed
-    when creating the stream
+    Frame PTS should be set and counted in units of [time_base], as passed when
+    creating the stream
 
-    If [on_keyframe] is provided, it is called on keyframe, _before the
-    keyframe is submitted to the muxer.
+    If [on_keyframe] is provided, it is called on keyframe, _before the keyframe
+    is submitted to the muxer.
 
     Raise Error if the writing failed. *)
 val write_frame :

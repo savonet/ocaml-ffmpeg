@@ -3,9 +3,9 @@
 
 open Avutil
 
-(** Initialize the module. This is done implicitely if you use any of 
-    the module's API but is here to provide an easy way to make sure that
-    the module is explicitely linked by the OCaml compiler. NOT thread-safe! *)
+(** Initialize the module. This is done implicitely if you use any of the
+    module's API but is here to provide an easy way to make sure that the module
+    is explicitely linked by the OCaml compiler. NOT thread-safe! *)
 val init : unit -> unit
 
 (** Return the audio input devices formats. *)
