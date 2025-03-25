@@ -2112,8 +2112,9 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
     CAMLreturn(Val_unit);
 }
 
-static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
-                        value _on_keyframe, AVFrame *frame) {
+static value write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
+                         value _on_keyframe, AVFrame *frame) {
+    CAMLparam1(_on_keyframe);
     AVStream *avstream = av->format_context->streams[stream_index];
     AVFrame *hw_frame = NULL;
     int ret;
@@ -2184,7 +2185,7 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     if (!frame && ret == AVERROR_EOF) {
         av_packet_free(&packet);
         caml_acquire_runtime_system();
-        return;
+        CAMLreturn(Val_unit);
     }
 
     if (frame && ret == AVERROR_EOF) {
@@ -2236,14 +2237,17 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     caml_acquire_runtime_system();
 
     if (!frame && ret == AVERROR_EOF)
-        return;
+        CAMLreturn(Val_unit);
 
     if (ret < 0 && ret != AVERROR(EAGAIN))
         ocaml_avutil_raise_error(ret);
+
+    CAMLreturn(Val_unit);
 }
 
-static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
+static value write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
+                               AVFrame *frame) {
+    CAMLparam1(_on_keyframe);
     int err, frame_size;
 
     if (av->format_context->nb_streams < stream_index)
@@ -2257,10 +2261,14 @@ static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
     AVCodecContext *enc_ctx = stream->codec_context;
 
     write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+
+    CAMLreturn(Val_unit);
 }
 
-static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
+static value write_video_frame(av_t *av, int stream_index, value _on_keyframe,
+                               AVFrame *frame) {
+    CAMLparam1(_on_keyframe);
+
     if (av->format_context->nb_streams < stream_index)
         Fail("Stream index not found!");
 
@@ -2275,6 +2283,8 @@ static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
     AVCodecContext *enc_ctx = stream->codec_context;
 
     write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+
+    CAMLreturn(Val_unit);
 }
 
 static void write_subtitle_frame(av_t *av, int stream_index,
