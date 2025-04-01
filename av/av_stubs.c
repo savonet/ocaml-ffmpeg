@@ -2213,12 +2213,7 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
 
         if (packet->flags & AV_PKT_FLAG_KEY && _on_keyframe != Val_none) {
             caml_acquire_runtime_system();
-
-            if (ret < 0)
-                ocaml_avutil_raise_error(ret);
-
             caml_callback(Field(_on_keyframe, 0), Val_unit);
-
             caml_release_runtime_system();
         }
 
