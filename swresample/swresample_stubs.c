@@ -523,7 +523,7 @@ void swresample_free(swr_t *swr) {
     if (swr->in.owns_data)
       av_freep(&swr->in.data[0]);
 
-    free(swr->in.data);
+    av_free(swr->in.data);
   }
 
   if (swr->out.data && swr->convert != convert_to_frame) {
@@ -531,10 +531,10 @@ void swresample_free(swr_t *swr) {
     if (swr->out.owns_data)
       av_freep(&swr->out.data[0]);
 
-    free(swr->out.data);
+    av_free(swr->out.data);
   }
 
-  free(swr);
+  av_free(swr);
 }
 
 void ocaml_swresample_finalize(value v) { swresample_free(Swr_val(v)); }
@@ -639,7 +639,7 @@ swr_t *swresample_create(vector_kind in_vector_kind,
                          AVChannelLayout *out_channel_layout,
                          enum AVSampleFormat out_sample_fmt,
                          int out_sample_rate, value options[]) {
-  swr_t *swr = (swr_t *)calloc(1, sizeof(swr_t));
+  swr_t *swr = (swr_t *)av_mallocz(sizeof(swr_t));
   if (!swr) {
     caml_raise_out_of_memory();
   }
@@ -654,13 +654,15 @@ swr_t *swresample_create(vector_kind in_vector_kind,
   }
 
   if (in_vector_kind != Frm) {
-    swr->in.data = (uint8_t **)calloc(swr->in.nb_channels, sizeof(uint8_t *));
+    swr->in.data =
+        (uint8_t **)av_calloc(swr->in.nb_channels, sizeof(uint8_t *));
     swr->in.is_planar = av_sample_fmt_is_planar(swr->in.sample_fmt);
   }
   swr->in.bytes_per_samples = av_get_bytes_per_sample(in_sample_fmt);
 
   if (out_vect_kind != Frm) {
-    swr->out.data = (uint8_t **)calloc(swr->out.nb_channels, sizeof(uint8_t *));
+    swr->out.data =
+        (uint8_t **)av_calloc(swr->out.nb_channels, sizeof(uint8_t *));
     swr->out.is_planar = av_sample_fmt_is_planar(swr->out.sample_fmt);
   }
 

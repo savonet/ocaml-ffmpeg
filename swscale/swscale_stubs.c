@@ -419,15 +419,15 @@ void swscale_free(sws_t *sws) {
 
   if (sws->in.owns_data) {
     for (i = 0; sws->in.slice[i]; i++)
-      free(sws->in.slice[i]);
+      av_free(sws->in.slice[i]);
   }
 
   if (sws->out.owns_data) {
     for (i = 0; sws->out.slice[i]; i++)
-      free(sws->out.slice[i]);
+      av_free(sws->out.slice[i]);
   }
 
-  free(sws);
+  av_free(sws);
 }
 
 static void ocaml_swscale_finalize(value v) { swscale_free(Sws_val(v)); }
@@ -449,7 +449,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
   vector_kind out_vect_kind = Int_val(out_vect_kind_);
   int flags = 0, i;
 
-  sws_t *sws = (sws_t *)calloc(1, sizeof(sws_t));
+  sws_t *sws = (sws_t *)av_mallocz(sizeof(sws_t));
 
   if (!sws)
     caml_raise_out_of_memory();
@@ -480,7 +480,7 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
   caml_acquire_runtime_system();
 
   if (!sws->context) {
-    free(sws);
+    av_free(sws);
     Fail("Failed to create Swscale context");
   }
 

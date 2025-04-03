@@ -482,7 +482,7 @@ static void free_parser(parser_t *parser) {
   if (parser->codec_context)
     avcodec_free_context(&parser->codec_context);
 
-  free(parser);
+  av_free(parser);
 }
 
 static void finalize_parser(value v) { free_parser(Parser_val(v)); }
@@ -494,7 +494,7 @@ static struct custom_operations parser_ops = {
 
 static parser_t *create_parser(AVCodecParameters *params,
                                const AVCodec *codec) {
-  parser_t *parser = (parser_t *)calloc(1, sizeof(parser_t));
+  parser_t *parser = (parser_t *)av_mallocz(sizeof(parser_t));
   if (!parser)
     caml_raise_out_of_memory();
 
@@ -591,7 +591,7 @@ static void finalize_codec_context(value v) {
   if (ctx->codec_context)
     avcodec_free_context(&ctx->codec_context);
 
-  free(ctx);
+  av_free(ctx);
 }
 
 static struct custom_operations codec_context_ops = {
@@ -608,7 +608,7 @@ CAMLprim value ocaml_avcodec_create_decoder(value _params, value _codec) {
   if (_params != Val_none)
     params = CodecParameters_val(Field(_params, 0));
 
-  codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
+  codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
   if (!ctx)
     caml_raise_out_of_memory();
 
@@ -685,7 +685,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
     }
   }
 
-  codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
+  codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
   if (!ctx)
     caml_raise_out_of_memory();
 
@@ -767,7 +767,7 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
     }
   }
 
-  codec_context_t *ctx = (codec_context_t *)calloc(1, sizeof(codec_context_t));
+  codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
   if (!ctx) {
     av_dict_free(&options);
     caml_raise_out_of_memory();

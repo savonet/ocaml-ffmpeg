@@ -99,7 +99,7 @@ static void free_stream(stream_t *stream) {
   if (stream->codec_context)
     avcodec_free_context(&stream->codec_context);
 
-  free(stream);
+  av_free(stream);
 }
 
 static void close_av(av_t *av) {
@@ -115,7 +115,7 @@ static void close_av(av_t *av) {
         if (av->streams[i])
           free_stream(av->streams[i]);
       }
-      free(av->streams);
+      av_free(av->streams);
       av->streams = NULL;
     }
 
@@ -150,7 +150,7 @@ static void close_av(av_t *av) {
   av->closed = 1;
 }
 
-static void finalize_av(value v) { free(Av_base_val(v)); }
+static void finalize_av(value v) { av_free(Av_base_val(v)); }
 
 static struct custom_operations av_ops = {
     "ocaml_av_context",       finalize_av,
@@ -512,7 +512,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   unsigned char *buffer;
   int buffer_size;
 
-  avio_t *avio = (avio_t *)calloc(1, sizeof(avio_t));
+  avio_t *avio = (avio_t *)av_mallocz(sizeof(avio_t));
   if (!avio)
     caml_raise_out_of_memory();
 
@@ -523,7 +523,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   avio->format_context = avformat_alloc_context();
 
   if (!avio->format_context) {
-    free(avio);
+    av_free(avio);
     caml_raise_out_of_memory();
   }
 
@@ -532,7 +532,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
   if (!buffer) {
     avformat_free_context(avio->format_context);
-    free(avio);
+    av_free(avio);
     caml_raise_out_of_memory();
   }
 
@@ -571,7 +571,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
     av_freep(buffer);
     avformat_free_context(avio->format_context);
-    free(avio);
+    av_free(avio);
     caml_raise_out_of_memory();
   }
 
@@ -601,7 +601,7 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   if (avio->seek_cb)
     caml_remove_generational_global_root(&avio->seek_cb);
 
-  free(avio);
+  av_free(avio);
 
   CAMLreturn(Val_unit);
 }
@@ -630,7 +630,7 @@ CAMLprim value ocaml_av_find_input_format(value _short_name) {
   avioformat_const AVInputFormat *format = av_find_input_format(short_name);
   caml_acquire_runtime_system();
 
-  free(short_name);
+  av_free(short_name);
 
   if (!format)
     caml_raise_not_found();
@@ -657,10 +657,10 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
                         AVDictionary **options) {
   int err;
 
-  av_t *av = (av_t *)calloc(1, sizeof(av_t));
+  av_t *av = (av_t *)av_mallocz(sizeof(av_t));
   if (!av) {
     if (url)
-      free(url);
+      av_free(url);
     caml_raise_out_of_memory();
   }
 
@@ -672,8 +672,8 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
 
   if (!av->format_context) {
     if (url)
-      free(url);
-    free(av);
+      av_free(url);
+    av_free(av);
     caml_raise_out_of_memory();
   }
 
@@ -701,9 +701,9 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
       caml_remove_generational_global_root(&av->interrupt_cb);
       av->interrupt_cb = Val_none;
     }
-    free(av);
+    av_free(av);
     if (url)
-      free(url);
+      av_free(url);
     av_dict_free(options);
     ocaml_avutil_raise_error(err);
   }
@@ -719,9 +719,9 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
       caml_remove_generational_global_root(&av->interrupt_cb);
       av->interrupt_cb = Val_none;
     }
-    free(av);
+    av_free(av);
     if (url)
-      free(url);
+      av_free(url);
     av_dict_free(options);
     ocaml_avutil_raise_error(err);
   }
@@ -767,7 +767,7 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
   av_t *av = open_input(url, format, NULL, _interrupt, &options);
 
   if (url)
-    free(url);
+    av_free(url);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -906,8 +906,8 @@ static stream_t **allocate_input_context(av_t *av) {
     Fail("Failed to read closed input");
 
   // Allocate streams context array
-  av->streams =
-      (stream_t **)calloc(av->format_context->nb_streams, sizeof(stream_t *));
+  av->streams = (stream_t **)av_calloc(av->format_context->nb_streams,
+                                       sizeof(stream_t *));
   if (!av->streams)
     caml_raise_out_of_memory();
 
@@ -925,7 +925,7 @@ static stream_t *allocate_stream_context(av_t *av, int index,
            av_get_media_type_string(type));
   }
 
-  stream_t *stream = (stream_t *)calloc(1, sizeof(stream_t));
+  stream_t *stream = (stream_t *)av_mallocz(sizeof(stream_t));
   if (!stream)
     caml_raise_out_of_memory();
 
@@ -975,7 +975,7 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
   err = avcodec_parameters_to_context(stream->codec_context, dec_param);
 
   if (err < 0) {
-    free(stream);
+    av_free(stream);
     ocaml_avutil_raise_error(err);
   }
 
@@ -985,7 +985,7 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
   caml_acquire_runtime_system();
 
   if (err < 0) {
-    free(stream);
+    av_free(stream);
     ocaml_avutil_raise_error(err);
   }
 
@@ -1337,7 +1337,7 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
     filename = av_strndup(String_val(_filename), caml_string_length(_filename));
     if (!filename) {
       if (short_name)
-        free(short_name);
+        av_free(short_name);
       caml_raise_out_of_memory();
     }
   }
@@ -1346,9 +1346,9 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
     mime = av_strndup(String_val(_mime), caml_string_length(_mime));
     if (!mime) {
       if (short_name)
-        free(short_name);
+        av_free(short_name);
       if (filename)
-        free(filename);
+        av_free(filename);
       caml_raise_out_of_memory();
     }
   }
@@ -1358,11 +1358,11 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
   caml_acquire_runtime_system();
 
   if (short_name)
-    free(short_name);
+    av_free(short_name);
   if (filename)
-    free(filename);
+    av_free(filename);
   if (mime)
-    free(mime);
+    av_free(mime);
 
   if (!guessed)
     CAMLreturn(Val_none);
@@ -1409,11 +1409,11 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   int ret;
   AVIOInterruptCB interrupt_cb = {ocaml_av_interrupt_callback, NULL};
   AVIOInterruptCB *interrupt_cb_ptr = NULL;
-  av_t *av = (av_t *)calloc(1, sizeof(av_t));
+  av_t *av = (av_t *)av_mallocz(sizeof(av_t));
 
   if (!av) {
     if (file_name)
-      free(file_name);
+      av_free(file_name);
     av_dict_free(options);
     caml_raise_out_of_memory();
   }
@@ -1440,9 +1440,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
 
   if (ret < 0) {
     if (file_name)
-      free(file_name);
+      av_free(file_name);
     av_dict_free(options);
-    free(av);
+    av_free(av);
 
     ocaml_avutil_raise_error(ret);
   }
@@ -1455,12 +1455,12 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
       av->interrupt_cb = Val_none;
     }
 
-    free(av);
+    av_free(av);
     if (file_name)
-      free(file_name);
+      av_free(file_name);
 
     av_dict_free(options);
-    free(av);
+    av_free(av);
 
     ocaml_avutil_raise_error(ret);
   }
@@ -1469,9 +1469,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     ret = av_opt_set_dict(av->format_context->priv_data, options);
 
     if (ret < 0) {
-      free(av);
+      av_free(av);
       if (file_name)
-        free(file_name);
+        av_free(file_name);
 
       av_dict_free(options);
       ocaml_avutil_raise_error(ret);
@@ -1481,9 +1481,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   // open the output file, if needed
   if (avio_context) {
     if (av->format_context->oformat->flags & AVFMT_NOFILE) {
-      free(av);
+      av_free(av);
       if (file_name)
-        free(file_name);
+        av_free(file_name);
       av_dict_free(options);
 
       av_dict_free(options);
@@ -1505,9 +1505,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
           av->interrupt_cb = Val_none;
         }
 
-        free(av);
+        av_free(av);
         if (file_name)
-          free(file_name);
+          av_free(file_name);
         av_dict_free(options);
 
         av_dict_free(options);
@@ -1519,7 +1519,7 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   }
 
   if (file_name)
-    free(file_name);
+    av_free(file_name);
 
   return av;
 }

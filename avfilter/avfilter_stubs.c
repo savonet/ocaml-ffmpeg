@@ -189,7 +189,7 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name,
 
     if (!args) {
       if (name)
-        free(name);
+        av_free(name);
       caml_raise_out_of_memory();
     }
   }
@@ -199,9 +199,9 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name,
   caml_acquire_runtime_system();
 
   if (name)
-    free(name);
+    av_free(name);
   if (args)
-    free(args);
+    av_free(args);
 
   if (err < 0)
     ocaml_avutil_raise_error(err);
@@ -324,7 +324,7 @@ CAMLprim value ocaml_avfilter_parse(value _inputs, value _outputs,
   err = avfilter_graph_parse_ptr(graph, filters, &inputs, &outputs, NULL);
   caml_acquire_runtime_system();
 
-  free(filters);
+  av_free(filters);
 
   if (inputs)
     avfilter_inout_free(&inputs);

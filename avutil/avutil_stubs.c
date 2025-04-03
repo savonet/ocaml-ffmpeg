@@ -261,7 +261,7 @@ CAMLprim value ocaml_ffmpeg_process_log(value cb) {
       caml_callback(cb, buffer);
 
       next_log_msg = log_msg->next;
-      free(log_msg);
+      av_free(log_msg);
       log_msg = next_log_msg;
     }
   }
@@ -286,7 +286,7 @@ static void av_log_ocaml_callback(void *ptr, int level, const char *fmt,
   }
 
   // TODO: check for NULL here
-  log_msg->next = malloc(sizeof(log_msg_t));
+  log_msg->next = av_malloc(sizeof(log_msg_t));
 
   log_msg = (log_msg_t *)log_msg->next;
   log_msg->next = NULL;
@@ -519,7 +519,7 @@ CAMLprim value ocaml_avutil_find_sample_fmt(value _name) {
 
   enum AVSampleFormat ret = av_get_sample_fmt(name);
 
-  free(name);
+  av_free(name);
 
   if (ret == AV_SAMPLE_FMT_NONE)
     caml_raise_not_found();
@@ -1123,7 +1123,7 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
   int64_t end_time = Int64_val(_end_time);
   int nb_lines = Wosize_val(_lines);
 
-  AVSubtitle *subtitle = (AVSubtitle *)calloc(1, sizeof(AVSubtitle));
+  AVSubtitle *subtitle = (AVSubtitle *)av_mallocz(sizeof(AVSubtitle));
   if (!subtitle)
     caml_raise_out_of_memory();
 
