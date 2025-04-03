@@ -178,14 +178,14 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name,
   if (!filter)
     caml_raise_not_found();
 
-  name =
-      av_strndup(String_val(_instance_name), caml_string_length(_instance_name));
+  name = av_strndup(String_val(_instance_name),
+                    caml_string_length(_instance_name));
   if (!name)
     caml_raise_out_of_memory();
 
   if (_args != Val_none) {
     args = av_strndup(String_val(Some_val(_args)),
-                   caml_string_length(Some_val(_args)));
+                      caml_string_length(Some_val(_args)));
 
     if (!args) {
       if (name)

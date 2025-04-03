@@ -15,9 +15,9 @@
 
 #include <libavutil/avassert.h>
 #include <libavutil/avstring.h>
+#include <libavutil/mem.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
-#include <libavutil/mem.h>
 
 #include "avutil_stubs.h"
 #include "channel_layout_stubs.h"
