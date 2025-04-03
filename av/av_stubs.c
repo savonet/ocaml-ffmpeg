@@ -314,9 +314,13 @@ void ocaml_av_set_control_message_callback(value *p_av,
 
 /***** AVIO *****/
 
+#define BUFLEN 1024
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 typedef struct avio_t {
   AVFormatContext *format_context;
   AVIOContext *avio_context;
+  value buffer;
   value read_cb;
   value write_cb;
   value seek_cb;
@@ -325,22 +329,16 @@ typedef struct avio_t {
 #define Avio_val(v) (*(avio_t **)Data_abstract_val(v))
 
 static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
-  value buffer, res;
+  value res;
   avio_t *avio = (avio_t *)private;
-  int ret;
+  int len = MIN(BUFLEN, buf_size);
   size_t exn_len;
   char *caml_exn = NULL;
 
-  ret = caml_c_thread_register();
-
   caml_acquire_runtime_system();
 
-  buffer = caml_alloc_string(buf_size);
-
-  caml_register_generational_global_root(&buffer);
-
   res =
-      caml_callback3_exn(avio->read_cb, buffer, Val_int(0), Val_int(buf_size));
+      caml_callback3_exn(avio->read_cb, avio->buffer, Val_int(0), Val_int(len));
   if (Is_exception_result(res)) {
     res = Extract_exception(res);
 
@@ -349,34 +347,19 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
            "Error while executing OCaml read callback: %s\n", caml_exn);
     caml_stat_free(caml_exn);
 
-    caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
-
-    if (ret != 0) {
-      caml_c_thread_unregister();
-    }
 
     return AVERROR_EXTERNAL;
   }
 
   if (Int_val(res) < 0) {
-    caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
-    if (ret != 0) {
-      caml_c_thread_unregister();
-    }
     return Int_val(res);
   }
 
-  memcpy(buf, String_val(buffer), Int_val(res));
-
-  caml_remove_generational_global_root(&buffer);
+  memcpy(buf, String_val(avio->buffer), Int_val(res));
 
   caml_release_runtime_system();
-
-  if (ret != 0) {
-    caml_c_thread_unregister();
-  }
 
   if (Int_val(res) == 0) {
     return AVERROR_EOF;
@@ -392,24 +375,18 @@ static int ocaml_avio_write_callback(void *private, uint8_t *buf,
 static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
                                      int buf_size) {
 #endif
-  value buffer, res;
+  value res;
   avio_t *avio = (avio_t *)private;
-  int ret;
+  int len = MIN(BUFLEN, buf_size);
   size_t exn_len;
   char *caml_exn = NULL;
 
-  ret = caml_c_thread_register();
-
   caml_acquire_runtime_system();
 
-  buffer = caml_alloc_string(buf_size);
+  memcpy(Bytes_val(avio->buffer), buf, len);
 
-  caml_register_generational_global_root(&buffer);
-
-  memcpy(Bytes_val(buffer), buf, buf_size);
-
-  res =
-      caml_callback3_exn(avio->write_cb, buffer, Val_int(0), Val_int(buf_size));
+  res = caml_callback3_exn(avio->write_cb, avio->buffer, Val_int(0),
+                           Val_int(len));
   if (Is_exception_result(res)) {
     res = Extract_exception(res);
 
@@ -418,23 +395,12 @@ static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
            "Error while executing OCaml write callback: %s\n", caml_exn);
     caml_stat_free(caml_exn);
 
-    caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
-
-    if (ret != 0) {
-      caml_c_thread_unregister();
-    }
 
     return AVERROR_EXTERNAL;
   }
 
-  caml_remove_generational_global_root(&buffer);
-
   caml_release_runtime_system();
-
-  if (ret != 0) {
-    caml_c_thread_unregister();
-  }
 
   return Int_val(res);
 }
@@ -516,6 +482,9 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   if (!avio)
     caml_raise_out_of_memory();
 
+  avio->buffer = caml_alloc_string(BUFLEN);
+  caml_register_generational_global_root(&avio->buffer);
+
   avio->read_cb = (value)NULL;
   avio->write_cb = (value)NULL;
   avio->seek_cb = (value)NULL;
@@ -560,6 +529,8 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
                          write_cb, seek_cb);
 
   if (!avio->avio_context) {
+    caml_remove_generational_global_root(&avio->buffer);
+
     if (avio->read_cb)
       caml_remove_generational_global_root(&avio->read_cb);
 
@@ -591,6 +562,8 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   // format_context is freed as part of close_av.
   av_free(avio->avio_context->buffer);
   avio_context_free(&avio->avio_context);
+
+  caml_remove_generational_global_root(&avio->buffer);
 
   if (avio->read_cb)
     caml_remove_generational_global_root(&avio->read_cb);
