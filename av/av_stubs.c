@@ -409,7 +409,7 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
                                         int whence) {
   value res;
   avio_t *avio = (avio_t *)private;
-  int _whence, ret;
+  int _whence;
   int64_t n;
 
   switch (whence) {
@@ -426,8 +426,6 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
     return -1;
   }
 
-  ret = caml_c_thread_register();
-
   caml_acquire_runtime_system();
 
   res = caml_callback2(avio->seek_cb, Val_int(offset), Val_int(_whence));
@@ -436,28 +434,18 @@ static int64_t ocaml_avio_seek_callback(void *private, int64_t offset,
 
   caml_release_runtime_system();
 
-  if (ret != 0) {
-    caml_c_thread_unregister();
-  }
-
   return n;
 }
 
 static int ocaml_av_interrupt_callback(void *private) {
   value res;
   av_t *av = (av_t *)private;
-  int ret, n;
-
-  ret = caml_c_thread_register();
+  int n;
 
   caml_acquire_runtime_system();
   res = caml_callback(av->interrupt_cb, Val_unit);
   n = Int_val(res);
   caml_release_runtime_system();
-
-  if (ret != 0) {
-    caml_c_thread_unregister();
-  }
 
   return n;
 };
