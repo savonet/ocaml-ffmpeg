@@ -330,7 +330,6 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   int ret;
   size_t exn_len;
   char *caml_exn = NULL;
-  char *c_exn = NULL;
 
   ret = caml_c_thread_register();
 
@@ -346,20 +345,9 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
     res = Extract_exception(res);
 
     caml_exn = caml_format_exception(res);
-    if (caml_exn) {
-      exn_len = strlen(caml_exn) + 1;
-      c_exn = malloc(exn_len);
-      if (!c_exn)
-        caml_raise_out_of_memory();
-      memcpy(c_exn, caml_exn, exn_len);
-      caml_stat_free(caml_exn);
-    }
-
-    if (c_exn) {
-      av_log(avio->avio_context, AV_LOG_ERROR,
-             "Error while executing OCaml read callback: %s\n", c_exn);
-      free(c_exn);
-    }
+    av_log(avio->avio_context, AV_LOG_ERROR,
+           "Error while executing OCaml read callback: %s\n", caml_exn);
+    caml_stat_free(caml_exn);
 
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
@@ -409,7 +397,6 @@ static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
   int ret;
   size_t exn_len;
   char *caml_exn = NULL;
-  char *c_exn = NULL;
 
   ret = caml_c_thread_register();
 
@@ -427,20 +414,9 @@ static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
     res = Extract_exception(res);
 
     caml_exn = caml_format_exception(res);
-    if (caml_exn) {
-      exn_len = strlen(caml_exn) + 1;
-      c_exn = malloc(exn_len);
-      if (!c_exn)
-        caml_raise_out_of_memory();
-      memcpy(c_exn, caml_exn, exn_len);
-      caml_stat_free(caml_exn);
-    }
-
-    if (c_exn) {
-      av_log(avio->avio_context, AV_LOG_ERROR,
-             "Error while executing OCaml write callback: %s\n", c_exn);
-      free(c_exn);
-    }
+    av_log(avio->avio_context, AV_LOG_ERROR,
+           "Error while executing OCaml write callback: %s\n", caml_exn);
+    caml_stat_free(caml_exn);
 
     caml_remove_generational_global_root(&buffer);
     caml_release_runtime_system();
@@ -1213,7 +1189,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
     // Assign OCaml values right away to account for potential exceptions
     // raised below.
     if (stream->codec_context->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-      frame = (AVFrame *)calloc(1, sizeof(AVSubtitle));
+      frame = (AVFrame *)av_mallocz(sizeof(AVSubtitle));
 
       if (!frame) {
         av_packet_free(&packet);
@@ -2410,7 +2386,7 @@ uint8_t *ocaml_av_ff_nal_unit_extract_rbsp(const uint8_t *src, uint32_t src_len,
   uint8_t *dst;
   uint32_t i, len;
 
-  dst = av_malloc(src_len + AV_INPUT_BUFFER_PADDING_SIZE);
+  dst = av_mallocz(src_len + AV_INPUT_BUFFER_PADDING_SIZE);
   if (!dst)
     return NULL;
 

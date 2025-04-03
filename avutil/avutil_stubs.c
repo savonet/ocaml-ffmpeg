@@ -1047,9 +1047,9 @@ CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame,
   int line = Int_val(_line);
 
   if (line < 0 || line >= AV_NUM_DATA_POINTERS || !frame->data[line])
-    Fail(
-        "Failed to get linesize from video frame : line (%d) out of boundaries",
-        line);
+    Fail("Failed to get linesize from video frame : line (%d) out of "
+         "boundaries",
+         line);
 
   CAMLreturn(Val_int(frame->linesize[line]));
 }
@@ -1094,7 +1094,7 @@ CAMLprim value ocaml_avutil_video_get_frame_bigarray_planes(
 void static finalize_subtitle(value v) {
   struct AVSubtitle *subtitle = Subtitle_val(v);
   avsubtitle_free(subtitle);
-  free(subtitle);
+  av_free(subtitle);
 }
 
 static struct custom_operations subtitle_ops = {
