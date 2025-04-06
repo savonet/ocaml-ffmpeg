@@ -211,7 +211,7 @@ static int get_in_pixels_string(sws_t *sws, value *in_vector) {
     size_t str_len = caml_string_length(str);
 
     if (sws->in.sizes_tab[i] < str_len) {
-      sws->in.slice[i] = (uint8_t *)realloc(sws->in.slice[i], str_len);
+      sws->in.slice[i] = (uint8_t *)av_realloc(sws->in.slice[i], str_len);
       sws->in.sizes_tab[i] = str_len;
     }
 
@@ -292,7 +292,7 @@ static int alloc_out_string(sws_t *sws, value *out_vect, value *tmp) {
     len = sws->out.stride[i] * sws->out.height;
 
     if (sws->out.sizes_tab[i] < len) {
-      sws->out.slice[i] = (uint8_t *)realloc(sws->out.slice[i], len + 16);
+      sws->out.slice[i] = (uint8_t *)av_realloc(sws->out.slice[i], len + 16);
       sws->out.sizes_tab[i] = len;
     }
 

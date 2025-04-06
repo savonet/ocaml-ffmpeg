@@ -1688,7 +1688,7 @@ static stream_t *new_stream(av_t *av, const AVCodec *codec) {
   // Allocate streams array
   size_t streams_size =
       sizeof(stream_t *) * (av->format_context->nb_streams + 1);
-  stream_t **streams = (stream_t **)realloc(av->streams, streams_size);
+  stream_t **streams = (stream_t **)av_realloc(av->streams, streams_size);
   if (!streams)
     caml_raise_out_of_memory();
 
