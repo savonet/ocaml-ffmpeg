@@ -332,7 +332,6 @@ static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   value res;
   avio_t *avio = (avio_t *)private;
   int len = MIN(BUFLEN, buf_size);
-  size_t exn_len;
   char *caml_exn = NULL;
 
   caml_acquire_runtime_system();
@@ -378,7 +377,6 @@ static int ocaml_avio_write_callback(void *private, const uint8_t *buf,
   value res;
   avio_t *avio = (avio_t *)private;
   int len = MIN(BUFLEN, buf_size);
-  size_t exn_len;
   char *caml_exn = NULL;
 
   caml_acquire_runtime_system();
