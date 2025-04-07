@@ -69,6 +69,9 @@ typedef struct av_t {
   int header_written;
   int (*write_frame)(AVFormatContext *, AVPacket *);
   int custom_io;
+
+  // Optional avio
+  value avio;
 } av_t;
 
 #define Av_base_val(v) (*(av_t **)Data_custom_val(v))
@@ -102,11 +105,12 @@ static void free_stream(stream_t *stream) {
   av_free(stream);
 }
 
-static void close_av(av_t *av) {
+static void close_av(av_t *av, int release_runtime) {
   if (av->closed)
     return;
 
-  caml_release_runtime_system();
+  if (release_runtime)
+    caml_release_runtime_system();
 
   if (av->format_context) {
     if (av->streams) {
@@ -128,29 +132,42 @@ static void close_av(av_t *av) {
         avio_closep(&av->format_context->pb);
 
       avformat_free_context(av->format_context);
-      av->format_context = NULL;
     }
 
+    av->format_context = NULL;
     av->best_audio_stream = NULL;
     av->best_video_stream = NULL;
     av->best_subtitle_stream = NULL;
   }
 
-  caml_acquire_runtime_system();
+  if (release_runtime)
+    caml_acquire_runtime_system();
 
   if (av->control_message_callback) {
     caml_remove_generational_global_root(&av->control_message_callback);
+    av->control_message_callback = (value)NULL;
   }
 
-  if (av->interrupt_cb != Val_none) {
+  if (av->interrupt_cb) {
     caml_remove_generational_global_root(&av->interrupt_cb);
-    av->interrupt_cb = Val_none;
+    av->interrupt_cb = (value)NULL;
+  }
+
+  if (av->avio) {
+    caml_remove_generational_global_root(&av->avio);
+    av->avio = (value)NULL;
   }
 
   av->closed = 1;
 }
 
-static void finalize_av(value v) { av_free(Av_base_val(v)); }
+static void finalize_av(value v) {
+  av_t *av = Av_base_val(v);
+
+  close_av(av, 0);
+
+  av_free(av);
+}
 
 static struct custom_operations av_ops = {
     "ocaml_av_context",       finalize_av,
@@ -319,6 +336,7 @@ void ocaml_av_set_control_message_callback(value *p_av,
 
 typedef struct avio_t {
   AVFormatContext *format_context;
+  int managed_format_context;
   AVIOContext *avio_context;
   value buffer;
   value read_cb;
@@ -440,6 +458,9 @@ static int ocaml_av_interrupt_callback(void *private) {
   av_t *av = (av_t *)private;
   int n;
 
+  if (!av->interrupt_cb)
+    return 0;
+
   caml_acquire_runtime_system();
   res = caml_callback(av->interrupt_cb, Val_unit);
   n = Int_val(res);
@@ -447,6 +468,34 @@ static int ocaml_av_interrupt_callback(void *private) {
 
   return n;
 };
+
+static void finalize_avio(value _avio) {
+  avio_t *avio = Avio_val(_avio);
+
+  if (!avio->managed_format_context)
+    avformat_free_context(avio->format_context);
+
+  av_free(avio->avio_context->buffer);
+  avio_context_free(&avio->avio_context);
+
+  caml_remove_generational_global_root(&avio->buffer);
+
+  if (avio->read_cb)
+    caml_remove_generational_global_root(&avio->read_cb);
+
+  if (avio->write_cb)
+    caml_remove_generational_global_root(&avio->write_cb);
+
+  if (avio->seek_cb)
+    caml_remove_generational_global_root(&avio->seek_cb);
+
+  av_free(avio);
+}
+
+static struct custom_operations avio_ops = {
+    "ocaml_avio_context",     finalize_avio,
+    custom_compare_default,   custom_hash_default,
+    custom_serialize_default, custom_deserialize_default};
 
 CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
                                   value _write_cb, value _seek_cb) {
@@ -470,10 +519,6 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
   avio->buffer = caml_alloc_string(BUFLEN);
   caml_register_generational_global_root(&avio->buffer);
-
-  avio->read_cb = (value)NULL;
-  avio->write_cb = (value)NULL;
-  avio->seek_cb = (value)NULL;
 
   avio->format_context = avformat_alloc_context();
 
@@ -534,35 +579,11 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
 
   avio->format_context->pb = avio->avio_context;
 
-  ret = caml_alloc(1, Abstract_tag);
+  ret = caml_alloc_custom(&avio_ops, sizeof(avio_t *), 0, 1);
 
   Avio_val(ret) = avio;
 
   CAMLreturn(ret);
-}
-
-CAMLprim value caml_av_input_io_finalise(value _avio) {
-  CAMLparam1(_avio);
-  avio_t *avio = Avio_val(_avio);
-
-  // format_context is freed as part of close_av.
-  av_free(avio->avio_context->buffer);
-  avio_context_free(&avio->avio_context);
-
-  caml_remove_generational_global_root(&avio->buffer);
-
-  if (avio->read_cb)
-    caml_remove_generational_global_root(&avio->read_cb);
-
-  if (avio->write_cb)
-    caml_remove_generational_global_root(&avio->write_cb);
-
-  if (avio->seek_cb)
-    caml_remove_generational_global_root(&avio->seek_cb);
-
-  av_free(avio);
-
-  CAMLreturn(Val_unit);
 }
 
 /***** AVInputFormat *****/
@@ -647,8 +668,6 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
     av->format_context->interrupt_callback.callback =
         ocaml_av_interrupt_callback;
     av->format_context->interrupt_callback.opaque = (void *)av;
-  } else {
-    av->interrupt_cb = Val_none;
   }
 
   caml_release_runtime_system();
@@ -656,10 +675,11 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
   caml_acquire_runtime_system();
 
   if (err < 0) {
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb) {
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
+      av->interrupt_cb = (value)NULL;
     }
+
     av_free(av);
     if (url)
       av_free(url);
@@ -674,9 +694,9 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
 
   if (err < 0) {
     avformat_close_input(&av->format_context);
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb) {
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
+      av->interrupt_cb = (value)NULL;
     }
     av_free(av);
     if (url)
@@ -778,6 +798,10 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 
   // open input format
   av_t *av = open_input(NULL, format, avio->format_context, Val_none, &options);
+
+  avio->managed_format_context = 1;
+  av->avio = _avio;
+  caml_register_generational_global_root(&av->avio);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -1390,8 +1414,6 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     caml_register_generational_global_root(&av->interrupt_cb);
     interrupt_cb.opaque = (void *)av;
     interrupt_cb_ptr = &interrupt_cb;
-  } else {
-    av->interrupt_cb = Val_none;
   }
 
   ret = avformat_alloc_output_context2(&av->format_context, format, NULL,
@@ -1409,9 +1431,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   ret = av_opt_set_dict(av->format_context, options);
 
   if (ret < 0) {
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb) {
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
+      av->interrupt_cb = (value)NULL;
     }
 
     av_free(av);
@@ -1459,9 +1481,9 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
       caml_acquire_runtime_system();
 
       if (err < 0) {
-        if (av->interrupt_cb != Val_none) {
+        if (av->interrupt_cb) {
           caml_remove_generational_global_root(&av->interrupt_cb);
-          av->interrupt_cb = Val_none;
+          av->interrupt_cb = (value)NULL;
         }
 
         av_free(av);
@@ -1611,6 +1633,9 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   // open output format
   av_t *av = open_output(format, NULL, avio->avio_context, Val_none,
                          Bool_val(_interleaved), &options);
+
+  av->avio = _avio;
+  caml_register_generational_global_root(&av->avio);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -2325,16 +2350,7 @@ CAMLprim value ocaml_av_close(value _av) {
     }
   }
 
-  close_av(av);
-
-  CAMLreturn(Val_unit);
-}
-
-CAMLprim value ocaml_av_cleanup_av(value _av) {
-  CAMLparam1(_av);
-  av_t *av = Av_base_val(_av);
-
-  close_av(av);
+  close_av(av, 1);
 
   CAMLreturn(Val_unit);
 }
