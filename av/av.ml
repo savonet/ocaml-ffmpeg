@@ -46,6 +46,8 @@ module Format = struct
     guess_output_format short_name filename mime
 end
 
+external ocaml_av_cleanup_av : _ container -> unit = "ocaml_av_cleanup_av"
+
 (* Input *)
 external open_input :
   string ->
@@ -58,6 +60,7 @@ let open_input ?interrupt ?format ?opts url =
   let opts = opts_default opts in
   let ret, unused = open_input url format interrupt (mk_opts_array opts) in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
 
 type avio
@@ -95,11 +98,23 @@ let ocaml_av_open_input_stream ?format ?opts avio =
     ocaml_av_open_input_stream avio format (mk_opts_array opts)
   in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
+
+external caml_av_input_io_finalise : avio -> unit = "caml_av_input_io_finalise"
 
 let open_input_stream ?format ?opts ?seek read =
   let avio = ocaml_av_create_read_io 4096 ?seek read in
-  ocaml_av_open_input_stream ?format ?opts avio
+  let cleanup () = caml_av_input_io_finalise avio in
+  let input =
+    try ocaml_av_open_input_stream ?format ?opts avio
+    with exn ->
+      let bt = Printexc.get_raw_backtrace () in
+      cleanup ();
+      Printexc.raise_with_backtrace exn bt
+  in
+  Gc.finalise_last cleanup input;
+  input
 
 external _get_duration : input container -> int -> Time_format.t -> Int64.t
   = "ocaml_av_get_duration"
@@ -262,6 +277,7 @@ let open_output ?interrupt ?format ?(interleaved = true) ?opts fname =
     open_output ?interrupt ?format fname interleaved (mk_opts_array opts)
   in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av ret;
   ret
 
 external ocaml_av_open_output_stream :
@@ -274,10 +290,17 @@ external ocaml_av_open_output_stream :
 let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   let opts = opts_default opts in
   let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
+  let cleanup () = caml_av_input_io_finalise avio in
   let output, unused =
-    ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
+    try ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
+    with exn ->
+      let bt = Printexc.get_raw_backtrace () in
+      cleanup ();
+      Printexc.raise_with_backtrace exn bt
   in
   filter_opts unused opts;
+  Gc.finalise ocaml_av_cleanup_av output;
+  Gc.finalise_last cleanup output;
   output
 
 external output_started : output container -> bool = "ocaml_av_header_written"
