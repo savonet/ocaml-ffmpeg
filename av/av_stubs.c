@@ -138,14 +138,11 @@ static void close_av(av_t *av) {
 
   caml_acquire_runtime_system();
 
-  if (av->control_message_callback) {
+  if (av->control_message_callback)
     caml_remove_generational_global_root(&av->control_message_callback);
-  }
 
-  if (av->interrupt_cb != Val_none) {
+  if (av->interrupt_cb)
     caml_remove_generational_global_root(&av->interrupt_cb);
-    av->interrupt_cb = Val_none;
-  }
 
   av->closed = 1;
 }
@@ -439,6 +436,9 @@ static int ocaml_av_interrupt_callback(void *private) {
   av_t *av = (av_t *)private;
   int n;
 
+  if (!av->interrupt_cb)
+    return 0;
+
   caml_acquire_runtime_system();
   res = caml_callback(av->interrupt_cb, Val_unit);
   n = Int_val(res);
@@ -634,8 +634,6 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
     av->format_context->interrupt_callback.callback =
         ocaml_av_interrupt_callback;
     av->format_context->interrupt_callback.opaque = (void *)av;
-  } else {
-    av->interrupt_cb = Val_none;
   }
 
   caml_release_runtime_system();
@@ -643,10 +641,8 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
   caml_acquire_runtime_system();
 
   if (err < 0) {
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb)
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
-    }
     av_free(av);
     if (url)
       av_free(url);
@@ -661,10 +657,8 @@ static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
 
   if (err < 0) {
     avformat_close_input(&av->format_context);
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb)
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
-    }
     av_free(av);
     if (url)
       av_free(url);
@@ -1385,8 +1379,6 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
     caml_register_generational_global_root(&av->interrupt_cb);
     interrupt_cb.opaque = (void *)av;
     interrupt_cb_ptr = &interrupt_cb;
-  } else {
-    av->interrupt_cb = Val_none;
   }
 
   ret = avformat_alloc_output_context2(&av->format_context, format, NULL,
@@ -1404,10 +1396,8 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
   ret = av_opt_set_dict(av->format_context, options);
 
   if (ret < 0) {
-    if (av->interrupt_cb != Val_none) {
+    if (av->interrupt_cb)
       caml_remove_generational_global_root(&av->interrupt_cb);
-      av->interrupt_cb = Val_none;
-    }
 
     av_free(av);
     if (file_name)
@@ -1454,10 +1444,8 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
       caml_acquire_runtime_system();
 
       if (err < 0) {
-        if (av->interrupt_cb != Val_none) {
+        if (av->interrupt_cb)
           caml_remove_generational_global_root(&av->interrupt_cb);
-          av->interrupt_cb = Val_none;
-        }
 
         av_free(av);
         if (file_name)
