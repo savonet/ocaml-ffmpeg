@@ -318,7 +318,6 @@ void ocaml_av_set_control_message_callback(value *p_av,
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 typedef struct avio_t {
-  AVFormatContext *format_context;
   AVIOContext *avio_context;
   value buffer;
   value read_cb;
@@ -475,18 +474,10 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   avio->write_cb = (value)NULL;
   avio->seek_cb = (value)NULL;
 
-  avio->format_context = avformat_alloc_context();
-
-  if (!avio->format_context) {
-    av_free(avio);
-    caml_raise_out_of_memory();
-  }
-
   buffer_size = Int_val(bufsize);
   buffer = av_malloc(buffer_size);
 
   if (!buffer) {
-    avformat_free_context(avio->format_context);
     av_free(avio);
     caml_raise_out_of_memory();
   }
@@ -527,12 +518,9 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
       caml_remove_generational_global_root(&avio->seek_cb);
 
     av_freep(buffer);
-    avformat_free_context(avio->format_context);
     av_free(avio);
     caml_raise_out_of_memory();
   }
-
-  avio->format_context->pb = avio->avio_context;
 
   ret = caml_alloc(1, Abstract_tag);
 
@@ -545,7 +533,6 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
   CAMLparam1(_avio);
   avio_t *avio = Avio_val(_avio);
 
-  // format_context is freed as part of close_av.
   av_free(avio->avio_context->buffer);
   avio_context_free(&avio->avio_context);
 
@@ -758,6 +745,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
   avio_t *avio = Avio_val(_avio);
   avioformat_const AVInputFormat *format = NULL;
   AVDictionary *options = NULL;
+  AVFormatContext *format_context;
   char *key, *val;
   int len = Wosize_val(_opts);
   int i, err, count;
@@ -776,8 +764,15 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
   if (_format != Val_none)
     format = InputFormat_val(Some_val(_format));
 
+  format_context = avformat_alloc_context();
+
+  if (!format_context)
+    caml_raise_out_of_memory();
+
+  format_context->pb = avio->avio_context;
+
   // open input format
-  av_t *av = open_input(NULL, format, avio->format_context, Val_none, &options);
+  av_t *av = open_input(NULL, format, format_context, Val_none, &options);
 
   // Return unused keys
   count = av_dict_count(options);
