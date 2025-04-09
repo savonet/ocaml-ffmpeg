@@ -69,6 +69,9 @@ typedef struct av_t {
   int header_written;
   int (*write_frame)(AVFormatContext *, AVPacket *);
   int custom_io;
+
+  // avio
+  value avio;
 } av_t;
 
 #define Av_base_val(v) (*(av_t **)Data_custom_val(v))
@@ -143,6 +146,9 @@ static void close_av(av_t *av) {
 
   if (av->interrupt_cb)
     caml_remove_generational_global_root(&av->interrupt_cb);
+
+  if (av->avio)
+    caml_remove_generational_global_root(&av->avio);
 
   av->closed = 1;
 }
@@ -322,8 +328,6 @@ typedef struct avio_t {
   value seek_cb;
 } avio_t;
 
-#define Avio_val(v) (*(avio_t **)Data_abstract_val(v))
-
 static int ocaml_avio_read_callback(void *private, uint8_t *buf, int buf_size) {
   value res;
   avio_t *avio = (avio_t *)private;
@@ -447,6 +451,21 @@ static int ocaml_av_interrupt_callback(void *private) {
   return n;
 };
 
+#define Avio_val(v) (*(avio_t **)Data_custom_val(v))
+
+static void finalize_avio(value v) {
+  avio_t *avio = Avio_val(v);
+
+  av_free(avio->avio_context->buffer);
+  avio_context_free(&avio->avio_context);
+  av_free(avio);
+}
+
+static struct custom_operations avio_ops = {
+    "ocaml_avio_context",     finalize_avio,
+    custom_compare_default,   custom_hash_default,
+    custom_serialize_default, custom_deserialize_default};
+
 CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
                                   value _write_cb, value _seek_cb) {
   CAMLparam3(_read_cb, _write_cb, _seek_cb);
@@ -522,19 +541,15 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
     caml_raise_out_of_memory();
   }
 
-  ret = caml_alloc(1, Abstract_tag);
-
+  ret = caml_alloc_custom(&avio_ops, sizeof(avio_t *), 0, 1);
   Avio_val(ret) = avio;
 
   CAMLreturn(ret);
 }
 
-CAMLprim value caml_av_input_io_finalise(value _avio) {
+CAMLprim value caml_av_io_close(value _avio) {
   CAMLparam1(_avio);
   avio_t *avio = Avio_val(_avio);
-
-  av_free(avio->avio_context->buffer);
-  avio_context_free(&avio->avio_context);
 
   caml_remove_generational_global_root(&avio->buffer);
 
@@ -546,8 +561,6 @@ CAMLprim value caml_av_input_io_finalise(value _avio) {
 
   if (avio->seek_cb)
     caml_remove_generational_global_root(&avio->seek_cb);
-
-  av_free(avio);
 
   CAMLreturn(Val_unit);
 }
@@ -767,6 +780,9 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 
   // open input format
   av_t *av = open_input(NULL, format, format_context, Val_none, &options);
+
+  av->avio = _avio;
+  caml_register_generational_global_root(&av->avio);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -1594,6 +1610,9 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   // open output format
   av_t *av = open_output(format, NULL, avio->avio_context, Val_none,
                          Bool_val(_interleaved), &options);
+
+  av->avio = _avio;
+  caml_register_generational_global_root(&av->avio);
 
   // Return unused keys
   count = av_dict_count(options);
