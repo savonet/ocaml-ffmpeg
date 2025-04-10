@@ -1,5 +1,7 @@
-1.2.3 (unreleased)
+1.3.0 (unreleased)
 ======
+* Cleaned up allocations on the C side.
+* Moved `on_keyframe` to a stream initialization argument.
 
 1.2.2 (2025-02-04)
 ======
