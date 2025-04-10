@@ -48,6 +48,8 @@ typedef struct {
 
   // input
   int got_frame;
+
+  value on_keyframe;
 } stream_t;
 
 typedef struct av_t {
@@ -106,14 +108,22 @@ static void free_stream(stream_t *stream) {
 }
 
 static void close_av(av_t *av) {
+  int i;
+
   if (av->closed)
     return;
+
+  if (av->streams) {
+    for (i = 0; i < av->format_context->nb_streams; i++) {
+      if (av->streams[i] && av->streams[i]->on_keyframe)
+        caml_remove_generational_global_root(&av->streams[i]->on_keyframe);
+    }
+  }
 
   caml_release_runtime_system();
 
   if (av->format_context) {
     if (av->streams) {
-      unsigned int i;
       for (i = 0; i < av->format_context->nb_streams; i++) {
         if (av->streams[i])
           free_stream(av->streams[i]);
@@ -1806,10 +1816,12 @@ CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
-                                         value _codec, value _channel_layout,
-                                         value _opts) {
-  CAMLparam2(_av, _opts);
+CAMLprim value ocaml_av_new_audio_stream_native(value _av, value _sample_fmt,
+                                                value _codec,
+                                                value _channel_layout,
+                                                value _opts,
+                                                value _on_keyframe) {
+  CAMLparam3(_av, _opts, _on_keyframe);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1833,6 +1845,11 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
       new_audio_stream(Av_val(_av), Int_val(_sample_fmt),
                        AVChannelLayout_val(_channel_layout), codec, &options);
 
+  if (_on_keyframe != Val_none) {
+    stream->on_keyframe = Some_val(_on_keyframe);
+    caml_register_generational_global_root(&stream->on_keyframe);
+  }
+
   // Return unused keys
   count = av_dict_count(options);
 
@@ -1852,6 +1869,11 @@ CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
   CAMLreturn(ans);
 }
 
+CAMLprim value ocaml_av_new_audio_stream_bytecode(value *argv, int argn) {
+  return ocaml_av_new_audio_stream_native(argv[0], argv[1], argv[2], argv[3],
+                                          argv[4], argv[5]);
+}
+
 static stream_t *new_video_stream(AVBufferRef *device_ctx,
                                   AVBufferRef *frame_ctx, av_t *av,
                                   const AVCodec *codec,
@@ -1863,10 +1885,11 @@ static stream_t *new_video_stream(AVBufferRef *device_ctx,
   return stream;
 }
 
-CAMLprim value ocaml_av_new_video_stream(value _device_context,
-                                         value _frame_context, value _av,
-                                         value _codec, value _opts) {
-  CAMLparam4(_device_context, _frame_context, _av, _opts);
+CAMLprim value ocaml_av_new_video_stream_native(value _device_context,
+                                                value _frame_context, value _av,
+                                                value _codec, value _opts,
+                                                value _on_keyframe) {
+  CAMLparam5(_device_context, _frame_context, _av, _opts, _on_keyframe);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1898,6 +1921,11 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
   stream_t *stream =
       new_video_stream(device_ctx, frame_ctx, Av_val(_av), codec, &options);
 
+  if (_on_keyframe != Val_none) {
+    stream->on_keyframe = Some_val(_on_keyframe);
+    caml_register_generational_global_root(&stream->on_keyframe);
+  }
+
   // Return unused keys
   count = av_dict_count(options);
 
@@ -1915,6 +1943,11 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
   Store_field(ans, 1, unused);
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_av_new_video_stream_bytecode(value *argv, int argn) {
+  return ocaml_av_new_video_stream_native(argv[0], argv[1], argv[2], argv[3],
+                                          argv[4], argv[5]);
 }
 
 static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
@@ -2038,7 +2071,7 @@ CAMLprim value ocaml_av_write_stream_packet(value _stream, value _time_base,
 }
 
 static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
-                        value _on_keyframe, AVFrame *frame) {
+                        AVFrame *frame) {
   AVStream *avstream = av->format_context->streams[stream_index];
   AVFrame *hw_frame = NULL;
   int ret;
@@ -2136,9 +2169,10 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     if (ret < 0)
       break;
 
-    if (packet->flags & AV_PKT_FLAG_KEY && _on_keyframe != Val_none) {
+    if (packet->flags & AV_PKT_FLAG_KEY &&
+        av->streams[stream_index]->on_keyframe) {
       caml_acquire_runtime_system();
-      caml_callback(Field(_on_keyframe, 0), Val_unit);
+      caml_callback(av->streams[stream_index]->on_keyframe, Val_unit);
       caml_release_runtime_system();
     }
 
@@ -2162,8 +2196,7 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     ocaml_avutil_raise_error(ret);
 }
 
-static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
+static void write_audio_frame(av_t *av, int stream_index, AVFrame *frame) {
   int err, frame_size;
 
   if (av->format_context->nb_streams < stream_index)
@@ -2176,11 +2209,10 @@ static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
-  write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+  write_frame(av, stream_index, enc_ctx, frame);
 }
 
-static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
+static void write_video_frame(av_t *av, int stream_index, AVFrame *frame) {
   if (av->format_context->nb_streams < stream_index)
     Fail("Stream index not found!");
 
@@ -2194,7 +2226,7 @@ static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
 
   AVCodecContext *enc_ctx = stream->codec_context;
 
-  write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+  write_frame(av, stream_index, enc_ctx, frame);
 }
 
 static void write_subtitle_frame(av_t *av, int stream_index,
@@ -2254,9 +2286,8 @@ static void write_subtitle_frame(av_t *av, int stream_index,
     ocaml_avutil_raise_error(err);
 }
 
-CAMLprim value ocaml_av_write_stream_frame(value _on_keyframe, value _stream,
-                                           value _frame) {
-  CAMLparam3(_on_keyframe, _stream, _frame);
+CAMLprim value ocaml_av_write_stream_frame(value _stream, value _frame) {
+  CAMLparam2(_stream, _frame);
   CAMLlocal1(_av);
   _av = Field(_stream, 0);
   av_t *av = Av_val(_av);
@@ -2268,9 +2299,9 @@ CAMLprim value ocaml_av_write_stream_frame(value _on_keyframe, value _stream,
   enum AVMediaType type = av->streams[index]->codec_context->codec_type;
 
   if (type == AVMEDIA_TYPE_AUDIO) {
-    write_audio_frame(av, index, _on_keyframe, Frame_val(_frame));
+    write_audio_frame(av, index, Frame_val(_frame));
   } else if (type == AVMEDIA_TYPE_VIDEO) {
-    write_video_frame(av, index, _on_keyframe, Frame_val(_frame));
+    write_video_frame(av, index, Frame_val(_frame));
   } else if (type == AVMEDIA_TYPE_SUBTITLE) {
     write_subtitle_frame(av, index, Subtitle_val(_frame));
   }
@@ -2313,9 +2344,9 @@ CAMLprim value ocaml_av_close(value _av) {
         continue;
 
       if (enc_ctx->codec_type == AVMEDIA_TYPE_AUDIO) {
-        write_audio_frame(av, i, Val_none, NULL);
+        write_audio_frame(av, i, NULL);
       } else if (enc_ctx->codec_type == AVMEDIA_TYPE_VIDEO) {
-        write_video_frame(av, i, Val_none, NULL);
+        write_video_frame(av, i, NULL);
       }
     }
 

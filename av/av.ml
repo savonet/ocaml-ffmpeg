@@ -328,10 +328,12 @@ external new_audio_stream :
   [ `Encoder ] Avcodec.Audio.t ->
   Channel_layout.t ->
   (string * string) array ->
-  int * string array = "ocaml_av_new_audio_stream"
+  (unit -> unit) option ->
+  int * string array
+  = "ocaml_av_new_audio_stream_bytecode" "ocaml_av_new_audio_stream_native"
 
-let new_audio_stream ?opts ~channel_layout ~sample_rate ~sample_format
-    ~time_base ~codec container =
+let new_audio_stream ?opts ?on_keyframe ~channel_layout ~sample_rate
+    ~sample_format ~time_base ~codec container =
   let opts =
     mk_audio_opts ?opts ~channel_layout ~sample_rate ~sample_format ~time_base
       ()
@@ -339,7 +341,7 @@ let new_audio_stream ?opts ~channel_layout ~sample_rate ~sample_format
   let ret, unused =
     new_audio_stream container
       (Sample_format.get_id sample_format)
-      codec channel_layout (mk_opts_array opts)
+      codec channel_layout (mk_opts_array opts) on_keyframe
   in
   filter_opts unused opts;
   mk_stream container ret
@@ -350,10 +352,12 @@ external new_video_stream :
   _ container ->
   [ `Encoder ] Avcodec.Video.t ->
   (string * string) array ->
-  int * string array = "ocaml_av_new_video_stream"
+  (unit -> unit) option ->
+  int * string array
+  = "ocaml_av_new_video_stream_bytecode" "ocaml_av_new_video_stream_native"
 
-let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
-    ~height ~time_base ~codec container =
+let new_video_stream ?opts ?on_keyframe ?frame_rate ?hardware_context
+    ~pixel_format ~width ~height ~time_base ~codec container =
   let opts =
     mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base ()
   in
@@ -365,7 +369,7 @@ let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
   in
   let ret, unused =
     new_video_stream ?device_context ?frame_context container codec
-      (mk_opts_array opts)
+      (mk_opts_array opts) on_keyframe
   in
   filter_opts unused opts;
   let s = mk_stream container ret in
@@ -403,10 +407,8 @@ external write_packet :
   unit = "ocaml_av_write_stream_packet"
 
 external write_frame :
-  ?on_keyframe:(unit -> unit) ->
-  (output, 'media, [ `Frame ]) stream ->
-  'media frame ->
-  unit = "ocaml_av_write_stream_frame"
+  (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
+  = "ocaml_av_write_stream_frame"
 
 external flush : output container -> unit = "ocaml_av_flush"
 external close : _ container -> unit = "ocaml_av_close"
