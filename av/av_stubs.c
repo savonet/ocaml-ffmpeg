@@ -113,16 +113,17 @@ static void close_av(av_t *av) {
   if (av->closed)
     return;
 
-  for (i = 0; i < av->format_context->nb_streams; i++) {
-    if (av->streams[i] && av->streams[i]->on_keyframe)
-      caml_remove_generational_global_root(&av->streams[i]->on_keyframe);
+  if (av->streams) {
+    for (i = 0; i < av->format_context->nb_streams; i++) {
+      if (av->streams[i] && av->streams[i]->on_keyframe)
+        caml_remove_generational_global_root(&av->streams[i]->on_keyframe);
+    }
   }
 
   caml_release_runtime_system();
 
   if (av->format_context) {
     if (av->streams) {
-      unsigned int i;
       for (i = 0; i < av->format_context->nb_streams; i++) {
         if (av->streams[i])
           free_stream(av->streams[i]);
