@@ -279,6 +279,9 @@ val initialize_stream_copy :
     After returning, if [opts] was passed, unused options are left in the hash
     table.
 
+    If [on_keyframe] is provided, it is called on keyframe, before the keyframe
+    is submitted to the muxer.
+
     Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/sample_rate] is usually a good value for the
     [time_base].
@@ -294,6 +297,7 @@ val initialize_stream_copy :
     Raise Error if the opening failed. *)
 val new_audio_stream :
   ?opts:opts ->
+  ?on_keyframe:(unit -> unit) ->
   channel_layout:Channel_layout.t ->
   sample_rate:int ->
   sample_format:Avutil.Sample_format.t ->
@@ -309,6 +313,9 @@ val new_audio_stream :
     After returning, if [opts] was passed, unused options are left in the hash
     table.
 
+    If [on_keyframe] is provided, it is called on keyframe, before the keyframe
+    is submitted to the muxer.
+
     Frames passed to this stream for encoding must have a PTS set according to
     the given [time_base]. [1/frame_rate] is usually a good value for the
     [time_base].
@@ -319,6 +326,7 @@ val new_audio_stream :
     Raise Error if the opening failed. *)
 val new_video_stream :
   ?opts:opts ->
+  ?on_keyframe:(unit -> unit) ->
   ?frame_rate:Avutil.rational ->
   ?hardware_context:Avcodec.Video.hardware_context ->
   pixel_format:Avutil.Pixel_format.t ->
@@ -373,21 +381,13 @@ val write_packet :
   'media Avcodec.Packet.t ->
   unit
 
-(** [Av.write_frame ?on_keyframe os frm] write the [frm] frame to the [os]
-    output stream.
+(** [Av.write_frame os frm] write the [frm] frame to the [os] output stream.
 
     Frame PTS should be set and counted in units of [time_base], as passed when
     creating the stream
 
-    If [on_keyframe] is provided, it is called on keyframe, _before the keyframe
-    is submitted to the muxer.
-
     Raise Error if the writing failed. *)
-val write_frame :
-  ?on_keyframe:(unit -> unit) ->
-  (output, 'media, [ `Frame ]) stream ->
-  'media frame ->
-  unit
+val write_frame : (output, 'media, [ `Frame ]) stream -> 'media frame -> unit
 
 (** Flush the underlying muxer. *)
 val flush : output container -> unit
