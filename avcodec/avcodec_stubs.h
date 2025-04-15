@@ -8,10 +8,10 @@
 
 #define AvCodec_val(v) (*(const AVCodec **)Data_abstract_val(v))
 
-static inline value value_of_avcodec(value ret, const AVCodec *avcodec) {
-  ret = caml_alloc(1, Abstract_tag);
-  AvCodec_val(ret) = avcodec;
-  return ret;
+static inline value value_of_avcodec(value *ret, const AVCodec *avcodec) {
+  *ret = caml_alloc(1, Abstract_tag);
+  AvCodec_val(*ret) = avcodec;
+  return *ret;
 }
 
 /***** Codec parameters *****/

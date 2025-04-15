@@ -122,27 +122,27 @@ value_of_avpixfmtdescriptor(value ret,
 
 #define AvClass_val(v) (*(const AVClass **)Data_abstract_val(v))
 
-static inline value value_of_avclass(value ret, const AVClass *avclass) {
-  ret = caml_alloc(1, Abstract_tag);
-  AvClass_val(ret) = avclass;
-  return ret;
+static inline value value_of_avclass(value *ret, const AVClass *avclass) {
+  *ret = caml_alloc(1, Abstract_tag);
+  AvClass_val(*ret) = avclass;
+  return *ret;
 }
 
 #define AvOptions_val(v) (*(const struct AVOption **)Data_abstract_val(v))
 
-static inline value value_of_avoptions(value ret,
+static inline value value_of_avoptions(value *ret,
                                        const struct AVOption *avoptions) {
-  ret = caml_alloc(1, Abstract_tag);
-  AvOptions_val(ret) = avoptions;
-  return ret;
+  *ret = caml_alloc(1, Abstract_tag);
+  AvOptions_val(*ret) = avoptions;
+  return *ret;
 }
 
 #define AvObj_val(v) (*(void **)Data_abstract_val(v))
 
-static inline value value_of_avobj(value ret, void *avobj) {
-  ret = caml_alloc(1, Abstract_tag);
-  AvObj_val(ret) = avobj;
-  return ret;
+static inline value value_of_avobj(value *ret, void *avobj) {
+  *ret = caml_alloc(1, Abstract_tag);
+  AvObj_val(*ret) = avobj;
+  return *ret;
 }
 
 #endif // _AVUTIL_STUBS_H_

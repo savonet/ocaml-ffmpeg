@@ -167,7 +167,7 @@ AVFormatContext *ocaml_av_get_format_context(value *p_av) {
 CAMLprim value ocaml_av_container_options(value unit) {
   CAMLparam0();
   CAMLlocal1(ret);
-  CAMLreturn(value_of_avclass(ret, avformat_get_class()));
+  CAMLreturn(value_of_avclass(&ret, avformat_get_class()));
 }
 
 CAMLprim value ocaml_av_get_streams(value _av, value _media_type) {
@@ -810,7 +810,7 @@ CAMLprim value ocaml_av_open_input_stream(value _avio, value _format,
 CAMLprim value ocaml_av_input_obj(value _av) {
   CAMLparam1(_av);
   CAMLlocal1(ret);
-  CAMLreturn(value_of_avobj(ret, Av_val(_av)->format_context));
+  CAMLreturn(value_of_avobj(&ret, Av_val(_av)->format_context));
 }
 
 CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index) {

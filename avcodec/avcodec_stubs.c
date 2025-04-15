@@ -1097,28 +1097,28 @@ CAMLprim value ocaml_avcodec_find_audio_encoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
+      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
 }
 
 CAMLprim value ocaml_avcodec_find_audio_encoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
+      &ret, find_encoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
 }
 
 CAMLprim value ocaml_avcodec_find_audio_decoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
+      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
 }
 
 CAMLprim value ocaml_avcodec_find_audio_decoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
+      &ret, find_decoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
 }
 
 CAMLprim value ocaml_avcodec_name(value _codec) {
@@ -1377,28 +1377,28 @@ CAMLprim value ocaml_avcodec_find_video_decoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
+      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
 }
 
 CAMLprim value ocaml_avcodec_find_video_decoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
+      &ret, find_decoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
 }
 
 CAMLprim value ocaml_avcodec_find_video_encoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
+      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
 }
 
 CAMLprim value ocaml_avcodec_find_video_encoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
+      &ret, find_encoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
 }
 
 CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec) {
@@ -1540,28 +1540,28 @@ CAMLprim value ocaml_avcodec_find_subtitle_decoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
+      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
 }
 
 CAMLprim value ocaml_avcodec_find_subtitle_decoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_decoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
+      &ret, find_decoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
 }
 
 CAMLprim value ocaml_avcodec_find_subtitle_encoder_by_name(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
+      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
 }
 
 CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
   CAMLparam1(_id);
   CAMLlocal1(ret);
   CAMLreturn(value_of_avcodec(
-      ret, find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
+      &ret, find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
 }
 
 /**** Subtitle codec parameters ****/
@@ -1646,10 +1646,10 @@ CAMLprim value ocaml_avcodec_get_next_codec(value h) {
   }
 
   _h = caml_alloc_tuple(1);
-  Store_field(_h, 0, value_of_avobj(_tmp, s));
+  Store_field(_h, 0, value_of_avobj(&_tmp, s));
 
   _ans = caml_alloc_tuple(4);
-  Store_field(_ans, 0, value_of_avcodec(_tmp, codec));
+  Store_field(_ans, 0, value_of_avcodec(&_tmp, codec));
   Store_field(_ans, 1, _id);
   Store_field(_ans, 2, Val_bool(av_codec_is_encoder(codec)));
   Store_field(_ans, 3, _h);
@@ -1710,7 +1710,7 @@ CAMLprim value ocaml_avcodec_bsf_next(value _cursor) {
     len++;
   }
   Store_field(ans, 1, tmp);
-  Store_field(ans, 2, value_of_avclass(tmp, filter->priv_class));
+  Store_field(ans, 2, value_of_avclass(&tmp, filter->priv_class));
 
   tmp = caml_alloc(1, Abstract_tag);
   BsfCursor_val(tmp) = cursor;

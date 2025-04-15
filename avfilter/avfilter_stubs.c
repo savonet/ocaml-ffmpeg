@@ -126,7 +126,7 @@ CAMLprim value ocaml_avfilter_get_all_filters(value unit) {
                     f->outputs, f->nb_outputs, f->name
 #endif
                     ));
-    Store_field(cur, 4, value_of_avclass(tmp, f->priv_class));
+    Store_field(cur, 4, value_of_avclass(&tmp, f->priv_class));
     Store_field(cur, 5, Val_int(f->flags));
 
     Store_field(ret, c, cur);

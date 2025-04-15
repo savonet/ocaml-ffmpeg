@@ -1407,7 +1407,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   switch (option->type) {
   case AV_OPT_TYPE_CONST:
     _type = PVV_Constant;
-    Store_field(_tmp, 0, value_of_avoptions(_cursor, option));
+    Store_field(_tmp, 0, value_of_avoptions(&_cursor, option));
     Store_field(_spec, 0, _tmp);
     break;
   case AV_OPT_TYPE_BOOL:
@@ -1582,10 +1582,11 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   Store_field(Field(_tmp, 0), 0, value_of_avoptions(_cursor, option));
 #else
   Store_field(Field(_tmp, 0), 0, caml_alloc_tuple(2));
-  Store_field(Field(Field(_tmp, 0), 0), 0, value_of_avobj(_cursor, cursor));
-  Store_field(Field(Field(_tmp, 0), 0), 1, value_of_avoptions(_cursor, option));
+  Store_field(Field(Field(_tmp, 0), 0), 0, value_of_avobj(&_cursor, cursor));
+  Store_field(Field(Field(_tmp, 0), 0), 1,
+              value_of_avoptions(&_cursor, option));
 #endif
-  Store_field(Field(_tmp, 0), 1, value_of_avclass(_class, class));
+  Store_field(Field(_tmp, 0), 1, value_of_avclass(&_class, class));
   Store_field(_opt, 5, _tmp);
 
   if (unimplement_option)
