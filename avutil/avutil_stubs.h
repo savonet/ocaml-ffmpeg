@@ -96,12 +96,12 @@ value Val_HwDeviceType(enum AVHWDeviceType t);
 
 #define Frame_val(v) (*(struct AVFrame **)Data_custom_val(v))
 
-value value_of_frame(AVFrame *frame);
+void value_of_frame(value *ret, AVFrame *frame);
 
 /***** AVSubtitle *****/
 #define Subtitle_val(v) (*(struct AVSubtitle **)Data_custom_val(v))
 
-value value_of_subtitle(AVSubtitle *subtitle);
+void value_of_subtitle(value *ret, AVSubtitle *subtitle);
 
 int subtitle_header_default(AVCodecContext *avctx);
 

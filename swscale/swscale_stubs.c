@@ -278,7 +278,7 @@ static int alloc_out_frame(sws_t *sws, value *out_vect, value *tmp) {
   sws->out.slice = frame->data;
   sws->out.stride = frame->linesize;
 
-  *out_vect = value_of_frame(frame);
+  value_of_frame(out_vect, frame);
 
   return ret;
 }

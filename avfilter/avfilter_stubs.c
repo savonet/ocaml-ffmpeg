@@ -557,7 +557,7 @@ CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
     ocaml_avutil_raise_error(err);
   }
 
-  frame_value = value_of_frame(frame);
+  value_of_frame(&frame_value, frame);
 
   CAMLreturn(frame_value);
 }

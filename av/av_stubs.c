@@ -1161,7 +1161,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       }
 
       frame_kind = PVV_Subtitle_frame;
-      frame_value = value_of_subtitle((AVSubtitle *)frame);
+      value_of_subtitle(&frame_value, (AVSubtitle *)frame);
     } else {
       frame = av_frame_alloc();
 
@@ -1175,7 +1175,7 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
       else
         frame_kind = PVV_Video_frame;
 
-      frame_value = value_of_frame(frame);
+      value_of_frame(&frame_value, frame);
     }
 
     ret = decode_packet(av, stream, packet, frame);

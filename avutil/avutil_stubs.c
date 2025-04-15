@@ -691,8 +691,7 @@ static struct custom_operations frame_ops = {
     "ocaml_avframe",     finalize_frame,           custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
-value value_of_frame(AVFrame *frame) {
-  value ret;
+void value_of_frame(value *ret, AVFrame *frame) {
   if (!frame)
     Fail("Empty frame");
 
@@ -703,10 +702,8 @@ value value_of_frame(AVFrame *frame) {
     n++;
   }
 
-  ret = caml_alloc_custom_mem(&frame_ops, sizeof(AVFrame *), size);
-  Frame_val(ret) = frame;
-
-  return ret;
+  *ret = caml_alloc_custom_mem(&frame_ops, sizeof(AVFrame *), size);
+  Frame_val(*ret) = frame;
 }
 
 CAMLprim value ocaml_avutil_frame_pts(value _frame) {
@@ -870,6 +867,7 @@ CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
                                                value _format) {
   CAMLparam1(_format);
+  CAMLlocal1(ans);
   AVFrame *frame = av_frame_alloc();
   if (!frame)
     caml_raise_out_of_memory();
@@ -885,7 +883,9 @@ CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
     ocaml_avutil_raise_error(ret);
   }
 
-  CAMLreturn(value_of_frame(frame));
+  value_of_frame(&ans, frame);
+
+  CAMLreturn(ans);
 }
 
 /* Adapted from alloc_audio_frame */
@@ -894,6 +894,7 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
                                                value _samplerate,
                                                value _samples) {
   CAMLparam2(_sample_fmt, _channel_layout);
+  CAMLlocal1(ans);
   enum AVSampleFormat sample_fmt = SampleFormat_val(_sample_fmt);
   AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
   int sample_rate = Int_val(_samplerate);
@@ -923,7 +924,9 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
     ocaml_avutil_raise_error(ret);
   }
 
-  CAMLreturn(value_of_frame(frame));
+  value_of_frame(&ans, frame);
+
+  CAMLreturn(ans);
 }
 
 CAMLprim value ocaml_avutil_audio_frame_get_sample_format(value _frame) {
@@ -1101,15 +1104,12 @@ static struct custom_operations subtitle_ops = {
     "ocaml_avsubtitle",  finalize_subtitle,        custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
-value value_of_subtitle(AVSubtitle *subtitle) {
-  value ret;
+void value_of_subtitle(value *ret, AVSubtitle *subtitle) {
   if (!subtitle)
     Fail("Empty subtitle");
 
-  ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle *), 0, 1);
-  Subtitle_val(ret) = subtitle;
-
-  return ret;
+  *ret = caml_alloc_custom(&subtitle_ops, sizeof(AVSubtitle *), 0, 1);
+  Subtitle_val(*ret) = subtitle;
 }
 
 int subtitle_header_default(AVCodecContext *codec_context) { return 0; }
@@ -1127,7 +1127,7 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
   if (!subtitle)
     caml_raise_out_of_memory();
 
-  ans = value_of_subtitle(subtitle);
+  value_of_subtitle(&ans, subtitle);
 
   //  subtitle->start_display_time = (uint32_t)start_time;
   subtitle->end_display_time = (uint32_t)end_time;

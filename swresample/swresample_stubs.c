@@ -264,7 +264,7 @@ static void alloc_out_frame(swr_t *swr, int nb_samples, value *out_vect) {
     ocaml_avutil_raise_error(ret);
   }
 
-  *out_vect = value_of_frame(frame);
+  value_of_frame(out_vect, frame);
   swr->out.data = frame->extended_data;
   swr->out.nb_samples = nb_samples;
 }

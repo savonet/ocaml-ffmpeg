@@ -910,7 +910,7 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
     ans = Val_int(0);
   } else {
     ans = caml_alloc(1, 0);
-    val_frame = value_of_frame(frame);
+    value_of_frame(&val_frame, frame);
     Store_field(ans, 0, val_frame);
   }
 
