@@ -567,8 +567,8 @@ CAMLprim value caml_av_io_close(value _avio) {
 
 /***** AVInputFormat *****/
 
-void value_of_inputFormat(avioformat_const AVInputFormat *inputFormat,
-                          value *p_value) {
+void value_of_inputFormat(value *p_value,
+                          avioformat_const AVInputFormat *inputFormat) {
   if (!inputFormat)
     Fail("Empty input format");
 
@@ -594,7 +594,7 @@ CAMLprim value ocaml_av_find_input_format(value _short_name) {
   if (!format)
     caml_raise_not_found();
 
-  value_of_inputFormat(format, &ret);
+  value_of_inputFormat(&ret, format);
 
   CAMLreturn(ret);
 }
@@ -1270,21 +1270,19 @@ CAMLprim value ocaml_av_seek_bytecode(value *argv, int argn) {
 
 /***** AVOutputFormat *****/
 
-value value_of_outputFormat(avioformat_const AVOutputFormat *outputFormat) {
-  value v;
+void value_of_outputFormat(value *ret,
+                           avioformat_const AVOutputFormat *outputFormat) {
   if (!outputFormat)
     Fail("Empty output format");
 
-  v = caml_alloc(1, Abstract_tag);
-  OutputFormat_val(v) = outputFormat;
-
-  return v;
+  *ret = caml_alloc(1, Abstract_tag);
+  OutputFormat_val(*ret) = outputFormat;
 }
 
 CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
                                             value _mime) {
   CAMLparam3(_short_name, _filename, _mime);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, tmp);
   char *short_name = NULL;
   char *filename = NULL;
   char *mime = NULL;
@@ -1332,7 +1330,8 @@ CAMLprim value ocaml_av_output_format_guess(value _short_name, value _filename,
     CAMLreturn(Val_none);
 
   ans = caml_alloc_tuple(1);
-  Store_field(ans, 0, value_of_outputFormat(guessed));
+  value_of_outputFormat(&tmp, guessed);
+  Store_field(ans, 0, tmp);
 
   CAMLreturn(ans);
 }
