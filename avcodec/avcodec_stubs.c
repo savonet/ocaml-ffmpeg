@@ -31,39 +31,16 @@ value ocaml_avcodec_init(value unit) {
   return Val_unit;
 }
 
-static value value_of_audio_codec_id(enum AVCodecID id) {
-  value ret = Val_AudioCodecID(id);
-  return ret;
-}
-
-static value value_of_video_codec_id(enum AVCodecID id) {
-  value ret = Val_VideoCodecID(id);
-  return ret;
-}
-
-static value value_of_subtitle_codec_id(enum AVCodecID id) {
-  value ret = Val_SubtitleCodecID(id);
-  return ret;
-}
-
-static value value_of_unknown_codec_id(enum AVCodecID id) {
-  value ret = Val_UnknownCodecID(id);
-  return ret;
-}
-
 CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
-  CAMLparam0();
-  CAMLreturn(Val_int(AV_CODEC_FLAG_QSCALE));
+  return Val_int(AV_CODEC_FLAG_QSCALE);
 }
 
-CAMLprim value ocaml_avcodec_get_input_buffer_padding_size() {
-  CAMLparam0();
-  CAMLreturn(Val_int(AV_INPUT_BUFFER_PADDING_SIZE));
+CAMLprim value ocaml_avcodec_get_input_buffer_padding_size(value unit) {
+  return Val_int(AV_INPUT_BUFFER_PADDING_SIZE);
 }
 
 CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
-  CAMLparam1(_codec_id);
-  CAMLreturn(Val_int(SubtitleCodecID_val(_codec_id)));
+  return Val_int(SubtitleCodecID_val(_codec_id));
 }
 
 /***** AVCodecContext *****/
@@ -1066,19 +1043,19 @@ CAMLprim value ocaml_avcodec_parameters_get_bit_rate(value _cp) {
 CAMLprim value ocaml_avcodec_get_audio_codec_id(value _codec) {
   CAMLparam1(_codec);
   const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(value_of_audio_codec_id(codec->id));
+  CAMLreturn(Val_AudioCodecID(codec->id));
 }
 
 CAMLprim value ocaml_avcodec_get_video_codec_id(value _codec) {
   CAMLparam1(_codec);
   const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(value_of_video_codec_id(codec->id));
+  CAMLreturn(Val_VideoCodecID(codec->id));
 }
 
 CAMLprim value ocaml_avcodec_get_subtitle_codec_id(value _codec) {
   CAMLparam1(_codec);
   const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(value_of_subtitle_codec_id(codec->id));
+  CAMLreturn(Val_SubtitleCodecID(codec->id));
 }
 
 CAMLprim value ocaml_avcodec_get_audio_codec_id_name(value _codec_id) {
@@ -1337,7 +1314,7 @@ CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec) {
 /**** Audio codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_audio_codec_id(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(value_of_audio_codec_id(CodecParameters_val(_cp)->codec_id));
+  CAMLreturn(Val_AudioCodecID(CodecParameters_val(_cp)->codec_id));
 }
 
 CAMLprim value ocaml_avcodec_parameters_get_channel_layout(value _cp) {
@@ -1436,7 +1413,7 @@ CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec) {
 /**** Video codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_video_codec_id(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(value_of_video_codec_id(CodecParameters_val(_cp)->codec_id));
+  CAMLreturn(Val_VideoCodecID(CodecParameters_val(_cp)->codec_id));
 }
 
 CAMLprim value ocaml_avcodec_parameters_get_width(value _cp) {
@@ -1525,7 +1502,7 @@ CAMLprim value ocaml_avcodec_get_unknown_codec_id_name(value _codec_id) {
 
 CAMLprim value ocaml_avcodec_parameters_get_unknown_codec_id(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(value_of_unknown_codec_id(CodecParameters_val(_cp)->codec_id));
+  CAMLreturn(Val_UnknownCodecID(CodecParameters_val(_cp)->codec_id));
 }
 
 /**** Subtitle codec ID ****/
@@ -1567,7 +1544,7 @@ CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
 /**** Subtitle codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_subtitle_codec_id(value _cp) {
   CAMLparam1(_cp);
-  CAMLreturn(value_of_subtitle_codec_id(CodecParameters_val(_cp)->codec_id));
+  CAMLreturn(Val_SubtitleCodecID(CodecParameters_val(_cp)->codec_id));
 }
 
 CAMLprim value ocaml_avcodec_parameters_subtitle_copy(value _codec_id,
