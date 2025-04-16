@@ -466,8 +466,8 @@ static struct custom_operations avio_ops = {
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 
-CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
-                                  value _write_cb, value _seek_cb) {
+CAMLprim value ocaml_av_create_io(value _read_cb, value _write_cb,
+                                  value _seek_cb) {
   CAMLparam3(_read_cb, _write_cb, _seek_cb);
   CAMLlocal1(ret);
 
@@ -493,8 +493,7 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
   avio->write_cb = (value)NULL;
   avio->seek_cb = (value)NULL;
 
-  buffer_size = Int_val(bufsize);
-  buffer = av_malloc(buffer_size);
+  buffer = av_malloc(BUFLEN);
 
   if (!buffer) {
     av_free(avio);
@@ -520,9 +519,8 @@ CAMLprim value ocaml_av_create_io(value bufsize, value _read_cb,
     seek_cb = ocaml_avio_seek_callback;
   }
 
-  avio->avio_context =
-      avio_alloc_context(buffer, buffer_size, write_flag, (void *)avio, read_cb,
-                         write_cb, seek_cb);
+  avio->avio_context = avio_alloc_context(
+      buffer, BUFLEN, write_flag, (void *)avio, read_cb, write_cb, seek_cb);
 
   if (!avio->avio_context) {
     caml_remove_generational_global_root(&avio->buffer);

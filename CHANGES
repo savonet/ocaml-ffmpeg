@@ -1,3 +1,7 @@
+1.2.4 (2025-04-16)
+======
+* Fix avio max buffer error (#72)
+
 1.2.3 (2025-04-13)
 ======
 * Cleanup C allocations.

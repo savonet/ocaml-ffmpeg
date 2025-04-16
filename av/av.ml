@@ -76,13 +76,13 @@ let seek_of_int = function
   | _ -> assert false
 
 external ocaml_av_create_io :
-  int -> read option -> write option -> _seek option -> avio
+  read option -> write option -> _seek option -> avio
   = "ocaml_av_create_io"
 
 external caml_av_io_close : avio -> unit = "caml_av_io_close"
 
-let ocaml_av_create_io len read write seek =
-  let avio = ocaml_av_create_io len read write seek in
+let ocaml_av_create_io read write seek =
+  let avio = ocaml_av_create_io read write seek in
   Gc.finalise caml_av_io_close avio;
   avio
 
@@ -90,8 +90,8 @@ let _seek_of_seek = function
   | None -> None
   | Some fn -> Some (fun a m -> fn a (seek_of_int m))
 
-let ocaml_av_create_read_io len ?seek read =
-  ocaml_av_create_io len (Some read) None (_seek_of_seek seek)
+let ocaml_av_create_read_io ?seek read =
+  ocaml_av_create_io (Some read) None (_seek_of_seek seek)
 
 external ocaml_av_open_input_stream :
   avio ->
@@ -109,7 +109,7 @@ let ocaml_av_open_input_stream ?format ?opts avio =
   ret
 
 let open_input_stream ?format ?opts ?seek read =
-  let avio = ocaml_av_create_read_io 4096 ?seek read in
+  let avio = ocaml_av_create_read_io ?seek read in
   let input = ocaml_av_open_input_stream ?format ?opts avio in
   input
 
@@ -286,7 +286,7 @@ external ocaml_av_open_output_stream :
 
 let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   let opts = opts_default opts in
-  let avio = ocaml_av_create_io 4096 None (Some write) (_seek_of_seek seek) in
+  let avio = ocaml_av_create_io None (Some write) (_seek_of_seek seek) in
   let output, unused =
     ocaml_av_open_output_stream format avio interleaved (mk_opts_array opts)
   in
