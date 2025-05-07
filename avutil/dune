@@ -13,7 +13,7 @@
   avutil_stubs
   polymorphic_variant_values_stubs
   media_types_stubs)
- (libraries threads mutex))
+ (libraries threads))
 
 (rule
  (targets c_flags c_flags.sexp c_library_flags.sexp)
