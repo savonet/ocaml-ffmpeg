@@ -427,7 +427,7 @@ CAMLprim value ocaml_avutil_compare_channel_layout(value _layout1,
   CAMLreturn(Val_bool(!ret));
 }
 
-CAMLprim value ocaml_avutil_get_channel_native_id(value _channel_layout) {
+CAMLprim value ocaml_avutil_get_channel_mask(value _channel_layout) {
   CAMLparam1(_channel_layout);
   CAMLlocal1(ans);
 

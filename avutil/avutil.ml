@@ -231,8 +231,9 @@ module Channel_layout = struct
   let stereo = find "stereo"
   let five_point_one = find "5.1"
 
-  external get_native_id : t -> int64 option
-    = "ocaml_avutil_get_channel_native_id"
+  external get_mask : t -> int64 option = "ocaml_avutil_get_channel_mask"
+
+  let get_native_id = get_mask [@@ocaml.deprecated "Use get_mask instead."]
 end
 
 module Sample_format = struct
@@ -682,14 +683,14 @@ let add_audio_opts ?channels ?channel_layout ~sample_rate ~sample_format
   on_opt channels (fun channels -> Hashtbl.add opts "ac" (`Int channels));
   on_opt channel_layout (fun channel_layout ->
       let param =
-        match Channel_layout.get_native_id channel_layout with
+        match Channel_layout.get_mask channel_layout with
           | Some id -> `Int64 id
           | None ->
               let channel_layout =
                 Channel_layout.get_default
                   (Channel_layout.get_nb_channels channel_layout)
               in
-              `Int64 (Option.get (Channel_layout.get_native_id channel_layout))
+              `Int64 (Option.get (Channel_layout.get_mask channel_layout))
       in
       Hashtbl.add opts "channel_layout" param);
   Hashtbl.add opts "sample_fmt" (`Int (Sample_format.get_id sample_format));

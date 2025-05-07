@@ -1,3 +1,9 @@
+1.2.5 (unreleased)
+======
+* Rename `Avutil.Channel_layout.get_native_id`
+  into `Avutil.Channel_layout.get_mask` with deprecated
+  backward-compatible function.
+
 1.2.4 (2025-04-16)
 ======
 * Fix avio max buffer error (#72)

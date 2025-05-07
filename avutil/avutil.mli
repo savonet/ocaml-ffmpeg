@@ -178,7 +178,10 @@ module Channel_layout : sig
       [Not_found] if not found. *)
   val get_default : int -> t
 
-  (** Return a native channel layout ID, suitable for filters channel_layout. *)
+  (** Return a native channel layout mask, suitable for filters channel_layout. *)
+  val get_mask : t -> int64 option
+
+  (** Deprecated *)
   val get_native_id : t -> int64 option
 end
 
