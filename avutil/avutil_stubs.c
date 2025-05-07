@@ -15,6 +15,7 @@
 
 #include <libavutil/avassert.h>
 #include <libavutil/avstring.h>
+#include <libavutil/eval.h>
 #include <libavutil/mem.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/pixfmt.h>
@@ -1769,4 +1770,14 @@ CAMLprim value ocaml_avutil_create_frame_context(value _width, value _height,
   BufferRef_val(ans) = hw_frames_ref;
 
   CAMLreturn(ans);
+}
+
+CAMLprim value ocaml_avutil_expr_parse_and_eval(value _opt) {
+  CAMLparam1(_opt);
+  double d;
+  int ret = av_expr_parse_and_eval(&d, String_val(_opt), NULL, NULL, NULL, NULL,
+                                   NULL, NULL, NULL, AV_LOG_MAX_OFFSET, NULL);
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
+  CAMLreturn(caml_copy_double(d));
 }

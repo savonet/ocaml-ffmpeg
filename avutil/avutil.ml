@@ -19,6 +19,8 @@ external qp2lambda : unit -> int = "ocaml_avutil_qp2lambda"
 
 let qp2lambda = qp2lambda ()
 
+external expr_parse_and_eval : string -> float = "ocaml_avutil_expr_parse_and_eval"
+
 (* Frame *)
 module Frame = struct
   type 'media t
