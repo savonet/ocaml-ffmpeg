@@ -235,7 +235,7 @@ module Channel_layout = struct
 
   external get_mask : t -> int64 option = "ocaml_avutil_get_channel_mask"
 
-  let get_native_id = get_mask [@@ocaml.deprecated "Use get_mask instead."]
+  let get_native_id = get_mask
 end
 
 module Sample_format = struct

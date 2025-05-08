@@ -91,7 +91,6 @@ type error =
 exception Error of error
 
 val string_of_error : error -> string
-
 val expr_parse_and_eval : string -> float
 
 type data =
@@ -180,11 +179,13 @@ module Channel_layout : sig
       [Not_found] if not found. *)
   val get_default : int -> t
 
-  (** Return a native channel layout mask, suitable for filters channel_layout. *)
+  (** Return a native channel layout mask, suitable for filters channel_layout.
+  *)
   val get_mask : t -> int64 option
 
   (** Deprecated *)
   val get_native_id : t -> int64 option
+  [@@@caml.alert deprecated "Use get_mask instead."]
 end
 
 (** Formats for audio samples. *)
