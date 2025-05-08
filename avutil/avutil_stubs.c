@@ -340,26 +340,13 @@ static struct custom_operations channel_layout_ops = {
     custom_compare_default,   custom_hash_default,
     custom_serialize_default, custom_deserialize_default};
 
-AVChannelLayout *caml_avutil_alloc_custom_channel_layout(value *ret) {
-  AVChannelLayout *ch_layout;
+void value_of_channel_layout(value *ret,
+                             const AVChannelLayout *channel_layout) {
+  AVChannelLayout *ch_layout = av_mallocz(sizeof(AVChannelLayout));
   int err;
-
-  ch_layout = av_mallocz(sizeof(AVChannelLayout));
 
   if (!ch_layout)
     caml_raise_out_of_memory();
-
-  *ret =
-      caml_alloc_custom(&channel_layout_ops, sizeof(AVChannelLayout *), 0, 1);
-  AVChannelLayout_val(*ret) = ch_layout;
-
-  return ch_layout;
-}
-
-void value_of_channel_layout(value *ret,
-                             const AVChannelLayout *channel_layout) {
-  AVChannelLayout *ch_layout = caml_avutil_alloc_custom_channel_layout(ret);
-  int err;
 
   err = av_channel_layout_copy(ch_layout, channel_layout);
 
@@ -367,6 +354,10 @@ void value_of_channel_layout(value *ret,
     av_free(ch_layout);
     ocaml_avutil_raise_error(err);
   }
+
+  *ret =
+      caml_alloc_custom(&channel_layout_ops, sizeof(AVChannelLayout *), 0, 1);
+  AVChannelLayout_val(*ret) = ch_layout;
 }
 
 #define AVChannelLayoutOpaque_val(v) (*(void ***)Data_custom_val(v))
@@ -465,10 +456,11 @@ ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout) {
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels) {
   CAMLparam0();
   CAMLlocal1(_ch_layout);
-  AVChannelLayout *channel_layout =
-      caml_avutil_alloc_custom_channel_layout(&_ch_layout);
+  AVChannelLayout channel_layout;
 
-  av_channel_layout_default(channel_layout, Int_val(_nb_channels));
+  av_channel_layout_default(&channel_layout, Int_val(_nb_channels));
+
+  value_of_channel_layout(&_ch_layout, &channel_layout);
 
   CAMLreturn(_ch_layout);
 }
@@ -476,13 +468,14 @@ CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels) {
 CAMLprim value ocaml_avutil_get_channel_layout(value _name) {
   CAMLparam1(_name);
   CAMLlocal1(_ch_layout);
-  AVChannelLayout *channel_layout =
-      caml_avutil_alloc_custom_channel_layout(&_ch_layout);
+  AVChannelLayout channel_layout;
 
-  int err = av_channel_layout_from_string(channel_layout, String_val(_name));
+  int err = av_channel_layout_from_string(&channel_layout, String_val(_name));
 
   if (err)
     ocaml_avutil_raise_error(err);
+
+  value_of_channel_layout(&_ch_layout, &channel_layout);
 
   CAMLreturn(_ch_layout);
 }
@@ -1197,7 +1190,7 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
   double d;
   AVRational r;
   int w_out, h_out;
-  AVChannelLayout *channel_layout;
+  AVChannelLayout channel_layout;
   enum AVPixelFormat pf;
   enum AVSampleFormat sf;
   AVDictionary *dict = NULL;
@@ -1301,11 +1294,12 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
     break;
 
   case PVV_Channel_layout:
-    channel_layout = caml_avutil_alloc_custom_channel_layout(&ret);
     err = av_opt_get_chlayout((void *)obj, (const char *)String_val(name),
-                              search_flags, channel_layout);
+                              search_flags, &channel_layout);
     if (err < 0)
       ocaml_avutil_raise_error(err);
+
+    value_of_channel_layout(&ret, &channel_layout);
 
     CAMLreturn(ret);
     break;
@@ -1341,7 +1335,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   CAMLparam2(_cursor, _class);
   CAMLlocal5(_opt, _type, _tmp, _spec, _ch_layout);
   int unimplement_option = 0;
-  AVChannelLayout *channel_layout;
+  AVChannelLayout channel_layout;
 
   const AVClass *class;
   const struct AVOption *option;
@@ -1420,10 +1414,10 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     break;
   case AV_OPT_TYPE_CHLAYOUT:
     _type = PVV_Channel_layout;
-    channel_layout = caml_avutil_alloc_custom_channel_layout(&_ch_layout);
     if (option->default_val.str &&
-        av_channel_layout_from_string(channel_layout,
+        av_channel_layout_from_string(&channel_layout,
                                       option->default_val.str)) {
+      value_of_channel_layout(&_ch_layout, &channel_layout);
       Store_field(_tmp, 0, _ch_layout);
       Store_field(_spec, 0, _tmp);
     }

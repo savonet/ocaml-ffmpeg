@@ -3,6 +3,7 @@
 * Rename `Avutil.Channel_layout.get_native_id`
   into `Avutil.Channel_layout.get_mask` with deprecated
   backward-compatible function.
+* Fixed channel_layout allocation.
 
 1.2.4 (2025-04-16)
 ======
