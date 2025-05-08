@@ -61,8 +61,6 @@ int64_t second_fractions_of_time_format(value time_format);
 /**** Channel layout ****/
 
 #define AVChannelLayout_val(v) (*(struct AVChannelLayout **)Data_custom_val(v))
-
-AVChannelLayout *caml_avutil_alloc_custom_channel_layout(value *v);
 void value_of_channel_layout(value *v, const AVChannelLayout *);
 
 /**** Sample format ****/
