@@ -1270,10 +1270,24 @@ CAMLprim value ocaml_avcodec_get_supported_channel_layouts(value _codec) {
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
+  const AVChannelLayout *ch_layouts = NULL;
 
-  if (codec->ch_layouts) {
-    for (i = 0; codec->ch_layouts[i].nb_channels != 0; i++) {
-      value_of_channel_layout(&ch_layout, &codec->ch_layouts[i]);
+#if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(61, 13, 100)
+  ch_layouts = codec->ch_layouts;
+#else
+  int err;
+
+  err =
+      avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_CHANNEL_LAYOUT,
+                                   0, (const void **)&ch_layouts, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+#endif
+
+  if (ch_layouts) {
+    for (i = 0; ch_layouts[i].nb_channels != 0; i++) {
+      value_of_channel_layout(&ch_layout, &ch_layouts[i]);
       List_add(list, cons, ch_layout);
     }
   }
@@ -1287,10 +1301,23 @@ CAMLprim value ocaml_avcodec_get_supported_sample_formats(value _codec) {
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
+  const enum AVSampleFormat *sample_fmts = NULL;
 
-  if (codec->sample_fmts) {
-    for (i = 0; codec->sample_fmts[i] != -1; i++)
-      List_add(list, cons, Val_SampleFormat(codec->sample_fmts[i]));
+#if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(61, 13, 100)
+  sample_fmts = codec->sample_fmts;
+#else
+  int err;
+
+  err = avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_SAMPLE_FORMAT,
+                                     0, (const void **)&sample_fmts, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+#endif
+
+  if (sample_fmts) {
+    for (i = 0; sample_fmts[i] != -1; i++)
+      List_add(list, cons, Val_SampleFormat(sample_fmts[i]));
   }
 
   CAMLreturn(list);
@@ -1302,10 +1329,24 @@ CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec) {
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
+  const int *supported_samplerates = NULL;
 
-  if (codec->supported_samplerates) {
-    for (i = 0; codec->supported_samplerates[i] != 0; i++)
-      List_add(list, cons, Val_int(codec->supported_samplerates[i]));
+#if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(61, 13, 100)
+  supported_samplerates = codec->supported_samplerates;
+#else
+  int err;
+
+  err =
+      avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_SAMPLE_RATE, 0,
+                                   (const void **)&supported_samplerates, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+#endif
+
+  if (supported_samplerates) {
+    for (i = 0; supported_samplerates[i] != 0; i++)
+      List_add(list, cons, Val_int(supported_samplerates[i]));
   }
 
   CAMLreturn(list);
@@ -1384,10 +1425,24 @@ CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec) {
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
+  const AVRational *supported_framerates = NULL;
 
-  if (codec->supported_framerates) {
-    for (i = 0; codec->supported_framerates[i].num != 0; i++) {
-      value_of_rational(&codec->supported_framerates[i], &val);
+#if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(61, 13, 100)
+  supported_framerates = codec->supported_framerates;
+#else
+  int err;
+
+  err =
+      avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_FRAME_RATE, 0,
+                                   (const void **)&supported_framerates, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+#endif
+
+  if (supported_framerates) {
+    for (i = 0; supported_framerates[i].num != 0; i++) {
+      value_of_rational(&supported_framerates[i], &val);
       List_add(list, cons, val);
     }
   }
@@ -1401,10 +1456,23 @@ CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec) {
   int i;
   List_init(list);
   const AVCodec *codec = AvCodec_val(_codec);
+  const enum AVPixelFormat *pix_fmts = NULL;
 
-  if (codec->pix_fmts) {
-    for (i = 0; codec->pix_fmts[i] != -1; i++)
-      List_add(list, cons, Val_PixelFormat(codec->pix_fmts[i]));
+#if LIBAVCODEC_VERSION_INT <= AV_VERSION_INT(61, 13, 100)
+  pix_fmts = codec->pix_fmts;
+#else
+  int err;
+
+  err = avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_PIX_FORMAT, 0,
+                                     (const void **)&pix_fmts, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+#endif
+
+  if (pix_fmts) {
+    for (i = 0; pix_fmts[i] != -1; i++)
+      List_add(list, cons, Val_PixelFormat(pix_fmts[i]));
   }
 
   CAMLreturn(list);
