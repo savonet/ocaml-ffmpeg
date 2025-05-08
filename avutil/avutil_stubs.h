@@ -62,6 +62,7 @@ int64_t second_fractions_of_time_format(value time_format);
 
 #define AVChannelLayout_val(v) (*(struct AVChannelLayout **)Data_custom_val(v))
 
+/* Channel passed here is copied and uninitialized. */
 void value_of_channel_layout(value *v, const AVChannelLayout *);
 
 /**** Sample format ****/

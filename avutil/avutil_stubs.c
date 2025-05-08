@@ -350,6 +350,8 @@ void value_of_channel_layout(value *ret,
 
   err = av_channel_layout_copy(ch_layout, channel_layout);
 
+  av_channel_layout_uninit(channel_layout);
+
   if (err) {
     av_free(ch_layout);
     ocaml_avutil_raise_error(err);
