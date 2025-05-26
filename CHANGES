@@ -1,4 +1,4 @@
-1.2.5 (unreleased)
+1.2.5 (2025-05-26)
 ======
 * Rename `Avutil.Channel_layout.get_native_id`
   into `Avutil.Channel_layout.get_mask` with deprecated
