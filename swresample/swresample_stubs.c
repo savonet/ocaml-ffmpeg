@@ -323,6 +323,8 @@ static void convert_to_planar_string(swr_t *swr, int in_nb_samples,
   size_t len = ret * swr->out.bytes_per_samples;
   int i;
 
+  *out_vect = caml_alloc_tuple(swr->out.nb_channels);
+
   for (i = 0; i < swr->out.nb_channels; i++) {
     Store_field(*out_vect, i, caml_alloc_string(len));
   }
@@ -377,6 +379,8 @@ static void convert_to_planar_float_array(swr_t *swr, int in_nb_samples,
   int i, j;
   double *pcm;
 
+  *out_vect = caml_alloc_tuple(swr->out.nb_channels);
+
   for (i = 0; i < swr->out.nb_channels; i++) {
     Store_field(*out_vect, i,
                 caml_alloc(ret * Double_wosize, Double_array_tag));
@@ -423,6 +427,8 @@ static void alloc_out_planar_ba(swr_t *swr, int nb_samples, value *out_vect) {
   intnat out_size = nb_samples;
   int i;
 
+  *out_vect = caml_alloc_tuple(swr->out.nb_channels);
+
   for (i = 0; i < swr->out.nb_channels; i++) {
     Store_field(*out_vect, i,
                 caml_ba_alloc(CAML_BA_C_LAYOUT | ba_kind, 1, NULL, &out_size));
@@ -466,7 +472,7 @@ CAMLprim value ocaml_swresample_convert(value _ofs, value _len, value _swr,
            in_nb_channels, swr->in.nb_channels);
   }
 
-  out_vect = caml_alloc(swr->out.nb_channels, 0);
+  out_vect = Val_none;
 
   // acquisition of the input samples and the input number of samples per
   // channel
