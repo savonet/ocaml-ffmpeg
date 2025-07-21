@@ -100,8 +100,10 @@ void value_of_codec_parameters_copy(AVCodecParameters *src, value *pvalue) {
 
   int ret = avcodec_parameters_copy(dst, src);
 
-  if (ret < 0)
+  if (ret < 0) {
+    avcodec_parameters_free(&dst);
     ocaml_avutil_raise_error(ret);
+  }
 
   *pvalue = caml_alloc_custom(&codec_parameters_ops,
                               sizeof(AVCodecParameters *), 0, 1);
