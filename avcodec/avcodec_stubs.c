@@ -837,41 +837,11 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
   int ret = 0;
 
   AVFrame *frame = av_frame_alloc();
+  AVFrame *hw_frame = NULL;
+  AVFrame *effective_frame = frame;
 
   if (!frame) {
     caml_raise_out_of_memory();
-  }
-
-  if (ctx->codec_context->hw_frames_ctx && frame) {
-    AVFrame *hw_frame = av_frame_alloc();
-
-    if (!hw_frame) {
-      caml_raise_out_of_memory();
-    }
-
-    caml_release_runtime_system();
-    ret = av_hwframe_get_buffer(ctx->codec_context->hw_frames_ctx, hw_frame, 0);
-    caml_acquire_runtime_system();
-
-    if (ret < 0) {
-      av_frame_free(&hw_frame);
-      ocaml_avutil_raise_error(ret);
-    }
-
-    if (!hw_frame->hw_frames_ctx) {
-      caml_raise_out_of_memory();
-    }
-
-    caml_release_runtime_system();
-    ret = av_hwframe_transfer_data(hw_frame, frame, 0);
-    caml_acquire_runtime_system();
-
-    if (ret < 0) {
-      av_frame_free(&hw_frame);
-      ocaml_avutil_raise_error(ret);
-    }
-
-    frame = hw_frame;
   }
 
   caml_release_runtime_system();
@@ -884,10 +854,29 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
   }
 
   if (ret == AVERROR(EAGAIN)) {
+    av_frame_free(&frame);
     ans = Val_int(0);
   } else {
+    if (ctx->codec_context->hw_frames_ctx) {
+      hw_frame = av_frame_alloc();
+      if (!hw_frame) {
+        av_frame_free(&frame);
+        caml_raise_out_of_memory();
+      }
+
+      ret = av_hwframe_transfer_data(hw_frame, frame, 0);
+      if (ret < 0) {
+        av_frame_free(&frame);
+        av_frame_free(&hw_frame);
+        ocaml_avutil_raise_error(ret);
+      }
+
+      av_frame_free(&frame);
+      effective_frame = hw_frame;
+    }
+
     ans = caml_alloc(1, 0);
-    value_of_frame(&val_frame, frame);
+    value_of_frame(&val_frame, effective_frame);
     Store_field(ans, 0, val_frame);
   }
 
