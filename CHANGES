@@ -1,3 +1,7 @@
+1.2.6 (unreleased)
+======
+* Fix memleak in `ocaml_avcodec_receive_frame`
+
 1.2.5 (2025-05-26)
 ======
 * Rename `Avutil.Channel_layout.get_native_id`
