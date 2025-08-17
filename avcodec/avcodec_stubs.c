@@ -534,20 +534,18 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
     ocaml_avutil_raise_error(ret);
   }
 
-  if (packet->size) {
-    val_packet = value_of_ffmpeg_packet(&val_packet, packet);
+  if (!packet->size)
+    CAMLreturn(Val_none);
 
-    tuple = caml_alloc_tuple(2);
+  val_packet = value_of_ffmpeg_packet(&val_packet, packet);
 
-    Store_field(tuple, 0, val_packet);
-    Store_field(tuple, 1, Val_int(init_len - len));
+  tuple = caml_alloc_tuple(2);
 
-    ans = caml_alloc(1, 0);
-    Store_field(ans, 0, tuple);
-  } else {
-    av_packet_free(&packet);
-    ans = Val_int(0);
-  }
+  Store_field(tuple, 0, val_packet);
+  Store_field(tuple, 1, Val_int(init_len - len));
+
+  ans = caml_alloc_tuple(1);
+  Store_field(ans, 0, tuple);
 
   CAMLreturn(ans);
 }
@@ -855,30 +853,30 @@ CAMLprim value ocaml_avcodec_receive_frame(value _ctx) {
 
   if (ret == AVERROR(EAGAIN)) {
     av_frame_free(&frame);
-    ans = Val_int(0);
-  } else {
-    if (ctx->codec_context->hw_frames_ctx) {
-      hw_frame = av_frame_alloc();
-      if (!hw_frame) {
-        av_frame_free(&frame);
-        caml_raise_out_of_memory();
-      }
+    CAMLreturn(Val_none);
+  }
 
-      ret = av_hwframe_transfer_data(hw_frame, frame, 0);
-      if (ret < 0) {
-        av_frame_free(&frame);
-        av_frame_free(&hw_frame);
-        ocaml_avutil_raise_error(ret);
-      }
-
+  if (ctx->codec_context->hw_frames_ctx) {
+    hw_frame = av_frame_alloc();
+    if (!hw_frame) {
       av_frame_free(&frame);
-      effective_frame = hw_frame;
+      caml_raise_out_of_memory();
     }
 
-    ans = caml_alloc(1, 0);
-    value_of_frame(&val_frame, effective_frame);
-    Store_field(ans, 0, val_frame);
+    ret = av_hwframe_transfer_data(hw_frame, frame, 0);
+    if (ret < 0) {
+      av_frame_free(&frame);
+      av_frame_free(&hw_frame);
+      ocaml_avutil_raise_error(ret);
+    }
+
+    av_frame_free(&frame);
+    effective_frame = hw_frame;
   }
+
+  ans = caml_alloc_tuple(1);
+  value_of_frame(&val_frame, effective_frame);
+  Store_field(ans, 0, val_frame);
 
   CAMLreturn(ans);
 }
@@ -953,27 +951,30 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
   codec_context_t *ctx = CodecContext_val(_ctx);
   int ret = 0;
 
-  AVPacket *packet = av_packet_alloc();
+  AVPacket *decoded_packet;
+  AVPacket *packet;
+
+  caml_release_runtime_system();
+  ret = avcodec_receive_packet(ctx->codec_context, decoded_packet);
+  caml_acquire_runtime_system();
+
+  if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+    CAMLreturn(Val_none);
+
+  if (ret < 0) {
+    ocaml_avutil_raise_error(ret);
+  }
+
+  packet = av_packet_clone(decoded_packet);
+  av_packet_unref(decoded_packet);
 
   if (!packet)
     caml_raise_out_of_memory();
 
-  caml_release_runtime_system();
-  ret = avcodec_receive_packet(ctx->codec_context, packet);
-  caml_acquire_runtime_system();
+  ans = caml_alloc_tuple(1);
+  val_packet = value_of_ffmpeg_packet(&val_packet, packet);
+  Store_field(ans, 0, val_packet);
 
-  if (ret < 0) {
-    av_packet_free(&packet);
-
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-      ans = Val_int(0);
-    else
-      ocaml_avutil_raise_error(ret);
-  } else {
-    ans = caml_alloc(1, 0);
-    val_packet = value_of_ffmpeg_packet(&val_packet, packet);
-    Store_field(ans, 0, val_packet);
-  }
   CAMLreturn(ans);
 }
 
@@ -1224,7 +1225,7 @@ CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
 
   cons1 = Val_int(0);
   do {
-    ret = caml_alloc(2, 0);
+    ret = caml_alloc_tuple(2);
     Store_field(ret, 1, cons1);
 
     tmp1 = caml_alloc_tuple(3);
@@ -1234,7 +1235,7 @@ CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
     cons2 = Val_int(0);
     for (n = 0; n < AV_CODEC_HW_CONFIG_METHOD_T_TAB_LEN; n++) {
       if (config->methods & AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][1]) {
-        tmp2 = caml_alloc(2, 0);
+        tmp2 = caml_alloc_tuple(2);
         Store_field(tmp2, 0, AV_CODEC_HW_CONFIG_METHOD_T_TAB[n][0]);
         Store_field(tmp2, 1, cons2);
         cons2 = tmp2;
