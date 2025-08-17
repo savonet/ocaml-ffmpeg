@@ -1039,7 +1039,7 @@ static int read_packet(av_t *av, AVPacket *packet) {
 
 CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   CAMLparam3(_packet, _frame, _av);
-  CAMLlocal3(ans, decoded_content, frame_value);
+  CAMLlocal4(ans, decoded_content, frame_value, val_packet);
   av_t *av = Av_val(_av);
   AVFrame *frame;
   int i, ret, err, frame_kind, skip;
@@ -1102,7 +1102,8 @@ CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
         if (Int_val(Field(Field(_packet, i), 0)) == packet->stream_index) {
           decoded_content = caml_alloc_tuple(2);
           Store_field(decoded_content, 0, Val_int(packet->stream_index));
-          Store_field(decoded_content, 1, value_of_ffmpeg_packet(packet));
+          Store_field(decoded_content, 1,
+                      value_of_ffmpeg_packet(&val_packet, packet));
 
           ans = caml_alloc_tuple(2);
 

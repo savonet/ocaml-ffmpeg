@@ -121,9 +121,7 @@ static struct custom_operations packet_ops = {
     "ocaml_packet",      finalize_packet,          custom_compare_default,
     custom_hash_default, custom_serialize_default, custom_deserialize_default};
 
-value value_of_ffmpeg_packet(AVPacket *packet) {
-  value ret;
-
+value value_of_ffmpeg_packet(value *ret, AVPacket *packet) {
   if (!packet)
     Fail("Empty packet");
 
@@ -132,14 +130,14 @@ value value_of_ffmpeg_packet(AVPacket *packet) {
   if (packet->buf)
     size = packet->buf->size;
 
-  ret = caml_alloc_custom_mem(&packet_ops, sizeof(AVPacket *), size);
-  Packet_val(ret) = packet;
-
-  return ret;
+  *ret = caml_alloc_custom_mem(&packet_ops, sizeof(AVPacket *), size);
+  Packet_val(*ret) = packet;
+  return *ret;
 }
 
 CAMLprim value ocaml_avcodec_create_packet(value _data) {
   CAMLparam1(_data);
+  CAMLlocal1(ret);
   AVPacket *packet;
   int len = caml_string_length(_data);
 
@@ -155,7 +153,7 @@ CAMLprim value ocaml_avcodec_create_packet(value _data) {
 
   memcpy(packet->data, String_val(_data), len);
 
-  CAMLreturn(value_of_ffmpeg_packet(packet));
+  CAMLreturn(value_of_ffmpeg_packet(&ret, packet));
 }
 
 CAMLprim value ocaml_avcodec_packet_content(value _packet) {
@@ -537,7 +535,7 @@ CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
   }
 
   if (packet->size) {
-    val_packet = value_of_ffmpeg_packet(packet);
+    val_packet = value_of_ffmpeg_packet(&val_packet, packet);
 
     tuple = caml_alloc_tuple(2);
 
@@ -973,7 +971,7 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
       ocaml_avutil_raise_error(ret);
   } else {
     ans = caml_alloc(1, 0);
-    val_packet = value_of_ffmpeg_packet(packet);
+    val_packet = value_of_ffmpeg_packet(&val_packet, packet);
     Store_field(ans, 0, val_packet);
   }
   CAMLreturn(ans);
@@ -1888,6 +1886,7 @@ CAMLprim value ocaml_avcodec_bsf_send_eof(value _filter) {
 
 CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
   CAMLparam1(_filter);
+  CAMLlocal1(ans);
   int ret;
   AVPacket *packet;
 
@@ -1906,5 +1905,5 @@ CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
     ocaml_avutil_raise_error(ret);
   }
 
-  CAMLreturn(value_of_ffmpeg_packet(packet));
+  CAMLreturn(value_of_ffmpeg_packet(&ans, packet));
 }
