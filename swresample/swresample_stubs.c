@@ -237,7 +237,6 @@ static int get_in_samples_planar_ba(swr_t *swr, value *in_vector, int offset) {
 }
 
 static void alloc_out_frame(swr_t *swr, int nb_samples, value *out_vect) {
-  CAMLparam0();
   int ret;
 
   AVFrame *frame = av_frame_alloc();
