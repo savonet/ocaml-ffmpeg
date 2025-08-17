@@ -46,12 +46,6 @@ let all_codecs =
   in
   f [] None
 
-external get_input_buffer_padding_size : unit -> int
-  = "ocaml_avcodec_get_input_buffer_padding_size"
-
-let input_buffer_padding_size = get_input_buffer_padding_size ()
-let empty_data = create_data 0
-
 external name : _ codec -> string = "ocaml_avcodec_name"
 
 type capability = Codec_capabilities.t
@@ -201,67 +195,6 @@ module Packet = struct
     = "ocaml_avcodec_set_packet_position"
 
   external to_bytes : 'a t -> bytes = "ocaml_avcodec_packet_to_bytes"
-
-  type 'a parser_t
-
-  type 'a parser = {
-    mutable buf : data;
-    mutable remainder : data;
-    parser : 'a parser_t;
-  }
-
-  (* This is an internal function, which receives any type of AVCodec in the C code. *)
-  external create_parser : 'a params option -> 'b -> 'a parser_t
-    = "ocaml_avcodec_create_parser"
-
-  let create_parser ?params codec =
-    {
-      buf = empty_data;
-      remainder = empty_data;
-      parser = create_parser params codec;
-    }
-
-  external parse_packet :
-    'a parser_t -> data -> int -> int -> ('m t * int) option
-    = "ocaml_avcodec_parse_packet"
-
-  let rec buf_loop ctx f buf ofs len =
-    match parse_packet ctx.parser buf ofs len with
-      | Some (pkt, l) ->
-          f pkt;
-          buf_loop ctx f buf (ofs + l) (len - l)
-      | None -> ofs
-
-  let parse_data ctx f data =
-    let remainder_len = Ba.dim ctx.remainder in
-    let data_len = Ba.dim data in
-    let actual_len = remainder_len + data_len in
-    let needed_len = actual_len + input_buffer_padding_size in
-    let buf_len = Ba.dim ctx.buf in
-
-    let buf =
-      if needed_len > buf_len then create_data needed_len else ctx.buf
-    in
-
-    if remainder_len > 0 then Ba.blit ctx.remainder (Ba.sub buf 0 remainder_len);
-
-    Ba.blit data (Ba.sub buf remainder_len data_len);
-
-    if needed_len <> buf_len then
-      Ba.fill (Ba.sub buf actual_len input_buffer_padding_size) 0;
-
-    let parsed_len = buf_loop ctx f buf 0 actual_len in
-
-    ctx.buf <- buf;
-    ctx.remainder <- Ba.sub buf parsed_len (actual_len - parsed_len)
-
-  let parse_bytes ctx f bytes len =
-    let data = create_data len in
-
-    for i = 0 to len - 1 do
-      data.{i} <- int_of_char (Bytes.get bytes i)
-    done;
-    parse_data ctx f data
 end
 
 (* These functions receive AVCodecParameters and AVCodec on the C side. *)
@@ -379,7 +312,6 @@ module Audio = struct
   external get_sample_rate : audio params -> int
     = "ocaml_avcodec_parameters_get_sample_rate"
 
-  let create_parser = Packet.create_parser
   let create_decoder = create_decoder
 
   external sample_format : audio decoder -> Sample_format.t
@@ -510,7 +442,6 @@ module Video = struct
   external get_bit_rate : video params -> int
     = "ocaml_avcodec_parameters_get_bit_rate"
 
-  let create_parser = Packet.create_parser
   let create_decoder = create_decoder
 
   type hardware_context =

@@ -35,10 +35,6 @@ CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
   return Val_int(AV_CODEC_FLAG_QSCALE);
 }
 
-CAMLprim value ocaml_avcodec_get_input_buffer_padding_size(value unit) {
-  return Val_int(AV_INPUT_BUFFER_PADDING_SIZE);
-}
-
 CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
   return Val_int(SubtitleCodecID_val(_codec_id));
 }
@@ -52,9 +48,8 @@ static AVCodecContext *create_AVCodecContext(AVCodecParameters *params,
 
   codec_context = avcodec_alloc_context3(codec);
 
-  if (!codec_context) {
+  if (!codec_context)
     caml_raise_out_of_memory();
-  }
 
   if (params)
     ret = avcodec_parameters_to_context(codec_context, params);
@@ -437,119 +432,6 @@ CAMLprim value ocaml_avcodec_packet_to_bytes(value _packet) {
   CAMLreturn(ans);
 }
 
-/***** AVCodecParserContext *****/
-
-typedef struct {
-  AVCodecParserContext *context;
-  AVCodecContext *codec_context;
-} parser_t;
-
-#define Parser_val(v) (*(parser_t **)Data_custom_val(v))
-
-static void free_parser(parser_t *parser) {
-  if (!parser)
-    return;
-
-  if (parser->context) {
-    caml_release_runtime_system();
-    av_parser_close(parser->context);
-    caml_acquire_runtime_system();
-  }
-
-  if (parser->codec_context)
-    avcodec_free_context(&parser->codec_context);
-
-  av_free(parser);
-}
-
-static void finalize_parser(value v) { free_parser(Parser_val(v)); }
-
-static struct custom_operations parser_ops = {
-    "ocaml_avcodec_parser",   finalize_parser,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
-
-static parser_t *create_parser(AVCodecParameters *params,
-                               const AVCodec *codec) {
-  parser_t *parser = (parser_t *)av_mallocz(sizeof(parser_t));
-  if (!parser)
-    caml_raise_out_of_memory();
-
-  caml_release_runtime_system();
-  parser->context = av_parser_init(codec->id);
-  caml_acquire_runtime_system();
-
-  if (!parser->context) {
-    free_parser(parser);
-    caml_raise_out_of_memory();
-  }
-
-  parser->codec_context = create_AVCodecContext(NULL, codec);
-
-  return parser;
-}
-
-CAMLprim value ocaml_avcodec_create_parser(value _params, value _codec) {
-  CAMLparam2(_params, _codec);
-  CAMLlocal1(ans);
-  const AVCodec *codec = AvCodec_val(_codec);
-  AVCodecParameters *params = NULL;
-
-  if (_params != Val_none)
-    params = CodecParameters_val(Field(_params, 0));
-
-  parser_t *parser = create_parser(params, codec);
-
-  ans = caml_alloc_custom(&parser_ops, sizeof(parser_t *), 0, 1);
-  Parser_val(ans) = parser;
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_avcodec_parse_packet(value _parser, value _data,
-                                          value _ofs, value _len) {
-  CAMLparam2(_parser, _data);
-  CAMLlocal3(val_packet, tuple, ans);
-  parser_t *parser = Parser_val(_parser);
-  uint8_t *data = Caml_ba_data_val(_data) + Int_val(_ofs);
-  size_t init_len = Int_val(_len);
-  size_t len = init_len;
-  int ret = 0;
-
-  AVPacket *packet = av_packet_alloc();
-
-  if (!packet)
-    caml_raise_out_of_memory();
-
-  do {
-    ret = av_parser_parse2(parser->context, parser->codec_context,
-                           &packet->data, &packet->size, data, len,
-                           AV_NOPTS_VALUE, AV_NOPTS_VALUE, 0);
-    data += ret;
-    len -= ret;
-  } while (packet->size == 0 && ret > 0);
-
-  if (ret < 0) {
-    av_packet_free(&packet);
-    ocaml_avutil_raise_error(ret);
-  }
-
-  if (!packet->size)
-    CAMLreturn(Val_none);
-
-  val_packet = value_of_ffmpeg_packet(&val_packet, packet);
-
-  tuple = caml_alloc_tuple(2);
-
-  Store_field(tuple, 0, val_packet);
-  Store_field(tuple, 1, Val_int(init_len - len));
-
-  ans = caml_alloc_tuple(1);
-  Store_field(ans, 0, tuple);
-
-  CAMLreturn(ans);
-}
-
 /***** codec_context_t *****/
 
 typedef struct {
@@ -661,8 +543,10 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   }
 
   codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
-  if (!ctx)
+  if (!ctx) {
+    av_dict_free(&options);
     caml_raise_out_of_memory();
+  }
 
   ans = caml_alloc_custom(&codec_context_ops, sizeof(codec_context_t *), 0, 1);
   CodecContext_val(ans) = ctx;
@@ -672,6 +556,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   ctx->codec_context = avcodec_alloc_context3(codec);
 
   if (!ctx->codec_context) {
+    av_dict_free(&options);
     caml_raise_out_of_memory();
   }
 
@@ -679,16 +564,20 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
 
   err = av_channel_layout_copy(&ctx->codec_context->ch_layout,
                                AVChannelLayout_val(_channel_layout));
-  if (err < 0)
+  if (err < 0) {
+    av_dict_free(&options);
     ocaml_avutil_raise_error(err);
+  }
 
   // Open the codec
   caml_release_runtime_system();
   err = avcodec_open2(ctx->codec_context, ctx->codec, &options);
   caml_acquire_runtime_system();
 
-  if (err < 0)
+  if (err < 0) {
+    av_dict_free(&options);
     ocaml_avutil_raise_error(err);
+  }
 
   // Return unused keys
   count = av_dict_count(options);
@@ -950,26 +839,20 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
   CAMLlocal2(val_packet, ans);
   codec_context_t *ctx = CodecContext_val(_ctx);
   int ret = 0;
+  AVPacket *packet = av_packet_alloc();
 
-  AVPacket *decoded_packet;
-  AVPacket *packet;
+  if (!packet)
+    caml_raise_out_of_memory();
 
   caml_release_runtime_system();
-  ret = avcodec_receive_packet(ctx->codec_context, decoded_packet);
+  ret = avcodec_receive_packet(ctx->codec_context, packet);
   caml_acquire_runtime_system();
 
   if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
     CAMLreturn(Val_none);
 
-  if (ret < 0) {
+  if (ret < 0)
     ocaml_avutil_raise_error(ret);
-  }
-
-  packet = av_packet_clone(decoded_packet);
-  av_packet_unref(decoded_packet);
-
-  if (!packet)
-    caml_raise_out_of_memory();
 
   ans = caml_alloc_tuple(1);
   val_packet = value_of_ffmpeg_packet(&val_packet, packet);

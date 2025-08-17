@@ -24,11 +24,6 @@
  (libraries ffmpeg-avdevice))
 
 (executable
- (name decode_audio)
- (modules decode_audio)
- (libraries ffmpeg-av ffmpeg-avfilter))
-
-(executable
  (name decode_stream)
  (modules decode_stream)
  (libraries ffmpeg-av ffmpeg-avfilter))

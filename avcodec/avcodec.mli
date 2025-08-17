@@ -60,9 +60,6 @@ module Packet : sig
   (** Packet type *)
   type 'media t
 
-  (** Parser type *)
-  type 'media parser
-
   (** Packet flags *)
   type flag = [ `Keyframe | `Corrupt | `Discard | `Trusted | `Disposable ]
 
@@ -127,16 +124,6 @@ module Packet : sig
 
   (** Return a fresh bytes array containing a copy of packet datas. *)
   val to_bytes : 'media t -> bytes
-
-  (** [Avcodec.Packet.parse_data parser f data] applies function [f] to the
-      parsed packets frome the [data] array according to the [parser]
-      configuration.
-
-      Raise Error if the parsing failed. *)
-  val parse_data : 'media parser -> ('media t -> unit) -> data -> unit
-
-  (** Same as {!Avcodec.Packet.parse_data} with bytes array. *)
-  val parse_bytes : 'media parser -> ('media t -> unit) -> bytes -> int -> unit
 
   (** Advanced users: create a packet with the given data. *)
   val create : string -> 'media t
@@ -211,11 +198,6 @@ module Audio : sig
       rate of the [codec] codec or the [default] value if the codec has no
       sample rate. *)
   val find_best_sample_rate : _ t -> int -> int
-
-  (** [Avcodec.Audio.create_parser codec] create an audio packet parser.
-
-      Raise Error if the parser creation failed. *)
-  val create_parser : ?params:audio params -> decode t -> audio Packet.parser
 
   (** [Avcodec.Audio.create_decoder ~params codec] create an audio decoder.
 
@@ -331,11 +313,6 @@ module Video : sig
       pixel format. *)
   val find_best_pixel_format :
     ?hwaccel:bool -> _ t -> Avutil.Pixel_format.t -> Avutil.Pixel_format.t
-
-  (** [Avcodec.Video.create_parser codec] create an video packet parser.
-
-      Raise Error if the parser creation failed. *)
-  val create_parser : ?params:video params -> decode t -> video Packet.parser
 
   (** [Avcodec.Video.create_decoder codec] create a video decoder.
 
