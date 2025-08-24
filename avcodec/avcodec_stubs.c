@@ -848,11 +848,14 @@ CAMLprim value ocaml_avcodec_receive_packet(value _ctx) {
   ret = avcodec_receive_packet(ctx->codec_context, packet);
   caml_acquire_runtime_system();
 
-  if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
-    CAMLreturn(Val_none);
+  if (ret < 0) {
+    av_packet_free(&packet);
 
-  if (ret < 0)
+    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
+      CAMLreturn(Val_none);
+
     ocaml_avutil_raise_error(ret);
+  }
 
   ans = caml_alloc_tuple(1);
   val_packet = value_of_ffmpeg_packet(&val_packet, packet);
