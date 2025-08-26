@@ -1,4 +1,4 @@
-(lang dune 3.6)
+(lang dune 3.8)
 
 (name ffmpeg)
 (version 1.2.6)
@@ -8,6 +8,7 @@
 (maintainers "Romain Beauxis <toots@rastageeks.org>")
 
 (generate_opam_files true)
+(opam_file_location inside_opam_directory)
 (use_standard_c_and_cxx_flags false)
 
 (package
