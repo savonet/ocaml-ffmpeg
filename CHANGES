@@ -1,6 +1,7 @@
-1.2.6 (unreleased)
+1.2.6 (2025-08-26)
 ======
-* Fix memleak in `ocaml_avcodec_receive_frame`
+* Fix memleak in `ocaml_avcodec_receive_frame` and
+  `ocaml_avcodec_receive_packet`
 
 1.2.5 (2025-05-26)
 ======
