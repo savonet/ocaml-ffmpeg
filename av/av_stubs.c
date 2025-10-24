@@ -30,6 +30,11 @@
 #include "avcodec_stubs.h"
 #include "avutil_stubs.h"
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 11, 100)
+#define AV_PROFILE_UNKNOWN FF_PROFILE_UNKNOWN
+#define AV_LEVEL_UNKNOWN FF_LEVEL_UNKNOWN
+#endif
+
 /**** Init ****/
 
 value ocaml_av_init(value unit) {
@@ -2402,12 +2407,12 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
     snprintf(attr, sizeof(attr), "fLaC");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_HEVC) {
     uint8_t *data = stream->codecpar->extradata;
-    int profile = FF_PROFILE_UNKNOWN;
-    int level = FF_LEVEL_UNKNOWN;
+    int profile = AV_PROFILE_UNKNOWN;
+    int level = AV_LEVEL_UNKNOWN;
 
-    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
+    if (stream->codecpar->profile != AV_PROFILE_UNKNOWN)
       profile = stream->codecpar->profile;
-    if (stream->codecpar->level != FF_LEVEL_UNKNOWN)
+    if (stream->codecpar->level != AV_LEVEL_UNKNOWN)
       level = stream->codecpar->level;
 
     /* check the boundary of data which from current position is small than
@@ -2445,7 +2450,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
       data++;
     }
     if (stream->codecpar->codec_tag == MKTAG('h', 'v', 'c', '1') &&
-        profile != FF_PROFILE_UNKNOWN && level != FF_LEVEL_UNKNOWN) {
+        profile != AV_PROFILE_UNKNOWN && level != AV_LEVEL_UNKNOWN) {
       snprintf(attr, sizeof(attr), "%s.%d.4.L%d.B01",
                av_fourcc2str(stream->codecpar->codec_tag), profile, level);
     } else
@@ -2456,7 +2461,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_MP3) {
     snprintf(attr, sizeof(attr), "mp4a.40.34");
   } else if (stream->codecpar->codec_id == AV_CODEC_ID_AAC) {
-    if (stream->codecpar->profile != FF_PROFILE_UNKNOWN)
+    if (stream->codecpar->profile != AV_PROFILE_UNKNOWN)
       snprintf(attr, sizeof(attr), "mp4a.40.%d", stream->codecpar->profile + 1);
     else
       goto fail;

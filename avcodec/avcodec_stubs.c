@@ -20,6 +20,10 @@
 #include <libavcodec/bsf.h>
 #include <libavutil/replaygain.h>
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(62, 11, 100)
+#define AV_PROFILE_UNKNOWN FF_PROFILE_UNKNOWN
+#endif
+
 #ifndef AV_PKT_FLAG_DISPOSABLE
 #define AV_PKT_FLAG_DISPOSABLE 0x0010
 #endif
@@ -1058,7 +1062,7 @@ CAMLprim value ocaml_avcodec_descriptor(enum AVCodecID id) {
 
   len = 0;
   profile = (struct AVProfile *)descriptor->profiles;
-  while (profile && profile->profile != FF_PROFILE_UNKNOWN) {
+  while (profile && profile->profile != AV_PROFILE_UNKNOWN) {
     len++;
     profile++;
   }
@@ -1066,7 +1070,7 @@ CAMLprim value ocaml_avcodec_descriptor(enum AVCodecID id) {
   tmp = caml_alloc_tuple(len);
   len = 0;
   profile = (struct AVProfile *)descriptor->profiles;
-  while (profile && profile->profile != FF_PROFILE_UNKNOWN) {
+  while (profile && profile->profile != AV_PROFILE_UNKNOWN) {
     _profile = caml_alloc_tuple(2);
     Store_field(_profile, 0, Val_int(profile->profile));
     Store_field(_profile, 1, caml_copy_string(profile->name));
