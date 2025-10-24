@@ -725,9 +725,10 @@ CAMLprim value ocaml_swresample_create(
     value _in_vector_kind, value _in_channel_layout, value _in_sample_fmt,
     value _in_sample_rate, value _out_vect_kind, value _out_channel_layout,
     value _out_sample_fmt, value _out_sample_rate, value _options) {
-  CAMLparam5(_in_channel_layout, _in_sample_fmt, _out_channel_layout,
-             _out_sample_fmt, _options);
+  CAMLparam5(_in_vector_kind, _in_channel_layout, _in_sample_fmt, _in_sample_rate, _out_vect_kind);
+  CAMLxparam4(_out_channel_layout, _out_sample_fmt, _out_sample_rate, _options);
   CAMLlocal1(ans);
+  CAMLlocalN(options, NB_OPTIONS_TYPES + 1);
 
   vector_kind in_vector_kind = Int_val(_in_vector_kind);
   AVChannelLayout *in_channel_layout = AVChannelLayout_val(_in_channel_layout);
@@ -738,7 +739,6 @@ CAMLprim value ocaml_swresample_create(
       AVChannelLayout_val(_out_channel_layout);
   enum AVSampleFormat out_sample_fmt = SampleFormat_val(_out_sample_fmt);
   int out_sample_rate = Int_val(_out_sample_rate);
-  value options[NB_OPTIONS_TYPES + 1];
   int i;
 
   for (i = 0; i < Wosize_val(_options) && i < NB_OPTIONS_TYPES; i++)

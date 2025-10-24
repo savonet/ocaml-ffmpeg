@@ -211,11 +211,10 @@ CAMLprim value ocaml_avcodec_packet_add_side_data(value _packet,
 
 CAMLprim value ocaml_avcodec_packet_side_data(value _packet) {
   CAMLparam1(_packet);
-  CAMLlocal3(ret, tmp, tmp2);
+  CAMLlocal4(ret, tmp, tmp2, type);
   AVPacket *packet = Packet_val(_packet);
   int len = 0;
   int i;
-  value type;
   AVReplayGain *replay_gain;
 
   for (i = 0; i < packet->side_data_elems; i++) {
@@ -304,7 +303,7 @@ CAMLprim value ocaml_avcodec_get_packet_stream_index(value _packet) {
 
 CAMLprim value ocaml_avcodec_set_packet_stream_index(value _packet,
                                                      value _index) {
-  CAMLparam1(_packet);
+  CAMLparam2(_packet, _index);
   Packet_val(_packet)->stream_index = Int_val(_index);
   CAMLreturn(Val_unit);
 }
@@ -522,7 +521,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
                                                   value _codec,
                                                   value _channel_layout,
                                                   value _opts) {
-  CAMLparam2(_opts, _codec);
+  CAMLparam4(_sample_fmt, _codec, _channel_layout, _opts);
   CAMLlocal3(ret, ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -602,7 +601,8 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
                                                   value _frame_context,
                                                   value _pix_fmt, value _codec,
                                                   value _opts) {
-  CAMLparam3(_device_context, _frame_context, _codec);
+  CAMLparam4(_device_context, _frame_context, _pix_fmt, _codec);
+  CAMLxparam1(_opts);
   CAMLlocal3(ret, ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1414,7 +1414,8 @@ CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id,
                                                    value _sample_aspect_ratio,
                                                    value _pixel_format,
                                                    value _bit_rate, value _cp) {
-  CAMLparam4(_codec_id, _sample_aspect_ratio, _pixel_format, _cp);
+  CAMLparam5(_codec_id, _width, _height, _sample_aspect_ratio, _pixel_format);
+  CAMLxparam2(_bit_rate, _cp);
   CAMLlocal1(ans);
 
   value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
@@ -1525,7 +1526,7 @@ CAMLprim value ocaml_avcodec_int_of_flag(value _flag) {
 }
 
 CAMLprim value ocaml_avcodec_get_next_codec(value h) {
-  CAMLparam0();
+  CAMLparam1(h);
   CAMLlocal5(_tmp, _id, _h, _ans, _ret);
   void *s;
   const AVCodec *codec;
@@ -1582,7 +1583,7 @@ CAMLprim value ocaml_avcodec_get_next_codec(value h) {
 }
 
 CAMLprim value ocaml_avcodec_get_name(value codec) {
-  CAMLparam0();
+  CAMLparam1(codec);
   CAMLreturn(caml_copy_string(AvCodec_val(codec)->name));
 }
 

@@ -812,7 +812,7 @@ CAMLprim value ocaml_av_input_obj(value _av) {
 }
 
 CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index) {
-  CAMLparam1(_av);
+  CAMLparam2(_av, _stream_index);
   CAMLlocal3(pair, cons, list);
   av_t *av = Av_val(_av);
   int index = Int_val(_stream_index);
@@ -838,7 +838,7 @@ CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index) {
 
 CAMLprim value ocaml_av_get_duration(value _av, value _stream_index,
                                      value _time_format) {
-  CAMLparam2(_av, _time_format);
+  CAMLparam3(_av, _stream_index, _time_format);
   CAMLlocal1(ans);
   av_t *av = Av_val(_av);
   int index = Int_val(_stream_index);
@@ -1039,11 +1039,10 @@ static int read_packet(av_t *av, AVPacket *packet) {
 
 CAMLprim value ocaml_av_read_input(value _packet, value _frame, value _av) {
   CAMLparam3(_packet, _frame, _av);
-  CAMLlocal4(ans, decoded_content, frame_value, val_packet);
+  CAMLlocal5(ans, decoded_content, frame_value, val_packet, _dec);
   av_t *av = Av_val(_av);
   AVFrame *frame;
   int i, ret, err, frame_kind, skip;
-  value _dec;
   const AVCodec *dec = NULL;
 
   if (!av->streams && !allocate_input_context(av))
@@ -1483,7 +1482,7 @@ static av_t *open_output(avioformat_const AVOutputFormat *format,
 CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
                                     value _filename, value _interleaved,
                                     value _opts) {
-  CAMLparam3(_interrupt, _filename, _opts);
+  CAMLparam4(_interrupt, _filename, _interleaved, _opts);
   CAMLlocal3(ans, ret, unused);
   char *filename =
       av_strndup(String_val(_filename), caml_string_length(_filename));
@@ -1536,7 +1535,7 @@ CAMLprim value ocaml_av_open_output(value _interrupt, value _format,
 
 CAMLprim value ocaml_av_open_output_format(value _format, value _interleaved,
                                            value _opts) {
-  CAMLparam2(_format, _opts);
+  CAMLparam3(_format, _interleaved, _opts);
   CAMLlocal3(ans, ret, unused);
   AVDictionary *options = NULL;
   char *key, *val;
@@ -1585,7 +1584,7 @@ CAMLprim value ocaml_av_open_output_format(value _format, value _interleaved,
 
 CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
                                            value _interleaved, value _opts) {
-  CAMLparam3(_format, _avio, _opts);
+  CAMLparam4(_format, _avio, _interleaved, _opts);
   CAMLlocal3(ans, ret, unused);
   avioformat_const AVOutputFormat *format = OutputFormat_val(_format);
   avio_t *avio = Avio_val(_avio);
@@ -1644,7 +1643,7 @@ CAMLprim value ocaml_av_header_written(value _av) {
 
 CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index,
                                      value _tags) {
-  CAMLparam2(_av, _tags);
+  CAMLparam3(_av, _stream_index, _tags);
   CAMLlocal1(pair);
   av_t *av = Av_val(_av);
   int index = Int_val(_stream_index);
@@ -1789,7 +1788,7 @@ CAMLprim value ocaml_av_new_uninitialized_stream_copy(value _av) {
 
 CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
                                                value _params) {
-  CAMLparam2(_av, _params);
+  CAMLparam3(_av, _stream_index, _params);
   av_t *av = Av_val(_av);
 
   AVStream *avstream = av->format_context->streams[Int_val(_stream_index)];
@@ -1807,7 +1806,7 @@ CAMLprim value ocaml_av_initialize_stream_copy(value _av, value _stream_index,
 CAMLprim value ocaml_av_new_audio_stream(value _av, value _sample_fmt,
                                          value _codec, value _channel_layout,
                                          value _opts) {
-  CAMLparam2(_av, _opts);
+  CAMLparam5(_av, _sample_fmt, _codec, _channel_layout, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1864,7 +1863,7 @@ static stream_t *new_video_stream(AVBufferRef *device_ctx,
 CAMLprim value ocaml_av_new_video_stream(value _device_context,
                                          value _frame_context, value _av,
                                          value _codec, value _opts) {
-  CAMLparam4(_device_context, _frame_context, _av, _opts);
+  CAMLparam5(_device_context, _frame_context, _av, _codec, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1932,7 +1931,7 @@ static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
 
 CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
                                             value _opts) {
-  CAMLparam2(_av, _opts);
+  CAMLparam3(_av, _codec, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
 
@@ -1975,7 +1974,7 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
 
 CAMLprim value ocaml_av_new_data_stream(value _av, value _codec_id,
                                         value _time_base) {
-  CAMLparam2(_av, _time_base);
+  CAMLparam3(_av, _codec_id, _time_base);
   CAMLlocal2(ans, unused);
   const enum AVCodecID codec_id = UnknownCodecID_val(_codec_id);
   av_t *av = Av_val(_av);
