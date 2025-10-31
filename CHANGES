@@ -1,3 +1,9 @@
+1.2.7 (2025-10-31)
+======
+* Add ffmpeg 8.0 support
+* Fix CAMLparam definitions in C stubs (avoids potential heap 
+corruption)
+
 1.2.6 (2025-08-26)
 ======
 * Fix memleak in `ocaml_avcodec_receive_frame` and
