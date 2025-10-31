@@ -4,6 +4,11 @@
 #include <caml/mlvalues.h>
 #include <libavcodec/avcodec.h>
 
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(60, 26, 100)
+#define AV_PROFILE_UNKNOWN FF_PROFILE_UNKNOWN
+#define AV_LEVEL_UNKNOWN FF_LEVEL_UNKNOWN
+#endif
+
 /***** AVCodec *****/
 
 #define AvCodec_val(v) (*(const AVCodec **)Data_abstract_val(v))
