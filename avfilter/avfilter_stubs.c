@@ -246,7 +246,7 @@ static void append_avfilter_in_out(AVFilterInOut **filter, char *name,
 
 CAMLprim value ocaml_avfilter_process_commands(value _flags, value _cmd,
                                                value _arg, value _filter) {
-  CAMLparam3(_cmd, _arg, _filter);
+  CAMLparam4(_flags, _cmd, _arg, _filter);
   char buf[4096] = {0};
   char *cmd;
   char *arg;
@@ -339,7 +339,7 @@ CAMLprim value ocaml_avfilter_parse(value _inputs, value _outputs,
 }
 
 CAMLprim value ocaml_avfilter_append_context(value _filter, value _ctx) {
-  CAMLparam1(_filter);
+  CAMLparam2(_filter, _ctx);
   CAMLlocal1(ret);
   int n = Wosize_val(_filter);
   int i;
@@ -363,7 +363,7 @@ CAMLprim value ocaml_avfilter_get_content(value _filter) {
 
 CAMLprim value ocaml_avfilter_link(value _src, value _srcpad, value _dst,
                                    value _dstpad) {
-  CAMLparam0();
+  CAMLparam4(_src, _srcpad, _dst, _dstpad);
   AVFilterContext *src = AvFilterContext_val(_src);
   AVFilterContext *dst = AvFilterContext_val(_dst);
 
@@ -378,7 +378,7 @@ CAMLprim value ocaml_avfilter_link(value _src, value _srcpad, value _dst,
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_time_base(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   CAMLlocal1(ret);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
@@ -390,7 +390,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_time_base(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_frame_rate(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   CAMLlocal1(ret);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
@@ -402,7 +402,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_frame_rate(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_sample_format(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int sample_format = av_buffersink_get_format(filter_ctx);
@@ -411,7 +411,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_sample_format(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_w(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int w = av_buffersink_get_w(filter_ctx);
@@ -420,7 +420,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_w(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_h(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int h = av_buffersink_get_h(filter_ctx);
@@ -429,7 +429,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_h(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_pixel_format(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int pixel_format = av_buffersink_get_format(filter_ctx);
@@ -438,7 +438,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_pixel_format(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_pixel_aspect(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   CAMLlocal2(ans, ret);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
@@ -456,7 +456,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_pixel_aspect(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_channels(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int channels = av_buffersink_get_channels(filter_ctx);
@@ -465,7 +465,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_channels(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_channel_layout(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   CAMLlocal1(ret);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
   AVChannelLayout channel_layout;
@@ -482,7 +482,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_channel_layout(value _src) {
 }
 
 CAMLprim value ocaml_avfilter_buffersink_get_sample_rate(value _src) {
-  CAMLparam0();
+  CAMLparam1(_src);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   int sample_rate = av_buffersink_get_sample_rate(filter_ctx);
@@ -492,7 +492,7 @@ CAMLprim value ocaml_avfilter_buffersink_get_sample_rate(value _src) {
 
 CAMLprim value ocaml_avfilter_buffersink_set_frame_size(value _src,
                                                         value _size) {
-  CAMLparam0();
+  CAMLparam2(_src, _size);
   AVFilterContext *filter_ctx = AvFilterContext_val(_src);
 
   av_buffersink_set_frame_size(filter_ctx, Int_val(_size));
@@ -515,7 +515,7 @@ CAMLprim value ocaml_avfilter_config(value _graph) {
 
 CAMLprim value ocaml_avfilter_write_frame(value _config, value _filter,
                                           value _frame) {
-  CAMLparam2(_config, _frame);
+  CAMLparam3(_config, _filter, _frame);
   AVFilterContext *filter_ctx = AvFilterContext_val(_filter);
 
   caml_release_runtime_system();
@@ -529,7 +529,7 @@ CAMLprim value ocaml_avfilter_write_frame(value _config, value _filter,
 }
 
 CAMLprim value ocaml_avfilter_write_eof_frame(value _config, value _filter) {
-  CAMLparam1(_config);
+  CAMLparam2(_config, _filter);
   AVFilterContext *filter_ctx = AvFilterContext_val(_filter);
 
   caml_release_runtime_system();
@@ -543,7 +543,7 @@ CAMLprim value ocaml_avfilter_write_eof_frame(value _config, value _filter) {
 }
 
 CAMLprim value ocaml_avfilter_get_frame(value _config, value _filter) {
-  CAMLparam1(_config);
+  CAMLparam2(_config, _filter);
   CAMLlocal1(frame_value);
   AVFilterContext *filter_ctx = AvFilterContext_val(_filter);
 

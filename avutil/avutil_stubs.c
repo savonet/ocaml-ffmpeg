@@ -99,7 +99,7 @@ CAMLprim value ocaml_avutil_qp2lambda(value unit) {
 }
 
 CAMLprim value ocaml_avutil_string_of_error(value error) {
-  CAMLparam0();
+  CAMLparam1(error);
   int err;
 
   switch (error) {
@@ -223,7 +223,7 @@ int64_t second_fractions_of_time_format(value time_format) {
 
 /**** Logging ****/
 CAMLprim value ocaml_avutil_set_log_level(value level) {
-  CAMLparam0();
+  CAMLparam1(level);
   av_log_set_level(Int_val(level));
   CAMLreturn(Val_unit);
 }
@@ -454,7 +454,7 @@ ocaml_avutil_get_channel_layout_nb_channels(value _channel_layout) {
 }
 
 CAMLprim value ocaml_avutil_get_default_channel_layout(value _nb_channels) {
-  CAMLparam0();
+  CAMLparam1(_nb_channels);
   CAMLlocal1(_ch_layout);
   AVChannelLayout channel_layout;
 
@@ -547,8 +547,9 @@ CAMLprim value ocaml_avutil_get_sample_fmt_id(value _sample_fmt) {
 }
 
 CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id) {
-  CAMLparam0();
-  value ret = Val_SampleFormat(Int_val(_id));
+  CAMLparam1(_id);
+  CAMLlocal1(ret);
+  ret = Val_SampleFormat(Int_val(_id));
 
   CAMLreturn(ret);
 }
@@ -621,7 +622,7 @@ CAMLprim value ocaml_avutil_pixelformat_descriptor(value pixel) {
 }
 
 CAMLprim value ocaml_avutil_pixelformat_bits_per_pixel(value d) {
-  CAMLparam0();
+  CAMLparam1(d);
   const AVPixFmtDescriptor *pixdesc = AvPixFmtDescriptor_val(Field(d, 7));
 
   CAMLreturn(Val_int(av_get_bits_per_pixel(pixdesc)));
@@ -640,8 +641,9 @@ CAMLprim value ocaml_avutil_get_pixel_fmt_id(value _pixel_fmt) {
 }
 
 CAMLprim value ocaml_avutil_find_pixel_fmt_from_id(value _id) {
-  CAMLparam0();
-  value ret = Val_PixelFormat(Int_val(_id));
+  CAMLparam1(_id);
+  CAMLlocal1(ret);
+  ret = Val_PixelFormat(Int_val(_id));
 
   CAMLreturn(ret);
 }
@@ -861,7 +863,7 @@ CAMLprim value ocaml_avutil_frame_copy(value _src, value _dst) {
 
 CAMLprim value ocaml_avutil_video_create_frame(value _w, value _h,
                                                value _format) {
-  CAMLparam1(_format);
+  CAMLparam3(_w, _h, _format);
   CAMLlocal1(ans);
   AVFrame *frame = av_frame_alloc();
   if (!frame)
@@ -888,7 +890,7 @@ CAMLprim value ocaml_avutil_audio_create_frame(value _sample_fmt,
                                                value _channel_layout,
                                                value _samplerate,
                                                value _samples) {
-  CAMLparam2(_sample_fmt, _channel_layout);
+  CAMLparam4(_sample_fmt, _channel_layout, _samplerate, _samples);
   CAMLlocal1(ans);
   enum AVSampleFormat sample_fmt = SampleFormat_val(_sample_fmt);
   AVChannelLayout *channel_layout = AVChannelLayout_val(_channel_layout);
@@ -966,7 +968,7 @@ CAMLprim value ocaml_avutil_audio_frame_nb_samples(value _frame) {
 CAMLprim value ocaml_avutil_audio_frame_copy_samples(value _src, value _src_ofs,
                                                      value _dst, value _dst_ofs,
                                                      value _len) {
-  CAMLparam2(_src, _dst);
+  CAMLparam5(_src, _src_ofs, _dst, _dst_ofs, _len);
   AVFrame *src = Frame_val(_src);
   AVFrame *dst = Frame_val(_dst);
   int src_ofs = Int_val(_src_ofs);
@@ -1040,7 +1042,7 @@ CAMLprim value ocaml_avutil_video_frame_get_pixel_aspect(value _frame) {
 
 CAMLprim value ocaml_avutil_video_frame_get_linesize(value _frame,
                                                      value _line) {
-  CAMLparam1(_frame);
+  CAMLparam2(_frame, _line);
   AVFrame *frame = Frame_val(_frame);
   int line = Int_val(_line);
 
@@ -1183,7 +1185,7 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
 
 CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
                                     value name, value obj) {
-  CAMLparam2(name, obj);
+  CAMLparam4(_type, search_children, name, obj);
   CAMLlocal2(ret, tmp);
 
   uint8_t *str;
@@ -1596,22 +1598,22 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
 }
 
 CAMLprim value ocaml_avutil_avopt_default_int64(value _opt) {
-  CAMLparam0();
+  CAMLparam1(_opt);
   CAMLreturn(caml_copy_int64(AvOptions_val(_opt)->default_val.i64));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_double(value _opt) {
-  CAMLparam0();
+  CAMLparam1(_opt);
   CAMLreturn(caml_copy_double(AvOptions_val(_opt)->default_val.dbl));
 }
 
 CAMLprim value ocaml_avutil_avopt_default_string(value _opt) {
-  CAMLparam0();
+  CAMLparam1(_opt);
   CAMLreturn(caml_copy_string(AvOptions_val(_opt)->default_val.str));
 }
 
 CAMLprim value ocaml_avutil_av_opt_int_of_flag(value _flag) {
-  CAMLparam0();
+  CAMLparam1(_flag);
 
   switch (_flag) {
   case PVV_Encoding_param:
@@ -1668,7 +1670,7 @@ static struct custom_operations buffer_ref_ops = {
 
 CAMLprim value ocaml_avutil_create_device_context(value _device_type,
                                                   value _name, value _opts) {
-  CAMLparam2(_name, _opts);
+  CAMLparam3(_device_type, _name, _opts);
   CAMLlocal3(ret, ans, unused);
   AVBufferRef *hw_device_ctx = NULL;
   AVDictionary *options = NULL;
@@ -1735,7 +1737,7 @@ CAMLprim value ocaml_avutil_create_frame_context(value _width, value _height,
                                                  value _src_pixel_format,
                                                  value _dst_pixel_format,
                                                  value _device_ctx) {
-  CAMLparam1(_device_ctx);
+  CAMLparam5(_width, _height, _src_pixel_format, _dst_pixel_format, _device_ctx);
   CAMLlocal1(ans);
   AVBufferRef *hw_frames_ref;
   AVHWFramesContext *frames_ctx = NULL;

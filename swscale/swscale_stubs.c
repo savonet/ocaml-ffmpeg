@@ -80,7 +80,8 @@ CAMLprim value ocaml_swscale_get_context(value flags_, value src_w_,
                                          value src_h_, value src_format_,
                                          value dst_w_, value dst_h_,
                                          value dst_format_) {
-  CAMLparam1(flags_);
+  CAMLparam5(flags_, src_w_, src_h_, src_format_, dst_w_);
+  CAMLxparam2(dst_h_, dst_format_);
   CAMLlocal1(ans);
   int src_w = Int_val(src_w_);
   int src_h = Int_val(src_h_);
@@ -116,7 +117,8 @@ CAMLprim value ocaml_swscale_get_context_byte(value *argv, int argn) {
 
 CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_,
                                    value h_, value dst_, value dst_off) {
-  CAMLparam4(context_, src_, dst_, dst_off);
+  CAMLparam5(context_, src_, off_, h_, dst_);
+  CAMLxparam1(dst_off);
   CAMLlocal1(v);
   struct SwsContext *context = Context_val(context_);
   int src_planes = Wosize_val(src_);
@@ -443,7 +445,8 @@ CAMLprim value ocaml_swscale_create(value flags_, value in_vector_kind_,
                                     value out_vect_kind_, value out_width_,
                                     value out_height_,
                                     value out_pixel_format_) {
-  CAMLparam1(flags_);
+  CAMLparam5(flags_, in_vector_kind_, in_width_, in_height_, in_pixel_format_);
+  CAMLxparam4(out_vect_kind_, out_width_, out_height_, out_pixel_format_);
   CAMLlocal1(ans);
   vector_kind in_vector_kind = Int_val(in_vector_kind_);
   vector_kind out_vect_kind = Int_val(out_vect_kind_);
