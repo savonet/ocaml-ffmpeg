@@ -1354,6 +1354,28 @@ CAMLprim value ocaml_avcodec_get_supported_pixel_formats(value _codec) {
   CAMLreturn(list);
 }
 
+CAMLprim value ocaml_avcodec_get_supported_color_spaces(value _codec) {
+  CAMLparam1(_codec);
+  CAMLlocal2(list, cons);
+  int i, err;
+  List_init(list);
+  const AVCodec *codec = AvCodec_val(_codec);
+  const enum AVColorSpace *color_spaces = NULL;
+
+  err = avcodec_get_supported_config(NULL, codec, AV_CODEC_CONFIG_COLOR_SPACE,
+                                     0, (const void **)&color_spaces, NULL);
+
+  if (err < 0)
+    ocaml_avutil_raise_error(err);
+
+  if (color_spaces) {
+    for (i = 0; color_spaces[i] != -1; i++)
+      List_add(list, cons, Val_ColorSpace(color_spaces[i]));
+  }
+
+  CAMLreturn(list);
+}
+
 /**** Video codec parameters ****/
 CAMLprim value ocaml_avcodec_parameters_get_video_codec_id(value _cp) {
   CAMLparam1(_cp);
