@@ -76,8 +76,7 @@ let seek_of_int = function
   | _ -> assert false
 
 external ocaml_av_create_io :
-  read option -> write option -> _seek option -> avio
-  = "ocaml_av_create_io"
+  read option -> write option -> _seek option -> avio = "ocaml_av_create_io"
 
 external caml_av_io_close : avio -> unit = "caml_av_io_close"
 
@@ -167,8 +166,8 @@ external _get_streams : _ container -> media_type -> int list
 let get_streams container media_type =
   _get_streams container media_type
   |> List.rev_map (fun i ->
-         let s = mk_stream container i in
-         (i, s, get_codec_params s))
+      let s = mk_stream container i in
+      (i, s, get_codec_params s))
 
 let get_audio_streams container = get_streams container MT_audio
 let get_video_streams container = get_streams container MT_video

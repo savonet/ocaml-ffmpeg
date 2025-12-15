@@ -118,36 +118,33 @@ let test () =
 
   Sys.argv |> Array.to_list |> List.tl
   |> List.iter (fun url ->
-         try
-           let src = Av.open_input url in
-           let idx, is, ic = src |> Av.find_best_audio_stream in
-           let rsp =
-             Converter.from_codec ic Avutil.Channel_layout.stereo 44100
-           in
+      try
+        let src = Av.open_input url in
+        let idx, is, ic = src |> Av.find_best_audio_stream in
+        let rsp = Converter.from_codec ic Avutil.Channel_layout.stereo 44100 in
 
-           let p = try String.rindex url '/' + 1 with Not_found -> 0 in
-           let audio_output_filename =
-             String.(
-               sub url p (length url - p)
-               ^ "." ^ string_of_int idx ^ ".s16le.raw")
-           in
-           let audio_output_file = open_out_bin audio_output_filename in
+        let p = try String.rindex url '/' + 1 with Not_found -> 0 in
+        let audio_output_filename =
+          String.(
+            sub url p (length url - p) ^ "." ^ string_of_int idx ^ ".s16le.raw")
+        in
+        let audio_output_file = open_out_bin audio_output_filename in
 
-           print_endline ("Convert " ^ url ^ " to " ^ audio_output_filename);
-           let rec f () =
-             match Av.read_input ~audio_frame:[is] src with
-               | `Audio_frame (i, frame) when i = idx ->
-                   Converter.convert rsp frame
-                   |> output_planar_float_to_s16le audio_output_file;
-                   f ()
-               | exception Avutil.Error `Eof -> ()
-               | _ -> f ()
-           in
-           f ();
+        print_endline ("Convert " ^ url ^ " to " ^ audio_output_filename);
+        let rec f () =
+          match Av.read_input ~audio_frame:[is] src with
+            | `Audio_frame (i, frame) when i = idx ->
+                Converter.convert rsp frame
+                |> output_planar_float_to_s16le audio_output_file;
+                f ()
+            | exception Avutil.Error `Eof -> ()
+            | _ -> f ()
+        in
+        f ();
 
-           Av.get_input is |> Av.close;
-           close_out audio_output_file
-         with _ -> print_endline ("No audio stream in " ^ url));
+        Av.get_input is |> Av.close;
+        close_out audio_output_file
+      with _ -> print_endline ("No audio stream in " ^ url));
 
   Gc.full_major ();
   Gc.full_major ()

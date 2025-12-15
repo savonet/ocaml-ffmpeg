@@ -7,11 +7,11 @@ let () =
         printf "\ninput devices :\n";
         Avdevice.get_audio_input_formats ()
         |> List.iter (fun d ->
-               printf "\t%s (%s)\n" (get_input_name d) (get_input_long_name d));
+            printf "\t%s (%s)\n" (get_input_name d) (get_input_long_name d));
         printf "\noutput devices :\n";
         Avdevice.get_audio_output_formats ()
         |> List.iter (fun d ->
-               printf "\t%s (%s)\n" (get_output_name d) (get_output_long_name d));
+            printf "\t%s (%s)\n" (get_output_name d) (get_output_long_name d));
         printf
           "\n\
            usage: %s input [output]\n\

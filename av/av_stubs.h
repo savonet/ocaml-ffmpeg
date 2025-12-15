@@ -16,7 +16,7 @@ AVFormatContext *ocaml_av_get_format_context(value *p_av);
 /***** AVInputFormat *****/
 
 #define InputFormat_val(v)                                                     \
-  (*(avioformat_const AVInputFormat **)Data_abstract_val(v))
+    (*(avioformat_const AVInputFormat **)Data_abstract_val(v))
 
 void value_of_inputFormat(value *p_value,
                           avioformat_const AVInputFormat *inputFormat);
@@ -24,7 +24,7 @@ void value_of_inputFormat(value *p_value,
 /***** AVOutputFormat *****/
 
 #define OutputFormat_val(v)                                                    \
-  (*(avioformat_const AVOutputFormat **)Data_abstract_val(v))
+    (*(avioformat_const AVOutputFormat **)Data_abstract_val(v))
 
 void value_of_outputFormat(value *p_value,
                            avioformat_const AVOutputFormat *outputFormat);

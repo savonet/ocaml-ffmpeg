@@ -19,8 +19,8 @@ let () =
   let oass =
     iass
     |> List.map (fun (i, stream, _) ->
-           let params = Av.get_codec_params stream in
-           (i, Av.new_stream_copy ~params dst))
+        let params = Av.get_codec_params stream in
+        (i, Av.new_stream_copy ~params dst))
   in
 
   let ivss = Av.get_video_streams src in
@@ -28,10 +28,10 @@ let () =
   let ovss =
     ivss
     |> List.map (fun (i, stream, _) ->
-           let params = Av.get_codec_params stream in
-           let s = Av.new_stream_copy ~params dst in
-           Av.set_avg_frame_rate s (Av.get_avg_frame_rate stream);
-           (i, s))
+        let params = Av.get_codec_params stream in
+        let s = Av.new_stream_copy ~params dst in
+        Av.set_avg_frame_rate s (Av.get_avg_frame_rate stream);
+        (i, s))
   in
 
   let isss = Av.get_subtitle_streams src in
@@ -39,8 +39,8 @@ let () =
   let osss =
     isss
     |> List.map (fun (i, stream, _) ->
-           let params = Av.get_codec_params stream in
-           (i, Av.new_stream_copy ~params dst))
+        let params = Av.get_codec_params stream in
+        (i, Av.new_stream_copy ~params dst))
   in
 
   let rec f () =

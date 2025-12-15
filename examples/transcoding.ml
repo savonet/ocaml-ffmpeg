@@ -18,13 +18,13 @@ let () =
   let oass =
     iass
     |> List.map (fun (i, _, params) ->
-           let channel_layout = Avcodec.Audio.get_channel_layout params in
-           let sample_format = Avcodec.Audio.get_sample_format params in
-           let sample_rate = Avcodec.Audio.get_sample_rate params in
-           let time_base = { Avutil.num = 1; den = sample_rate } in
-           ( i,
-             Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate
-               ~time_base ~codec:audio_codec dst ))
+        let channel_layout = Avcodec.Audio.get_channel_layout params in
+        let sample_format = Avcodec.Audio.get_sample_format params in
+        let sample_rate = Avcodec.Audio.get_sample_rate params in
+        let time_base = { Avutil.num = 1; den = sample_rate } in
+        ( i,
+          Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate
+            ~time_base ~codec:audio_codec dst ))
   in
 
   let frame_rate = { Avutil.num = 25; den = 1 } in
@@ -35,16 +35,16 @@ let () =
   let ovss =
     ivss
     |> List.map (fun (i, _, params) ->
-           let width = Avcodec.Video.get_width params in
-           let height = Avcodec.Video.get_height params in
-           let pixel_format =
-             match Avcodec.Video.get_pixel_format params with
-               | None -> failwith "Pixel format unknown!"
-               | Some f -> f
-           in
-           ( i,
-             Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
-               ~height ~codec:video_codec dst ))
+        let width = Avcodec.Video.get_width params in
+        let height = Avcodec.Video.get_height params in
+        let pixel_format =
+          match Avcodec.Video.get_pixel_format params with
+            | None -> failwith "Pixel format unknown!"
+            | Some f -> f
+        in
+        ( i,
+          Av.new_video_stream ~pixel_format ~frame_rate ~time_base ~width
+            ~height ~codec:video_codec dst ))
   in
 
   let isss = Av.get_subtitle_streams src in
@@ -52,11 +52,10 @@ let () =
   let osss =
     isss
     |> List.map (fun (i, _, params) ->
-           let codec =
-             Avcodec.Subtitle.find_encoder
-               (Avcodec.Subtitle.get_params_id params)
-           in
-           (i, Av.new_subtitle_stream ~time_base ~codec dst))
+        let codec =
+          Avcodec.Subtitle.find_encoder (Avcodec.Subtitle.get_params_id params)
+        in
+        (i, Av.new_subtitle_stream ~time_base ~codec dst))
   in
 
   let process_frame frame =

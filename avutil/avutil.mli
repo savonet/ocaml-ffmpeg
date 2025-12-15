@@ -185,6 +185,7 @@ module Channel_layout : sig
 
   (** Deprecated *)
   val get_native_id : t -> int64 option
+
   [@@@caml.alert deprecated "Use get_mask instead."]
 end
 

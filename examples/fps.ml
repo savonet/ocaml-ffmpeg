@@ -63,7 +63,7 @@ let () =
           `Pair ("time_base", `Rational time_base);
         ]
         @
-        match pixel_aspect with
+          match pixel_aspect with
           | Some p -> [`Pair ("pixel_aspect", `Rational p)]
           | None -> []
       in

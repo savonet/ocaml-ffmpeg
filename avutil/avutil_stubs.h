@@ -24,11 +24,11 @@
 #define EXN_ERROR "ffmpeg_exn_error"
 
 #define Fail(...)                                                              \
-  {                                                                            \
-    snprintf(ocaml_av_exn_msg, ERROR_MSG_SIZE, __VA_ARGS__);                   \
-    caml_callback(*caml_named_value("ffmpeg_exn_failure"),                     \
-                  caml_copy_string(ocaml_av_exn_msg));                         \
-  }
+    {                                                                          \
+        snprintf(ocaml_av_exn_msg, ERROR_MSG_SIZE, __VA_ARGS__);               \
+        caml_callback(*caml_named_value("ffmpeg_exn_failure"),                 \
+                      caml_copy_string(ocaml_av_exn_msg));                     \
+    }
 
 void ocaml_avutil_raise_error(int err);
 
@@ -37,12 +37,12 @@ extern char ocaml_av_exn_msg[];
 #define List_init(list) (list) = Val_emptylist
 
 #define List_add(list, cons, val)                                              \
-  {                                                                            \
-    (cons) = caml_alloc(2, 0);                                                 \
-    Store_field((cons), 0, (val));                                             \
-    Store_field((cons), 1, (list));                                            \
-    (list) = (cons);                                                           \
-  }
+    {                                                                          \
+        (cons) = caml_alloc(2, 0);                                             \
+        Store_field((cons), 0, (val));                                         \
+        Store_field((cons), 1, (list));                                        \
+        (list) = (cons);                                                       \
+    }
 
 /***** Global initialisation *****/
 
@@ -50,7 +50,7 @@ void ocaml_ffmpeg_register_thread();
 
 /**** AVRational ****/
 #define rational_of_value(v)                                                   \
-  ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
+    ((AVRational){Int_val(Field((v), 0)), Int_val(Field((v), 1))})
 
 void value_of_rational(const AVRational *r, value *pv);
 
@@ -106,14 +106,14 @@ int subtitle_header_default(AVCodecContext *avctx);
 /***** AVPixelFormat *****/
 
 #define AvPixFmtDescriptor_val(v)                                              \
-  (*(const AVPixFmtDescriptor **)Data_abstract_val(v))
+    (*(const AVPixFmtDescriptor **)Data_abstract_val(v))
 
 static inline value
 value_of_avpixfmtdescriptor(value ret,
                             const AVPixFmtDescriptor *avpixfmtdescriptor) {
-  ret = caml_alloc(1, Abstract_tag);
-  AvPixFmtDescriptor_val(ret) = avpixfmtdescriptor;
-  return ret;
+    ret = caml_alloc(1, Abstract_tag);
+    AvPixFmtDescriptor_val(ret) = avpixfmtdescriptor;
+    return ret;
 }
 
 /****** AVOptions ******/
@@ -121,26 +121,26 @@ value_of_avpixfmtdescriptor(value ret,
 #define AvClass_val(v) (*(const AVClass **)Data_abstract_val(v))
 
 static inline value value_of_avclass(value *ret, const AVClass *avclass) {
-  *ret = caml_alloc(1, Abstract_tag);
-  AvClass_val(*ret) = avclass;
-  return *ret;
+    *ret = caml_alloc(1, Abstract_tag);
+    AvClass_val(*ret) = avclass;
+    return *ret;
 }
 
 #define AvOptions_val(v) (*(const struct AVOption **)Data_abstract_val(v))
 
 static inline value value_of_avoptions(value *ret,
                                        const struct AVOption *avoptions) {
-  *ret = caml_alloc(1, Abstract_tag);
-  AvOptions_val(*ret) = avoptions;
-  return *ret;
+    *ret = caml_alloc(1, Abstract_tag);
+    AvOptions_val(*ret) = avoptions;
+    return *ret;
 }
 
 #define AvObj_val(v) (*(void **)Data_abstract_val(v))
 
 static inline value value_of_avobj(value *ret, void *avobj) {
-  *ret = caml_alloc(1, Abstract_tag);
-  AvObj_val(*ret) = avobj;
-  return *ret;
+    *ret = caml_alloc(1, Abstract_tag);
+    AvObj_val(*ret) = avobj;
+    return *ret;
 }
 
 #endif // _AVUTIL_STUBS_H_
