@@ -404,6 +404,20 @@ let gen_pixel_format mode =
     ]
     mode
 
+let gen_color_space mode =
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "color_space"
+    [
+      ( "enum AVColorSpace",
+        "[ \t]*AVCOL_SPC_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVCOL_SPC_NB",
+        "AVCOL_SPC_",
+        "enum AVColorSpace",
+        "ColorSpace",
+        "t",
+        [] );
+    ]
+    mode
+
 let gen_pixel_format_flag mode =
   translate_c_values ~pre_process:false ["/libavutil/pixdesc.h"]
     "pixel_format_flag"
@@ -565,6 +579,7 @@ let () =
   match Sys.argv.(2) with
     | "polymorphic_variant" -> gen_polymorphic_variant mode
     | "codec_id" -> gen_codec_id mode
+    | "color_space" -> gen_color_space mode
     | "pixel_format" -> gen_pixel_format mode
     | "pixel_format_flag" -> gen_pixel_format_flag mode
     | "hw_config_method" -> gen_hw_config_method mode
