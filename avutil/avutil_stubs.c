@@ -22,6 +22,7 @@
 
 #include "avutil_stubs.h"
 #include "channel_layout_stubs.h"
+#include "color_space_stubs.h"
 #include "hw_device_type_stubs.h"
 #include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
@@ -554,6 +555,25 @@ CAMLprim value ocaml_avutil_find_sample_fmt_from_id(value _id) {
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_avutil_color_space_name(value _color_space) {
+  CAMLparam0();
+  CAMLreturn(
+      caml_copy_string(av_color_space_name(ColorSpace_val(_color_space))));
+}
+
+CAMLprim value ocaml_avutil_color_space_from_name(value _name) {
+  CAMLparam1(_name);
+  CAMLlocal1(ret);
+  int err = av_color_space_from_name(String_val(_name));
+
+  if (err < 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_ColorSpace(err));
+  CAMLreturn(ret);
+}
+
 /***** AVPixelFormat *****/
 CAMLprim value ocaml_avutil_pixelformat_descriptor(value pixel) {
   CAMLparam1(pixel);
@@ -1021,6 +1041,13 @@ CAMLprim value ocaml_avutil_video_frame_get_pixel_format(value _frame) {
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_PixelFormat(frame->format));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_color_space(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ColorSpace(frame->colorspace));
 }
 
 CAMLprim value ocaml_avutil_video_frame_get_pixel_aspect(value _frame) {
