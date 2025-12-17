@@ -29,7 +29,6 @@
   media_types_stubs.h
   hw_device_type_stubs.h
   pixel_format_flag_stubs.h
-  color_space_stubs.h
   sample_format_stubs.h
   channel_layout_stubs.h)
  (action
@@ -79,18 +78,6 @@
    polymorphic_variant
    h
    %{read-lines:c_flags})))
-
-(rule
- (targets color_space_stubs.h)
- (deps c_flags)
- (action
-  (run ../gen_code/gen_code.exe "%{cc}" color_space h %{read-lines:c_flags})))
-
-(rule
- (targets color_space.ml)
- (deps c_flags)
- (action
-  (run ../gen_code/gen_code.exe "%{cc}" color_space ml %{read-lines:c_flags})))
 
 (rule
  (targets pixel_format_stubs.h)

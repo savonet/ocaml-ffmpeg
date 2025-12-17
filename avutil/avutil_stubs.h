@@ -74,12 +74,6 @@ enum AVSampleFormat AVSampleFormat_of_Sample_format(int i);
 value Val_SampleFormat(enum AVSampleFormat sf);
 enum caml_ba_kind bigarray_kind_of_AVSampleFormat(enum AVSampleFormat sf);
 
-/**** Color space ****/
-
-enum AVColorSpace ColorSpace_val(value);
-
-value Val_ColorSpace(enum AVColorSpace csp);
-
 /**** Pixel format ****/
 
 int PixelFormat_val(value);

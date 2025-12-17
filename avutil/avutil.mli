@@ -209,13 +209,6 @@ end
 
 (** {5 Video utilities} *)
 
-module Color_space : sig
-  type t = Color_space.t
-
-  val name : t -> string
-  val from_name : string -> t option
-end
-
 (** Formats for pixels. *)
 module Pixel_format : sig
   (** Pixels formats. *)
@@ -338,9 +331,6 @@ module Video : sig
   (** [Avutil.Video.frame_get_pixel_aspect frame] returns the frame's pixel
       aspect. *)
   val frame_get_pixel_aspect : video frame -> rational option
-
-  (** [Avutil.Video.frame_get_color_space frame] returns frame's color space *)
-  val frame_get_color_space : video frame -> Color_space.t
 end
 
 (** {5 Subtitle utilities} *)
@@ -456,7 +446,6 @@ val mk_audio_opts :
 val mk_video_opts :
   ?opts:opts ->
   ?frame_rate:rational ->
-  ?color_space:Color_space.t ->
   pixel_format:Pixel_format.t ->
   width:int ->
   height:int ->

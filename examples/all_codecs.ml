@@ -73,33 +73,18 @@ let () =
         (print_descriptor (Avcodec.Video.descriptor id)))
     Avcodec.Video.codec_ids;
 
-  let video_codec_descr c =
-    let supported_pixel_formats = Avcodec.Video.get_supported_pixel_formats c in
-    let supported_color_spaces = Avcodec.Video.get_supported_color_spaces c in
-    Printf.sprintf
-      "  Supported pixel_formats: %s\n  Supported color spaces: %s\n"
-      (String.concat ", "
-         (List.map
-            (fun f -> Avutil.Pixel_format.((descriptor f).name))
-            supported_pixel_formats))
-      (String.concat ", "
-         (List.map Avutil.Color_space.name supported_color_spaces))
-  in
-
   List.iter
     (fun c ->
-      Printf.printf "Available video encoder: %s - %s\n%s%!"
+      Printf.printf "Available video encoder: %s - %s\n%!"
         (Avcodec.Video.get_name c)
-        (Avcodec.Video.get_description c)
-        (video_codec_descr c))
+        (Avcodec.Video.get_description c))
     Avcodec.Video.encoders;
 
   List.iter
     (fun c ->
-      Printf.printf "Available video decoder: %s - %s\n%s%!"
+      Printf.printf "Available video decoder: %s - %s\n%!"
         (Avcodec.Video.get_name c)
-        (Avcodec.Video.get_description c)
-        (video_codec_descr c))
+        (Avcodec.Video.get_description c))
     Avcodec.Video.decoders;
 
   Printf.printf "\n\n";

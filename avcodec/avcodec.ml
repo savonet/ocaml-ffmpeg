@@ -401,12 +401,6 @@ module Video = struct
     if List.mem default frame_rates then default
     else (match frame_rates with h :: _ -> h | [] -> default)
 
-  external get_supported_color_spaces : _ t -> Avutil.Color_space.t list
-    = "ocaml_avcodec_get_supported_color_spaces"
-
-  let get_supported_color_spaces codec =
-    List.rev (get_supported_color_spaces codec)
-
   external get_supported_pixel_formats : _ t -> Avutil.Pixel_format.t list
     = "ocaml_avcodec_get_supported_pixel_formats"
 

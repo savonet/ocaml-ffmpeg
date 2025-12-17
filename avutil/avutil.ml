@@ -166,13 +166,6 @@ module Log = struct
 *)
 end
 
-module Color_space = struct
-  type t = Color_space.t
-
-  external name : t -> string = "ocaml_avutil_color_space_name"
-  external from_name : string -> t option = "ocaml_avutil_color_space_from_name"
-end
-
 module Pixel_format = struct
   type t = Pixel_format.t
   type flag = Pixel_format_flag.t
@@ -307,9 +300,6 @@ module Video = struct
 
   external frame_get_pixel_aspect : video frame -> rational option
     = "ocaml_avutil_video_frame_get_pixel_aspect"
-
-  external frame_get_color_space : video frame -> Color_space.t
-    = "ocaml_avutil_video_frame_get_color_space"
 end
 
 module Subtitle = struct
@@ -725,25 +715,17 @@ let mk_audio_opts ?opts ?channels ?channel_layout ~sample_rate ~sample_format
     ~time_base opts;
   opts
 
-let add_video_opts ?frame_rate ?color_space ~pixel_format ~width ~height
-    ~time_base opts =
+let add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts =
   Hashtbl.add opts "pixel_format" (`Int (Pixel_format.get_id pixel_format));
   Hashtbl.add opts "video_size" (`String (Printf.sprintf "%dx%d" width height));
   Hashtbl.add opts "time_base" (`String (string_of_rational time_base));
-  (match color_space with
-    (* Reserved cannot be set as an option. *)
-    | Some `Reserved -> ()
-    | Some cs -> Hashtbl.add opts "colorspace" (`String (Color_space.name cs))
-    | None -> ());
   match frame_rate with
     | Some r -> Hashtbl.add opts "r" (`String (string_of_rational r))
     | None -> ()
 
-let mk_video_opts ?opts ?frame_rate ?color_space ~pixel_format ~width ~height
-    ~time_base () =
+let mk_video_opts ?opts ?frame_rate ~pixel_format ~width ~height ~time_base () =
   let opts = opts_default opts in
-  add_video_opts ?frame_rate ?color_space ~pixel_format ~width ~height
-    ~time_base opts;
+  add_video_opts ?frame_rate ~pixel_format ~width ~height ~time_base opts;
   opts
 
 let filter_opts unused opts =
