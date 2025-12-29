@@ -10,24 +10,11 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
-  let audio_codec = Avcodec.Audio.find_encoder_by_name "ac3" in
+  let audio_codec = Avcodec.Audio.find_encoder_by_name "pcm_s16le" in
 
-  let audio_params, audio_input, idx, oass =
+  let audio_params, audio_input, idx =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
-    let channel_layout = Avcodec.Audio.get_channel_layout params in
-    let sample_format = Avcodec.Audio.get_sample_format params in
-    let sample_rate = Avcodec.Audio.get_sample_rate params in
-    let time_base = { Avutil.num = 1; den = sample_rate } in
-    ( params,
-      audio_input,
-      i,
-      Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
-        ~codec:audio_codec dst )
-  in
-
-  let frame_size =
-    if List.mem `Variable_frame_size (Avcodec.capabilities audio_codec) then 512
-    else Av.get_frame_size oass
+    (params, audio_input, i)
   in
 
   let filter =
@@ -61,7 +48,7 @@ let () =
     let aformat =
       let args =
         [
-          `Pair ("sample_fmts", `Array [`String "s16"; `String "flt"]);
+          `Pair ("sample_fmts", `Array [`String "s16"]);
           `Pair ("channel_layouts", `Array [`String "stereo"]);
         ]
       in
@@ -82,18 +69,38 @@ let () =
 
   let _, output = List.hd Avfilter.(filter.outputs.audio) in
   let context = output.context in
-  Avfilter.set_frame_size context frame_size;
   let time_base = Avfilter.time_base context in
+  let filter_sample_format = Avfilter.sample_format context in
+  let filter_channel_layout = Avfilter.channel_layout context in
+  let filter_sample_rate = Avfilter.sample_rate context in
+
   Printf.printf
     "Sink info:\n\
      time_base: %d/%d\n\
      channels: %d\n\
      channel_layout: %s\n\
-     sample_rate: %d\n"
+     sample_rate: %d\n\
+     sample_format: %s\n"
     time_base.Avutil.num time_base.Avutil.den
     (Avfilter.channels context)
-    (Avutil.Channel_layout.get_description (Avfilter.channel_layout context))
-    (Avfilter.sample_rate context);
+    (Avutil.Channel_layout.get_description filter_channel_layout)
+    filter_sample_rate
+    (match Avutil.Sample_format.get_name filter_sample_format with
+     | None -> "none"
+     | Some n -> n);
+
+  let oass =
+    Av.new_audio_stream ~channel_layout:filter_channel_layout
+      ~sample_format:filter_sample_format ~sample_rate:filter_sample_rate
+      ~time_base ~codec:audio_codec dst
+  in
+
+  let frame_size =
+    if List.mem `Variable_frame_size (Avcodec.capabilities audio_codec) then 512
+    else Av.get_frame_size oass
+  in
+
+  Avfilter.set_frame_size context frame_size;
 
   let process_audio i frm =
     try

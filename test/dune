@@ -51,7 +51,7 @@
    (run %{transcoding} out.mkv out.mp4)
    (run %{decoding} out.mkv)
    (run %{fps} out.mkv out.mp4)
-   (run %{aresample} out.mkv out.mp4)
+   (run %{aresample} out.mkv out.wav)
    (run %{demuxing_decoding} out.mkv vo.raw ao.raw)
    (run %{read_metadata} A4.flac flac A4.mp3 libmp3lame)
    (run %{read_metadata} A4.mp2 mp2 A4.ogg libvorbis)
