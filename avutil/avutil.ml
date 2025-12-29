@@ -497,7 +497,7 @@ module Options = struct
         `Child_consts;
       ]
 
-  type spec =
+  type ground =
     [ `Flags of int64 entry
     | `Int of int entry
     | `Int64 of int64 entry
@@ -516,6 +516,8 @@ module Options = struct
     | `Color of string entry
     | `Channel_layout of Channel_layout.t entry
     | `Bool of bool entry ]
+
+  type spec = [ ground | `Array of ground ]
 
   type opt = {
     name : string;
@@ -536,9 +538,8 @@ module Options = struct
   external default_string : constant -> string
     = "ocaml_avutil_avopt_default_string"
 
-  type _spec =
-    [ `Constant of constant _entry
-    | `Flags of int64 _entry
+  type _ground =
+    [ `Flags of int64 _entry
     | `Int of int _entry
     | `Int64 of int64 _entry
     | `Float of float _entry
@@ -557,6 +558,7 @@ module Options = struct
     | `Channel_layout of Channel_layout.t _entry
     | `Bool of bool _entry ]
 
+  type _spec = [ `Constant of constant _entry | _ground | `Array of _ground ]
   type _opt_cursor
   type _class_cursor
   type _cursor = { _opt_cursor : _opt_cursor; _class_cursor : _class_cursor }
@@ -668,56 +670,54 @@ module Options = struct
   let opts v =
     let constants = Hashtbl.create 10 in
 
+    let opt_of_ground_opt : _ground -> ground = function
+      | `Flags { _default; _min; _max } ->
+          `Flags { default = _default; min = _min; max = _max; values = [] }
+      | `Int { _default; _min; _max; _ } ->
+          `Int { default = _default; min = _min; max = _max; values = [] }
+      | `Int64 { _default; _min; _max; _ } ->
+          `Int64 { default = _default; min = _min; max = _max; values = [] }
+      | `Float { _default; _min; _max; _ } ->
+          `Float { default = _default; min = _min; max = _max; values = [] }
+      | `Double { _default; _min; _max; _ } ->
+          `Double { default = _default; min = _min; max = _max; values = [] }
+      | `String { _default; _min; _max; _ } ->
+          `String { default = _default; min = _min; max = _max; values = [] }
+      | `Rational { _default; _min; _max; _ } ->
+          `Rational { default = _default; min = _min; max = _max; values = [] }
+      | `Binary { _default; _min; _max; _ } ->
+          `Binary { default = _default; min = _min; max = _max; values = [] }
+      | `Dict { _default; _min; _max; _ } ->
+          `Dict { default = _default; min = _min; max = _max; values = [] }
+      | `UInt64 { _default; _min; _max; _ } ->
+          `UInt64 { default = _default; min = _min; max = _max; values = [] }
+      | `Image_size { _default; _min; _max; _ } ->
+          `Image_size
+            { default = _default; min = _min; max = _max; values = [] }
+      | `Pixel_fmt { _default; _min; _max; _ } ->
+          `Pixel_fmt { default = _default; min = _min; max = _max; values = [] }
+      | `Sample_fmt { _default; _min; _max; _ } ->
+          `Sample_fmt
+            { default = _default; min = _min; max = _max; values = [] }
+      | `Video_rate { _default; _min; _max; _ } ->
+          `Video_rate
+            { default = _default; min = _min; max = _max; values = [] }
+      | `Duration { _default; _min; _max; _ } ->
+          `Duration { default = _default; min = _min; max = _max; values = [] }
+      | `Color { _default; _min; _max; _ } ->
+          `Color { default = _default; min = _min; max = _max; values = [] }
+      | `Channel_layout { _default; _min; _max; _ } ->
+          `Channel_layout
+            { default = _default; min = _min; max = _max; values = [] }
+      | `Bool { _default; _min; _max; _ } ->
+          `Bool { default = _default; min = _min; max = _max; values = [] }
+    in
+
     let opt_of_opt { _name; _help; _spec; _flags; _unit; _ } =
-      let spec =
+      let spec : spec =
         match _spec with
-          | `Flags { _default; _min; _max } ->
-              `Flags { default = _default; min = _min; max = _max; values = [] }
-          | `Int { _default; _min; _max; _ } ->
-              `Int { default = _default; min = _min; max = _max; values = [] }
-          | `Int64 { _default; _min; _max; _ } ->
-              `Int64 { default = _default; min = _min; max = _max; values = [] }
-          | `Float { _default; _min; _max; _ } ->
-              `Float { default = _default; min = _min; max = _max; values = [] }
-          | `Double { _default; _min; _max; _ } ->
-              `Double
-                { default = _default; min = _min; max = _max; values = [] }
-          | `String { _default; _min; _max; _ } ->
-              `String
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Rational { _default; _min; _max; _ } ->
-              `Rational
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Binary { _default; _min; _max; _ } ->
-              `Binary
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Dict { _default; _min; _max; _ } ->
-              `Dict { default = _default; min = _min; max = _max; values = [] }
-          | `UInt64 { _default; _min; _max; _ } ->
-              `UInt64
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Image_size { _default; _min; _max; _ } ->
-              `Image_size
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Pixel_fmt { _default; _min; _max; _ } ->
-              `Pixel_fmt
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Sample_fmt { _default; _min; _max; _ } ->
-              `Sample_fmt
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Video_rate { _default; _min; _max; _ } ->
-              `Video_rate
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Duration { _default; _min; _max; _ } ->
-              `Duration
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Color { _default; _min; _max; _ } ->
-              `Color { default = _default; min = _min; max = _max; values = [] }
-          | `Channel_layout { _default; _min; _max; _ } ->
-              `Channel_layout
-                { default = _default; min = _min; max = _max; values = [] }
-          | `Bool { _default; _min; _max; _ } ->
-              `Bool { default = _default; min = _min; max = _max; values = [] }
+          | #_ground as g -> (opt_of_ground_opt g :> spec)
+          | `Array g -> `Array (opt_of_ground_opt g :> ground)
           | `Constant _ -> assert false
       in
       let opt =

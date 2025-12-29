@@ -585,3 +585,28 @@ CAMLprim value ocaml_avfilter_int_of_flag(value _flag) {
     caml_failwith("Invalid flag type!");
   }
 }
+
+CAMLprim value ocaml_avfilter_get_array_separator(value _filter_name,
+                                                  value _option_name) {
+  CAMLparam2(_filter_name, _option_name);
+  const char *filter_name = String_val(_filter_name);
+  const char *option_name = String_val(_option_name);
+
+  const AVFilter *filter = avfilter_get_by_name(filter_name);
+
+  if (!filter || !filter->priv_class)
+    caml_failwith("Invalid filter!");
+
+  // av_opt_find expects a fake object which is a double pointer to AVClass
+  const AVClass *class_ptr = filter->priv_class;
+  const struct AVOption *option =
+      av_opt_find(&class_ptr, option_name, NULL, 0, 0);
+
+  if (!option || !(option->type & AV_OPT_TYPE_FLAG_ARRAY))
+    caml_failwith("Invalid filter option!");
+
+  if (option->default_val.arr && option->default_val.arr->sep)
+    CAMLreturn(Val_int(option->default_val.arr->sep));
+
+  caml_failwith("Invalid filter!");
+}
