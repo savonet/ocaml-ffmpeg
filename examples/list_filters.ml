@@ -49,47 +49,53 @@ let string_of_flags flags =
   in
   String.concat ", " (List.map string_of_flag flags)
 
+let string_of_ground : Avutil.Options.ground -> string * string = function
+  | `Flags entry -> ("flags", string_of_spec Int64.to_string entry)
+  | `Int entry -> ("int", string_of_spec string_of_int entry)
+  | `Int64 entry -> ("int64", string_of_spec Int64.to_string entry)
+  | `Float entry -> ("float", string_of_spec string_of_float entry)
+  | `Double entry -> ("double", string_of_spec string_of_float entry)
+  | `String entry -> ("string", string_of_spec (fun v -> v) entry)
+  | `Rational entry ->
+      ( "rational",
+        string_of_spec
+          (fun { Avutil.num; den } -> Printf.sprintf "%d/%d" num den)
+          entry )
+  | `Binary entry -> ("binary", string_of_spec (fun v -> v) entry)
+  | `Dict entry -> ("dict", string_of_spec (fun v -> v) entry)
+  | `UInt64 entry -> ("uint64", string_of_spec Int64.to_string entry)
+  | `Image_size entry -> ("image_size", string_of_spec (fun v -> v) entry)
+  | `Pixel_fmt entry ->
+      ( "pixel_fmt",
+        string_of_spec
+          (fun p ->
+            match Avutil.Pixel_format.to_string p with
+              | None -> "none"
+              | Some f -> f)
+          entry )
+  | `Sample_fmt entry ->
+      ( "sample_fmt",
+        string_of_spec
+          (fun f ->
+            match Avutil.Sample_format.get_name f with
+              | None -> "none"
+              | Some f -> f)
+          entry )
+  | `Video_rate entry -> ("video_rate", string_of_spec (fun v -> v) entry)
+  | `Duration entry -> ("duration", string_of_spec Int64.to_string entry)
+  | `Color entry -> ("color", string_of_spec (fun v -> v) entry)
+  | `Channel_layout entry ->
+      ( "channel_layout",
+        string_of_spec Avutil.Channel_layout.get_description entry )
+  | `Bool entry -> ("bool", string_of_spec string_of_bool entry)
+
 let string_of_option { Avutil.Options.name; help; flags; spec } =
   let _type, spec =
     match spec with
-      | `Flags entry -> ("flags", string_of_spec Int64.to_string entry)
-      | `Int entry -> ("int", string_of_spec string_of_int entry)
-      | `Int64 entry -> ("int64", string_of_spec Int64.to_string entry)
-      | `Float entry -> ("float", string_of_spec string_of_float entry)
-      | `Double entry -> ("double", string_of_spec string_of_float entry)
-      | `String entry -> ("string", string_of_spec (fun v -> v) entry)
-      | `Rational entry ->
-          ( "rational",
-            string_of_spec
-              (fun { Avutil.num; den } -> Printf.sprintf "%d/%d" num den)
-              entry )
-      | `Binary entry -> ("binary", string_of_spec (fun v -> v) entry)
-      | `Dict entry -> ("dict", string_of_spec (fun v -> v) entry)
-      | `UInt64 entry -> ("uint64", string_of_spec Int64.to_string entry)
-      | `Image_size entry -> ("image_size", string_of_spec (fun v -> v) entry)
-      | `Pixel_fmt entry ->
-          ( "pixel_fmt",
-            string_of_spec
-              (fun p ->
-                match Avutil.Pixel_format.to_string p with
-                  | None -> "none"
-                  | Some f -> f)
-              entry )
-      | `Sample_fmt entry ->
-          ( "sample_fmt",
-            string_of_spec
-              (fun f ->
-                match Avutil.Sample_format.get_name f with
-                  | None -> "none"
-                  | Some f -> f)
-              entry )
-      | `Video_rate entry -> ("video_rate", string_of_spec (fun v -> v) entry)
-      | `Duration entry -> ("duration", string_of_spec Int64.to_string entry)
-      | `Color entry -> ("color", string_of_spec (fun v -> v) entry)
-      | `Channel_layout entry ->
-          ( "channel_layout",
-            string_of_spec Avutil.Channel_layout.get_description entry )
-      | `Bool entry -> ("bool", string_of_spec string_of_bool entry)
+      | #Avutil.Options.ground as g -> string_of_ground g
+      | `Array g ->
+          let inner_type, inner_spec = string_of_ground g in
+          (Printf.sprintf "array<%s>" inner_type, inner_spec)
   in
 
   Printf.sprintf
