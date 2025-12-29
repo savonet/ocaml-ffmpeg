@@ -1,3 +1,7 @@
+1.2.8 (unreleased)
+=====
+* `avfilter`: Added `filter_name`.
+
 1.2.7 (2025-10-31)
 ======
 * Add ffmpeg 8.0 support

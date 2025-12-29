@@ -182,6 +182,7 @@ let filters, abuffer, buffer, abuffersink, buffersink =
 let find name = List.find (fun f -> f.name = name) filters
 let find_opt name = List.find_opt (fun f -> f.name = name) filters
 let pad_name { pad_name; _ } = pad_name
+let filter_name { filter_name; _} = filter_name
 
 external init : unit -> _config = "ocaml_avfilter_init"
 

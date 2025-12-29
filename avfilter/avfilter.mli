@@ -78,6 +78,9 @@ val buffersink : [ `Unattached ] filter
 (** Pad name. *)
 val pad_name : _ pad -> string
 
+(** Name of the filter of which this pad is an instance *)
+val filter_name : _ pad -> string
+
 (** Initiate a filter graph configuration. *)
 val init : unit -> config
 
