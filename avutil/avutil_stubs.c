@@ -1334,8 +1334,8 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
   }
 }
 
-static value value_of_cursor_opt(const struct AVOption *option,
-                                  void *cursor, const AVClass *class) {
+static value value_of_cursor_opt(const struct AVOption *option, void *cursor,
+                                 const AVClass *class) {
   CAMLparam0();
   CAMLlocal2(_payload, _cursor);
 
@@ -1345,7 +1345,8 @@ static value value_of_cursor_opt(const struct AVOption *option,
   Store_field(Field(_payload, 0), 0, value_of_avoptions(_cursor, option));
 #else
   Store_field(Field(_payload, 0), 0, caml_alloc_tuple(2));
-  Store_field(Field(Field(_payload, 0), 0), 0, value_of_avobj(&_cursor, cursor));
+  Store_field(Field(Field(_payload, 0), 0), 0,
+              value_of_avobj(&_cursor, cursor));
   Store_field(Field(Field(_payload, 0), 0), 1,
               value_of_avoptions(&_cursor, option));
 #endif
@@ -1478,16 +1479,9 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   Store_field(_spec, 2, Val_none);
 
   if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
-    char sep = '|';
-    if (option->default_val.arr && option->default_val.arr->sep) {
-      sep = option->default_val.arr->sep;
-    }
-
-    _tmp = caml_alloc_tuple(3);
-    Store_field(_tmp, 0, Val_int(sep));
-    Store_field(_tmp, 1, caml_alloc_tuple(2));
-    Store_field(Field(_tmp, 1), 0, _type);
-    Store_field(Field(_tmp, 1), 1, _spec);
+    _tmp = caml_alloc_tuple(2);
+    Store_field(_tmp, 0, _type);
+    Store_field(_tmp, 1, _spec);
     _type = PVV_Array;
     _spec = _tmp;
     goto done_building_spec;

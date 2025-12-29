@@ -439,9 +439,7 @@ module Options = struct
     | `Channel_layout of Channel_layout.t _entry
     | `Bool of bool _entry ]
 
-  type _spec =
-    [ `Constant of constant _entry | _ground | `Array of char * _ground ]
-
+  type _spec = [ `Constant of constant _entry | _ground | `Array of _ground ]
   type _opt_cursor
   type _class_cursor
   type _cursor = { _opt_cursor : _opt_cursor; _class_cursor : _class_cursor }
@@ -600,7 +598,7 @@ module Options = struct
       let spec : spec =
         match _spec with
           | #_ground as g -> (opt_of_ground_opt g :> spec)
-          | `Array (_sep, g) -> `Array (opt_of_ground_opt g :> ground)
+          | `Array g -> `Array (opt_of_ground_opt g :> ground)
           | `Constant _ -> assert false
       in
       let opt =

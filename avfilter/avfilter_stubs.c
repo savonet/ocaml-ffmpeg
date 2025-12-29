@@ -587,7 +587,7 @@ CAMLprim value ocaml_avfilter_int_of_flag(value _flag) {
 }
 
 CAMLprim value ocaml_avfilter_get_array_separator(value _filter_name,
-                                                    value _option_name) {
+                                                  value _option_name) {
   CAMLparam2(_filter_name, _option_name);
   const char *filter_name = String_val(_filter_name);
   const char *option_name = String_val(_option_name);
