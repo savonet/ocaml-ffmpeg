@@ -122,3 +122,8 @@
  (name interrupt)
  (modules interrupt)
  (libraries ffmpeg-av))
+
+(executable
+ (name filter_info)
+ (modules filter_info)
+ (libraries ffmpeg-avfilter))
