@@ -1478,16 +1478,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   Store_field(_spec, 1, Val_none);
   Store_field(_spec, 2, Val_none);
 
-  if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
-    _tmp = caml_alloc_tuple(2);
-    Store_field(_tmp, 0, _type);
-    Store_field(_tmp, 1, _spec);
-    _type = PVV_Array;
-    _spec = _tmp;
-    goto done_building_spec;
-  }
-
-  switch (option->type) {
+  switch (option->type & ~AV_OPT_TYPE_FLAG_ARRAY) {
   case AV_OPT_TYPE_CONST:
     raise_unimplemented_option(option, cursor, class);
     break;
@@ -1608,7 +1599,14 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     raise_unimplemented_option(option, cursor, class);
   }
 
-done_building_spec:
+  if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
+    _tmp = caml_alloc_tuple(2);
+    Store_field(_tmp, 0, _type);
+    Store_field(_tmp, 1, _spec);
+    _type = PVV_Array;
+    _spec = _tmp;
+  }
+
   _tmp = caml_alloc_tuple(2);
   Store_field(_tmp, 0, _type);
   Store_field(_tmp, 1, _spec);
