@@ -376,7 +376,7 @@ module Options : sig
     values : (string * 'a) list;
   }
 
-  type spec =
+  type ground =
     [ `Flags of int64 entry
     | `Int of int entry
     | `Int64 of int64 entry
@@ -395,6 +395,8 @@ module Options : sig
     | `Color of string entry
     | `Channel_layout of Channel_layout.t entry
     | `Bool of bool entry ]
+
+  type spec = [ ground | `Array of ground ]
 
   type opt = {
     name : string;

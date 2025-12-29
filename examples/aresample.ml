@@ -32,17 +32,16 @@ let () =
 
   let filter =
     let config = Avfilter.init () in
-    let abuffer =
-      let time_base = Av.get_time_base audio_input in
-      let sample_rate = Avcodec.Audio.get_sample_rate audio_params in
-      let sample_format =
-        Avutil.Sample_format.get_id
-          (Avcodec.Audio.get_sample_format audio_params)
-      in
-      let channel_layout =
-        Avutil.Channel_layout.get_description
-          (Avcodec.Audio.get_channel_layout audio_params)
-      in
+    let time_base = Av.get_time_base audio_input in
+    let sample_rate = Avcodec.Audio.get_sample_rate audio_params in
+    let sample_format =
+      Avutil.Sample_format.get_id (Avcodec.Audio.get_sample_format audio_params)
+    in
+    let channel_layout =
+      Avutil.Channel_layout.get_description
+        (Avcodec.Audio.get_channel_layout audio_params)
+    in
+    let abuffer_node =
       let args =
         [
           `Pair ("time_base", `Rational time_base);
@@ -51,25 +50,33 @@ let () =
           `Pair ("channel_layout", `String channel_layout);
         ]
       in
-      {
-        Avfilter.node_name = "in";
-        node_args = Some args;
-        node_pad = List.hd Avfilter.(abuffer.io.outputs.audio);
-      }
+      Avfilter.attach ~args ~name:"in" Avfilter.abuffer config
     in
-    let outputs = { Avfilter.audio = [abuffer]; video = [] } in
-    let sink =
-      {
-        Avfilter.node_name = "out";
-        node_args = None;
-        node_pad = List.hd Avfilter.(abuffersink.io.inputs.audio);
-      }
+    let aresample_filter = Avfilter.find "aresample" in
+    let aresample =
+      let args = [`Pair ("sample_rate", `Int 22050)] in
+      Avfilter.attach ~args ~name:"aresample" aresample_filter config
     in
-    let inputs = { Avfilter.audio = [sink]; video = [] } in
-    let _ =
-      Avfilter.parse { inputs; outputs }
-        "aresample=22050,aformat=channel_layouts=stereo" config
+    let aformat_filter = Avfilter.find "aformat" in
+    let aformat =
+      let args =
+        [
+          `Pair ("sample_fmts", `Array [`String "s16"; `String "flt"]);
+          `Pair ("channel_layouts", `Array [`String "stereo"]);
+        ]
+      in
+      Avfilter.attach ~args ~name:"aformat" aformat_filter config
     in
+    let sink_node = Avfilter.(attach ~name:"out" abuffersink config) in
+    Avfilter.link
+      (List.hd Avfilter.(abuffer_node.io.outputs.audio))
+      (List.hd Avfilter.(aresample.io.inputs.audio));
+    Avfilter.link
+      (List.hd Avfilter.(aresample.io.outputs.audio))
+      (List.hd Avfilter.(aformat.io.inputs.audio));
+    Avfilter.link
+      (List.hd Avfilter.(aformat.io.outputs.audio))
+      (List.hd Avfilter.(sink_node.io.inputs.audio));
     Avfilter.launch config
   in
 

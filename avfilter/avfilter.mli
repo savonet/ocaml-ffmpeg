@@ -4,13 +4,14 @@ open Avutil
 
 type config
 
-type valued_arg =
+type ground_arg =
   [ `String of string
   | `Int of int
   | `Int64 of int64
   | `Float of float
   | `Rational of rational ]
 
+type valued_arg = [ ground_arg | `Array of ground_arg list ]
 type args = [ `Flag of string | `Pair of string * valued_arg ]
 type ('a, 'b) av = { audio : 'a; video : 'b }
 type ('a, 'b) io = { inputs : 'a; outputs : 'b }
