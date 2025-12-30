@@ -125,8 +125,7 @@ type ('a, 'b) parse_av =
 
 type 'a parse_io = (('a, [ `Input ]) parse_av, ('a, [ `Output ]) parse_av) io
 
-val parse :
-  [ `Unattached ] parse_io -> string -> config -> [ `Attached ] parse_io
+val parse : [ `Attached ] parse_io -> string -> config -> unit
 
 (** Check validity and configure all the links and formats in the graph and
     return its outputs and outputs. *)

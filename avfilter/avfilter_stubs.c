@@ -220,14 +220,14 @@ CAMLprim value ocaml_avfilter_create_filter(value _args, value _instance_name,
 
 static void append_avfilter_in_out(AVFilterInOut **filter, char *name,
                                    AVFilterContext *filter_ctx, int pad_idx) {
-  AVFilterInOut *cur;
+  AVFilterInOut *cur = *filter;
 
-  if (*filter) {
-    cur = *filter;
-    while (cur)
+  if (cur) {
+    while (cur->next)
       cur = cur->next;
     cur->next = avfilter_inout_alloc();
-    cur = cur->next;
+    if (cur)
+      cur = cur->next;
   } else {
     *filter = avfilter_inout_alloc();
     cur = *filter;

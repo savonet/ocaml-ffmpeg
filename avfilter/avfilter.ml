@@ -307,47 +307,25 @@ external parse :
   _config ->
   unit = "ocaml_avfilter_parse"
 
-let parse ({ inputs; outputs } : [ `Unattached ] parse_io) filters graph =
-  let get_pad (type a b) (node : ([ `Unattached ], a, b) parse_node) :
-      ([ `Unattached ], a, b) parse_node * filter_ctx =
-    let { node_name; node_args; node_pad } = node in
-    if List.mem node_name graph.names then raise Exists;
-    let { filter_name; _ } = node_pad in
-    let args = args_of_args node_args in
-    let filter_ctx, _, _ =
-      create_filter ?args ~name:node_name filter_name graph.c
+let parse ({ inputs; outputs } : [ `Attached ] parse_io) filters graph =
+  let get_ctx (type a b) (node : ([ `Attached ], a, b) parse_node) =
+    let { node_name; node_pad; _ } = node in
+    let { filter_ctx; idx; _ } = node_pad in
+    let ctx = match filter_ctx with
+      | Some ctx -> ctx
+      | None -> failwith "parse: unattached pad"
     in
-    graph.names <- node_name :: graph.names;
-    append_io graph ~name:node_name filter_name filter_ctx;
-    (node, filter_ctx)
-  in
-  let audio_inputs = List.map get_pad inputs.audio in
-  let video_inputs = List.map get_pad inputs.video in
-  let audio_outputs = List.map get_pad outputs.audio in
-  let video_outputs = List.map get_pad outputs.video in
-  let get_ctx ({ node_name; node_pad; _ }, filter_ctx) =
-    (node_name, filter_ctx, node_pad.idx)
+    (node_name, ctx, idx)
   in
   let inputs =
-    Array.of_list (List.map get_ctx audio_inputs @ List.map get_ctx video_inputs)
+    Array.of_list
+      (List.map get_ctx inputs.audio @ List.map get_ctx inputs.video)
   in
   let outputs =
     Array.of_list
-      (List.map get_ctx audio_outputs @ List.map get_ctx video_outputs)
+      (List.map get_ctx outputs.audio @ List.map get_ctx outputs.video)
   in
-  parse ~inputs ~outputs filters graph.c;
-  let attach_pad (type a b)
-      ((node : ([ `Unattached ], a, b) parse_node), filter_ctx) :
-      ([ `Attached ], a, b) parse_node =
-    { node with node_pad = attach_pad filter_ctx graph node.node_pad }
-  in
-  let audio = List.map attach_pad audio_inputs in
-  let video = List.map attach_pad video_inputs in
-  let inputs = { audio; video } in
-  let audio = List.map attach_pad audio_outputs in
-  let video = List.map attach_pad video_outputs in
-  let outputs = { audio; video } in
-  { inputs; outputs }
+  parse ~inputs ~outputs filters graph.c
 
 external config : _config -> unit = "ocaml_avfilter_config"
 
