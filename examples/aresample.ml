@@ -51,25 +51,29 @@ let () =
           `Pair ("channel_layout", `String channel_layout);
         ]
       in
+      let abuffer =
+        Avfilter.attach ~args ~name:"audio_input" Avfilter.abuffer config
+      in
       {
         Avfilter.node_name = "in";
         node_args = Some args;
-        node_pad = List.hd Avfilter.(abuffer.io.outputs.audio);
+        node_pad = List.hd abuffer.io.outputs.audio;
       }
     in
     let outputs = { Avfilter.audio = [abuffer]; video = [] } in
+    let abuffersink =
+      Avfilter.attach ~name:"audio_output" Avfilter.abuffersink config
+    in
     let sink =
       {
         Avfilter.node_name = "out";
         node_args = None;
-        node_pad = List.hd Avfilter.(abuffersink.io.inputs.audio);
+        node_pad = List.hd abuffersink.io.inputs.audio;
       }
     in
     let inputs = { Avfilter.audio = [sink]; video = [] } in
-    let _ =
-      Avfilter.parse { inputs; outputs }
-        "aresample=22050,aformat=channel_layouts=stereo" config
-    in
+    Avfilter.parse { inputs; outputs }
+      "aresample=22050,aformat=channel_layouts=stereo" config;
     Avfilter.launch config
   in
 
