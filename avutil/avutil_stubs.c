@@ -324,7 +324,6 @@ CAMLprim value ocaml_avutil_setup_log_callback(value unit) {
 
 CAMLprim value ocaml_avutil_clear_log_callback(value unit) {
   CAMLparam0();
-  log_msg_t *msgs, *curr;
   av_log_set_callback(&av_log_default_callback);
   CAMLreturn(Val_unit);
 }
