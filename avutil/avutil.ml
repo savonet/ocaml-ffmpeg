@@ -140,30 +140,67 @@ module Log = struct
   let set_level level = set_level (int_of_level level)
 
   external setup_log_callback : unit -> unit = "ocaml_avutil_setup_log_callback"
+  external wait_for_logs : unit -> unit = "ocaml_ffmpeg_wait_for_logs"
+  external signal_logs : unit -> unit = "ocaml_ffmpeg_signal_logs"
 
-  (*
-  external process_log : (string -> unit) -> unit = "ocaml_ffmpeg_process_log"
-*)
-
-  let log_fn = ref (Printf.printf "%s")
-  let log_fn_m = Mutex.create ()
-
-  let set_callback fn =
-    setup_log_callback ();
-    Mutex.lock log_fn_m;
-    log_fn := fn;
-    Mutex.unlock log_fn_m
+  external get_pending_logs : unit -> string list
+    = "ocaml_ffmpeg_get_pending_logs"
 
   external clear_callback : unit -> unit = "ocaml_avutil_clear_log_callback"
 
-  let clear_callback () =
-    clear_callback ();
-    set_callback (Printf.printf "%s")
+  let[@inline never] mutexify m f x =
+    Mutex.lock m;
+    match f x with
+      | exception exn ->
+          let bt = Printexc.get_raw_backtrace () in
+          Mutex.unlock m;
+          Printexc.raise_with_backtrace exn bt
+      | v ->
+          Mutex.unlock m;
+          v
 
-  (*
-  let () =
-    ignore (Thread.create (fun () -> process_log (fun msg -> !log_fn msg)) ())
-*)
+  let log_m = Mutex.create ()
+  let log_thread = ref false
+  let log_thread_should_stop = ref false
+  let log_thread_processor = Atomic.make (fun _ -> assert false)
+
+  let log_processor =
+    let rec fn () =
+      let should_stop =
+        mutexify log_m
+          (fun () ->
+            List.iter (Atomic.get log_thread_processor) (get_pending_logs ());
+            if !log_thread_should_stop then (
+              clear_callback ();
+              log_thread := false;
+              true)
+            else false)
+          ()
+      in
+      if not should_stop then (
+        wait_for_logs ();
+        fn ())
+    in
+    fn
+
+  let set_callback fn =
+    Atomic.set log_thread_processor fn;
+    mutexify log_m
+      (fun () ->
+        if !log_thread then ()
+        else (
+          setup_log_callback ();
+          ignore (Thread.create log_processor ());
+          log_thread_should_stop := false;
+          log_thread := true))
+      ()
+
+  let clear_callback () =
+    mutexify log_m
+      (fun () ->
+        log_thread_should_stop := true;
+        signal_logs ())
+      ()
 end
 
 module Pixel_format = struct

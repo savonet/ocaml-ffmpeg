@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <pthread.h>
+#include <stdatomic.h>
 #include <string.h>
 
 #define CAML_NAME_SPACE 1
@@ -230,91 +231,101 @@ CAMLprim value ocaml_avutil_set_log_level(value level) {
 
 #define LINE_SIZE 1024
 
-typedef struct {
+typedef struct log_msg_t {
   char msg[LINE_SIZE];
-  void *next;
+  struct log_msg_t *next;
 } log_msg_t;
 
+static _Atomic(log_msg_t *) log_head = NULL;
 static pthread_cond_t log_condition = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t log_mutex = PTHREAD_MUTEX_INITIALIZER;
-static log_msg_t top_level_log_msg = {"", NULL};
-
-CAMLprim value ocaml_ffmpeg_process_log(value cb) {
-  CAMLparam1(cb);
-  CAMLlocal1(buffer);
-  log_msg_t *log_msg, *next_log_msg;
-
-  while (1) {
-    caml_release_runtime_system();
-    pthread_mutex_lock(&log_mutex);
-
-    while (top_level_log_msg.next == NULL)
-      pthread_cond_wait(&log_condition, &log_mutex);
-
-    log_msg = top_level_log_msg.next;
-    top_level_log_msg.next = NULL;
-    pthread_mutex_unlock(&log_mutex);
-
-    caml_acquire_runtime_system();
-
-    while (log_msg != NULL) {
-      buffer = caml_copy_string(log_msg->msg);
-      caml_callback(cb, buffer);
-
-      next_log_msg = log_msg->next;
-      av_free(log_msg);
-      log_msg = next_log_msg;
-    }
-  }
-
-  CAMLreturn(Val_unit);
-}
 
 static void av_log_ocaml_callback(void *ptr, int level, const char *fmt,
                                   va_list vl) {
-  static int print_prefix = 1;
-  log_msg_t *log_msg;
+  static _Atomic int print_prefix = 1;
+  log_msg_t *msg, *old_head;
+  int prefix;
 
   if (level > av_log_get_level())
     return;
 
-  pthread_mutex_lock(&log_mutex);
+  msg = (log_msg_t *)av_malloc(sizeof(log_msg_t));
+  if (!msg)
+    return;
 
-  log_msg = &top_level_log_msg;
+  prefix = atomic_load(&print_prefix);
+  av_log_format_line2(ptr, level, fmt, vl, msg->msg, LINE_SIZE, &prefix);
+  atomic_store(&print_prefix, prefix);
 
-  while (log_msg->next != NULL) {
-    log_msg = log_msg->next;
-  }
-
-  // TODO: check for NULL here
-  log_msg->next = av_malloc(sizeof(log_msg_t));
-
-  log_msg = (log_msg_t *)log_msg->next;
-  log_msg->next = NULL;
-  av_log_format_line2(ptr, level, fmt, vl, log_msg->msg, LINE_SIZE,
-                      &print_prefix);
+  do {
+    old_head = atomic_load(&log_head);
+    msg->next = old_head;
+  } while (!atomic_compare_exchange_weak(&log_head, &old_head, msg));
 
   pthread_cond_signal(&log_condition);
-  pthread_mutex_unlock(&log_mutex);
 }
 
-CAMLprim value ocaml_avutil_setup_log_callback(value unit) {
+CAMLprim value ocaml_ffmpeg_wait_for_logs(value unit) {
   CAMLparam0();
 
   caml_release_runtime_system();
-  av_log_set_callback(&av_log_ocaml_callback);
+  pthread_mutex_lock(&log_mutex);
+  pthread_cond_wait(&log_condition, &log_mutex);
+  pthread_mutex_unlock(&log_mutex);
   caml_acquire_runtime_system();
 
   CAMLreturn(Val_unit);
 }
 
-CAMLprim value ocaml_avutil_clear_log_callback() {
+CAMLprim value ocaml_ffmpeg_signal_logs(value unit) {
   CAMLparam0();
+  pthread_cond_signal(&log_condition);
+  CAMLreturn(Val_unit);
+}
 
-  caml_release_runtime_system();
+CAMLprim value ocaml_ffmpeg_get_pending_logs(value unit) {
+  CAMLparam0();
+  CAMLlocal2(result, cons);
+  log_msg_t *msgs, *prev, *curr, *next;
+
+  msgs = atomic_exchange(&log_head, NULL);
+  if (msgs == NULL)
+    CAMLreturn(Val_emptylist);
+
+  prev = NULL;
+  curr = msgs;
+  while (curr) {
+    next = curr->next;
+    curr->next = prev;
+    prev = curr;
+    curr = next;
+  }
+
+  result = Val_emptylist;
+  while (prev) {
+    cons = caml_alloc(2, 0);
+    Store_field(cons, 0, caml_copy_string(prev->msg));
+    Store_field(cons, 1, result);
+    result = cons;
+
+    curr = prev;
+    prev = prev->next;
+    av_free(curr);
+  }
+
+  CAMLreturn(result);
+}
+
+CAMLprim value ocaml_avutil_setup_log_callback(value unit) {
+  CAMLparam0();
+  av_log_set_callback(&av_log_ocaml_callback);
+  CAMLreturn(Val_unit);
+}
+
+CAMLprim value ocaml_avutil_clear_log_callback(value unit) {
+  CAMLparam0();
+  log_msg_t *msgs, *curr;
   av_log_set_callback(&av_log_default_callback);
-  caml_acquire_runtime_system();
-
   CAMLreturn(Val_unit);
 }
 
