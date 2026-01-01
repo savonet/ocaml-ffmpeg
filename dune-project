@@ -1,7 +1,7 @@
 (lang dune 3.8)
 
 (name ffmpeg)
-(version 1.2.7)
+(version 1.2.8)
 (source (github savonet/ocaml-ffmpeg))
 (license LGPL-2.1-only)
 (authors "The Savonet Team <savonet-users@lists.sourceforge.net>")
