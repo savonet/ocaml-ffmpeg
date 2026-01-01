@@ -1,6 +1,9 @@
-1.2.8 (unreleased)
+1.2.8 (01-01-2026)
 =====
 * `avfilter`: Added `filter_name`.
+* `avfilter`: Fixed/tested complex use of `Avfilter.parse`
+* `avutil`: Reimplemented log callback support with a lock- and
+            ocaml- free C side.
 
 1.2.7 (2025-10-31)
 ======
