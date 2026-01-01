@@ -568,23 +568,31 @@ swresample_set_context(swr_t *swr, AVChannelLayout *in_channel_layout,
   int ret;
 
   if (in_channel_layout) {
-    av_opt_set_chlayout(ctx, "in_chlayout", in_channel_layout, 0);
+    ret = av_opt_set_chlayout(ctx, "in_chlayout", in_channel_layout, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
 
     swr->in.nb_channels = in_channel_layout->nb_channels;
   }
 
   if (in_sample_fmt != AV_SAMPLE_FMT_NONE) {
-    av_opt_set_sample_fmt(ctx, "in_sample_fmt", in_sample_fmt, 0);
+    ret = av_opt_set_sample_fmt(ctx, "in_sample_fmt", in_sample_fmt, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
 
     swr->in.sample_fmt = in_sample_fmt;
   }
 
   if (in_sample_rate) {
-    av_opt_set_int(ctx, "in_sample_rate", in_sample_rate, 0);
+    ret = av_opt_set_int(ctx, "in_sample_rate", in_sample_rate, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
   }
 
   if (out_channel_layout) {
-    av_opt_set_chlayout(ctx, "out_chlayout", out_channel_layout, 0);
+    ret = av_opt_set_chlayout(ctx, "out_chlayout", out_channel_layout, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
 
     ret = av_channel_layout_copy(&swr->out_ch_layout, out_channel_layout);
 
@@ -595,12 +603,16 @@ swresample_set_context(swr_t *swr, AVChannelLayout *in_channel_layout,
   }
 
   if (out_sample_fmt != AV_SAMPLE_FMT_NONE) {
-    av_opt_set_sample_fmt(ctx, "out_sample_fmt", out_sample_fmt, 0);
+    ret = av_opt_set_sample_fmt(ctx, "out_sample_fmt", out_sample_fmt, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
     swr->out.sample_fmt = out_sample_fmt;
   }
 
   if (out_sample_rate) {
-    av_opt_set_int(ctx, "out_sample_rate", out_sample_rate, 0);
+    ret = av_opt_set_int(ctx, "out_sample_rate", out_sample_rate, 0);
+    if (ret < 0)
+      ocaml_avutil_raise_error(ret);
     swr->out_sample_rate = out_sample_rate;
   }
 

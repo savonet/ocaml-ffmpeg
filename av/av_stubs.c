@@ -496,6 +496,7 @@ CAMLprim value ocaml_av_create_io(value _read_cb, value _write_cb,
   buffer = av_malloc(BUFLEN);
 
   if (!buffer) {
+    caml_remove_generational_global_root(&avio->buffer);
     av_free(avio);
     caml_raise_out_of_memory();
   }

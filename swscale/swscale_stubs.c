@@ -125,7 +125,7 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_,
   int dst_planes = Wosize_val(dst_);
   int off = Int_val(off_);
   int h = Int_val(h_);
-  int i;
+  int i, ret;
 
   const uint8_t *src_slice[4];
   int src_stride[4];
@@ -147,8 +147,11 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_,
   }
 
   caml_release_runtime_system();
-  sws_scale(context, src_slice, src_stride, off, h, dst_slice, dst_stride);
+  ret = sws_scale(context, src_slice, src_stride, off, h, dst_slice, dst_stride);
   caml_acquire_runtime_system();
+
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
 
   CAMLreturn(Val_unit);
 }
