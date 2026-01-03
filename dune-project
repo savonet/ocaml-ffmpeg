@@ -17,7 +17,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   base-threads)
@@ -31,7 +31,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
@@ -45,7 +45,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
@@ -59,7 +59,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version)))
@@ -73,7 +73,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version))
@@ -88,7 +88,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-avutil (= :version))
@@ -103,7 +103,7 @@
  (depends
   (conf-pkg-config :build)
   (conf-ffmpeg :build)
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (dune-configurator :build)
   (ffmpeg-av (= :version)))
@@ -115,7 +115,7 @@
  (name ffmpeg)
  (synopsis "Bindings for the ffmpeg libraries")
  (depends
-  (ocaml (>= 4.08.0))
+  (ocaml (>= 4.12))
   dune
   (ffmpeg-av (= :version))
   (ffmpeg-avutil (= :version))
