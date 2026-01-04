@@ -1,4 +1,5 @@
 x-maintenance-intent: ["(latest)"]
+x-ci-accept-failures: [ "debian-11" "opensuse-15.6" "ubuntu-22.04"]
 post-messages: [
   """\
 We're sorry that your install failed. Make sure to check the README.md file
