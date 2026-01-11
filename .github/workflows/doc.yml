@@ -20,7 +20,9 @@ jobs:
       with:
         ocaml-compiler: 4.14
     - name: Build doc
-      run: opam exec dune build @doc
+      run: |
+        opam install -y . --deps-only --with-doc
+        opam exec dune build @doc
     - name: Deploy doc
       uses: JamesIves/github-pages-deploy-action@4.1.4
       with:
