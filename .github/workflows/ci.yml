@@ -22,23 +22,13 @@ jobs:
     env:
       OPAMASSUMEDEPEXTS: ${{ matrix.os == 'ubuntu-latest' }}
     steps:
-    - name: Install local build
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Build FFmpeg
       if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository multiverse -y
-        sudo add-apt-repository restricted -y
-        sudo sed -i 's/Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources || true
-        sudo apt-get update
-        sudo apt-get build-dep ffmpeg -y
-        git clone --depth 1 --branch ${{ matrix.version }} --single-branch https://git.ffmpeg.org/ffmpeg.git ffmpeg
-        cd ffmpeg
-        ./configure --prefix=/usr --disable-x86asm --enable-gpl \
-                    --enable-nonfree --disable-programs --disable-doc \
-                    --enable-shared --enable-libtheora --enable-libvpx \
-                    --enable-libmp3lame --enable-libvorbis --enable-libsoxr
-        make -j4
-        sudo make install
+      uses: ./.github/actions/build-ffmpeg
+      with:
+        version: ${{ matrix.version }}
     - name: Build and test module
       uses: savonet/build-and-test-ocaml-module@main
       with:

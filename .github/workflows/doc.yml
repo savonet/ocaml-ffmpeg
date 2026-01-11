@@ -7,18 +7,18 @@ on:
 
 jobs:
   build_doc:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
+    env:
+      OPAMASSUMEDEPEXTS: true
     steps:
     - name: Checkout code
-      uses: actions/checkout@v1
-    - name: Setup OCaml
-      uses: toots/setup-ocaml@master
+      uses: actions/checkout@v4
+    - name: Build FFmpeg
+      uses: ./.github/actions/build-ffmpeg
+    - name: Build module
+      uses: savonet/build-and-test-ocaml-module@main
       with:
-        ocaml-compiler: 4.14.x
-    - name: Pin locally
-      run: opam pin -y add --no-action .
-    - name: Install locally
-      run: opam install -y --with-doc ffmpeg
+        ocaml-compiler: 4.14
     - name: Build doc
       run: opam exec dune build @doc
     - name: Deploy doc
