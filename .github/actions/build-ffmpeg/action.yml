@@ -8,12 +8,12 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Cache FFmpeg
+    - name: Cache FFmpeg build
       id: cache-ffmpeg
       uses: actions/cache@v4
       with:
-        path: ~/ffmpeg-install
-        key: ffmpeg-${{ inputs.version }}-${{ runner.os }}
+        path: ffmpeg
+        key: ffmpeg-build-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
@@ -30,14 +30,13 @@ runs:
       run: |
         git clone --depth 1 --branch ${{ inputs.version }} --single-branch https://git.ffmpeg.org/ffmpeg.git ffmpeg
         cd ffmpeg
-        ./configure --prefix=$HOME/ffmpeg-install --disable-x86asm --enable-gpl \
+        ./configure --prefix=/usr --disable-x86asm --enable-gpl \
                     --enable-nonfree --disable-programs --disable-doc \
                     --enable-shared --enable-libtheora --enable-libvpx \
                     --enable-libmp3lame --enable-libvorbis --enable-libsoxr
         make -j4
-        make install
     - name: Install FFmpeg
       shell: bash
       run: |
-        sudo cp -r ~/ffmpeg-install/* /usr/
-        sudo ldconfig
+        cd ffmpeg
+        sudo make install
