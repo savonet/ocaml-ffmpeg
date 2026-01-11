@@ -12,8 +12,8 @@ runs:
       id: cache-ffmpeg
       uses: actions/cache@v4
       with:
-        path: ffmpeg
-        key: ffmpeg-cached-build-${{ inputs.version }}-${{ runner.os }}
+        path: /tmp/ffmpeg
+        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
       shell: bash
       run: |
@@ -27,7 +27,8 @@ runs:
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
       run: |
-        if [ -d ffmpeg ]; then rm -rf ffmpeg; fi
+        if [ -d /tmp/ffmpeg ]; then rm -rf /tmp/ffmpeg; fi
+        cd /tmp
         git clone --depth 1 --branch ${{ inputs.version }} --single-branch https://git.ffmpeg.org/ffmpeg.git ffmpeg
         cd ffmpeg
         ./configure --prefix=/usr --disable-x86asm --enable-gpl \
@@ -38,5 +39,5 @@ runs:
     - name: Install FFmpeg
       shell: bash
       run: |
-        cd ffmpeg
+        cd /tmp/ffmpeg
         sudo make install
