@@ -15,7 +15,6 @@ runs:
         path: ffmpeg
         key: ffmpeg-build-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
-      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
       run: |
         sudo add-apt-repository universe -y
