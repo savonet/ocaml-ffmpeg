@@ -373,8 +373,8 @@
 ; Combined CI test alias (runs all tests)
 ; ============================================
 
-(rule
- (alias citest)
+(alias
+ (name citest)
  (package ffmpeg)
  (deps
   (alias test_list_filters)
@@ -405,6 +405,4 @@
   (alias test_read_metadata_mp2)
   (alias test_interrupt)
   (alias test_resample)
-  (alias test_info))
- (action
-  (echo "All tests passed!\n")))
+  (alias test_info)))
