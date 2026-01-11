@@ -25,11 +25,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     - name: Cache FFmpeg build
+      if: ${{ matrix.os == 'ubuntu-latest' }}
       id: cache-ffmpeg
       uses: actions/cache@v4
       with:
         path: ffmpeg
-        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-build-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Build FFmpeg
       if: ${{ matrix.os == 'ubuntu-latest' }}
       uses: ./.github/actions/build-ffmpeg

@@ -18,7 +18,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ffmpeg
-        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-build-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Build FFmpeg
       uses: ./.github/actions/build-ffmpeg
     - name: Build module
