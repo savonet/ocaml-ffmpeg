@@ -418,6 +418,20 @@ let gen_color_space mode =
     ]
     mode
 
+let gen_color_range mode =
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "color_range"
+    [
+      ( "enum AVColorRange",
+        "[ \t]*AVCOL_RANGE_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVCOL_RANGE_NB",
+        "AVCOL_RANGE_",
+        "enum AVColorRange",
+        "ColorRange",
+        "t",
+        [] );
+    ]
+    mode
+
 let gen_pixel_format_flag mode =
   translate_c_values ~pre_process:false ["/libavutil/pixdesc.h"]
     "pixel_format_flag"
@@ -580,6 +594,7 @@ let () =
     | "polymorphic_variant" -> gen_polymorphic_variant mode
     | "codec_id" -> gen_codec_id mode
     | "color_space" -> gen_color_space mode
+    | "color_range" -> gen_color_range mode
     | "pixel_format" -> gen_pixel_format mode
     | "pixel_format_flag" -> gen_pixel_format_flag mode
     | "hw_config_method" -> gen_hw_config_method mode

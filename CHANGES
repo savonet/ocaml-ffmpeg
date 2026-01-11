@@ -1,6 +1,6 @@
 1.3.0 (unreleased)
 =====
-* Add support for `color_space`
+* Add support for `color_space` and `color_range`
 
 1.2.8 (01-01-2026)
 =====

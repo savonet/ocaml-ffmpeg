@@ -308,6 +308,9 @@ module Video : sig
   (** Return the list of supported color spaces of the codec. *)
   val get_supported_color_spaces : _ t -> Avutil.Color_space.t list
 
+  (** Return the list of supported color ranges of the codec. *)
+  val get_supported_color_ranges : _ t -> Avutil.Color_range.t list
+
   (** Return the list of supported pixel formats of the codec. *)
   val get_supported_pixel_formats : _ t -> Avutil.Pixel_format.t list
 

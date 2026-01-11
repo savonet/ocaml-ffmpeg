@@ -80,6 +80,12 @@ enum AVColorSpace ColorSpace_val(value);
 
 value Val_ColorSpace(enum AVColorSpace csp);
 
+/**** Color range ****/
+
+enum AVColorRange ColorRange_val(value);
+
+value Val_ColorRange(enum AVColorRange cr);
+
 /**** Pixel format ****/
 
 int PixelFormat_val(value);

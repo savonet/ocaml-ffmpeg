@@ -407,6 +407,12 @@ module Video = struct
   let get_supported_color_spaces codec =
     List.rev (get_supported_color_spaces codec)
 
+  external get_supported_color_ranges : _ t -> Avutil.Color_range.t list
+    = "ocaml_avcodec_get_supported_color_ranges"
+
+  let get_supported_color_ranges codec =
+    List.rev (get_supported_color_ranges codec)
+
   external get_supported_pixel_formats : _ t -> Avutil.Pixel_format.t list
     = "ocaml_avcodec_get_supported_pixel_formats"
 
