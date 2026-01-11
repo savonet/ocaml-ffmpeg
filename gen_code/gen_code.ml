@@ -300,6 +300,7 @@ let gen_polymorphic_variant_h () =
       "Color";
       "Channel_layout";
       "Bool";
+      "Array";
       "Encoding_param";
       "Decoding_param";
       "Audio_param";
