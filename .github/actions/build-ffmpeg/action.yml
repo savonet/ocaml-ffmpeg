@@ -13,7 +13,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ffmpeg
-        key: ffmpeg-build-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
       shell: bash
       run: |
@@ -40,7 +40,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ffmpeg
-        key: ffmpeg-build-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-${{ inputs.version }}-${{ runner.os }}
     - name: Install FFmpeg
       shell: bash
       run: |
