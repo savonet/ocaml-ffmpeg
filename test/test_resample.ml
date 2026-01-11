@@ -21,15 +21,15 @@ module ConverterInput = Swresample.Make (Swresample.Frame)
 module Converter = ConverterInput (Swresample.PlanarFloatArray)
 
 let write_bytes = output_bytes
-
-(* let write_bytes dst bytes = () *)
-
 let foi = float_of_int
 let pi = 4.0 *. atan 1.0
 let rate = 44100
 let frate = float_of_int rate
 
-let test () =
+let () =
+  Avutil.Log.set_level `Debug;
+  Avutil.Log.set_callback print_string;
+
   let dst1 = open_out_bin "test_swresample_out1.raw" in
   let r =
     R.create Avutil.Channel_layout.mono rate Avutil.Channel_layout.stereo 44100

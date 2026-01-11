@@ -81,9 +81,7 @@ let string_of_filter_flag = function
   | `Support_timeline_internal -> "support timeline internal"
 
 let string_of_pads pads =
-  let string_of_pad pad =
-    Printf.sprintf "%s" (Avfilter.pad_name pad)
-  in
+  let string_of_pad pad = Printf.sprintf "%s" (Avfilter.pad_name pad) in
   String.concat ", " (List.map string_of_pad pads)
 
 let () =
@@ -99,14 +97,10 @@ let () =
     Printf.printf "Description: %s\n" filter.description;
     Printf.printf "Flags: %s\n"
       (String.concat ", " (List.map string_of_filter_flag filter.flags));
-    Printf.printf "Audio inputs: %s\n"
-      (string_of_pads filter.io.inputs.audio);
-    Printf.printf "Video inputs: %s\n"
-      (string_of_pads filter.io.inputs.video);
-    Printf.printf "Audio outputs: %s\n"
-      (string_of_pads filter.io.outputs.audio);
-    Printf.printf "Video outputs: %s\n"
-      (string_of_pads filter.io.outputs.video);
+    Printf.printf "Audio inputs: %s\n" (string_of_pads filter.io.inputs.audio);
+    Printf.printf "Video inputs: %s\n" (string_of_pads filter.io.inputs.video);
+    Printf.printf "Audio outputs: %s\n" (string_of_pads filter.io.outputs.audio);
+    Printf.printf "Video outputs: %s\n" (string_of_pads filter.io.outputs.video);
     Printf.printf "Options:\n%s\n"
       (String.concat "\n"
          (List.map string_of_option (Avutil.Options.opts filter.options)))

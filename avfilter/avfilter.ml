@@ -182,7 +182,7 @@ let filters, abuffer, buffer, abuffersink, buffersink =
 let find name = List.find (fun f -> f.name = name) filters
 let find_opt name = List.find_opt (fun f -> f.name = name) filters
 let pad_name { pad_name; _ } = pad_name
-let filter_name { filter_name; _} = filter_name
+let filter_name { filter_name; _ } = filter_name
 
 external init : unit -> _config = "ocaml_avfilter_init"
 
@@ -311,15 +311,15 @@ let parse ({ inputs; outputs } : [ `Attached ] parse_io) filters graph =
   let get_ctx (type a b) (node : ([ `Attached ], a, b) parse_node) =
     let { node_name; node_pad; _ } = node in
     let { filter_ctx; idx; _ } = node_pad in
-    let ctx = match filter_ctx with
-      | Some ctx -> ctx
-      | None -> failwith "parse: unattached pad"
+    let ctx =
+      match filter_ctx with
+        | Some ctx -> ctx
+        | None -> failwith "parse: unattached pad"
     in
     (node_name, ctx, idx)
   in
   let inputs =
-    Array.of_list
-      (List.map get_ctx inputs.audio @ List.map get_ctx inputs.video)
+    Array.of_list (List.map get_ctx inputs.audio @ List.map get_ctx inputs.video)
   in
   let outputs =
     Array.of_list
