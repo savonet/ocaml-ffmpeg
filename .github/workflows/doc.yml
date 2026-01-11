@@ -13,10 +13,14 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+    - name: Cache FFmpeg build
+      id: cache-ffmpeg
+      uses: actions/cache@v4
+      with:
+        path: ffmpeg
+        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Build FFmpeg
       uses: ./.github/actions/build-ffmpeg
-    - name: Setup OCaml
-      uses: toots/setup-ocaml@master
     - name: Build module
       uses: savonet/build-and-test-ocaml-module@main
       with:
