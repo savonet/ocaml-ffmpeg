@@ -13,7 +13,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: ffmpeg
-        key: ffmpeg-build-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-cached-build-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
       shell: bash
       run: |
