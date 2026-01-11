@@ -223,6 +223,27 @@ module Color_range : sig
   val from_name : string -> t option
 end
 
+module Color_primaries : sig
+  type t = Color_primaries.t
+
+  val name : t -> string
+  val from_name : string -> t option
+end
+
+module Color_trc : sig
+  type t = Color_trc.t
+
+  val name : t -> string
+  val from_name : string -> t option
+end
+
+module Chroma_location : sig
+  type t = Chroma_location.t
+
+  val name : t -> string
+  val from_name : string -> t option
+end
+
 (** Formats for pixels. *)
 module Pixel_format : sig
   (** Pixels formats. *)
@@ -351,6 +372,10 @@ module Video : sig
 
   (** [Avutil.Video.frame_get_color_range frame] returns frame's color range *)
   val frame_get_color_range : video frame -> Color_range.t
+
+  val frame_get_color_primaries : video frame -> Color_primaries.t
+  val frame_get_color_trc : video frame -> Color_trc.t
+  val frame_get_chroma_location : video frame -> Chroma_location.t
 end
 
 (** {5 Subtitle utilities} *)

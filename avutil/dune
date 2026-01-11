@@ -31,6 +31,9 @@
   pixel_format_flag_stubs.h
   color_space_stubs.h
   color_range_stubs.h
+  color_primaries_stubs.h
+  color_trc_stubs.h
+  chroma_location_stubs.h
   sample_format_stubs.h
   channel_layout_stubs.h)
  (action
@@ -104,6 +107,62 @@
  (deps c_flags)
  (action
   (run ../gen_code/gen_code.exe "%{cc}" color_range ml %{read-lines:c_flags})))
+
+(rule
+ (targets color_primaries_stubs.h)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   color_primaries
+   h
+   %{read-lines:c_flags})))
+
+(rule
+ (targets color_primaries.ml)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   color_primaries
+   ml
+   %{read-lines:c_flags})))
+
+(rule
+ (targets color_trc_stubs.h)
+ (deps c_flags)
+ (action
+  (run ../gen_code/gen_code.exe "%{cc}" color_trc h %{read-lines:c_flags})))
+
+(rule
+ (targets color_trc.ml)
+ (deps c_flags)
+ (action
+  (run ../gen_code/gen_code.exe "%{cc}" color_trc ml %{read-lines:c_flags})))
+
+(rule
+ (targets chroma_location_stubs.h)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   chroma_location
+   h
+   %{read-lines:c_flags})))
+
+(rule
+ (targets chroma_location.ml)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   chroma_location
+   ml
+   %{read-lines:c_flags})))
 
 (rule
  (targets pixel_format_stubs.h)

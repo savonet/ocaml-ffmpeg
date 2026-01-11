@@ -23,8 +23,11 @@
 
 #include "avutil_stubs.h"
 #include "channel_layout_stubs.h"
+#include "chroma_location_stubs.h"
+#include "color_primaries_stubs.h"
 #include "color_range_stubs.h"
 #include "color_space_stubs.h"
+#include "color_trc_stubs.h"
 #include "hw_device_type_stubs.h"
 #include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
@@ -604,6 +607,63 @@ CAMLprim value ocaml_avutil_color_range_from_name(value _name) {
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_avutil_color_primaries_name(value _color_primaries) {
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(
+      av_color_primaries_name(ColorPrimaries_val(_color_primaries))));
+}
+
+CAMLprim value ocaml_avutil_color_primaries_from_name(value _name) {
+  CAMLparam1(_name);
+  CAMLlocal1(ret);
+  int err = av_color_primaries_from_name(String_val(_name));
+
+  if (err < 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_ColorPrimaries(err));
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_color_trc_name(value _color_trc) {
+  CAMLparam0();
+  CAMLreturn(
+      caml_copy_string(av_color_transfer_name(ColorTrc_val(_color_trc))));
+}
+
+CAMLprim value ocaml_avutil_color_trc_from_name(value _name) {
+  CAMLparam1(_name);
+  CAMLlocal1(ret);
+  int err = av_color_transfer_from_name(String_val(_name));
+
+  if (err < 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_ColorTrc(err));
+  CAMLreturn(ret);
+}
+
+CAMLprim value ocaml_avutil_chroma_location_name(value _chroma_location) {
+  CAMLparam0();
+  CAMLreturn(caml_copy_string(
+      av_chroma_location_name(ChromaLocation_val(_chroma_location))));
+}
+
+CAMLprim value ocaml_avutil_chroma_location_from_name(value _name) {
+  CAMLparam1(_name);
+  CAMLlocal1(ret);
+  int err = av_chroma_location_from_name(String_val(_name));
+
+  if (err < 0)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, Val_ChromaLocation(err));
+  CAMLreturn(ret);
+}
+
 /***** AVPixelFormat *****/
 CAMLprim value ocaml_avutil_pixelformat_descriptor(value pixel) {
   CAMLparam1(pixel);
@@ -1085,6 +1145,27 @@ CAMLprim value ocaml_avutil_video_frame_get_color_range(value _frame) {
   AVFrame *frame = Frame_val(_frame);
 
   CAMLreturn(Val_ColorRange(frame->color_range));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_color_primaries(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ColorPrimaries(frame->color_primaries));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_color_trc(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ColorTrc(frame->color_trc));
+}
+
+CAMLprim value ocaml_avutil_video_frame_get_chroma_location(value _frame) {
+  CAMLparam1(_frame);
+  AVFrame *frame = Frame_val(_frame);
+
+  CAMLreturn(Val_ChromaLocation(frame->chroma_location));
 }
 
 CAMLprim value ocaml_avutil_video_frame_get_pixel_aspect(value _frame) {

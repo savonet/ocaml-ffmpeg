@@ -432,6 +432,48 @@ let gen_color_range mode =
     ]
     mode
 
+let gen_color_primaries mode =
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "color_primaries"
+    [
+      ( "enum AVColorPrimaries",
+        "[ \t]*AVCOL_PRI_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVCOL_PRI_NB",
+        "AVCOL_PRI_",
+        "enum AVColorPrimaries",
+        "ColorPrimaries",
+        "t",
+        [] );
+    ]
+    mode
+
+let gen_color_trc mode =
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "color_trc"
+    [
+      ( "enum AVColorTransferCharacteristic",
+        "[ \t]*AVCOL_TRC_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVCOL_TRC_NB",
+        "AVCOL_TRC_",
+        "enum AVColorTransferCharacteristic",
+        "ColorTrc",
+        "t",
+        [] );
+    ]
+    mode
+
+let gen_chroma_location mode =
+  translate_c_values ~pre_process:true ["/libavutil/pixfmt.h"] "chroma_location"
+    [
+      ( "enum AVChromaLocation",
+        "[ \t]*AVCHROMA_LOC_\\([A-Z0-9_]+\\)",
+        "[ \t]*AVCHROMA_LOC_NB",
+        "AVCHROMA_LOC_",
+        "enum AVChromaLocation",
+        "ChromaLocation",
+        "t",
+        [] );
+    ]
+    mode
+
 let gen_pixel_format_flag mode =
   translate_c_values ~pre_process:false ["/libavutil/pixdesc.h"]
     "pixel_format_flag"
@@ -595,6 +637,9 @@ let () =
     | "codec_id" -> gen_codec_id mode
     | "color_space" -> gen_color_space mode
     | "color_range" -> gen_color_range mode
+    | "color_primaries" -> gen_color_primaries mode
+    | "color_trc" -> gen_color_trc mode
+    | "chroma_location" -> gen_chroma_location mode
     | "pixel_format" -> gen_pixel_format mode
     | "pixel_format_flag" -> gen_pixel_format_flag mode
     | "hw_config_method" -> gen_hw_config_method mode

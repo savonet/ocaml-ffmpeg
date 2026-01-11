@@ -217,6 +217,31 @@ module Color_range = struct
   external from_name : string -> t option = "ocaml_avutil_color_range_from_name"
 end
 
+module Color_primaries = struct
+  type t = Color_primaries.t
+
+  external name : t -> string = "ocaml_avutil_color_primaries_name"
+
+  external from_name : string -> t option
+    = "ocaml_avutil_color_primaries_from_name"
+end
+
+module Color_trc = struct
+  type t = Color_trc.t
+
+  external name : t -> string = "ocaml_avutil_color_trc_name"
+  external from_name : string -> t option = "ocaml_avutil_color_trc_from_name"
+end
+
+module Chroma_location = struct
+  type t = Chroma_location.t
+
+  external name : t -> string = "ocaml_avutil_chroma_location_name"
+
+  external from_name : string -> t option
+    = "ocaml_avutil_chroma_location_from_name"
+end
+
 module Pixel_format = struct
   type t = Pixel_format.t
   type flag = Pixel_format_flag.t
@@ -357,6 +382,15 @@ module Video = struct
 
   external frame_get_color_range : video frame -> Color_range.t
     = "ocaml_avutil_video_frame_get_color_range"
+
+  external frame_get_color_primaries : video frame -> Color_primaries.t
+    = "ocaml_avutil_video_frame_get_color_primaries"
+
+  external frame_get_color_trc : video frame -> Color_trc.t
+    = "ocaml_avutil_video_frame_get_color_trc"
+
+  external frame_get_chroma_location : video frame -> Chroma_location.t
+    = "ocaml_avutil_video_frame_get_chroma_location"
 end
 
 module Subtitle = struct

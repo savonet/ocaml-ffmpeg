@@ -86,6 +86,24 @@ enum AVColorRange ColorRange_val(value);
 
 value Val_ColorRange(enum AVColorRange cr);
 
+/**** Color primaries ****/
+
+enum AVColorPrimaries ColorPrimaries_val(value);
+
+value Val_ColorPrimaries(enum AVColorPrimaries cp);
+
+/**** Color transfer characteristic ****/
+
+enum AVColorTransferCharacteristic ColorTrc_val(value);
+
+value Val_ColorTrc(enum AVColorTransferCharacteristic ct);
+
+/**** Chroma location ****/
+
+enum AVChromaLocation ChromaLocation_val(value);
+
+value Val_ChromaLocation(enum AVChromaLocation cl);
+
 /**** Pixel format ****/
 
 int PixelFormat_val(value);

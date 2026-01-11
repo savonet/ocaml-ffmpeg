@@ -1,7 +1,7 @@
 open Avutil
 open Printf
 
-let test_color_space_and_range () =
+let test_color_properties () =
   let cs = `Bt709 in
   let cs_name = Color_space.name cs in
   printf "Color_space test: %s -> %s\n" "Bt709" cs_name;
@@ -15,6 +15,27 @@ let test_color_space_and_range () =
   (match Color_range.from_name cr_name with
     | Some cr' when cr = cr' -> printf "Color_range from_name: OK\n"
     | _ -> printf "Color_range from_name: FAILED\n");
+
+  let cp = `Bt709 in
+  let cp_name = Color_primaries.name cp in
+  printf "Color_primaries test: %s -> %s\n" "Bt709" cp_name;
+  (match Color_primaries.from_name cp_name with
+    | Some cp' when cp = cp' -> printf "Color_primaries from_name: OK\n"
+    | _ -> printf "Color_primaries from_name: FAILED\n");
+
+  let ct = `Bt709 in
+  let ct_name = Color_trc.name ct in
+  printf "Color_trc test: %s -> %s\n" "Bt709" ct_name;
+  (match Color_trc.from_name ct_name with
+    | Some ct' when ct = ct' -> printf "Color_trc from_name: OK\n"
+    | _ -> printf "Color_trc from_name: FAILED\n");
+
+  let cl = `Left in
+  let cl_name = Chroma_location.name cl in
+  printf "Chroma_location test: %s -> %s\n" "Left" cl_name;
+  (match Chroma_location.from_name cl_name with
+    | Some cl' when cl = cl' -> printf "Chroma_location from_name: OK\n"
+    | _ -> printf "Chroma_location from_name: FAILED\n");
   printf "\n"
 
 let test_file_info url =
@@ -59,8 +80,15 @@ let test_file_info url =
                | `Video_frame (_, frame) ->
                    let cs = Video.frame_get_color_space frame in
                    let cr = Video.frame_get_color_range frame in
-                   printf "\t\tFirst frame color_space: %s, color_range: %s\n"
+                   let cp = Video.frame_get_color_primaries frame in
+                   let ct = Video.frame_get_color_trc frame in
+                   let cl = Video.frame_get_chroma_location frame in
+                   printf
+                     "\t\tFirst frame color_space: %s, color_range: %s, \
+                      color_primaries: %s, color_trc: %s, chroma_location: %s\n"
                      (Color_space.name cs) (Color_range.name cr)
+                     (Color_primaries.name cp) (Color_trc.name ct)
+                     (Chroma_location.name cl)
                | exception Avutil.Error `Eof -> ()
                | _ -> read_frame ()
            in
@@ -81,5 +109,5 @@ let () =
   Avutil.Log.set_level `Debug;
   Avutil.Log.set_callback print_string;
 
-  test_color_space_and_range ();
+  test_color_properties ();
   Sys.argv |> Array.to_list |> List.tl |> List.iter test_file_info
