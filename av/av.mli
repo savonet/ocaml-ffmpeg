@@ -379,7 +379,7 @@ val write_packet :
     Frame PTS should be set and counted in units of [time_base], as passed when
     creating the stream
 
-    If [on_keyframe] is provided, it is called on keyframe, _before the keyframe
+    If [on_keyframe] is provided, it is called on keyframe, _before_ the keyframe
     is submitted to the muxer.
 
     Raise Error if the writing failed. *)
@@ -391,6 +391,9 @@ val write_frame :
 
 (** Flush the underlying muxer. *)
 val flush : output container -> unit
+
+(* If available, call [avio_tell] on the container's underlying AVIOContext. *)
+val tell : _ container -> int option
 
 (** Close an input or output container. *)
 val close : _ container -> unit

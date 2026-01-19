@@ -2,6 +2,7 @@
 =====
 * Add support for `color_space`, `color_range`, `color_primaries`,
   `color_trc` and `chroma_location`.
+* Add `tell` to `Av`.
 
 1.2.8 (01-01-2026)
 =====
