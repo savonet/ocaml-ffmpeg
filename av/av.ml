@@ -293,6 +293,8 @@ let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   filter_opts unused opts;
   output
 
+external reopen_output_stream : output container -> unit = "ocaml_av_reopen_output_stream"
+
 external output_started : output container -> bool = "ocaml_av_header_written"
 
 external _set_metadata : _ container -> int -> (string * string) array -> unit

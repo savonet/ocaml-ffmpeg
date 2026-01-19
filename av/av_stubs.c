@@ -1635,6 +1635,18 @@ CAMLprim value ocaml_av_open_output_stream(value _format, value _avio,
   CAMLreturn(ret);
 }
 
+CAMLprim value ocaml_av_reopen_output_stream(value _av) {
+  CAMLparam1(_av);
+  av_t *av = Av_val(_av);
+
+  if (!av->format_context->pb)
+    Fail("Not a streamed output!")
+
+  avio_open_dyn_buf(&av->format_context->pb);
+
+  CAMLreturn(Val_unit);
+}
+
 CAMLprim value ocaml_av_header_written(value _av) {
   CAMLparam1(_av);
   av_t *av = Av_val(_av);

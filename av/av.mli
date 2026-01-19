@@ -236,6 +236,8 @@ val open_output_stream :
   (output, _) format ->
   output container
 
+val reopen_output_stream : output container -> unit
+
 (** Returns [true] if the output has already started, in which case no new *
     stream or metadata can be added. *)
 val output_started : output container -> bool
