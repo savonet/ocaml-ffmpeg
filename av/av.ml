@@ -408,4 +408,5 @@ external write_frame :
   unit = "ocaml_av_write_stream_frame"
 
 external flush : output container -> unit = "ocaml_av_flush"
+external tell : _ container -> int option = "ocaml_av_tell"
 external close : _ container -> unit = "ocaml_av_close"

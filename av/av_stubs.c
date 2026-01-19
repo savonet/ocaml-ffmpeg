@@ -2296,6 +2296,26 @@ CAMLprim value ocaml_av_flush(value _av) {
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_av_tell(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t *av = Av_val(_av);
+  int ret;
+
+  if (!av->format_context->pb)
+    CAMLreturn(Val_none);
+
+  ret = avio_tell(av->format_context->pb);
+
+  if (ret < 0)
+    ocaml_avutil_raise_error(ret);
+
+  ans = caml_alloc_tuple(1);
+  Store_field(ans, 0, Val_int(ret));
+
+  CAMLreturn(ans);
+}
+
 CAMLprim value ocaml_av_close(value _av) {
   CAMLparam1(_av);
   av_t *av = Av_val(_av);
