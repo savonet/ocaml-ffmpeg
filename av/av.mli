@@ -79,7 +79,7 @@ val get_input_metadata : input container -> (string * string) list
 (** [Av.set_input_metadata container tags] set the metadata of the [container]
     with the [tags] tag list. This can be used to clear existing metadata on an
     opened container. *)
-val set_input_metadata : output container -> (string * string) list -> unit
+val set_input_metadata : input container -> (string * string) list -> unit
 
 (** Return a value of type [obj], suited for use with [Avutils.Options] getters.
 *)
