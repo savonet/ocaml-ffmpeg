@@ -1660,7 +1660,7 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index,
   CAMLlocal1(pair);
   av_t *av = Av_val(_av);
   int index = Int_val(_stream_index);
-  AVDictionary *metadata = NULL;
+  AVDictionary **metadata;
 
   if (!av->format_context)
     Fail("Failed to set metadata to closed output");
@@ -1669,21 +1669,21 @@ CAMLprim value ocaml_av_set_metadata(value _av, value _stream_index,
 
   int i, ret, len = Wosize_val(_tags);
 
-  av_dict_free(&metadata);
+  if (index < 0) {
+    metadata = &av->format_context->metadata;
+  } else {
+    metadata = &av->format_context->streams[index]->metadata;
+  }
+
+  av_dict_free(metadata);
   for (i = 0; i < len; i++) {
 
     pair = Field(_tags, i);
 
-    ret = av_dict_set(&metadata, String_val(Field(pair, 0)),
+    ret = av_dict_set(metadata, String_val(Field(pair, 0)),
                       String_val(Field(pair, 1)), 0);
     if (ret < 0)
       ocaml_avutil_raise_error(ret);
-  }
-
-  if (index < 0) {
-    av->format_context->metadata = metadata;
-  } else {
-    av->format_context->streams[index]->metadata = metadata;
   }
 
   CAMLreturn(Val_unit);
