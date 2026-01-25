@@ -301,6 +301,7 @@ external _set_metadata : _ container -> int -> (string * string) array -> unit
   = "ocaml_av_set_metadata"
 
 let set_output_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
+let set_input_metadata o tags = _set_metadata o (-1) (Array.of_list tags)
 let set_metadata s tags = _set_metadata s.container s.index (Array.of_list tags)
 let get_output s = s.container
 

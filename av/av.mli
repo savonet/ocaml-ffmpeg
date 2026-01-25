@@ -76,6 +76,11 @@ val get_input_duration :
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
 
+(** [Av.set_input_metadata container tags] set the metadata of the [container]
+    with the [tags] tag list. This can be used to clear existing metadata on an
+    opened container. *)
+val set_input_metadata : output container -> (string * string) list -> unit
+
 (** Return a value of type [obj], suited for use with [Avutils.Options] getters.
 *)
 val input_obj : input container -> Options.obj
@@ -381,8 +386,8 @@ val write_packet :
     Frame PTS should be set and counted in units of [time_base], as passed when
     creating the stream
 
-    If [on_keyframe] is provided, it is called on keyframe, _before_ the keyframe
-    is submitted to the muxer.
+    If [on_keyframe] is provided, it is called on keyframe, _before_ the
+    keyframe is submitted to the muxer.
 
     Raise Error if the writing failed. *)
 val write_frame :
