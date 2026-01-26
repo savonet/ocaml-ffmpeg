@@ -470,6 +470,6 @@
 (rule
  (alias test_subtitle_transcode)
  (package ffmpeg)
- (deps transcoded_subs.srt fixtures/expected_subs.srt)
+ (deps transcoded_subs.srt fixtures/sample.srt)
  (action
-  (diff fixtures/expected_subs.srt transcoded_subs.srt)))
+  (diff fixtures/sample.srt transcoded_subs.srt)))
