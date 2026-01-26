@@ -1256,31 +1256,42 @@ void value_of_subtitle(value *ret, AVSubtitle *subtitle) {
 
 int subtitle_header_default(AVCodecContext *codec_context) { return 0; }
 
-CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
-                                                  value _end_time,
+CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time_us,
+                                                  value _duration_ms,
                                                   value _lines) {
-  CAMLparam3(_start_time, _end_time, _lines);
+  CAMLparam3(_start_time_us, _duration_ms, _lines);
   CAMLlocal1(ans);
-  int64_t start_time = Int64_val(_start_time);
-  int64_t end_time = Int64_val(_end_time);
+  // start_time_us is the absolute start time in AV_TIME_BASE (microseconds)
+  // duration_ms is the display duration in milliseconds
+  int64_t start_time_us = Int64_val(_start_time_us);
+  int64_t duration_ms = Int64_val(_duration_ms);
   int nb_lines = Wosize_val(_lines);
 
   AVSubtitle *subtitle = (AVSubtitle *)av_mallocz(sizeof(AVSubtitle));
   if (!subtitle)
     caml_raise_out_of_memory();
 
+  // Register with OCaml GC early so finalizer runs on exception.
+  // The finalizer (avsubtitle_free) handles partially initialized subtitles.
   value_of_subtitle(&ans, subtitle);
 
-  //  subtitle->start_display_time = (uint32_t)start_time;
-  subtitle->end_display_time = (uint32_t)end_time;
-  subtitle->pts = start_time;
+  // pts is the absolute start time in AV_TIME_BASE
+  subtitle->pts = start_time_us;
+  // start_display_time must be 0 for encoding (FFmpeg requirement)
+  subtitle->start_display_time = 0;
+  // end_display_time is the duration in milliseconds (relative to pts)
+  subtitle->end_display_time = (uint32_t)duration_ms;
 
+  // Use av_calloc to zero-initialize the array, so avsubtitle_free
+  // can safely iterate even if we fail partway through allocation.
   subtitle->rects =
-      (AVSubtitleRect **)av_malloc_array(nb_lines, sizeof(AVSubtitleRect *));
+      (AVSubtitleRect **)av_calloc(nb_lines, sizeof(AVSubtitleRect *));
 
   if (!subtitle->rects)
     caml_raise_out_of_memory();
 
+  // Set num_rects to the expected count. avsubtitle_free checks for NULL
+  // rects[i] pointers, so this is safe even if we fail during the loop.
   subtitle->num_rects = nb_lines;
 
   int i;
@@ -1293,14 +1304,9 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time,
       caml_raise_out_of_memory();
 
     subtitle->rects[i]->type = SUBTITLE_TEXT;
-    subtitle->rects[i]->text = strdup(text);
+    subtitle->rects[i]->text = av_strdup(text);
     if (!subtitle->rects[i]->text)
       caml_raise_out_of_memory();
-
-    //    subtitle->rects[i]->type = SUBTITLE_ASS;
-    //    subtitle->rects[i]->ass = get_dialog(i + 1, 0, NULL, NULL, text);
-    //    if( ! subtitle->rects[i]->ass) Fail( "Failed to allocate subtitle
-    //    frame");
   }
 
   CAMLreturn(ans);
@@ -1317,12 +1323,25 @@ CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
   for (i = 0; i < num_rects; i++) {
     char *line = subtitle->rects[i]->text ? subtitle->rects[i]->text
                                           : subtitle->rects[i]->ass;
-    Store_field(lines, i, caml_copy_string(line));
+    Store_field(lines, i, caml_copy_string(line ? line : ""));
+  }
+
+  // Calculate absolute start and end times.
+  // subtitle->pts is in AV_TIME_BASE (microseconds).
+  // start_display_time and end_display_time are in milliseconds relative to
+  // pts. We return times in AV_TIME_BASE for consistency.
+  int64_t start_time_us = subtitle->pts;
+  int64_t end_time_us = subtitle->pts;
+
+  if (subtitle->pts != AV_NOPTS_VALUE) {
+    start_time_us =
+        subtitle->pts + (int64_t)subtitle->start_display_time * 1000;
+    end_time_us = subtitle->pts + (int64_t)subtitle->end_display_time * 1000;
   }
 
   ans = caml_alloc_tuple(3);
-  Store_field(ans, 0, caml_copy_int64((int64_t)subtitle->start_display_time));
-  Store_field(ans, 1, caml_copy_int64((int64_t)subtitle->end_display_time));
+  Store_field(ans, 0, caml_copy_int64(start_time_us));
+  Store_field(ans, 1, caml_copy_int64(end_time_us));
   Store_field(ans, 2, lines);
 
   CAMLreturn(ans);

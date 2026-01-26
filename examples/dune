@@ -127,3 +127,8 @@
  (name filter_info)
  (modules filter_info)
  (libraries ffmpeg-avfilter))
+
+(executable
+ (name subtitle_transcode)
+ (modules subtitle_transcode)
+ (libraries ffmpeg-av))

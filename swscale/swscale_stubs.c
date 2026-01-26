@@ -147,7 +147,8 @@ CAMLprim value ocaml_swscale_scale(value context_, value src_, value off_,
   }
 
   caml_release_runtime_system();
-  ret = sws_scale(context, src_slice, src_stride, off, h, dst_slice, dst_stride);
+  ret =
+      sws_scale(context, src_slice, src_stride, off, h, dst_slice, dst_stride);
   caml_acquire_runtime_system();
 
   if (ret < 0)

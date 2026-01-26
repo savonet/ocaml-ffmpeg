@@ -10,6 +10,11 @@
  (modules test_info)
  (libraries ffmpeg-av ffmpeg-swresample))
 
+(executable
+ (name test_subtitle_read)
+ (modules test_subtitle_read)
+ (libraries ffmpeg-av))
+
 ; ============================================
 ; Standalone tests (no file dependencies)
 ; ============================================
@@ -406,3 +411,46 @@
   (alias test_interrupt)
   (alias test_resample)
   (alias test_info)))
+
+; ============================================
+; Subtitle tests
+; ============================================
+
+; Create test MKV with subtitles from SRT fixture
+
+(rule
+ (targets test_with_subs.mkv)
+ (deps fixtures/sample.srt)
+ (action
+  (run
+   ffmpeg
+   -y
+   -f
+   lavfi
+   -i
+   "color=c=blue:s=320x240:d=25"
+   -f
+   lavfi
+   -i
+   "anullsrc=r=44100:cl=stereo:d=25"
+   -i
+   %{deps}
+   -c:v
+   libx264
+   -preset
+   ultrafast
+   -c:a
+   aac
+   -c:s
+   srt
+   -shortest
+   %{targets})))
+
+(rule
+ (alias test_subtitle_read)
+ (package ffmpeg)
+ (deps
+  (:exe test_subtitle_read.exe)
+  test_with_subs.mkv)
+ (action
+  (run %{exe} test_with_subs.mkv)))

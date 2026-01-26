@@ -400,27 +400,25 @@ module Subtitle = struct
     = "ocaml_avutil_subtitle_create_frame"
 
   let create_frame start_time end_time lines =
-    let num_time_base = float_of_int (time_base ()).num in
-    let den_time_base = float_of_int (time_base ()).den in
-
-    create_frame
-      (Int64.of_float (start_time *. den_time_base /. num_time_base))
-      (Int64.of_float (end_time *. den_time_base /. num_time_base))
-      (Array.of_list lines)
+    (* C function expects:
+       - start_time_us: absolute start time in AV_TIME_BASE (microseconds)
+       - duration_ms: display duration in milliseconds *)
+    let av_time_base = 1000000.0 in
+    let start_time_us = Int64.of_float (start_time *. av_time_base) in
+    let duration_ms = Int64.of_float ((end_time -. start_time) *. 1000.0) in
+    create_frame start_time_us duration_ms (Array.of_list lines)
 
   external frame_to_lines : subtitle frame -> int64 * int64 * string array
     = "ocaml_avutil_subtitle_to_lines"
 
   let frame_to_lines t =
-    let num_time_base = float_of_int (time_base ()).num in
-    let den_time_base = float_of_int (time_base ()).den in
-
+    (* C function returns absolute times in AV_TIME_BASE (microseconds).
+       Convert to seconds. *)
+    let av_time_base = 1000000.0 in
     let s, e, lines = frame_to_lines t in
-
-    Int64.
-      ( to_float s *. num_time_base /. den_time_base,
-        to_float e *. num_time_base /. den_time_base,
-        Array.to_list lines )
+    ( Int64.to_float s /. av_time_base,
+      Int64.to_float e /. av_time_base,
+      Array.to_list lines )
 end
 
 module Options = struct
