@@ -2284,6 +2284,19 @@ static void write_subtitle_frame(av_t *av, int stream_index,
   // Update packet size to actual encoded size
   packet->size = encoded_size;
 
+  // Write header before rescaling timestamps (header write can update
+  // time_base)
+  if (!av->header_written) {
+    caml_release_runtime_system();
+    err = avformat_write_header(av->format_context, NULL);
+    caml_acquire_runtime_system();
+    if (err < 0) {
+      av_packet_free(&packet);
+      ocaml_avutil_raise_error(err);
+    }
+    av->header_written = 1;
+  }
+
   // subtitle->pts is in AV_TIME_BASE units
   // start_display_time and end_display_time are in milliseconds relative to
   // pts Note: avcodec_encode_subtitle requires start_display_time == 0
@@ -2294,7 +2307,8 @@ static void write_subtitle_frame(av_t *av, int stream_index,
   packet->duration =
       (int64_t)(subtitle->end_display_time - subtitle->start_display_time) *
       AV_TIME_BASE / 1000;
-  av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
+
+  av_packet_rescale_ts(packet, AV_TIME_BASE_Q, avstream->time_base);
 
   packet->stream_index = stream_index;
   packet->pos = -1;

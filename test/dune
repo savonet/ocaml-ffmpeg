@@ -410,7 +410,9 @@
   (alias test_read_metadata_mp2)
   (alias test_interrupt)
   (alias test_resample)
-  (alias test_info)))
+  (alias test_info)
+  (alias test_subtitle_read)
+  (alias test_subtitle_transcode)))
 
 ; ============================================
 ; Subtitle tests
@@ -454,3 +456,20 @@
   test_with_subs.mkv)
  (action
   (run %{exe} test_with_subs.mkv)))
+
+; Test subtitle transcoding by comparing output to expected result
+
+(rule
+ (targets transcoded_subs.srt)
+ (deps
+  (:exe ../examples/subtitle_transcode.exe)
+  test_with_subs.mkv)
+ (action
+  (run %{exe} test_with_subs.mkv %{targets} subrip)))
+
+(rule
+ (alias test_subtitle_transcode)
+ (package ffmpeg)
+ (deps transcoded_subs.srt fixtures/expected_subs.srt)
+ (action
+  (diff fixtures/expected_subs.srt transcoded_subs.srt)))
