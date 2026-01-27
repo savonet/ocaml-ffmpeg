@@ -293,7 +293,8 @@ let open_output_stream ?opts ?(interleaved = true) ?seek write format =
   filter_opts unused opts;
   output
 
-external reopen_output_stream : output container -> unit = "ocaml_av_reopen_output_stream"
+external reopen_output_stream : output container -> unit
+  = "ocaml_av_reopen_output_stream"
 
 external output_started : output container -> bool = "ocaml_av_header_written"
 
@@ -377,13 +378,15 @@ let new_video_stream ?opts ?frame_rate ?hardware_context ~pixel_format ~width
 external new_subtitle_stream :
   _ container ->
   [ `Encoder ] Avcodec.Subtitle.t ->
+  Avutil.rational ->
   (string * string) array ->
   int * string array = "ocaml_av_new_subtitle_stream"
 
 let new_subtitle_stream ?opts ~time_base ~codec container =
   let opts = opts_default opts in
-  Hashtbl.add opts "time_base" (`String (Avutil.string_of_rational time_base));
-  let ret, unused = new_subtitle_stream container codec (mk_opts_array opts) in
+  let ret, unused =
+    new_subtitle_stream container codec time_base (mk_opts_array opts)
+  in
   filter_opts unused opts;
   mk_stream container ret
 

@@ -13,7 +13,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ffmpeg
-        key: ffmpeg-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Install build dependencies
       shell: bash
       run: |
@@ -31,7 +31,7 @@ runs:
         git clone --depth 1 --branch ${{ inputs.version }} --single-branch https://git.ffmpeg.org/ffmpeg.git ffmpeg
         cd ffmpeg
         ./configure --prefix=/usr --disable-x86asm --enable-gpl \
-                    --enable-nonfree --disable-programs --disable-doc \
+                    --enable-nonfree --disable-doc \
                     --enable-shared --enable-libtheora --enable-libvpx \
                     --enable-libmp3lame --enable-libvorbis --enable-libsoxr
         make -j4
@@ -40,7 +40,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ffmpeg
-        key: ffmpeg-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Install FFmpeg
       shell: bash
       run: |

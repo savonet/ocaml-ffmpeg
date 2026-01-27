@@ -1000,9 +1000,25 @@ static int decode_packet(av_t *av, stream_t *stream, AVPacket *packet,
     if (ret == AVERROR(EAGAIN))
       av->frames_pending = 0;
   } else if (dec->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-    ret = avcodec_decode_subtitle2(dec, (AVSubtitle *)frame, &stream->got_frame,
-                                   packet);
+    AVSubtitle *subtitle = (AVSubtitle *)frame;
+    ret = avcodec_decode_subtitle2(dec, subtitle, &stream->got_frame, packet);
     if (ret >= 0) {
+      // Transfer packet timing to subtitle structure.
+      // subtitle->pts should be in AV_TIME_BASE units.
+      // start_display_time and end_display_time are relative to pts in
+      // ms.
+      if (packet->pts != AV_NOPTS_VALUE) {
+        AVStream *avstream = av->format_context->streams[stream->index];
+        subtitle->pts =
+            av_rescale_q(packet->pts, avstream->time_base, AV_TIME_BASE_Q);
+      }
+      // If duration is available, use it to set end_display_time
+      if (packet->duration > 0 && subtitle->end_display_time == 0) {
+        AVStream *avstream = av->format_context->streams[stream->index];
+        int64_t duration_ms = av_rescale_q(
+            packet->duration, avstream->time_base, (AVRational){1, 1000});
+        subtitle->end_display_time = (uint32_t)duration_ms;
+      }
       av_packet_unref(packet);
       caml_acquire_runtime_system();
       return ret;
@@ -1640,7 +1656,7 @@ CAMLprim value ocaml_av_reopen_output_stream(value _av) {
   av_t *av = Av_val(_av);
 
   if (!av->format_context->pb)
-    Fail("Not a streamed output!")
+    Fail("Not a streamed output!");
 
   avio_open_dyn_buf(&av->format_context->pb);
 
@@ -1928,10 +1944,16 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
 }
 
 static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
+                                     AVRational time_base,
                                      AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
 
-  int ret = subtitle_header_default(stream->codec_context);
+  AVCodecContext *enc_ctx = stream->codec_context;
+
+  // Set time_base directly on codec context - subtitle encoders need this
+  enc_ctx->time_base = time_base;
+
+  int ret = subtitle_header_default(enc_ctx);
   if (ret < 0) {
     av_dict_free(options);
     ocaml_avutil_raise_error(ret);
@@ -1943,10 +1965,11 @@ static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
 }
 
 CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
-                                            value _opts) {
-  CAMLparam3(_av, _codec, _opts);
+                                            value _time_base, value _opts) {
+  CAMLparam4(_av, _codec, _time_base, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
+  AVRational time_base = rational_of_value(_time_base);
 
   AVDictionary *options = NULL;
   char *key, *val;
@@ -1964,7 +1987,8 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
     }
   }
 
-  stream_t *stream = new_subtitle_stream(Av_val(_av), codec, &options);
+  stream_t *stream =
+      new_subtitle_stream(Av_val(_av), codec, time_base, &options);
 
   // Return unused keys
   count = av_dict_count(options);
@@ -2221,7 +2245,9 @@ static void write_subtitle_frame(av_t *av, int stream_index,
     Fail("Failed to write subtitle frame with no encoder");
 
   int err;
-  int size = 512;
+  // Buffer size for subtitle encoding. 4096 bytes should be sufficient
+  // for most text-based subtitles including ASS with styling.
+  int size = 4096;
   AVPacket *packet = av_packet_alloc();
   if (!packet) {
     caml_raise_out_of_memory();
@@ -2246,10 +2272,43 @@ static void write_subtitle_frame(av_t *av, int stream_index,
     ocaml_avutil_raise_error(err);
   }
 
+  // avcodec_encode_subtitle returns the number of bytes written
+  int encoded_size = err;
+
+  // If no data was encoded (empty subtitle), skip writing
+  if (encoded_size == 0) {
+    av_packet_free(&packet);
+    return;
+  }
+
+  // Update packet size to actual encoded size
+  packet->size = encoded_size;
+
+  // Write header before rescaling timestamps (header write can update
+  // time_base)
+  if (!av->header_written) {
+    caml_release_runtime_system();
+    err = avformat_write_header(av->format_context, NULL);
+    caml_acquire_runtime_system();
+    if (err < 0) {
+      av_packet_free(&packet);
+      ocaml_avutil_raise_error(err);
+    }
+    av->header_written = 1;
+  }
+
+  // subtitle->pts is in AV_TIME_BASE units
+  // start_display_time and end_display_time are in milliseconds relative to
+  // pts Note: avcodec_encode_subtitle requires start_display_time == 0
   packet->pts = subtitle->pts;
-  packet->duration = subtitle->end_display_time - subtitle->pts;
   packet->dts = subtitle->pts;
-  av_packet_rescale_ts(packet, enc_ctx->time_base, avstream->time_base);
+  // Duration is end_display_time - start_display_time, converted from ms to
+  // AV_TIME_BASE
+  packet->duration =
+      (int64_t)(subtitle->end_display_time - subtitle->start_display_time) *
+      AV_TIME_BASE / 1000;
+
+  av_packet_rescale_ts(packet, AV_TIME_BASE_Q, avstream->time_base);
 
   packet->stream_index = stream_index;
   packet->pos = -1;
