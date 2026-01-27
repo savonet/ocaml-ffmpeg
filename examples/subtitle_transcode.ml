@@ -124,6 +124,23 @@ let () =
   Av.close src;
   Av.close dst;
 
+  (* Normalize line endings (FFmpeg produces CRLF, we want LF) *)
+  let normalize_line_endings filename =
+    let ic = open_in_bin filename in
+    let len = in_channel_length ic in
+    let content = really_input_string ic len in
+    close_in ic;
+    let normalized =
+      String.split_on_char '\r' content |> String.concat ""
+    in
+    if normalized <> content then begin
+      let oc = open_out_bin filename in
+      output_string oc normalized;
+      close_out oc
+    end
+  in
+  normalize_line_endings output_file;
+
   Printf.printf "Output written to: %s\n" output_file;
 
   (* Force garbage collection to test for memory leaks *)
