@@ -396,33 +396,40 @@ end
 module Subtitle = struct
   let time_base () = { num = 1; den = 100 }
 
-  module Type = Subtitle_type
+  type subtitle_type = Subtitle_type.t
+  type subtitle_flag = Subtitle_flag.t
+  type pict_line = { data : data; linesize : int }
 
-  external create_frame :
-    Type.t -> int64 -> int64 -> string array -> subtitle frame
+  type pict = {
+    x : int;
+    y : int;
+    w : int;
+    h : int;
+    nb_colors : int;
+    lines : pict_line list;
+  }
+
+  type rectangle = {
+    pict : pict option;
+    flags : subtitle_flag list;
+    rect_type : subtitle_type;
+    text : string;
+    ass : string;
+  }
+
+  type content = {
+    format : int;
+    start_display_time : int;
+    end_display_time : int;
+    rectangles : rectangle list;
+    pts : int64;
+  }
+
+  external get_content : subtitle frame -> content
+    = "ocaml_avutil_subtitle_get_content"
+
+  external create_frame : content -> subtitle frame
     = "ocaml_avutil_subtitle_create_frame"
-
-  let create_frame ?(t = `Ass) start_time end_time lines =
-    (* C function expects:
-       - subtitle_type: type of subtitle (Text, Ass, etc.)
-       - start_time_us: absolute start time in AV_TIME_BASE (microseconds)
-       - duration_ms: display duration in milliseconds *)
-    let av_time_base = 1000000.0 in
-    let start_time_us = Int64.of_float (start_time *. av_time_base) in
-    let duration_ms = Int64.of_float ((end_time -. start_time) *. 1000.0) in
-    create_frame t start_time_us duration_ms (Array.of_list lines)
-
-  external frame_to_lines : subtitle frame -> int64 * int64 * string array
-    = "ocaml_avutil_subtitle_to_lines"
-
-  let frame_to_lines t =
-    (* C function returns absolute times in AV_TIME_BASE (microseconds).
-       Convert to seconds. *)
-    let av_time_base = 1000000.0 in
-    let s, e, lines = frame_to_lines t in
-    ( Int64.to_float s /. av_time_base,
-      Int64.to_float e /. av_time_base,
-      Array.to_list lines )
 end
 
 module Options = struct

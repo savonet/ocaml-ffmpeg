@@ -312,6 +312,8 @@ let gen_polymorphic_variant_h () =
       "Filtering_param";
       "Deprecated";
       "Child_consts";
+      (* Subtitle flags *)
+      "Forced";
       (* Errors *)
       "Bsf_not_found";
       "Decoder_not_found";
@@ -612,6 +614,21 @@ let gen_subtitle_type mode =
     ]
     mode
 
+let gen_subtitle_flag mode =
+  translate_c_values ~pre_process:false ["/libavcodec/avcodec.h"]
+    "subtitle_flag"
+    [
+      ( "",
+        "#define AV_SUBTITLE_FLAG_\\([A-Z0-9_]+\\)",
+        "",
+        "AV_SUBTITLE_FLAG_",
+        "int",
+        "SubtitleFlag",
+        "t",
+        [] );
+    ]
+    mode
+
 let gen_swresample_options mode =
   translate_c_values ~pre_process:true
     ["/libswresample/swresample.h"]
@@ -665,4 +682,5 @@ let () =
     | "codec_properties" -> gen_codec_properties mode
     | "media_types" -> gen_media_types mode
     | "subtitle_type" -> gen_subtitle_type mode
+    | "subtitle_flag" -> gen_subtitle_flag mode
     | _ -> assert false

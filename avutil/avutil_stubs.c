@@ -32,6 +32,7 @@
 #include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
 #include "sample_format_stubs.h"
+#include "subtitle_flag_stubs.h"
 #include "subtitle_type_stubs.h"
 
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
@@ -1291,101 +1292,209 @@ int subtitle_header_default(AVCodecContext *avctx) {
   return 0;
 }
 
-CAMLprim value ocaml_avutil_subtitle_create_frame(value _subtitle_type,
-                                                  value _start_time_us,
-                                                  value _duration_ms,
-                                                  value _lines) {
-  CAMLparam4(_subtitle_type, _start_time_us, _duration_ms, _lines);
+static value subtitle_flags_of_int(int flags) {
+  CAMLparam0();
+  CAMLlocal2(list, cons);
+  List_init(list);
+
+  for (int i = 0; i < AV_SUBTITLE_FLAG_T_TAB_LEN; i++) {
+    if (flags & AV_SUBTITLE_FLAG_T_TAB[i][1]) {
+      List_add(list, cons, AV_SUBTITLE_FLAG_T_TAB[i][0]);
+    }
+  }
+
+  CAMLreturn(list);
+}
+
+static int int_of_subtitle_flags(value flags) {
+  int ret = 0;
+  while (flags != Val_emptylist) {
+    ret |= SubtitleFlag_val(Field(flags, 0));
+    flags = Field(flags, 1);
+  }
+  return ret;
+}
+
+static value value_of_pict_line(uint8_t *data, int linesize, int height) {
+  CAMLparam0();
+  CAMLlocal2(record, ba);
+
+  intnat dims[1];
+  dims[0] = linesize * height;
+
+  ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
+  memcpy(Caml_ba_data_val(ba), data, dims[0]);
+
+  record = caml_alloc(2, 0);
+  Store_field(record, 0, ba);
+  Store_field(record, 1, Val_int(linesize));
+
+  CAMLreturn(record);
+}
+
+static value value_of_pict(AVSubtitleRect *rect) {
+  CAMLparam0();
+  CAMLlocal3(record, lines_list, cons);
+
+  record = caml_alloc(6, 0);
+  Store_field(record, 0, Val_int(rect->x));
+  Store_field(record, 1, Val_int(rect->y));
+  Store_field(record, 2, Val_int(rect->w));
+  Store_field(record, 3, Val_int(rect->h));
+  Store_field(record, 4, Val_int(rect->nb_colors));
+
+  List_init(lines_list);
+  for (int i = 3; i >= 0; i--) {
+    if (rect->data[i] && rect->linesize[i] > 0) {
+      value line =
+          value_of_pict_line(rect->data[i], rect->linesize[i], rect->h);
+      List_add(lines_list, cons, line);
+    }
+  }
+  Store_field(record, 5, lines_list);
+
+  CAMLreturn(record);
+}
+
+static value value_of_rectangle(AVSubtitleRect *rect) {
+  CAMLparam0();
+  CAMLlocal2(record, pict_opt);
+
+  record = caml_alloc(5, 0);
+
+  if (rect->data[0] != NULL) {
+    pict_opt = caml_alloc(1, 0);
+    Store_field(pict_opt, 0, value_of_pict(rect));
+  } else {
+    pict_opt = Val_none;
+  }
+  Store_field(record, 0, pict_opt);
+  Store_field(record, 1, subtitle_flags_of_int(rect->flags));
+  Store_field(record, 2, Val_SubtitleType(rect->type));
+  Store_field(record, 3, caml_copy_string(rect->text ? rect->text : ""));
+  Store_field(record, 4, caml_copy_string(rect->ass ? rect->ass : ""));
+
+  CAMLreturn(record);
+}
+
+CAMLprim value ocaml_avutil_subtitle_get_content(value _subtitle) {
+  CAMLparam1(_subtitle);
+  CAMLlocal3(content, rects_list, cons);
+
+  struct AVSubtitle *subtitle = Subtitle_val(_subtitle);
+
+  List_init(rects_list);
+  for (int i = subtitle->num_rects - 1; i >= 0; i--) {
+    value rect = value_of_rectangle(subtitle->rects[i]);
+    List_add(rects_list, cons, rect);
+  }
+
+  content = caml_alloc(5, 0);
+  Store_field(content, 0, Val_int(subtitle->format));
+  Store_field(content, 1, Val_int(subtitle->start_display_time));
+  Store_field(content, 2, Val_int(subtitle->end_display_time));
+  Store_field(content, 3, rects_list);
+  Store_field(content, 4, caml_copy_int64(subtitle->pts));
+
+  CAMLreturn(content);
+}
+
+CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
+  CAMLparam1(_content);
   CAMLlocal1(ans);
-  // start_time_us is the absolute start time in AV_TIME_BASE (microseconds)
-  // duration_ms is the display duration in milliseconds
-  enum AVSubtitleType subtitle_type = SubtitleType_val(_subtitle_type);
-  int64_t start_time_us = Int64_val(_start_time_us);
-  int64_t duration_ms = Int64_val(_duration_ms);
-  int nb_lines = Wosize_val(_lines);
+
+  int format = Int_val(Field(_content, 0));
+  uint32_t start_display_time = Int_val(Field(_content, 1));
+  uint32_t end_display_time = Int_val(Field(_content, 2));
+  value rects_list = Field(_content, 3);
+  int64_t pts = Int64_val(Field(_content, 4));
+
+  int num_rects = 0;
+  value tmp = rects_list;
+  while (tmp != Val_emptylist) {
+    num_rects++;
+    tmp = Field(tmp, 1);
+  }
 
   AVSubtitle *subtitle = (AVSubtitle *)av_mallocz(sizeof(AVSubtitle));
   if (!subtitle)
     caml_raise_out_of_memory();
 
-  // Register with OCaml GC early so finalizer runs on exception.
-  // The finalizer (avsubtitle_free) handles partially initialized subtitles.
   value_of_subtitle(&ans, subtitle);
 
-  // pts is the absolute start time in AV_TIME_BASE
-  subtitle->pts = start_time_us;
-  // start_display_time must be 0 for encoding (FFmpeg requirement)
-  subtitle->start_display_time = 0;
-  // end_display_time is the duration in milliseconds (relative to pts)
-  subtitle->end_display_time = (uint32_t)duration_ms;
+  subtitle->format = format;
+  subtitle->start_display_time = start_display_time;
+  subtitle->end_display_time = end_display_time;
+  subtitle->pts = pts;
+  subtitle->num_rects = num_rects;
 
-  // Use av_calloc to zero-initialize the array, so avsubtitle_free
-  // can safely iterate even if we fail partway through allocation.
-  subtitle->rects =
-      (AVSubtitleRect **)av_calloc(nb_lines, sizeof(AVSubtitleRect *));
-
-  if (!subtitle->rects)
-    caml_raise_out_of_memory();
-
-  // Set num_rects to the expected count. avsubtitle_free checks for NULL
-  // rects[i] pointers, so this is safe even if we fail during the loop.
-  subtitle->num_rects = nb_lines;
-
-  int i;
-  for (i = 0; i < nb_lines; i++) {
-    const char *text = String_val(Field(_lines, i));
-
-    subtitle->rects[i] = (AVSubtitleRect *)av_mallocz(sizeof(AVSubtitleRect));
-
-    if (!subtitle->rects[i])
+  if (num_rects > 0) {
+    subtitle->rects =
+        (AVSubtitleRect **)av_calloc(num_rects, sizeof(AVSubtitleRect *));
+    if (!subtitle->rects)
       caml_raise_out_of_memory();
 
-    subtitle->rects[i]->type = subtitle_type;
-    if (subtitle_type == SUBTITLE_ASS) {
-      subtitle->rects[i]->ass = av_strdup(text);
-      if (!subtitle->rects[i]->ass)
+    int i = 0;
+    tmp = rects_list;
+    while (tmp != Val_emptylist) {
+      value rect_val = Field(tmp, 0);
+
+      AVSubtitleRect *rect =
+          (AVSubtitleRect *)av_mallocz(sizeof(AVSubtitleRect));
+      if (!rect)
         caml_raise_out_of_memory();
-    } else {
-      subtitle->rects[i]->text = av_strdup(text);
-      if (!subtitle->rects[i]->text)
-        caml_raise_out_of_memory();
+
+      subtitle->rects[i] = rect;
+
+      value pict_opt = Field(rect_val, 0);
+      if (pict_opt != Val_none) {
+        value pict_val = Field(pict_opt, 0);
+        rect->x = Int_val(Field(pict_val, 0));
+        rect->y = Int_val(Field(pict_val, 1));
+        rect->w = Int_val(Field(pict_val, 2));
+        rect->h = Int_val(Field(pict_val, 3));
+        rect->nb_colors = Int_val(Field(pict_val, 4));
+
+        value lines = Field(pict_val, 5);
+        int plane = 0;
+        while (lines != Val_emptylist && plane < 4) {
+          value line = Field(lines, 0);
+          value ba = Field(line, 0);
+          int linesize = Int_val(Field(line, 1));
+
+          int size = caml_ba_byte_size(Caml_ba_array_val(ba));
+          rect->data[plane] = av_malloc(size);
+          if (!rect->data[plane])
+            caml_raise_out_of_memory();
+          memcpy(rect->data[plane], Caml_ba_data_val(ba), size);
+          rect->linesize[plane] = linesize;
+
+          lines = Field(lines, 1);
+          plane++;
+        }
+      }
+
+      rect->flags = int_of_subtitle_flags(Field(rect_val, 1));
+      rect->type = SubtitleType_val(Field(rect_val, 2));
+
+      const char *text = String_val(Field(rect_val, 3));
+      if (text[0] != '\0') {
+        rect->text = av_strdup(text);
+        if (!rect->text)
+          caml_raise_out_of_memory();
+      }
+
+      const char *ass = String_val(Field(rect_val, 4));
+      if (ass[0] != '\0') {
+        rect->ass = av_strdup(ass);
+        if (!rect->ass)
+          caml_raise_out_of_memory();
+      }
+
+      tmp = Field(tmp, 1);
+      i++;
     }
   }
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_avutil_subtitle_to_lines(value _subtitle) {
-  CAMLparam1(_subtitle);
-  CAMLlocal2(ans, lines);
-  struct AVSubtitle *subtitle = Subtitle_val(_subtitle);
-  unsigned i, num_rects = subtitle->num_rects;
-
-  lines = caml_alloc_tuple(num_rects);
-
-  for (i = 0; i < num_rects; i++) {
-    char *line = subtitle->rects[i]->text ? subtitle->rects[i]->text
-                                          : subtitle->rects[i]->ass;
-    Store_field(lines, i, caml_copy_string(line ? line : ""));
-  }
-
-  // Calculate absolute start and end times.
-  // subtitle->pts is in AV_TIME_BASE (microseconds).
-  // start_display_time and end_display_time are in milliseconds relative to
-  // pts. We return times in AV_TIME_BASE for consistency.
-  int64_t start_time_us = subtitle->pts;
-  int64_t end_time_us = subtitle->pts;
-
-  if (subtitle->pts != AV_NOPTS_VALUE) {
-    start_time_us =
-        subtitle->pts + (int64_t)subtitle->start_display_time * 1000;
-    end_time_us = subtitle->pts + (int64_t)subtitle->end_display_time * 1000;
-  }
-
-  ans = caml_alloc_tuple(3);
-  Store_field(ans, 0, caml_copy_int64(start_time_us));
-  Store_field(ans, 1, caml_copy_int64(end_time_us));
-  Store_field(ans, 2, lines);
 
   CAMLreturn(ans);
 }
