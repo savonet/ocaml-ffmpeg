@@ -129,6 +129,6 @@
  (libraries ffmpeg-avfilter))
 
 (executable
- (name subtitle_transcode)
- (modules subtitle_transcode)
+ (name subtitle_remux)
+ (modules subtitle_remux)
  (libraries ffmpeg-av))

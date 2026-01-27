@@ -4,6 +4,12 @@ module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.BigArray)
 
 (* module VideoConverter = Swscale.Make (Swscale.Frame) (Swscale.Frame) *)
 
+let string_of_subtitle_type = function
+  | `None -> "none"
+  | `Bitmap -> "bitmap"
+  | `Text -> "text"
+  | `Ass -> "ass"
+
 let () =
   if Array.length Sys.argv < 4 then (
     Printf.eprintf
@@ -54,8 +60,13 @@ let () =
             (*output_video video_output_file*);
           decode ()
       | `Subtitle_frame (_, sf) ->
-          let _, _, lines = Subtitle.frame_to_lines sf in
-          lines |> List.iter print_endline;
+          let content = Subtitle.get_content sf in
+          List.iter
+            (fun (rect : Subtitle.rectangle) ->
+              Printf.printf "       type=%s text=%S ass=%S\n"
+                (string_of_subtitle_type rect.rect_type)
+                rect.text rect.ass)
+            content.rectangles;
           decode ()
       | exception Error `Eof -> ()
       | exception Error err -> prerr_endline (Avutil.string_of_error err)

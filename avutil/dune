@@ -36,7 +36,8 @@
   chroma_location_stubs.h
   sample_format_stubs.h
   channel_layout_stubs.h
-  subtitle_type_stubs.h)
+  subtitle_type_stubs.h
+  subtitle_flag_stubs.h)
  (action
   (echo "this should not happen")))
 
@@ -267,5 +268,27 @@
    ../gen_code/gen_code.exe
    "%{cc}"
    subtitle_type
+   ml
+   %{read-lines:c_flags})))
+
+(rule
+ (targets subtitle_flag_stubs.h)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   subtitle_flag
+   h
+   %{read-lines:c_flags})))
+
+(rule
+ (targets subtitle_flag.ml)
+ (deps c_flags)
+ (action
+  (run
+   ../gen_code/gen_code.exe
+   "%{cc}"
+   subtitle_flag
    ml
    %{read-lines:c_flags})))

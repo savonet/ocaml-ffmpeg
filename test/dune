@@ -20,6 +20,10 @@
  (modules test_subtitle_read)
  (libraries ffmpeg-av))
 
+(executable
+ (name normalize_line_endings)
+ (modules normalize_line_endings))
+
 ; ============================================
 ; Standalone tests (no file dependencies)
 ; ============================================
@@ -370,7 +374,7 @@
   (alias test_resample)
   (alias test_info)
   (alias test_subtitle_read)
-  (alias test_subtitle_transcode)))
+  (alias test_subtitle_remux)))
 
 ; ============================================
 ; Subtitle tests
@@ -413,16 +417,26 @@
   (run %{runner} "subtitle_read" %{exe} test_with_subs.mkv)))
 
 (rule
- (targets transcoded_subs.srt)
+ (targets raw_remuxed_subs.srt)
  (deps
-  (:exe ../examples/subtitle_transcode.exe)
+  (:exe ../examples/subtitle_remux.exe)
   test_with_subs.mkv)
  (action
   (run %{exe} test_with_subs.mkv %{targets} subrip)))
 
 (rule
- (alias test_subtitle_transcode)
- (package ffmpeg)
- (deps transcoded_subs.srt fixtures/sample.srt)
+ (targets remuxed_subs.srt)
+ (deps
+  (:exe normalize_line_endings.exe)
+  (:input raw_remuxed_subs.srt))
  (action
-  (diff fixtures/sample.srt transcoded_subs.srt)))
+  (with-stdout-to
+   %{targets}
+   (run %{exe} %{input}))))
+
+(rule
+ (alias test_subtitle_remux)
+ (package ffmpeg)
+ (deps remuxed_subs.srt fixtures/sample.srt)
+ (action
+  (diff fixtures/sample.srt remuxed_subs.srt)))

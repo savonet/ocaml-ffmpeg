@@ -12,7 +12,6 @@ let () =
 
   let src = Av.open_input input_file in
 
-  (* Get subtitle streams *)
   let subtitle_streams = Av.get_subtitle_streams src in
   Printf.printf "Found %d subtitle stream(s)\n%!" (List.length subtitle_streams);
 
@@ -28,7 +27,7 @@ let () =
     Av.close src;
     exit 0);
 
-  (* Read subtitle frames *)
+  let time_base = Subtitle.time_base () in
   let count = ref 0 in
   let rec read_loop () =
     match
@@ -38,18 +37,27 @@ let () =
     with
       | `Subtitle_frame (i, frame) ->
           incr count;
-          let start_time, end_time, lines = Subtitle.frame_to_lines frame in
-          Printf.printf "[%d] Stream %d: %.2fs - %.2fs\n%!" !count i start_time
-            end_time;
-          List.iter (fun line -> Printf.printf "    %s\n%!" line) lines;
+          let content = Subtitle.get_content frame in
+          let pts_sec =
+            Int64.to_float content.pts *. float_of_int time_base.num
+            /. float_of_int time_base.den
+          in
+          let end_sec =
+            pts_sec +. (float_of_int content.end_display_time /. 1000.)
+          in
+          Printf.printf "[%d] Stream %d: %.2fs - %.2fs\n%!" !count i pts_sec
+            end_sec;
+          List.iter
+            (fun (rect : Subtitle.rectangle) ->
+              let text = if rect.text <> "" then rect.text else rect.ass in
+              Printf.printf "    %s\n%!" text)
+            content.rectangles;
           read_loop ()
       | exception Error `Eof ->
           Printf.printf "End of file. Read %d subtitle(s).\n%!" !count
       | exception Error err ->
           Printf.eprintf "Error: %s\n%!" (string_of_error err)
-      | _ ->
-          (* Skip other stream types *)
-          read_loop ()
+      | _ -> read_loop ()
   in
   read_loop ();
 
