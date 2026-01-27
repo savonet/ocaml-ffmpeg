@@ -4,6 +4,7 @@
   `color_trc` and `chroma_location`.
 * Add `tell` to `Av`.
 * Added `Av.set_input_metadata`
+* Cleaned up support for subtitles.
 
 1.2.8 (01-01-2026)
 =====

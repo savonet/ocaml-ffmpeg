@@ -384,10 +384,17 @@ module Subtitle : sig
   (** Return the time base for subtitles. *)
   val time_base : unit -> rational
 
-  (** [Avutil.Subtitle.create_frame start end lines] create a subtitle frame
+  (** Subtitle types. *)
+  module Type : sig
+    type t = Subtitle_type.t
+  end
+
+  (** [Avutil.Subtitle.create_frame ?t start end lines] create a subtitle frame
       from [lines] which is displayed at [start] time and hidden at [end] time
-      in seconds. Raises Error if the allocation failed. *)
-  val create_frame : float -> float -> string list -> subtitle frame
+      in seconds. [t] specifies the subtitle type (default [`Ass]). Raises Error
+      if the allocation failed. *)
+  val create_frame :
+    ?t:Type.t -> float -> float -> string list -> subtitle frame
 
   (** Convert subtitle frame to lines. The two float are the start and the end
       dislpay time in seconds. *)

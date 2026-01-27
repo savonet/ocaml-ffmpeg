@@ -598,6 +598,20 @@ let gen_sample_format mode =
     ]
     mode
 
+let gen_subtitle_type mode =
+  translate_c_values ~pre_process:true ["/libavcodec/avcodec.h"] "subtitle_type"
+    [
+      ( "enum AVSubtitleType",
+        "[ \t]*SUBTITLE_\\([A-Z0-9_]+\\)",
+        "\\};",
+        "SUBTITLE_",
+        "enum AVSubtitleType",
+        "SubtitleType",
+        "t",
+        [] );
+    ]
+    mode
+
 let gen_swresample_options mode =
   translate_c_values ~pre_process:true
     ["/libswresample/swresample.h"]
@@ -650,4 +664,5 @@ let () =
     | "codec_capabilities" -> gen_codec_capabilities mode
     | "codec_properties" -> gen_codec_properties mode
     | "media_types" -> gen_media_types mode
+    | "subtitle_type" -> gen_subtitle_type mode
     | _ -> assert false

@@ -396,17 +396,21 @@ end
 module Subtitle = struct
   let time_base () = { num = 1; den = 100 }
 
-  external create_frame : int64 -> int64 -> string array -> subtitle frame
+  module Type = Subtitle_type
+
+  external create_frame :
+    Type.t -> int64 -> int64 -> string array -> subtitle frame
     = "ocaml_avutil_subtitle_create_frame"
 
-  let create_frame start_time end_time lines =
+  let create_frame ?(t = `Ass) start_time end_time lines =
     (* C function expects:
+       - subtitle_type: type of subtitle (Text, Ass, etc.)
        - start_time_us: absolute start time in AV_TIME_BASE (microseconds)
        - duration_ms: display duration in milliseconds *)
     let av_time_base = 1000000.0 in
     let start_time_us = Int64.of_float (start_time *. av_time_base) in
     let duration_ms = Int64.of_float ((end_time -. start_time) *. 1000.0) in
-    create_frame start_time_us duration_ms (Array.of_list lines)
+    create_frame t start_time_us duration_ms (Array.of_list lines)
 
   external frame_to_lines : subtitle frame -> int64 * int64 * string array
     = "ocaml_avutil_subtitle_to_lines"

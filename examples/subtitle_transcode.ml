@@ -130,9 +130,7 @@ let () =
     let len = in_channel_length ic in
     let content = really_input_string ic len in
     close_in ic;
-    let normalized =
-      String.split_on_char '\r' content |> String.concat ""
-    in
+    let normalized = String.split_on_char '\r' content |> String.concat "" in
     if normalized <> content then begin
       let oc = open_out_bin filename in
       output_string oc normalized;

@@ -32,6 +32,7 @@
 #include "pixel_format_flag_stubs.h"
 #include "pixel_format_stubs.h"
 #include "sample_format_stubs.h"
+#include "subtitle_type_stubs.h"
 
 char ocaml_av_exn_msg[ERROR_MSG_SIZE + 1];
 
@@ -1290,13 +1291,15 @@ int subtitle_header_default(AVCodecContext *avctx) {
   return 0;
 }
 
-CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time_us,
+CAMLprim value ocaml_avutil_subtitle_create_frame(value _subtitle_type,
+                                                  value _start_time_us,
                                                   value _duration_ms,
                                                   value _lines) {
-  CAMLparam3(_start_time_us, _duration_ms, _lines);
+  CAMLparam4(_subtitle_type, _start_time_us, _duration_ms, _lines);
   CAMLlocal1(ans);
   // start_time_us is the absolute start time in AV_TIME_BASE (microseconds)
   // duration_ms is the display duration in milliseconds
+  enum AVSubtitleType subtitle_type = SubtitleType_val(_subtitle_type);
   int64_t start_time_us = Int64_val(_start_time_us);
   int64_t duration_ms = Int64_val(_duration_ms);
   int nb_lines = Wosize_val(_lines);
@@ -1337,10 +1340,16 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _start_time_us,
     if (!subtitle->rects[i])
       caml_raise_out_of_memory();
 
-    subtitle->rects[i]->type = SUBTITLE_TEXT;
-    subtitle->rects[i]->text = av_strdup(text);
-    if (!subtitle->rects[i]->text)
-      caml_raise_out_of_memory();
+    subtitle->rects[i]->type = subtitle_type;
+    if (subtitle_type == SUBTITLE_ASS) {
+      subtitle->rects[i]->ass = av_strdup(text);
+      if (!subtitle->rects[i]->ass)
+        caml_raise_out_of_memory();
+    } else {
+      subtitle->rects[i]->text = av_strdup(text);
+      if (!subtitle->rects[i]->text)
+        caml_raise_out_of_memory();
+    }
   }
 
   CAMLreturn(ans);
