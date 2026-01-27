@@ -1,3 +1,8 @@
+(executable
+ (name test_runner)
+ (modules test_runner)
+ (libraries unix))
+
 ; Test executables
 
 (executable
@@ -23,280 +28,227 @@
  (alias test_list_filters)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/list_filters.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "list_filters" %{exe})))
 
 (rule
  (alias test_all_codecs)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/all_codecs.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "all_codecs" %{exe})))
 
 (rule
  (alias test_all_channel_layouts)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/all_channel_layouts.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "all_channel_layouts" %{exe})))
 
 (rule
  (alias test_all_bitstream_filters)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/all_bitstream_filters.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "all_bitstream_filters" %{exe})))
 
 (rule
  (alias test_hw_encode_device)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/hw_encode.exe))
  (action
-  (run %{exe} nvenc.mp4 h264_nvenc device)))
+  (run %{runner} "hw_encode_device" %{exe} nvenc.mp4 h264_nvenc device)))
 
 (rule
  (alias test_hw_encode_frame)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/hw_encode.exe))
  (action
-  (run %{exe} nvenc.mp4 h264_nvenc frame)))
+  (run %{runner} "hw_encode_frame" %{exe} nvenc.mp4 h264_nvenc frame)))
 
 (rule
  (alias test_interrupt)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/interrupt.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "interrupt" %{exe})))
 
 (rule
  (alias test_resample)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe test_resample.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "resample" %{exe})))
 
 (rule
  (alias test_info)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe test_info.exe))
  (action
-  (run %{exe})))
+  (run %{runner} "info" %{exe})))
 
 ; ============================================
-; Encode tests - produce media files
+; Encode tests
 ; ============================================
-
-(rule
- (targets A4.flac)
- (deps
-  (:exe ../examples/encode_audio.exe))
- (action
-  (run %{exe} %{targets} flac)))
-
-(rule
- (targets A4.mp2)
- (deps
-  (:exe ../examples/encode_audio.exe))
- (action
-  (run %{exe} %{targets} mp2)))
-
-(rule
- (targets video.ogg)
- (deps
-  (:exe ../examples/encode_video.exe))
- (action
-  (run %{exe} %{targets} yuv420p libtheora)))
-
-(rule
- (targets video.webm)
- (deps
-  (:exe ../examples/encode_video.exe))
- (action
-  (run %{exe} %{targets} yuva420p libvpx-vp9)))
-
-(rule
- (targets S4.flac)
- (deps
-  (:exe ../examples/encode_stream.exe))
- (action
-  (run %{exe} %{targets} flac)))
-
-(rule
- (targets S4.mp2)
- (deps
-  (:exe ../examples/encode_stream.exe))
- (action
-  (run %{exe} %{targets} mp2)))
-
-(rule
- (targets out.mkv)
- (deps
-  (:exe ../examples/encoding.exe))
- (action
-  (run %{exe} %{targets} aac mpeg4 ass)))
-
-; Aliases for encode tests
 
 (rule
  (alias test_encode_audio_flac)
  (package ffmpeg)
- (deps A4.flac)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_audio.exe))
  (action
-  (echo "A4.flac created successfully\n")))
+  (run %{runner} "encode_audio_flac" %{exe} A4.flac flac)))
 
 (rule
  (alias test_encode_audio_mp2)
  (package ffmpeg)
- (deps A4.mp2)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_audio.exe))
  (action
-  (echo "A4.mp2 created successfully\n")))
+  (run %{runner} "encode_audio_mp2" %{exe} A4.mp2 mp2)))
 
 (rule
  (alias test_encode_video_ogg)
  (package ffmpeg)
- (deps video.ogg)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_video.exe))
  (action
-  (echo "video.ogg created successfully\n")))
+  (run %{runner} "encode_video_ogg" %{exe} video.ogg yuv420p libtheora)))
 
 (rule
  (alias test_encode_video_webm)
  (package ffmpeg)
- (deps video.webm)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_video.exe))
  (action
-  (echo "video.webm created successfully\n")))
+  (run %{runner} "encode_video_webm" %{exe} video.webm yuva420p libvpx-vp9)))
 
 (rule
  (alias test_encode_stream_flac)
  (package ffmpeg)
- (deps S4.flac)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_stream.exe))
  (action
-  (echo "S4.flac created successfully\n")))
+  (run %{runner} "encode_stream_flac" %{exe} S4.flac flac)))
 
 (rule
  (alias test_encode_stream_mp2)
  (package ffmpeg)
- (deps S4.mp2)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/encode_stream.exe))
  (action
-  (echo "S4.mp2 created successfully\n")))
+  (run %{runner} "encode_stream_mp2" %{exe} S4.mp2 mp2)))
 
 (rule
  (alias test_encoding)
  (package ffmpeg)
- (deps out.mkv)
- (action
-  (echo "out.mkv created successfully\n")))
-
-; ============================================
-; Decode/transcode tests - depend on encoded files
-; ============================================
-
-(rule
- (targets A4.mp3)
  (deps
-  (:exe ../examples/decode_stream.exe)
-  A4.flac)
+  (:runner test_runner.exe)
+  (:exe ../examples/encoding.exe))
  (action
-  (run %{exe} A4.flac %{targets} libmp3lame)))
-
-(rule
- (targets A4.ogg)
- (deps
-  (:exe ../examples/decode_stream.exe)
-  A4.mp2)
- (action
-  (run %{exe} A4.mp2 %{targets} libvorbis)))
+  (run %{runner} "encoding" %{exe} out.mkv aac mpeg4 ass)))
 
 (rule
  (alias test_decode_stream_mp3)
  (package ffmpeg)
- (deps A4.mp3)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/decode_stream.exe)
+  (alias test_encode_audio_flac))
  (action
-  (echo "A4.mp3 created successfully\n")))
+  (run %{runner} "decode_stream_mp3" %{exe} A4.flac A4.mp3 libmp3lame)))
 
 (rule
  (alias test_decode_stream_ogg)
  (package ffmpeg)
- (deps A4.ogg)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/decode_stream.exe)
+  (alias test_encode_audio_mp2))
  (action
-  (echo "A4.ogg created successfully\n")))
-
-; ============================================
-; Audio decoding tests
-; ============================================
+  (run %{runner} "decode_stream_ogg" %{exe} A4.mp2 A4.ogg libvorbis)))
 
 (rule
  (alias test_audio_decoding_ogg)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/audio_decoding.exe)
-  A4.ogg)
+  (alias test_decode_stream_ogg))
  (action
-  (run %{exe} A4.ogg ogg A4)))
+  (run %{runner} "audio_decoding_ogg" %{exe} A4.ogg ogg A4)))
 
 (rule
  (alias test_audio_decoding_mkv)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/audio_decoding.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv matroska out)))
+  (run %{runner} "audio_decoding_mkv" %{exe} out.mkv matroska out)))
 
 ; ============================================
 ; Remuxing test
 ; ============================================
 
 (rule
- (targets out_remuxed.mp4)
- (deps
-  (:exe ../examples/remuxing.exe)
-  out.mkv)
- (action
-  (run %{exe} out.mkv %{targets})))
-
-(rule
  (alias test_remuxing)
  (package ffmpeg)
- (deps out_remuxed.mp4)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/remuxing.exe)
+  (alias test_encoding))
  (action
-  (echo "out_remuxed.mp4 created successfully\n")))
+  (run %{runner} "remuxing" %{exe} out.mkv out_remuxed.mp4)))
 
 ; ============================================
 ; Transcode tests
 ; ============================================
 
 (rule
- (targets A4_transcoded.mp4)
- (deps
-  (:exe ../examples/transcode_aac.exe)
-  A4.ogg)
- (action
-  (run %{exe} A4.ogg %{targets})))
-
-(rule
  (alias test_transcode_aac)
  (package ffmpeg)
- (deps A4_transcoded.mp4)
+ (deps
+  (:runner test_runner.exe)
+  (:exe ../examples/transcode_aac.exe)
+  (alias test_decode_stream_ogg))
  (action
-  (echo "A4_transcoded.mp4 created successfully\n")))
+  (run %{runner} "transcode_aac" %{exe} A4.ogg A4_transcoded.mp4)))
 
 (rule
  (alias test_transcoding)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/transcoding.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv out_transcoded.mp4)))
+  (run %{runner} "transcoding" %{exe} out.mkv out_transcoded.mp4)))
 
 ; ============================================
 ; Decoding test
@@ -306,10 +258,11 @@
  (alias test_decoding)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/decoding.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv)))
+  (run %{runner} "decoding" %{exe} out.mkv)))
 
 ; ============================================
 ; FPS test
@@ -319,10 +272,11 @@
  (alias test_fps)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/fps.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv out_fps.mp4)))
+  (run %{runner} "fps" %{exe} out.mkv out_fps.mp4)))
 
 ; ============================================
 ; Aresample test
@@ -332,10 +286,11 @@
  (alias test_aresample)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/aresample.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv out_aresample.mp4)))
+  (run %{runner} "aresample" %{exe} out.mkv out_aresample.mp4)))
 
 ; ============================================
 ; Demuxing/decoding test
@@ -345,10 +300,11 @@
  (alias test_demuxing_decoding)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/demuxing_decoding.exe)
-  out.mkv)
+  (alias test_encoding))
  (action
-  (run %{exe} out.mkv vo.raw ao.raw)))
+  (run %{runner} "demuxing_decoding" %{exe} out.mkv vo.raw ao.raw)))
 
 ; ============================================
 ; Read metadata tests
@@ -358,21 +314,23 @@
  (alias test_read_metadata_flac)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/read_metadata.exe)
-  A4.flac
-  A4.mp3)
+  (alias test_encode_audio_flac)
+  (alias test_decode_stream_mp3))
  (action
-  (run %{exe} A4.flac flac A4.mp3 libmp3lame)))
+  (run %{runner} "read_metadata_flac" %{exe} A4.flac flac A4.mp3 libmp3lame)))
 
 (rule
  (alias test_read_metadata_mp2)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe ../examples/read_metadata.exe)
-  A4.mp2
-  A4.ogg)
+  (alias test_encode_audio_mp2)
+  (alias test_decode_stream_ogg))
  (action
-  (run %{exe} A4.mp2 mp2 A4.ogg libvorbis)))
+  (run %{runner} "read_metadata_mp2" %{exe} A4.mp2 mp2 A4.ogg libvorbis)))
 
 ; ============================================
 ; Combined CI test alias (runs all tests)
@@ -418,8 +376,6 @@
 ; Subtitle tests
 ; ============================================
 
-; Create test MKV with subtitles from SRT fixture
-
 (rule
  (targets test_with_subs.mkv)
  (deps fixtures/sample.srt)
@@ -452,12 +408,11 @@
  (alias test_subtitle_read)
  (package ffmpeg)
  (deps
+  (:runner test_runner.exe)
   (:exe test_subtitle_read.exe)
   test_with_subs.mkv)
  (action
-  (run %{exe} test_with_subs.mkv)))
-
-; Test subtitle transcoding by comparing output to expected result
+  (run %{runner} "subtitle_read" %{exe} test_with_subs.mkv)))
 
 (rule
  (targets transcoded_subs.srt)
