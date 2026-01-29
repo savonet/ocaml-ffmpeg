@@ -394,8 +394,7 @@ module Video = struct
 end
 
 module Subtitle = struct
-  let time_base () = { num = 1; den = 100 }
-
+  type frame
   type subtitle_type = Subtitle_type.t
   type subtitle_flag = Subtitle_flag.t
   type pict_line = { data : data; linesize : int }
@@ -411,11 +410,10 @@ module Subtitle = struct
      [V4+ Styles]\r\n\
      Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, \
      OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, \
-     ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, \
-     MarginL, MarginR, MarginV, Encoding\r\n\
+     ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, \
+     MarginR, MarginV, Encoding\r\n\
      Style: \
-     Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,\
-     10,10,10,1\r\n\
+     Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,1\r\n\
      \r\n\
      [Events]\r\n\
      Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, \
@@ -443,14 +441,15 @@ module Subtitle = struct
     start_display_time : int;
     end_display_time : int;
     rectangles : rectangle list;
-    pts : int64;
+    pts : int64 option;
   }
 
-  external get_content : subtitle frame -> content
-    = "ocaml_avutil_subtitle_get_content"
+  external get_content : frame -> content = "ocaml_avutil_subtitle_get_content"
 
-  external create_frame : content -> subtitle frame
+  external create_frame : content -> frame
     = "ocaml_avutil_subtitle_create_frame"
+
+  external get_pts : frame -> int64 option = "ocaml_avutil_subtitle_get_pts"
 end
 
 module Options = struct

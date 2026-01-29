@@ -83,8 +83,7 @@ let () =
           Av.write_frame (List.assoc i ovss) frame;
           f ()
       | `Subtitle_frame (i, frame) ->
-          process_frame frame;
-          Av.write_frame (List.assoc i osss) frame;
+          Av.write_subtitle_frame (List.assoc i osss) frame;
           f ()
       | exception Avutil.Error `Eof -> ()
       | _ -> assert false

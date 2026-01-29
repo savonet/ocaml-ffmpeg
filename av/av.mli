@@ -169,7 +169,7 @@ type input_result =
   | `Video_packet of int * video Avcodec.Packet.t
   | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * subtitle frame
+  | `Subtitle_frame of int * Avutil.Subtitle.frame
   | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
@@ -340,9 +340,9 @@ val new_video_stream :
     frames and encodes its input.
 
     [header] sets the subtitle header for the stream. For codecs with the
-    [Text_sub] property (e.g. ASS, SubRip, WebVTT), a default ASS header is
-    used when [header] is not provided. Use
-    {!Avutil.Subtitle.header_ass_default} to retrieve the default header.
+    [Text_sub] property (e.g. ASS, SubRip, WebVTT), a default ASS header is used
+    when [header] is not provided. Use {!Avutil.Subtitle.header_ass_default} to
+    retrieve the default header.
 
     [opts] may contain any option settable on the stream's internal AVCodec.
     After returning, if [opts] was passed, unused options are left in the hash
@@ -401,6 +401,19 @@ val write_frame :
   (output, 'media, [ `Frame ]) stream ->
   'media frame ->
   unit
+
+(** [Av.write_subtitle_frame ?on_keyframe os frm] write the subtitle [frm] frame
+    to the [os] output stream.
+
+    Frame PTS should be set and counted in units of [time_base], as passed when
+    creating the stream
+
+    If [on_keyframe] is provided, it is called on keyframe, _before_ the
+    keyframe is submitted to the muxer.
+
+    Raise Error if the writing failed. *)
+val write_subtitle_frame :
+  (output, subtitle, [ `Frame ]) stream -> Avutil.Subtitle.frame -> unit
 
 (** Flush the underlying muxer. *)
 val flush : output container -> unit

@@ -1256,7 +1256,6 @@ void value_of_subtitle(value *ret, AVSubtitle *subtitle) {
   Subtitle_val(*ret) = subtitle;
 }
 
-
 static value subtitle_flags_of_int(int flags) {
   CAMLparam0();
   CAMLlocal2(list, cons);
@@ -1342,9 +1341,24 @@ static value value_of_rectangle(AVSubtitleRect *rect) {
   CAMLreturn(record);
 }
 
+CAMLprim value ocaml_avutil_subtitle_get_pts(value _subtitle) {
+  CAMLparam1(_subtitle);
+  CAMLlocal1(ret);
+
+  struct AVSubtitle *subtitle = Subtitle_val(_subtitle);
+
+  if (subtitle->pts == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, caml_copy_int64(subtitle->pts));
+
+  CAMLreturn(ret);
+}
+
 CAMLprim value ocaml_avutil_subtitle_get_content(value _subtitle) {
   CAMLparam1(_subtitle);
-  CAMLlocal3(content, rects_list, cons);
+  CAMLlocal4(content, rects_list, cons, pts);
 
   struct AVSubtitle *subtitle = Subtitle_val(_subtitle);
 
@@ -1359,20 +1373,27 @@ CAMLprim value ocaml_avutil_subtitle_get_content(value _subtitle) {
   Store_field(content, 1, Val_int(subtitle->start_display_time));
   Store_field(content, 2, Val_int(subtitle->end_display_time));
   Store_field(content, 3, rects_list);
-  Store_field(content, 4, caml_copy_int64(subtitle->pts));
+
+  if (subtitle->pts == AV_NOPTS_VALUE) {
+    Store_field(content, 4, Val_none);
+  } else {
+    pts = caml_alloc_tuple(1);
+    Store_field(pts, 0, caml_copy_int64(subtitle->pts));
+    Store_field(content, 4, pts);
+  }
 
   CAMLreturn(content);
 }
 
 CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
   CAMLparam1(_content);
-  CAMLlocal1(ans);
+  CAMLlocal2(ans, _pts);
 
   int format = Int_val(Field(_content, 0));
   uint32_t start_display_time = Int_val(Field(_content, 1));
   uint32_t end_display_time = Int_val(Field(_content, 2));
   value rects_list = Field(_content, 3);
-  int64_t pts = Int64_val(Field(_content, 4));
+  _pts = Field(_content, 4);
 
   int num_rects = 0;
   value tmp = rects_list;
@@ -1390,7 +1411,12 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
   subtitle->format = format;
   subtitle->start_display_time = start_display_time;
   subtitle->end_display_time = end_display_time;
-  subtitle->pts = pts;
+
+  if (_pts == Val_none)
+    subtitle->pts = AV_NOPTS_VALUE;
+  else
+    subtitle->pts = Int64_val(Field(_pts, 0));
+
   subtitle->num_rects = num_rects;
 
   if (num_rects > 0) {

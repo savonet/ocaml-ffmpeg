@@ -40,7 +40,7 @@ let () =
   Printf.printf "Found %d subtitle stream(s) in input\n"
     (List.length input_subtitle_streams);
 
-  let time_base = Subtitle.time_base () in
+  let time_base = time_base () in
   let output_streams =
     input_subtitle_streams
     |> List.map (fun (i, _stream, params) ->
@@ -77,22 +77,38 @@ let () =
           (* Extract full content from decoded frame *)
           let content = Subtitle.get_content frame in
 
-          if !subtitle_count <= 5 then (
-            Printf.printf "  [%d] pts=%Ld display=%d-%dms rects=%d\n"
-              !subtitle_count content.pts content.start_display_time
-              content.end_display_time
-              (List.length content.rectangles);
-            List.iter
-              (fun (rect : Subtitle.rectangle) ->
-                Printf.printf "       type=%s text=%S ass=%S\n"
-                  (string_of_subtitle_type rect.rect_type)
-                  rect.text rect.ass)
-              content.rectangles);
+          Printf.printf "  [%d] pts=%s format=%d display=%d-%dms rects=%d\n"
+            !subtitle_count
+            (match content.pts with
+              | Some p -> Int64.to_string p
+              | None -> "N/A")
+            content.format content.start_display_time content.end_display_time
+            (List.length content.rectangles);
+          List.iter
+            (fun (rect : Subtitle.rectangle) ->
+              Printf.printf "       type=%s text=%S ass=%S\n"
+                (string_of_subtitle_type rect.rect_type)
+                rect.text rect.ass)
+            content.rectangles;
+
+          let content =
+            {
+              Subtitle.format = 1;
+              start_display_time = content.start_display_time;
+              end_display_time = content.end_display_time;
+              rectangles =
+                List.map
+                  (fun { Subtitle.pict; flags; rect_type; text; ass } ->
+                    { Subtitle.pict; flags; rect_type; text; ass })
+                  content.rectangles;
+              pts = content.pts;
+            }
+          in
 
           (* Create new frame from the extracted content *)
           let new_frame = Subtitle.create_frame content in
 
-          (try Av.write_frame (List.assoc i output_streams) new_frame
+          (try Av.write_subtitle_frame (List.assoc i output_streams) new_frame
            with Error err ->
              Printf.eprintf "Warning: Failed to write subtitle %d: %s\n"
                !subtitle_count (string_of_error err));
@@ -103,9 +119,6 @@ let () =
       | _ -> process ()
   in
   process ();
-
-  if !subtitle_count > 5 then
-    Printf.printf "  ... and %d more\n" (!subtitle_count - 5);
 
   Printf.printf "\nRemuxed %d subtitle(s)\n" !subtitle_count;
 

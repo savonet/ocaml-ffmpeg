@@ -27,7 +27,7 @@ let () =
     Av.close src;
     exit 0);
 
-  let time_base = Subtitle.time_base () in
+  let time_base = time_base () in
   let count = ref 0 in
   let rec read_loop () =
     match
@@ -39,8 +39,11 @@ let () =
           incr count;
           let content = Subtitle.get_content frame in
           let pts_sec =
-            Int64.to_float content.pts *. float_of_int time_base.num
-            /. float_of_int time_base.den
+            match content.pts with
+              | None -> -1.
+              | Some pts ->
+                  Int64.to_float pts *. float_of_int time_base.num
+                  /. float_of_int time_base.den
           in
           let end_sec =
             pts_sec +. (float_of_int content.end_display_time /. 1000.)

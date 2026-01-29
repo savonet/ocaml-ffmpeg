@@ -381,15 +381,13 @@ end
 (** {5 Subtitle utilities} *)
 
 module Subtitle : sig
-  (** Return the time base for subtitles. *)
-  val time_base : unit -> rational
-
+  type frame
   type subtitle_type = Subtitle_type.t
   type subtitle_flag = Subtitle_flag.t
   type pict_line = { data : data; linesize : int }
 
-  (** Return the default ASS header used for subtitle encoders that
-      require one (e.g. subrip, webvtt, ass). *)
+  (** Return the default ASS header used for subtitle encoders that require one
+      (e.g. subrip, webvtt, ass). *)
   val header_ass_default : unit -> string
 
   type pict = {
@@ -414,11 +412,12 @@ module Subtitle : sig
     start_display_time : int;
     end_display_time : int;
     rectangles : rectangle list;
-    pts : int64;
+    pts : int64 option;
   }
 
-  val get_content : subtitle frame -> content
-  val create_frame : content -> subtitle frame
+  val create_frame : content -> frame
+  val get_content : frame -> content
+  val get_pts : frame -> int64 option
 end
 
 (** {5 Options} *)

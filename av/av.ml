@@ -200,7 +200,7 @@ type input_result =
   | `Video_packet of int * video Avcodec.Packet.t
   | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * subtitle frame
+  | `Subtitle_frame of int * Avutil.Subtitle.frame
   | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
@@ -386,16 +386,16 @@ external new_subtitle_stream :
 let new_subtitle_stream ?opts ?header ~time_base ~codec container =
   let header =
     match header with
-    | Some _ -> header
-    | None ->
-        let id = Avcodec.Subtitle.get_id codec in
-        let has_text_sub =
-          match Avcodec.Subtitle.descriptor id with
-          | Some d -> List.mem `Text_sub d.Avcodec.properties
-          | None -> false
-        in
-        if has_text_sub then Some (Avutil.Subtitle.header_ass_default ())
-        else None
+      | Some _ -> header
+      | None ->
+          let id = Avcodec.Subtitle.get_id codec in
+          let has_text_sub =
+            match Avcodec.Subtitle.descriptor id with
+              | Some d -> List.mem `Text_sub d.Avcodec.properties
+              | None -> false
+          in
+          if has_text_sub then Some (Avutil.Subtitle.header_ass_default ())
+          else None
   in
   let opts = opts_default opts in
   let ret, unused =
@@ -422,10 +422,10 @@ external write_packet :
   unit = "ocaml_av_write_stream_packet"
 
 external write_frame :
-  ?on_keyframe:(unit -> unit) ->
-  (output, 'media, [ `Frame ]) stream ->
-  'media frame ->
-  unit = "ocaml_av_write_stream_frame"
+  ?on_keyframe:(unit -> unit) -> (output, _, [ `Frame ]) stream -> _ -> unit
+  = "ocaml_av_write_stream_frame"
+
+let write_subtitle_frame stream frame = write_frame stream frame
 
 external flush : output container -> unit = "ocaml_av_flush"
 external tell : _ container -> int option = "ocaml_av_tell"
