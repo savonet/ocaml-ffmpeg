@@ -1945,6 +1945,7 @@ CAMLprim value ocaml_av_new_video_stream(value _device_context,
 
 static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
                                      AVRational time_base,
+                                     const char *header, int header_len,
                                      AVDictionary **options) {
   stream_t *stream = new_stream(av, codec);
 
@@ -1953,10 +1954,14 @@ static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
   // Set time_base directly on codec context - subtitle encoders need this
   enc_ctx->time_base = time_base;
 
-  int ret = subtitle_header_default(enc_ctx);
-  if (ret < 0) {
-    av_dict_free(options);
-    ocaml_avutil_raise_error(ret);
+  if (header) {
+    enc_ctx->subtitle_header = av_mallocz(header_len + 1);
+    if (!enc_ctx->subtitle_header) {
+      av_dict_free(options);
+      ocaml_avutil_raise_error(AVERROR(ENOMEM));
+    }
+    memcpy(enc_ctx->subtitle_header, header, header_len);
+    enc_ctx->subtitle_header_size = header_len;
   }
 
   init_stream_encoder(NULL, NULL, av, stream, options);
@@ -1965,11 +1970,22 @@ static stream_t *new_subtitle_stream(av_t *av, const AVCodec *codec,
 }
 
 CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
-                                            value _time_base, value _opts) {
-  CAMLparam4(_av, _codec, _time_base, _opts);
+                                            value _time_base, value _header,
+                                            value _opts) {
+  CAMLparam5(_av, _codec, _time_base, _header, _opts);
   CAMLlocal2(ans, unused);
   const AVCodec *codec = AvCodec_val(_codec);
   AVRational time_base = rational_of_value(_time_base);
+
+  const char *header = NULL;
+  int header_len = 0;
+
+  if (Is_block(_header)) {
+    // Some(header_string)
+    value header_val = Field(_header, 0);
+    header = String_val(header_val);
+    header_len = caml_string_length(header_val);
+  }
 
   AVDictionary *options = NULL;
   char *key, *val;
@@ -1988,7 +2004,8 @@ CAMLprim value ocaml_av_new_subtitle_stream(value _av, value _codec,
   }
 
   stream_t *stream =
-      new_subtitle_stream(Av_val(_av), codec, time_base, &options);
+      new_subtitle_stream(Av_val(_av), codec, time_base, header, header_len,
+                          &options);
 
   // Return unused keys
   count = av_dict_count(options);

@@ -379,13 +379,27 @@ external new_subtitle_stream :
   _ container ->
   [ `Encoder ] Avcodec.Subtitle.t ->
   Avutil.rational ->
+  string option ->
   (string * string) array ->
   int * string array = "ocaml_av_new_subtitle_stream"
 
-let new_subtitle_stream ?opts ~time_base ~codec container =
+let new_subtitle_stream ?opts ?header ~time_base ~codec container =
+  let header =
+    match header with
+    | Some _ -> header
+    | None ->
+        let id = Avcodec.Subtitle.get_id codec in
+        let has_text_sub =
+          match Avcodec.Subtitle.descriptor id with
+          | Some d -> List.mem `Text_sub d.Avcodec.properties
+          | None -> false
+        in
+        if has_text_sub then Some (Avutil.Subtitle.header_ass_default ())
+        else None
+  in
   let opts = opts_default opts in
   let ret, unused =
-    new_subtitle_stream container codec time_base (mk_opts_array opts)
+    new_subtitle_stream container codec time_base header (mk_opts_array opts)
   in
   filter_opts unused opts;
   mk_stream container ret

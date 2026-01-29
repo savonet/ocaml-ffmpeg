@@ -388,6 +388,10 @@ module Subtitle : sig
   type subtitle_flag = Subtitle_flag.t
   type pict_line = { data : data; linesize : int }
 
+  (** Return the default ASS header used for subtitle encoders that
+      require one (e.g. subrip, webvtt, ass). *)
+  val header_ass_default : unit -> string
+
   type pict = {
     x : int;
     y : int;

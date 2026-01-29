@@ -339,6 +339,11 @@ val new_video_stream :
 (** Add a new subtitle stream to the given container. Stream only supports
     frames and encodes its input.
 
+    [header] sets the subtitle header for the stream. For codecs with the
+    [Text_sub] property (e.g. ASS, SubRip, WebVTT), a default ASS header is
+    used when [header] is not provided. Use
+    {!Avutil.Subtitle.header_ass_default} to retrieve the default header.
+
     [opts] may contain any option settable on the stream's internal AVCodec.
     After returning, if [opts] was passed, unused options are left in the hash
     table.
@@ -346,6 +351,7 @@ val new_video_stream :
     Raise Error if the opening failed. *)
 val new_subtitle_stream :
   ?opts:opts ->
+  ?header:string ->
   time_base:Avutil.rational ->
   codec:[ `Encoder ] Avcodec.Subtitle.t ->
   output container ->

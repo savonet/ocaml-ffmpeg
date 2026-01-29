@@ -131,8 +131,6 @@ void value_of_frame(value *ret, AVFrame *frame);
 
 void value_of_subtitle(value *ret, AVSubtitle *subtitle);
 
-int subtitle_header_default(AVCodecContext *avctx);
-
 /***** AVPixelFormat *****/
 
 #define AvPixFmtDescriptor_val(v)                                              \
