@@ -21,6 +21,11 @@
  (libraries ffmpeg-av))
 
 (executable
+ (name test_unhandled_packet)
+ (modules test_unhandled_packet)
+ (libraries ffmpeg-av))
+
+(executable
  (name normalize_line_endings)
  (modules normalize_line_endings))
 
@@ -374,7 +379,8 @@
   (alias test_resample)
   (alias test_info)
   (alias test_subtitle_read)
-  (alias test_subtitle_remux)))
+  (alias test_subtitle_remux)
+  (alias test_unhandled_packet)))
 
 ; ============================================
 ; Subtitle tests
@@ -415,6 +421,16 @@
   test_with_subs.mkv)
  (action
   (run %{runner} "subtitle_read" %{exe} test_with_subs.mkv)))
+
+(rule
+ (alias test_unhandled_packet)
+ (package ffmpeg)
+ (deps
+  (:runner test_runner.exe)
+  (:exe test_unhandled_packet.exe)
+  test_with_subs.mkv)
+ (action
+  (run %{runner} "unhandled_packet" %{exe} test_with_subs.mkv)))
 
 (rule
  (targets raw_remuxed_subs.srt)

@@ -163,22 +163,28 @@ val get_metadata : (input, _, _) stream -> (string * string) list
 val set_decoder :
   (input, 'a, _) stream -> ('a, Avcodec.decode) Avcodec.codec -> unit
 
-type input_result =
+type packet_result =
   [ `Audio_packet of int * audio Avcodec.Packet.t
-  | `Audio_frame of int * audio frame
   | `Video_packet of int * video Avcodec.Packet.t
-  | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * Avutil.Subtitle.frame
   | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
+
+type frame_result =
+  [ `Audio_frame of int * audio frame
+  | `Video_frame of int * video frame
+  | `Subtitle_frame of int * Avutil.Subtitle.frame ]
+
+type input_result = [ packet_result | frame_result ]
 
 (** Reads the selected streams if any or all streams otherwise. Return the next
     [Audio] [Video] [Subtitle] of [Data] index and packet or frame of the input
     or [Error `Eof] if the end of the input is reached. Raise Error if the
     reading failed.
 
-    Only packet and frames from the specified streams are returned. *)
+    [on_unhandled_packet] receives unhandled packets. Defaults to: [fun _ -> ()]
+*)
 val read_input :
+  ?on_unhandled_packet:(packet_result -> unit) ->
   ?audio_packet:(input, audio, [ `Packet ]) stream list ->
   ?audio_frame:(input, audio, [ `Frame ]) stream list ->
   ?video_packet:(input, video, [ `Packet ]) stream list ->
