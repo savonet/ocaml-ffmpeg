@@ -5,6 +5,7 @@
 * Add `tell` to `Av`.
 * Add `Av.set_input_metadata`
 * Cleaned up support for subtitles.
+* Add `Av.get_container_stream_time_base`
 
 1.2.8 (01-01-2026)
 =====

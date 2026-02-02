@@ -238,6 +238,23 @@ CAMLprim value ocaml_av_set_stream_avg_frame_rate(value _stream,
   CAMLreturn(Val_unit);
 }
 
+CAMLprim value ocaml_av_get_container_stream_time_base(value _idx, value _av) {
+  CAMLparam1(_av);
+  CAMLlocal1(ans);
+  av_t *av = Av_base_val(_av);
+  int i, index = Int_val(_idx);
+
+  for (i = 0; i < av->format_context->nb_streams; i++) {
+    if (av->format_context->streams[i] &&
+        av->format_context->streams[i]->index == index) {
+      value_of_rational(&av->format_context->streams[index]->time_base, &ans);
+      CAMLreturn(ans);
+    }
+  }
+
+  caml_raise_not_found();
+}
+
 CAMLprim value ocaml_av_get_stream_time_base(value _stream) {
   CAMLparam1(_stream);
   CAMLlocal2(ans, _av);
