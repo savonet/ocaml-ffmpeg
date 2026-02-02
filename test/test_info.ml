@@ -49,6 +49,8 @@ let test_file_info url =
   Av.get_audio_streams input
   |> List.iter (fun (idx, stm, cd) ->
       Av.get_metadata stm |> List.iter (fun (k, v) -> printf "\t%s : %s\n" k v);
+      let tb = Av.get_container_stream_time_base ~index:idx input in
+      printf "\tAudio stream %d container time_base: %d/%d\n" idx tb.num tb.den;
       Avcodec.Audio.(
         printf "\tAudio stream %d : %s %s, %s %s, %s %d, %s %d, %s %d, %s %Ld\n"
           idx "codec"
@@ -62,6 +64,8 @@ let test_file_info url =
   Av.get_video_streams input
   |> List.iter (fun (idx, stm, cd) ->
       Av.get_metadata stm |> List.iter (fun (k, v) -> printf "\t%s : %s\n" k v);
+      let tb = Av.get_container_stream_time_base ~index:idx input in
+      printf "\tVideo stream %d container time_base: %d/%d\n" idx tb.num tb.den;
       Avcodec.Video.(
         let sar = get_sample_aspect_ratio cd in
         printf
@@ -98,6 +102,9 @@ let test_file_info url =
   Av.get_subtitle_streams input
   |> List.iter (fun (idx, stm, cd) ->
       Av.get_metadata stm |> List.iter (fun (k, v) -> printf "\t%s : %s\n" k v);
+      let tb = Av.get_container_stream_time_base ~index:idx input in
+      printf "\tSubtitle stream %d container time_base: %d/%d\n" idx tb.num
+        tb.den;
       Avcodec.Subtitle.(
         printf "\tSubtitle stream %d : %s %s, %s %Ld\n" idx "codec"
           (get_params_id cd |> string_of_id)
