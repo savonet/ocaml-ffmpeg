@@ -39,10 +39,16 @@ runs:
         if [ -d ffmpeg ]; then rm -rf ffmpeg; fi
         git clone --depth 1 --branch ${{ inputs.version }} --single-branch https://git.ffmpeg.org/ffmpeg.git ffmpeg
         cd ffmpeg
+        EXTRA_FLAGS=""
+        if [ "${{ inputs.os }}" = "macos-latest" ]; then
+          LAME_PREFIX=$(brew --prefix lame)
+          EXTRA_FLAGS="--extra-cflags=-I${LAME_PREFIX}/include --extra-ldflags=-L${LAME_PREFIX}/lib"
+        fi
         ./configure --prefix=/usr --disable-x86asm --enable-gpl \
                     --enable-nonfree --disable-doc \
                     --enable-shared --enable-libtheora --enable-libvpx \
-                    --enable-libmp3lame --enable-libvorbis --enable-libsoxr
+                    --enable-libmp3lame --enable-libvorbis --enable-libsoxr \
+                    $EXTRA_FLAGS
         make -j4
     - name: Save FFmpeg cache
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
