@@ -1279,26 +1279,9 @@ static int int_of_subtitle_flags(value flags) {
   return ret;
 }
 
-static value value_of_pict_line(uint8_t *data, int linesize, int height) {
-  CAMLparam0();
-  CAMLlocal2(record, ba);
-
-  intnat dims[1];
-  dims[0] = linesize * height;
-
-  ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
-  memcpy(Caml_ba_data_val(ba), data, dims[0]);
-
-  record = caml_alloc(2, 0);
-  Store_field(record, 0, ba);
-  Store_field(record, 1, Val_int(linesize));
-
-  CAMLreturn(record);
-}
-
 static value value_of_pict(AVSubtitleRect *rect) {
   CAMLparam0();
-  CAMLlocal3(record, lines_list, cons);
+  CAMLlocal4(record, planes, plane, ba);
 
   record = caml_alloc(6, 0);
   Store_field(record, 0, Val_int(rect->x));
@@ -1307,15 +1290,23 @@ static value value_of_pict(AVSubtitleRect *rect) {
   Store_field(record, 3, Val_int(rect->h));
   Store_field(record, 4, Val_int(rect->nb_colors));
 
-  List_init(lines_list);
-  for (int i = 3; i >= 0; i--) {
+  planes = caml_alloc(4, 0);
+  for (int i = 0; i < 4; i++) {
+    intnat dims[1];
     if (rect->data[i] && rect->linesize[i] > 0) {
-      value line =
-          value_of_pict_line(rect->data[i], rect->linesize[i], rect->h);
-      List_add(lines_list, cons, line);
+      dims[0] = rect->linesize[i] * rect->h;
+    } else {
+      dims[0] = 0;
     }
+    ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
+    if (dims[0] > 0)
+      memcpy(Caml_ba_data_val(ba), rect->data[i], dims[0]);
+    plane = caml_alloc_tuple(2);
+    Store_field(plane, 0, ba);
+    Store_field(plane, 1, Val_int(rect->linesize[i]));
+    Store_field(planes, i, plane);
   }
-  Store_field(record, 5, lines_list);
+  Store_field(record, 5, planes);
 
   CAMLreturn(record);
 }
@@ -1446,22 +1437,20 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
         rect->h = Int_val(Field(pict_val, 3));
         rect->nb_colors = Int_val(Field(pict_val, 4));
 
-        value lines = Field(pict_val, 5);
-        int plane = 0;
-        while (lines != Val_emptylist && plane < 4) {
-          value line = Field(lines, 0);
-          value ba = Field(line, 0);
-          int linesize = Int_val(Field(line, 1));
-
+        value planes_arr = Field(pict_val, 5);
+        for (int p = 0; p < 4; p++) {
+          value plane = Field(planes_arr, p);
+          value ba = Field(plane, 0);
+          int linesize = Int_val(Field(plane, 1));
           int size = caml_ba_byte_size(Caml_ba_array_val(ba));
-          rect->data[plane] = av_malloc(size);
-          if (!rect->data[plane])
-            caml_raise_out_of_memory();
-          memcpy(rect->data[plane], Caml_ba_data_val(ba), size);
-          rect->linesize[plane] = linesize;
 
-          lines = Field(lines, 1);
-          plane++;
+          if (size > 0) {
+            rect->data[p] = av_malloc(size);
+            if (!rect->data[p])
+              caml_raise_out_of_memory();
+            memcpy(rect->data[p], Caml_ba_data_val(ba), size);
+          }
+          rect->linesize[p] = linesize;
         }
       }
 

@@ -384,7 +384,6 @@ module Subtitle : sig
   type frame
   type subtitle_type = Subtitle_type.t
   type subtitle_flag = Subtitle_flag.t
-  type pict_line = { data : data; linesize : int }
 
   (** Return the default ASS header used for subtitle encoders that require one
       (e.g. subrip, webvtt, ass). *)
@@ -396,7 +395,7 @@ module Subtitle : sig
     w : int;
     h : int;
     nb_colors : int;
-    lines : pict_line list;
+    planes : (data * int) array;
   }
 
   type rectangle = {

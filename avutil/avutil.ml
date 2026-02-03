@@ -397,7 +397,6 @@ module Subtitle = struct
   type frame
   type subtitle_type = Subtitle_type.t
   type subtitle_flag = Subtitle_flag.t
-  type pict_line = { data : data; linesize : int }
 
   let header_ass_default () =
     "[Script Info]\r\n\
@@ -425,7 +424,7 @@ module Subtitle = struct
     w : int;
     h : int;
     nb_colors : int;
-    lines : pict_line list;
+    planes : (data * int) array;
   }
 
   type rectangle = {
