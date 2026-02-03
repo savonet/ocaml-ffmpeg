@@ -18,7 +18,7 @@ runs:
         path: ffmpeg
         key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Install ubuntu build dependencies
-      if: ${{ os == 'ubuntu-latest' }}
+      if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
       run: |
         sudo add-apt-repository universe -y
@@ -28,7 +28,7 @@ runs:
         sudo apt-get update
         sudo apt-get build-dep ffmpeg -y
     - name: Install macos build dependencies
-      if: ${{ os == 'macos-latest' }}
+      if: ${{ inputs.os == 'macos-latest' }}
       shell: bash
       run: |
         brew install --only-dependencies ffmpeg
