@@ -5,6 +5,9 @@ inputs:
     description: 'FFmpeg version tag to build'
     required: false
     default: 'n8.0.1'
+  os:
+    description: 'OS running the action'
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -14,7 +17,8 @@ runs:
       with:
         path: ffmpeg
         key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
-    - name: Install build dependencies
+    - name: Install ubuntu build dependencies
+      if: ${{ os == 'ubuntu-latest' }}
       shell: bash
       run: |
         sudo add-apt-repository universe -y
@@ -23,6 +27,12 @@ runs:
         sudo sed -i 's/Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources || true
         sudo apt-get update
         sudo apt-get build-dep ffmpeg -y
+    - name: Install macos build dependencies
+      if: ${{ os == 'macos-latest' }}
+      shell: bash
+      run: |
+        brew install --only-dependencies ffmpeg
+        brew install libvorbis theora flac opus libogg
     - name: Build FFmpeg
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
