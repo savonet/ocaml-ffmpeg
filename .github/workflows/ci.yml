@@ -1,6 +1,11 @@
 name: CI
 
-on: [push]
+on:
+  merge_group:
+  pull_request:
+  push:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
