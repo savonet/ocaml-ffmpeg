@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         brew install --only-dependencies ffmpeg
-        brew install lame theora libvpx libvorbis libsoxr
+        brew install lame theora libvpx libvorbis libsoxr libogg
     - name: Build FFmpeg
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
@@ -48,8 +48,9 @@ runs:
           THEORA_PREFIX=$(brew --prefix theora)
           VPX_PREFIX=$(brew --prefix libvpx)
           VORBIS_PREFIX=$(brew --prefix libvorbis)
-          EXTRA_CFLAGS="-I${LAME_PREFIX}/include -I${SOXR_PREFIX}/include -I${THEORA_PREFIX}/include -I${VPX_PREFIX}/include -I${VORBIS_PREFIX}/include"
-          EXTRA_LDFLAGS="-L${LAME_PREFIX}/lib -L${SOXR_PREFIX}/lib -L${THEORA_PREFIX}/lib -L${VPX_PREFIX}/lib -L${VORBIS_PREFIX}/lib"
+          OGG_PREFIX=$(brew --prefix libogg)
+          EXTRA_CFLAGS="-I${LAME_PREFIX}/include -I${SOXR_PREFIX}/include -I${THEORA_PREFIX}/include -I${VPX_PREFIX}/include -I${VORBIS_PREFIX}/include -I${OGG_PREFIX}/include"
+          EXTRA_LDFLAGS="-L${LAME_PREFIX}/lib -L${SOXR_PREFIX}/lib -L${THEORA_PREFIX}/lib -L${VPX_PREFIX}/lib -L${VORBIS_PREFIX}/lib -L${OGG_PREFIX}/lib"
         fi
         ./configure --prefix=/usr --disable-x86asm --enable-gpl \
                     --enable-nonfree --disable-doc \
