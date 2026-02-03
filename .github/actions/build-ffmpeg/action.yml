@@ -16,7 +16,7 @@ runs:
       uses: actions/cache/restore@v4
       with:
         path: ffmpeg
-        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-cache-13eb3b96039974ff-${{ inputs.version }}-${{ runner.os }}
     - name: Install ubuntu build dependencies
       if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
@@ -59,7 +59,7 @@ runs:
       uses: actions/cache/save@v4
       with:
         path: ffmpeg
-        key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
+        key: ffmpeg-cache-13eb3b96039974ff-${{ inputs.version }}-${{ runner.os }}
     - name: Install FFmpeg
       shell: bash
       run: |
