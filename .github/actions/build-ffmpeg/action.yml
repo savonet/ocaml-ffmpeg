@@ -31,8 +31,7 @@ runs:
       if: ${{ inputs.os == 'macos-latest' }}
       shell: bash
       run: |
-        brew install --only-dependencies ffmpeg
-        brew install libvorbis theora flac opus libogg lame libvpx libsoxr
+        brew install --only-dependencies ffmpeg-full
     - name: Build FFmpeg
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
