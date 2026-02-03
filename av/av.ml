@@ -148,6 +148,10 @@ external set_avg_frame_rate :
   (_, video, _) stream -> Avutil.rational option -> unit
   = "ocaml_av_set_stream_avg_frame_rate"
 
+external get_container_stream_time_base :
+  index:int -> _ container -> Avutil.rational
+  = "ocaml_av_get_container_stream_time_base"
+
 external get_time_base : (_, _, _) stream -> Avutil.rational
   = "ocaml_av_get_stream_time_base"
 

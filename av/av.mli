@@ -142,6 +142,10 @@ val set_avg_frame_rate : (_, video, _) stream -> Avutil.rational option -> unit
 (** [Av.get_time_base stream] return the time base of the [stream]. *)
 val get_time_base : (_, _, _) stream -> Avutil.rational
 
+(** [Av.get_container_stream_time_base ~index input] return the time base of the
+    stream at index [index]. Raises [Not_found] is the stream is not found. *)
+val get_container_stream_time_base : index:int -> _ container -> Avutil.rational
+
 (** [Av.set_time_base stream time_base] set the [stream] time base to
     [time_base]. *)
 val set_time_base : (_, _, _) stream -> Avutil.rational -> unit
