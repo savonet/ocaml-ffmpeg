@@ -32,7 +32,7 @@ runs:
       shell: bash
       run: |
         brew install --only-dependencies ffmpeg
-        brew install libvorbis theora flac opus libogg
+        brew install libvorbis theora flac opus libogg lame libvpx libsoxr
     - name: Build FFmpeg
       if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
       shell: bash
