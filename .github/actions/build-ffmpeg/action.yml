@@ -50,7 +50,7 @@ runs:
           VORBIS_PREFIX=$(brew --prefix libvorbis)
           OGG_PREFIX=$(brew --prefix libogg)
           EXTRA_CFLAGS="-I${LAME_PREFIX}/include -I${SOXR_PREFIX}/include -I${THEORA_PREFIX}/include -I${VPX_PREFIX}/include -I${VORBIS_PREFIX}/include -I${OGG_PREFIX}/include"
-          EXTRA_LDFLAGS="-L${LAME_PREFIX}/lib -L${SOXR_PREFIX}/lib -L${THEORA_PREFIX}/lib -L${VPX_PREFIX}/lib -L${VORBIS_PREFIX}/lib -L${OGG_PREFIX}/lib"
+          EXTRA_LDFLAGS="-L${LAME_PREFIX}/lib -L${SOXR_PREFIX}/lib -L${THEORA_PREFIX}/lib -L${VPX_PREFIX}/lib -L${VORBIS_PREFIX}/lib -L${OGG_PREFIX}/lib -Wl,-not_for_dyld_shared_cache"
         fi
         ./configure --prefix=/usr --disable-x86asm --enable-gpl \
                     --enable-nonfree --disable-doc --disable-xlib \
