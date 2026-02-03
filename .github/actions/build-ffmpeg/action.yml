@@ -27,13 +27,13 @@ runs:
         sudo sed -i 's/Types: deb$/Types: deb deb-src/g' /etc/apt/sources.list.d/*.sources || true
         sudo apt-get update
         sudo apt-get build-dep ffmpeg -y
-    - name: Install macos build dependencies
+    - name: Install macos brew build
       if: ${{ inputs.os == 'macos-latest' }}
       shell: bash
       run: |
-        brew install --only-dependencies ffmpeg-full
+        brew install ffmpeg-full
     - name: Build FFmpeg
-      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+      if: ${{ inputs.os == 'ubuntu-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       shell: bash
       run: |
         if [ -d ffmpeg ]; then rm -rf ffmpeg; fi
@@ -45,12 +45,13 @@ runs:
                     --enable-libmp3lame --enable-libvorbis --enable-libsoxr
         make -j4
     - name: Save FFmpeg cache
-      if: steps.cache-ffmpeg.outputs.cache-hit != 'true'
+      if: ${{ inputs.os == 'ubuntu-latest' && steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
       uses: actions/cache/save@v4
       with:
         path: ffmpeg
         key: ffmpeg-cache-${{ inputs.version }}-${{ runner.os }}
     - name: Install FFmpeg
+      if: ${{ inputs.os == 'ubuntu-latest' }}
       shell: bash
       run: |
         cd ffmpeg
