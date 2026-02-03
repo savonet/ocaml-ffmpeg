@@ -4,6 +4,7 @@
   `color_trc` and `chroma_location`.
 * Add `tell` to `Av`.
 * Add `Av.set_input_metadata`
+* Add [on_unhandled_packet] to `Av.read_input`.
 * Cleaned up support for subtitles.
 * Add `Av.get_container_stream_time_base`
 

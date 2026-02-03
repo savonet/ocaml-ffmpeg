@@ -198,17 +198,22 @@ let get_duration ?(format = `Second) s =
 
 let get_metadata s = List.rev (_get_metadata s.container s.index)
 
-type input_result =
+type packet_result =
   [ `Audio_packet of int * audio Avcodec.Packet.t
-  | `Audio_frame of int * audio frame
   | `Video_packet of int * video Avcodec.Packet.t
-  | `Video_frame of int * video frame
   | `Subtitle_packet of int * subtitle Avcodec.Packet.t
-  | `Subtitle_frame of int * Avutil.Subtitle.frame
   | `Data_packet of int * [ `Data ] Avcodec.Packet.t ]
+
+type frame_result =
+  [ `Audio_frame of int * audio frame
+  | `Video_frame of int * video frame
+  | `Subtitle_frame of int * Avutil.Subtitle.frame ]
+
+type input_result = [ packet_result | frame_result ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
 external read_input :
+  (packet_result -> unit) ->
   (int * Avutil.media_type) array ->
   (int * ('a, Avcodec.decode) Avcodec.codec option) array ->
   input container ->
@@ -226,9 +231,9 @@ let _get_frame input =
         raise (Failure "Inconsistent stream and input!");
       (index, Obj.magic decoder))
 
-let read_input ?(audio_packet = []) ?(audio_frame = []) ?(video_packet = [])
-    ?(video_frame = []) ?(subtitle_packet = []) ?(subtitle_frame = [])
-    ?(data_packet = []) input =
+let read_input ?(on_unhandled_packet = fun _ -> ()) ?(audio_packet = [])
+    ?(audio_frame = []) ?(video_packet = []) ?(video_frame = [])
+    ?(subtitle_packet = []) ?(subtitle_frame = []) ?(data_packet = []) input =
   let packet =
     Array.of_list
       (_get_packet `Audio input audio_packet
@@ -242,7 +247,7 @@ let read_input ?(audio_packet = []) ?(audio_frame = []) ?(video_packet = [])
       @ _get_frame input video_frame
       @ _get_frame input subtitle_frame)
   in
-  read_input packet frame input
+  read_input on_unhandled_packet packet frame input
 
 type seek_flag =
   | Seek_flag_backward
