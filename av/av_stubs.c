@@ -33,6 +33,7 @@
 /**** Init ****/
 
 value ocaml_av_init(value unit) {
+  (void)unit;
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
   av_register_all();
 #endif
@@ -159,15 +160,17 @@ static void close_av(av_t *av) {
 static void finalize_av(value v) { av_free(Av_base_val(v)); }
 
 static struct custom_operations av_ops = {
-    "ocaml_av_context",       finalize_av,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
+    "ocaml_av_context",         finalize_av,
+    custom_compare_default,     custom_hash_default,
+    custom_serialize_default,   custom_deserialize_default,
+    custom_compare_ext_default, custom_fixed_length_default};
 
 AVFormatContext *ocaml_av_get_format_context(value *p_av) {
   return Av_val(*p_av)->format_context;
 }
 
 CAMLprim value ocaml_av_container_options(value unit) {
+  (void)unit;
   CAMLparam0();
   CAMLlocal1(ret);
   CAMLreturn(value_of_avclass(&ret, avformat_get_class()));
@@ -245,7 +248,8 @@ CAMLprim value ocaml_av_get_container_stream_time_base(value _idx, value _av) {
   CAMLparam1(_av);
   CAMLlocal1(ans);
   av_t *av = Av_base_val(_av);
-  int i, index = Int_val(_idx);
+  unsigned int i;
+  int index = Int_val(_idx);
 
   for (i = 0; i < av->format_context->nb_streams; i++) {
     if (av->format_context->streams[i] &&
@@ -482,9 +486,10 @@ static void finalize_avio(value v) {
 }
 
 static struct custom_operations avio_ops = {
-    "ocaml_avio_context",     finalize_avio,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
+    "ocaml_avio_context",       finalize_avio,
+    custom_compare_default,     custom_hash_default,
+    custom_serialize_default,   custom_deserialize_default,
+    custom_compare_ext_default, custom_fixed_length_default};
 
 CAMLprim value ocaml_av_create_io(value _read_cb, value _write_cb,
                                   value _seek_cb) {
@@ -500,7 +505,6 @@ CAMLprim value ocaml_av_create_io(value _read_cb, value _write_cb,
   int64_t (*seek_cb)(void *opaque, int64_t offset, int whence) = NULL;
   int write_flag = 0;
   unsigned char *buffer;
-  int buffer_size;
 
   avio_t *avio = (avio_t *)av_mallocz(sizeof(avio_t));
   if (!avio)
@@ -941,7 +945,7 @@ static stream_t *open_stream_index(av_t *av, int index, const AVCodec *dec) {
   if (!av->format_context)
     Fail("Failed to open stream %d of closed input", index);
 
-  if (index < 0 || index >= av->format_context->nb_streams)
+  if (index < 0 || (unsigned int)index >= av->format_context->nb_streams)
     Fail("Failed to open stream %d : index out of bounds", index);
 
   if (!av->streams && !allocate_input_context(av))
@@ -1110,7 +1114,8 @@ CAMLprim value ocaml_av_read_input(value _unhandled_packet, value _packet,
   AVFrame *frame;
   AVSubtitle *subtitle;
   AVPacket *packet;
-  int i, ret, kind;
+  mlsize_t i;
+  int ret, kind;
 
   if (!av->streams && !allocate_input_context(av))
     caml_raise_out_of_memory();
@@ -1261,7 +1266,8 @@ CAMLprim value ocaml_av_seek_native(value _flags, value _stream, value _min_ts,
   int64_t num = AV_TIME_BASE;
   int64_t den = 1;
   int flags = 0;
-  int ret, i;
+  int ret;
+  mlsize_t i;
 
   if (!av->format_context)
     Fail("Failed to seek closed input");
@@ -1302,6 +1308,7 @@ CAMLprim value ocaml_av_seek_native(value _flags, value _stream, value _min_ts,
 }
 
 CAMLprim value ocaml_av_seek_bytecode(value *argv, int argn) {
+  (void)argn;
   return ocaml_av_seek_native(argv[0], argv[1], argv[2], argv[3], argv[4],
                               argv[5], argv[6]);
 }
@@ -2236,10 +2243,8 @@ static void write_frame(av_t *av, int stream_index, AVCodecContext *enc_ctx,
     ocaml_avutil_raise_error(ret);
 }
 
-static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
-  int err, frame_size;
-
+static void write_audio_frame(av_t *av, unsigned int stream_index,
+                              value _on_keyframe, AVFrame *frame) {
   if (av->format_context->nb_streams < stream_index)
     Fail("Stream index not found!");
 
@@ -2248,13 +2253,11 @@ static void write_audio_frame(av_t *av, int stream_index, value _on_keyframe,
   if (!stream->codec_context)
     Fail("Could not find stream index");
 
-  AVCodecContext *enc_ctx = stream->codec_context;
-
-  write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+  write_frame(av, stream_index, stream->codec_context, _on_keyframe, frame);
 }
 
-static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
-                              AVFrame *frame) {
+static void write_video_frame(av_t *av, unsigned int stream_index,
+                              value _on_keyframe, AVFrame *frame) {
   if (av->format_context->nb_streams < stream_index)
     Fail("Stream index not found!");
 
@@ -2266,12 +2269,10 @@ static void write_video_frame(av_t *av, int stream_index, value _on_keyframe,
   if (!stream->codec_context)
     Fail("Failed to write video frame with no encoder");
 
-  AVCodecContext *enc_ctx = stream->codec_context;
-
-  write_frame(av, stream_index, enc_ctx, _on_keyframe, frame);
+  write_frame(av, stream_index, stream->codec_context, _on_keyframe, frame);
 }
 
-static void write_subtitle_frame(av_t *av, int stream_index,
+static void write_subtitle_frame(av_t *av, unsigned int stream_index,
                                  AVSubtitle *subtitle) {
   stream_t *stream = av->streams[stream_index];
 
@@ -2279,7 +2280,6 @@ static void write_subtitle_frame(av_t *av, int stream_index,
     Fail("Stream index not found!");
 
   AVStream *avstream = av->format_context->streams[stream->index];
-  AVCodecContext *enc_ctx = stream->codec_context;
 
   if (!stream->codec_context)
     Fail("Failed to write subtitle frame with no encoder");
@@ -2471,8 +2471,9 @@ CAMLprim value ocaml_av_cleanup_av(value _av) {
 }
 
 // This is from libavformat/avc.h
-uint8_t *ocaml_av_ff_nal_unit_extract_rbsp(const uint8_t *src, uint32_t src_len,
-                                           uint32_t *dst_len, int header_len) {
+static uint8_t *ff_nal_unit_extract_rbsp(const uint8_t *src, uint32_t src_len,
+                                         uint32_t *dst_len,
+                                         uint32_t header_len) {
   uint8_t *dst;
   uint32_t i, len;
 
@@ -2556,8 +2557,7 @@ CAMLprim value ocaml_av_codec_attr(value _stream) {
         /* process by reference General NAL unit syntax */
         remain_size = stream->codecpar->extradata_size -
                       (data - stream->codecpar->extradata);
-        rbsp_buf =
-            ocaml_av_ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
+        rbsp_buf = ff_nal_unit_extract_rbsp(data, remain_size, &rbsp_size, 0);
         if (!rbsp_buf)
           goto fail;
         if (rbsp_size < 13) {

@@ -28,5 +28,10 @@ let () =
                 | Error msg -> failwith msg
                 | Ok deps -> deps)
       in
-      C.Flags.write_sexp "c_flags.sexp" conf.cflags;
+      let cflags =
+        conf.cflags
+        @ [ "-Wall"; "-Wextra"; "-Werror=unused-variable";
+            "-Werror=unused-parameter" ]
+      in
+      C.Flags.write_sexp "c_flags.sexp" cflags;
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs)
