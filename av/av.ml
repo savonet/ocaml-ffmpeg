@@ -213,7 +213,7 @@ type input_result = [ packet_result | frame_result ]
 
 (** Reads the selected streams if any or all streams otherwise. *)
 external read_input :
-  (packet_result -> unit) ->
+  (packet_result -> unit) option ->
   (int * Avutil.media_type) array ->
   (int * ('a, Avcodec.decode) Avcodec.codec option) array ->
   input container ->
@@ -231,9 +231,9 @@ let _get_frame input =
         raise (Failure "Inconsistent stream and input!");
       (index, Obj.magic decoder))
 
-let read_input ?(on_unhandled_packet = fun _ -> ()) ?(audio_packet = [])
-    ?(audio_frame = []) ?(video_packet = []) ?(video_frame = [])
-    ?(subtitle_packet = []) ?(subtitle_frame = []) ?(data_packet = []) input =
+let read_input ?on_unhandled_packet ?(audio_packet = []) ?(audio_frame = [])
+    ?(video_packet = []) ?(video_frame = []) ?(subtitle_packet = [])
+    ?(subtitle_frame = []) ?(data_packet = []) input =
   let packet =
     Array.of_list
       (_get_packet `Audio input audio_packet
