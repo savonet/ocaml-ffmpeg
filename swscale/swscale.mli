@@ -76,10 +76,9 @@ module BigArray : sig
   val vk : vector_kind
 end
 
-(** Unsigned 8 bit bigarray in a single packed array.. *)
+(** Unsigned 8 bit bigarrays split by planes with separate linesize array. *)
 module PackedBigArray : sig
-  type plane = { plane_size : int; stride : int }
-  type t = { data : data; planes : plane array }
+  type t = data array * int array
 
   val vk : vector_kind
 end

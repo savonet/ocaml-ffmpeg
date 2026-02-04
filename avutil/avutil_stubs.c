@@ -1281,7 +1281,8 @@ static int int_of_subtitle_flags(value flags) {
 
 static value value_of_pict(AVSubtitleRect *rect) {
   CAMLparam0();
-  CAMLlocal4(record, planes, plane, ba);
+  CAMLlocal4(record, planes, data_arr, ba);
+  CAMLlocal1(linesize_arr);
 
   record = caml_alloc(6, 0);
   Store_field(record, 0, Val_int(rect->x));
@@ -1290,22 +1291,31 @@ static value value_of_pict(AVSubtitleRect *rect) {
   Store_field(record, 3, Val_int(rect->h));
   Store_field(record, 4, Val_int(rect->nb_colors));
 
-  planes = caml_alloc(4, 0);
+  data_arr = caml_alloc(4, 0);
+  linesize_arr = caml_alloc(4, 0);
   for (int i = 0; i < 4; i++) {
+    // SUBTITLE_BITMAP images are special in the sense that they
+    // are like PAL8 images. first pointer to data, second to
+    // palette. This makes the size calculation match this.
     intnat dims[1];
-    if (rect->data[i] && rect->linesize[i] > 0) {
-      dims[0] = rect->linesize[i] * rect->h;
+    size_t buf_size = rect->type == SUBTITLE_BITMAP && i == 1
+                          ? AVPALETTE_SIZE
+                          : rect->h * rect->linesize[i];
+    if (rect->data[i] && buf_size > 0) {
+      dims[0] = buf_size;
     } else {
       dims[0] = 0;
     }
     ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
     if (dims[0] > 0)
       memcpy(Caml_ba_data_val(ba), rect->data[i], dims[0]);
-    plane = caml_alloc_tuple(2);
-    Store_field(plane, 0, ba);
-    Store_field(plane, 1, Val_int(rect->linesize[i]));
-    Store_field(planes, i, plane);
+    Store_field(data_arr, i, ba);
+    Store_field(linesize_arr, i, Val_int(rect->linesize[i]));
   }
+
+  planes = caml_alloc_tuple(2);
+  Store_field(planes, 0, data_arr);
+  Store_field(planes, 1, linesize_arr);
   Store_field(record, 5, planes);
 
   CAMLreturn(record);
@@ -1437,11 +1447,12 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
         rect->h = Int_val(Field(pict_val, 3));
         rect->nb_colors = Int_val(Field(pict_val, 4));
 
-        value planes_arr = Field(pict_val, 5);
+        value planes_tuple = Field(pict_val, 5);
+        value data_arr = Field(planes_tuple, 0);
+        value linesize_arr = Field(planes_tuple, 1);
         for (int p = 0; p < 4; p++) {
-          value plane = Field(planes_arr, p);
-          value ba = Field(plane, 0);
-          int linesize = Int_val(Field(plane, 1));
+          value ba = Field(data_arr, p);
+          int linesize = Int_val(Field(linesize_arr, p));
           int size = caml_ba_byte_size(Caml_ba_array_val(ba));
 
           if (size > 0) {

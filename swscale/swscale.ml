@@ -35,8 +35,7 @@ module BigArray = struct
 end
 
 module PackedBigArray = struct
-  type plane = { plane_size : int; stride : int }
-  type t = { data : data; planes : plane array }
+  type t = data array * int array
 
   let vk = PackedBa
 end

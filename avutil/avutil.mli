@@ -395,7 +395,7 @@ module Subtitle : sig
     w : int;
     h : int;
     nb_colors : int;
-    planes : (data * int) array;
+    planes : data array * int array;
   }
 
   type rectangle = {

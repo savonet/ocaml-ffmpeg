@@ -243,20 +243,11 @@ static int get_in_pixels_ba(sws_t *sws, value *in_vector) {
 
 static int get_in_pixels_packed_ba(sws_t *sws, value *in_vector) {
   CAMLparam0();
-  CAMLlocal1(v);
-  uint8_t *data = Caml_ba_data_val(Field(*in_vector, 0));
-  int i, nb_planes = Wosize_val(Field(*in_vector, 1));
-  int stride, plane_size, offset = 0;
+  int i, nb_planes = Wosize_val(Field(*in_vector, 0));
 
   for (i = 0; i < nb_planes && i < 4; i++) {
-    v = Field(Field(*in_vector, 1), i);
-    plane_size = Int_val(Field(v, 0));
-    stride = Int_val(Field(v, 1));
-
-    sws->in.slice[i] = data + offset;
-    sws->in.stride[i] = stride;
-
-    offset += plane_size;
+    sws->in.slice[i] = Caml_ba_data_val(Field(Field(*in_vector, 0), i));
+    sws->in.stride[i] = Int_val(Field(Field(*in_vector, 1), i));
   }
 
   CAMLreturnT(int, nb_planes);
@@ -353,32 +344,23 @@ static int alloc_out_ba(sws_t *sws, value *out_vect, value *tmp) {
 }
 
 static int alloc_out_packed_ba(sws_t *sws, value *out_vect, value *tmp) {
-  int i, offset = 0;
-  intnat out_size = 0;
-  uint8_t *data;
-
-  for (i = 0; i < sws->out.nb_planes; i++)
-    out_size += sws->out.plane_sizes[i];
-
-  out_size += 16;
+  int i;
+  intnat out_size;
 
   *out_vect = caml_alloc_tuple(2);
-  Store_field(
-      *out_vect, 0,
-      caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size));
+  Store_field(*out_vect, 0, caml_alloc_tuple(sws->out.nb_planes));
   Store_field(*out_vect, 1, caml_alloc_tuple(sws->out.nb_planes));
 
-  data = Caml_ba_data_val(Field(*out_vect, 0));
-
   for (i = 0; i < sws->out.nb_planes; i++) {
-    *tmp = caml_alloc_tuple(2);
-    Store_field(*tmp, 0, Val_int(sws->out.plane_sizes[i]));
-    Store_field(*tmp, 1, Val_int(sws->out.stride[i]));
+    // Some filters and swscale can read up to 16 bytes beyond the planes,
+    // 16 extra bytes must be allocated.
+    out_size = sws->out.plane_sizes[i] + 16;
 
-    Store_field(Field(*out_vect, 1), i, *tmp);
+    *tmp = caml_ba_alloc(CAML_BA_C_LAYOUT | CAML_BA_UINT8, 1, NULL, &out_size);
+    Store_field(Field(*out_vect, 0), i, *tmp);
+    Store_field(Field(*out_vect, 1), i, Val_int(sws->out.stride[i]));
 
-    sws->out.slice[i] = data + offset;
-    offset += sws->out.plane_sizes[i];
+    sws->out.slice[i] = Caml_ba_data_val(*tmp);
   }
 
   return 0;
