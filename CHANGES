@@ -7,6 +7,7 @@
 * Add [on_unhandled_packet] to `Av.read_input`.
 * Cleaned up support for subtitles.
 * Add `Av.get_container_stream_time_base`
+* Cleaned up `PackedBa` data type in `Swscale`.
 
 1.2.8 (01-01-2026)
 =====

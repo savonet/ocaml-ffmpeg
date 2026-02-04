@@ -1279,26 +1279,10 @@ static int int_of_subtitle_flags(value flags) {
   return ret;
 }
 
-static value value_of_pict_line(uint8_t *data, int linesize, int height) {
-  CAMLparam0();
-  CAMLlocal2(record, ba);
-
-  intnat dims[1];
-  dims[0] = linesize * height;
-
-  ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
-  memcpy(Caml_ba_data_val(ba), data, dims[0]);
-
-  record = caml_alloc(2, 0);
-  Store_field(record, 0, ba);
-  Store_field(record, 1, Val_int(linesize));
-
-  CAMLreturn(record);
-}
-
 static value value_of_pict(AVSubtitleRect *rect) {
   CAMLparam0();
-  CAMLlocal3(record, lines_list, cons);
+  CAMLlocal4(record, planes, data_arr, ba);
+  CAMLlocal1(linesize_arr);
 
   record = caml_alloc(6, 0);
   Store_field(record, 0, Val_int(rect->x));
@@ -1307,15 +1291,32 @@ static value value_of_pict(AVSubtitleRect *rect) {
   Store_field(record, 3, Val_int(rect->h));
   Store_field(record, 4, Val_int(rect->nb_colors));
 
-  List_init(lines_list);
-  for (int i = 3; i >= 0; i--) {
-    if (rect->data[i] && rect->linesize[i] > 0) {
-      value line =
-          value_of_pict_line(rect->data[i], rect->linesize[i], rect->h);
-      List_add(lines_list, cons, line);
+  data_arr = caml_alloc(4, 0);
+  linesize_arr = caml_alloc(4, 0);
+  for (int i = 0; i < 4; i++) {
+    // SUBTITLE_BITMAP images are special in the sense that they
+    // are like PAL8 images. first pointer to data, second to
+    // palette. This makes the size calculation match this.
+    intnat dims[1];
+    size_t buf_size = rect->type == SUBTITLE_BITMAP && i == 1
+                          ? AVPALETTE_SIZE
+                          : rect->h * rect->linesize[i];
+    if (rect->data[i] && buf_size > 0) {
+      dims[0] = buf_size;
+    } else {
+      dims[0] = 0;
     }
+    ba = caml_ba_alloc(CAML_BA_UINT8 | CAML_BA_C_LAYOUT, 1, NULL, dims);
+    if (dims[0] > 0)
+      memcpy(Caml_ba_data_val(ba), rect->data[i], dims[0]);
+    Store_field(data_arr, i, ba);
+    Store_field(linesize_arr, i, Val_int(rect->linesize[i]));
   }
-  Store_field(record, 5, lines_list);
+
+  planes = caml_alloc_tuple(2);
+  Store_field(planes, 0, data_arr);
+  Store_field(planes, 1, linesize_arr);
+  Store_field(record, 5, planes);
 
   CAMLreturn(record);
 }
@@ -1446,22 +1447,21 @@ CAMLprim value ocaml_avutil_subtitle_create_frame(value _content) {
         rect->h = Int_val(Field(pict_val, 3));
         rect->nb_colors = Int_val(Field(pict_val, 4));
 
-        value lines = Field(pict_val, 5);
-        int plane = 0;
-        while (lines != Val_emptylist && plane < 4) {
-          value line = Field(lines, 0);
-          value ba = Field(line, 0);
-          int linesize = Int_val(Field(line, 1));
-
+        value planes_tuple = Field(pict_val, 5);
+        value data_arr = Field(planes_tuple, 0);
+        value linesize_arr = Field(planes_tuple, 1);
+        for (int p = 0; p < 4; p++) {
+          value ba = Field(data_arr, p);
+          int linesize = Int_val(Field(linesize_arr, p));
           int size = caml_ba_byte_size(Caml_ba_array_val(ba));
-          rect->data[plane] = av_malloc(size);
-          if (!rect->data[plane])
-            caml_raise_out_of_memory();
-          memcpy(rect->data[plane], Caml_ba_data_val(ba), size);
-          rect->linesize[plane] = linesize;
 
-          lines = Field(lines, 1);
-          plane++;
+          if (size > 0) {
+            rect->data[p] = av_malloc(size);
+            if (!rect->data[p])
+              caml_raise_out_of_memory();
+            memcpy(rect->data[p], Caml_ba_data_val(ba), size);
+          }
+          rect->linesize[p] = linesize;
         }
       }
 
