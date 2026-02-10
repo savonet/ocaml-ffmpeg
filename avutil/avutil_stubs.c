@@ -1641,10 +1641,81 @@ CAMLprim value ocaml_avutil_get_opt(value _type, value search_children,
   }
 }
 
+static value value_of_cursor_opt(const struct AVOption *option, void *cursor,
+                                 const AVClass *class) {
+  CAMLparam0();
+  CAMLlocal2(_payload, _cursor);
+
+  _payload = caml_alloc_tuple(1);
+  Store_field(_payload, 0, caml_alloc_tuple(2));
+#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(56, 53, 100)
+  Store_field(Field(_payload, 0), 0, value_of_avoptions(_cursor, option));
+#else
+  Store_field(Field(_payload, 0), 0, caml_alloc_tuple(2));
+  Store_field(Field(Field(_payload, 0), 0), 0,
+              value_of_avobj(&_cursor, cursor));
+  Store_field(Field(Field(_payload, 0), 0), 1,
+              value_of_avoptions(&_cursor, option));
+#endif
+  Store_field(Field(_payload, 0), 1, value_of_avclass(&_cursor, class));
+
+  CAMLreturn(_payload);
+}
+
+static void raise_unimplemented_option(const struct AVOption *option,
+                                       void *cursor, const AVClass *class) {
+  caml_raise_with_arg(*caml_named_value("av_opt_iter_not_implemented"),
+                      value_of_cursor_opt(option, cursor, class));
+}
+
+static inline value type_of_av_opt_type(enum AVOptionType type) {
+  switch (type) {
+  case AV_OPT_TYPE_FLAGS:
+    return PVV_Flags;
+  case AV_OPT_TYPE_INT:
+    return PVV_Int;
+  case AV_OPT_TYPE_INT64:
+    return PVV_Int64;
+  case AV_OPT_TYPE_DOUBLE:
+    return PVV_Double;
+  case AV_OPT_TYPE_FLOAT:
+    return PVV_Float;
+  case AV_OPT_TYPE_STRING:
+    return PVV_String;
+  case AV_OPT_TYPE_RATIONAL:
+    return PVV_Rational;
+  case AV_OPT_TYPE_BINARY:
+    return PVV_Binary;
+  case AV_OPT_TYPE_DICT:
+    return PVV_Dict;
+  case AV_OPT_TYPE_UINT64:
+    return PVV_UInt64;
+  case AV_OPT_TYPE_CONST:
+    return PVV_Constant;
+  case AV_OPT_TYPE_IMAGE_SIZE:
+    return PVV_Image_size;
+  case AV_OPT_TYPE_PIXEL_FMT:
+    return PVV_Pixel_fmt;
+  case AV_OPT_TYPE_SAMPLE_FMT:
+    return PVV_Sample_fmt;
+  case AV_OPT_TYPE_VIDEO_RATE:
+    return PVV_Video_rate;
+  case AV_OPT_TYPE_DURATION:
+    return PVV_Duration;
+  case AV_OPT_TYPE_COLOR:
+    return PVV_Color;
+  case AV_OPT_TYPE_CHLAYOUT:
+    return PVV_Channel_layout;
+  case AV_OPT_TYPE_BOOL:
+    return PVV_Bool;
+  default:
+    return -1;
+  }
+}
+
 CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   CAMLparam2(_cursor, _class);
   CAMLlocal5(_opt, _type, _tmp, _spec, _ch_layout);
-  int unimplement_option = 0;
   AVChannelLayout channel_layout;
 
   const AVClass *class;
@@ -1703,27 +1774,28 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     Store_field(_opt, 1, _tmp);
   }
 
+  _type = type_of_av_opt_type(option->type & ~AV_OPT_TYPE_FLAG_ARRAY);
+  if (_type == -1) {
+    raise_unimplemented_option(option, cursor, class);
+  }
+
   _spec = caml_alloc_tuple(3);
   _tmp = caml_alloc_tuple(1);
   Store_field(_spec, 0, Val_none);
   Store_field(_spec, 1, Val_none);
   Store_field(_spec, 2, Val_none);
 
-  switch (option->type) {
+  switch (option->type & ~AV_OPT_TYPE_FLAG_ARRAY) {
   case AV_OPT_TYPE_CONST:
-    _type = PVV_Constant;
-    Store_field(_tmp, 0, value_of_avoptions(&_cursor, option));
-    Store_field(_spec, 0, _tmp);
+    raise_unimplemented_option(option, cursor, class);
     break;
   case AV_OPT_TYPE_BOOL:
-    _type = PVV_Bool;
     if (option->default_val.i64 >= 0) {
       Store_field(_tmp, 0, Val_bool(option->default_val.i64));
       Store_field(_spec, 0, _tmp);
     }
     break;
   case AV_OPT_TYPE_CHLAYOUT:
-    _type = PVV_Channel_layout;
     if (option->default_val.str &&
         av_channel_layout_from_string(&channel_layout,
                                       option->default_val.str)) {
@@ -1733,21 +1805,18 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     }
     break;
   case AV_OPT_TYPE_PIXEL_FMT:
-    _type = PVV_Pixel_fmt;
     if (av_get_pix_fmt_name(option->default_val.i64)) {
       Store_field(_tmp, 0, Val_PixelFormat(option->default_val.i64));
       Store_field(_spec, 0, _tmp);
     }
     break;
   case AV_OPT_TYPE_SAMPLE_FMT:
-    _type = PVV_Sample_fmt;
     if (av_get_sample_fmt_name(option->default_val.i64)) {
       Store_field(_tmp, 0, Val_SampleFormat(option->default_val.i64));
       Store_field(_spec, 0, _tmp);
     }
     break;
   case AV_OPT_TYPE_INT:
-    _type = PVV_Int;
 
     Store_field(_tmp, 0, Val_int(option->default_val.i64));
     Store_field(_spec, 0, _tmp);
@@ -1762,18 +1831,9 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     break;
 
   case AV_OPT_TYPE_FLAGS:
-    _type = PVV_Flags;
-    goto int64_opt;
   case AV_OPT_TYPE_INT64:
-    _type = PVV_Int64;
-    goto int64_opt;
   case AV_OPT_TYPE_UINT64:
-    _type = PVV_UInt64;
-    goto int64_opt;
   case AV_OPT_TYPE_DURATION:
-    _type = PVV_Duration;
-
-  int64_opt:
     Store_field(_tmp, 0, caml_copy_int64(option->default_val.i64));
     Store_field(_spec, 0, _tmp);
 
@@ -1801,12 +1861,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     break;
 
   case AV_OPT_TYPE_DOUBLE:
-    _type = PVV_Double;
-    goto float_opt;
   case AV_OPT_TYPE_FLOAT:
-    _type = PVV_Float;
-
-  float_opt:
     Store_field(_tmp, 0, caml_copy_double(option->default_val.dbl));
     Store_field(_spec, 0, _tmp);
 
@@ -1820,8 +1875,6 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     break;
 
   case AV_OPT_TYPE_RATIONAL:
-    _type = PVV_Rational;
-
     Store_field(_spec, 0, _tmp);
     r = av_d2q(option->default_val.dbl, INT_MAX);
     value_of_rational(&r, &_tmp);
@@ -1839,31 +1892,26 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     break;
 
   case AV_OPT_TYPE_COLOR:
-    _type = PVV_Color;
-    goto string_opt;
   case AV_OPT_TYPE_DICT:
-    _type = PVV_Dict;
-    goto string_opt;
   case AV_OPT_TYPE_IMAGE_SIZE:
-    _type = PVV_Image_size;
-    goto string_opt;
   case AV_OPT_TYPE_VIDEO_RATE:
-    _type = PVV_Video_rate;
-    goto string_opt;
   case AV_OPT_TYPE_BINARY:
-    _type = PVV_Binary;
-    goto string_opt;
   case AV_OPT_TYPE_STRING:
-    _type = PVV_String;
-
-  string_opt:
     if (option->default_val.str) {
       Store_field(_tmp, 0, caml_copy_string(option->default_val.str));
       Store_field(_spec, 0, _tmp);
     }
     break;
   default:
-    unimplement_option = 1;
+    raise_unimplemented_option(option, cursor, class);
+  }
+
+  if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
+    _tmp = caml_alloc_tuple(2);
+    Store_field(_tmp, 0, _type);
+    Store_field(_tmp, 1, _spec);
+    _type = PVV_Array;
+    _spec = _tmp;
   }
 
   _tmp = caml_alloc_tuple(2);
@@ -1881,22 +1929,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     Store_field(_opt, 4, _tmp);
   }
 
-  _tmp = caml_alloc_tuple(1);
-  Store_field(_tmp, 0, caml_alloc_tuple(2));
-#if LIBAVUTIL_VERSION_INT < AV_VERSION_INT(56, 53, 100)
-  Store_field(Field(_tmp, 0), 0, value_of_avoptions(_cursor, option));
-#else
-  Store_field(Field(_tmp, 0), 0, caml_alloc_tuple(2));
-  Store_field(Field(Field(_tmp, 0), 0), 0, value_of_avobj(&_cursor, cursor));
-  Store_field(Field(Field(_tmp, 0), 0), 1,
-              value_of_avoptions(&_cursor, option));
-#endif
-  Store_field(Field(_tmp, 0), 1, value_of_avclass(&_class, class));
-  Store_field(_opt, 5, _tmp);
-
-  if (unimplement_option)
-    caml_raise_with_arg(*caml_named_value("av_opt_iter_not_implemented"),
-                        Field(_opt, 5));
+  Store_field(_opt, 5, value_of_cursor_opt(option, cursor, class));
 
   _tmp = caml_alloc_tuple(1);
   Store_field(_tmp, 0, _opt);

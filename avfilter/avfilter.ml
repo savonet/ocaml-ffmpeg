@@ -1,13 +1,18 @@
 (** This module provides an API to AVfilter. *)
 
-type valued_arg =
+type ground_arg =
   [ `String of string
   | `Int of int
   | `Int64 of int64
   | `Float of float
   | `Rational of Avutil.rational ]
 
+type valued_arg = [ ground_arg | `Array of ground_arg list ]
 type args = [ `Flag of string | `Pair of string * valued_arg ]
+
+external get_array_separator : filter_name:string -> option_name:string -> char
+  = "ocaml_avfilter_get_array_separator"
+
 type ('a, 'b) av = { audio : 'a; video : 'b }
 type ('a, 'b) io = { inputs : 'a; outputs : 'b }
 type _config
@@ -204,22 +209,31 @@ external create_filter :
   filter_ctx * ('a, 'b, 'c) pad array * ('a, 'b, 'c) pad array
   = "ocaml_avfilter_create_filter"
 
-let rec args_of_args cur = function
-  | [] -> cur
-  | `Flag s :: args -> args_of_args (s :: cur) args
-  | `Pair (lbl, `String s) :: args ->
-      args_of_args (Printf.sprintf "%s=%s" lbl s :: cur) args
-  | `Pair (lbl, `Int i) :: args ->
-      args_of_args (Printf.sprintf "%s=%i" lbl i :: cur) args
-  | `Pair (lbl, `Int64 i) :: args ->
-      args_of_args (Printf.sprintf "%s=%Li" lbl i :: cur) args
-  | `Pair (lbl, `Float f) :: args ->
-      args_of_args (Printf.sprintf "%s=%f" lbl f :: cur) args
-  | `Pair (lbl, `Rational { Avutil.num; den }) :: args ->
-      args_of_args (Printf.sprintf "%s=%i/%i" lbl num den :: cur) args
+let string_of_ground_arg = function
+  | `String s -> s
+  | `Int i -> string_of_int i
+  | `Int64 i -> Int64.to_string i
+  | `Float f -> string_of_float f
+  | `Rational { Avutil.num; den } -> Printf.sprintf "%i/%i" num den
 
-let args_of_args = function
-  | Some args -> Some (String.concat ":" (args_of_args [] args))
+let rec args_of_args filter_name cur = function
+  | [] -> cur
+  | `Flag s :: args -> args_of_args filter_name (s :: cur) args
+  | `Pair (lbl, (#ground_arg as g)) :: args ->
+      args_of_args filter_name
+        (Printf.sprintf "%s=%s" lbl (string_of_ground_arg g) :: cur)
+        args
+  | `Pair (lbl, `Array values) :: args ->
+      let sep = get_array_separator ~filter_name ~option_name:lbl in
+      let value_str =
+        String.concat (String.make 1 sep) (List.map string_of_ground_arg values)
+      in
+      args_of_args filter_name
+        (Printf.sprintf "%s=%s" lbl value_str :: cur)
+        args
+
+let args_of_args filter_name = function
+  | Some args -> Some (String.concat ":" (args_of_args filter_name [] args))
   | None -> None
 
 let attach_pad filter_ctx graph pad =
@@ -243,7 +257,7 @@ external append_context :
 
 let attach ?args ~name filter graph =
   if List.mem name graph.names then raise Exists;
-  let args = args_of_args args in
+  let args = args_of_args filter.name args in
   let filter_ctx, inputs, outputs =
     create_filter ?args ~name filter.name graph.c
   in

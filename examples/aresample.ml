@@ -10,39 +10,25 @@ let () =
 
   let src = Av.open_input Sys.argv.(1) in
   let dst = Av.open_output Sys.argv.(2) in
-  let audio_codec = Avcodec.Audio.find_encoder_by_name "ac3" in
+  let audio_codec = Avcodec.Audio.find_encoder_by_name "aac" in
 
-  let audio_params, audio_input, idx, oass =
+  let audio_params, audio_input, idx =
     Av.find_best_audio_stream src |> fun (i, audio_input, params) ->
-    let channel_layout = Avcodec.Audio.get_channel_layout params in
-    let sample_format = Avcodec.Audio.get_sample_format params in
-    let sample_rate = Avcodec.Audio.get_sample_rate params in
-    let time_base = { Avutil.num = 1; den = sample_rate } in
-    ( params,
-      audio_input,
-      i,
-      Av.new_audio_stream ~channel_layout ~sample_format ~sample_rate ~time_base
-        ~codec:audio_codec dst )
-  in
-
-  let frame_size =
-    if List.mem `Variable_frame_size (Avcodec.capabilities audio_codec) then 512
-    else Av.get_frame_size oass
+    (params, audio_input, i)
   in
 
   let filter =
     let config = Avfilter.init () in
-    let abuffer =
-      let time_base = Av.get_time_base audio_input in
-      let sample_rate = Avcodec.Audio.get_sample_rate audio_params in
-      let sample_format =
-        Avutil.Sample_format.get_id
-          (Avcodec.Audio.get_sample_format audio_params)
-      in
-      let channel_layout =
-        Avutil.Channel_layout.get_description
-          (Avcodec.Audio.get_channel_layout audio_params)
-      in
+    let time_base = Av.get_time_base audio_input in
+    let sample_rate = Avcodec.Audio.get_sample_rate audio_params in
+    let sample_format =
+      Avutil.Sample_format.get_id (Avcodec.Audio.get_sample_format audio_params)
+    in
+    let channel_layout =
+      Avutil.Channel_layout.get_description
+        (Avcodec.Audio.get_channel_layout audio_params)
+    in
+    let abuffer_node =
       let args =
         [
           `Pair ("time_base", `Rational time_base);
@@ -51,46 +37,70 @@ let () =
           `Pair ("channel_layout", `String channel_layout);
         ]
       in
-      let abuffer =
-        Avfilter.attach ~args ~name:"audio_input" Avfilter.abuffer config
+      Avfilter.attach ~args ~name:"in" Avfilter.abuffer config
+    in
+    let aresample_filter = Avfilter.find "aresample" in
+    let aresample =
+      let args = [`Pair ("sample_rate", `Int 22050)] in
+      Avfilter.attach ~args ~name:"aresample" aresample_filter config
+    in
+    let aformat_filter = Avfilter.find "aformat" in
+    let aformat =
+      let args =
+        [
+          `Pair ("sample_fmts", `Array [`String "s16"; `String "fltp"]);
+          `Pair ("channel_layouts", `Array [`String "stereo"; `String "mono"]);
+        ]
       in
-      {
-        Avfilter.node_name = "in";
-        node_args = Some args;
-        node_pad = List.hd abuffer.io.outputs.audio;
-      }
+      Avfilter.attach ~args ~name:"aformat" aformat_filter config
     in
-    let outputs = { Avfilter.audio = [abuffer]; video = [] } in
-    let abuffersink =
-      Avfilter.attach ~name:"audio_output" Avfilter.abuffersink config
-    in
-    let sink =
-      {
-        Avfilter.node_name = "out";
-        node_args = None;
-        node_pad = List.hd abuffersink.io.inputs.audio;
-      }
-    in
-    let inputs = { Avfilter.audio = [sink]; video = [] } in
-    Avfilter.parse { inputs; outputs }
-      "aresample=22050,aformat=channel_layouts=stereo" config;
+    let sink_node = Avfilter.(attach ~name:"out" abuffersink config) in
+    Avfilter.link
+      (List.hd Avfilter.(abuffer_node.io.outputs.audio))
+      (List.hd Avfilter.(aresample.io.inputs.audio));
+    Avfilter.link
+      (List.hd Avfilter.(aresample.io.outputs.audio))
+      (List.hd Avfilter.(aformat.io.inputs.audio));
+    Avfilter.link
+      (List.hd Avfilter.(aformat.io.outputs.audio))
+      (List.hd Avfilter.(sink_node.io.inputs.audio));
     Avfilter.launch config
   in
 
   let _, output = List.hd Avfilter.(filter.outputs.audio) in
   let context = output.context in
-  Avfilter.set_frame_size context frame_size;
   let time_base = Avfilter.time_base context in
+  let filter_sample_format = Avfilter.sample_format context in
+  let filter_channel_layout = Avfilter.channel_layout context in
+  let filter_sample_rate = Avfilter.sample_rate context in
+
   Printf.printf
     "Sink info:\n\
      time_base: %d/%d\n\
      channels: %d\n\
      channel_layout: %s\n\
-     sample_rate: %d\n"
+     sample_rate: %d\n\
+     sample_format: %s\n"
     time_base.Avutil.num time_base.Avutil.den
     (Avfilter.channels context)
-    (Avutil.Channel_layout.get_description (Avfilter.channel_layout context))
-    (Avfilter.sample_rate context);
+    (Avutil.Channel_layout.get_description filter_channel_layout)
+    filter_sample_rate
+    (match Avutil.Sample_format.get_name filter_sample_format with
+      | None -> "none"
+      | Some n -> n);
+
+  let oass =
+    Av.new_audio_stream ~channel_layout:filter_channel_layout
+      ~sample_format:filter_sample_format ~sample_rate:filter_sample_rate
+      ~time_base ~codec:audio_codec dst
+  in
+
+  let frame_size =
+    if List.mem `Variable_frame_size (Avcodec.capabilities audio_codec) then 512
+    else Av.get_frame_size oass
+  in
+
+  Avfilter.set_frame_size context frame_size;
 
   let process_audio i frm =
     try
