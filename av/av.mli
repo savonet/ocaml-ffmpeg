@@ -76,6 +76,9 @@ val get_input_duration :
 (** Return the input tag (key, vlue) list. *)
 val get_input_metadata : input container -> (string * string) list
 
+(** Return the input format of the container. *)
+val get_input_format : input container -> (input, _) format option
+
 (** [Av.set_input_metadata container tags] set the metadata of the [container]
     with the [tags] tag list. This can be used to clear existing metadata on an
     opened container. *)

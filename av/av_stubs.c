@@ -634,6 +634,22 @@ CAMLprim value ocaml_av_input_format_get_long_name(value _format) {
   CAMLreturn(caml_copy_string(n ? n : ""));
 }
 
+CAMLprim value ocaml_av_get_input_format(value _av) {
+  CAMLparam1(_av);
+  CAMLlocal2(ans, ret);
+  av_t *av = Av_val(_av);
+
+  if (!av->format_context || !av->format_context->iformat) {
+    CAMLreturn(Val_none);
+  }
+
+  value_of_inputFormat(&ans, av->format_context->iformat);
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
+}
+
 static av_t *open_input(char *url, avioformat_const AVInputFormat *format,
                         AVFormatContext *format_context, value _interrupt,
                         AVDictionary **options) {

@@ -123,6 +123,9 @@ external _get_metadata : input container -> int -> (string * string) list
 
 let get_input_metadata i = List.rev (_get_metadata i (-1))
 
+external get_input_format : input container -> (input, _) format option
+  = "ocaml_av_get_input_format"
+
 external input_obj : input container -> 'a = "ocaml_av_input_obj"
 
 let input_obj c = Obj.magic (input_obj c, c)

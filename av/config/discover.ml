@@ -30,8 +30,12 @@ let () =
       in
       let cflags =
         conf.cflags
-        @ [ "-Wall"; "-Wextra"; "-Werror=unused-variable";
-            "-Werror=unused-parameter" ]
+        @ [
+            "-Wall";
+            "-Wextra";
+            "-Werror=unused-variable";
+            "-Werror=unused-parameter";
+          ]
       in
       C.Flags.write_sexp "c_flags.sexp" cflags;
       C.Flags.write_sexp "c_library_flags.sexp" conf.libs)
