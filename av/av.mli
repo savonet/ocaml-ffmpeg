@@ -161,7 +161,7 @@ val get_frame_size : (output, audio, _) stream -> int
 val get_pixel_aspect : (_, video, _) stream -> Avutil.rational option
 
 (** Same as {!Av.get_input_duration} for the input streams. *)
-val get_duration : ?format:Time_format.t -> (input, _, _) stream -> Int64.t
+val get_duration : ?format:Time_format.t -> (input, _, _) stream -> Int64.t option
 
 (** Same as {!Av.get_input_metadata} for the input streams. *)
 val get_metadata : (input, _, _) stream -> (string * string) list

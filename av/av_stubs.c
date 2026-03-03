@@ -888,7 +888,7 @@ CAMLprim value ocaml_av_get_metadata(value _av, value _stream_index) {
 CAMLprim value ocaml_av_get_duration(value _av, value _stream_index,
                                      value _time_format) {
   CAMLparam3(_av, _stream_index, _time_format);
-  CAMLlocal1(ans);
+  CAMLlocal2(ret, ans);
   av_t *av = Av_val(_av);
   int index = Int_val(_stream_index);
 
@@ -905,11 +905,17 @@ CAMLprim value ocaml_av_get_duration(value _av, value _stream_index,
     den = (int64_t)av->format_context->streams[index]->time_base.den;
   }
 
+  if (duration == AV_NOPTS_VALUE)
+    CAMLreturn(Val_none);
+
   int64_t second_fractions = second_fractions_of_time_format(_time_format);
 
   ans = caml_copy_int64((duration * second_fractions * num) / den);
 
-  CAMLreturn(ans);
+  ret = caml_alloc_tuple(1);
+  Store_field(ret, 0, ans);
+
+  CAMLreturn(ret);
 }
 
 static stream_t **allocate_input_context(av_t *av) {

@@ -9,6 +9,7 @@
 * Cleaned up support for subtitles.
 * Add `Av.get_container_stream_time_base`
 * Add `Av.get_input_format`
+* Catch AV_NOPTS_VALUE in `get_duration` and return `None`
 * Cleaned up `PackedBa` data type in `Swscale`.
 
 1.2.8 (01-01-2026)

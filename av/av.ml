@@ -112,11 +112,12 @@ let open_input_stream ?format ?opts ?seek read =
   let input = ocaml_av_open_input_stream ?format ?opts avio in
   input
 
-external _get_duration : input container -> int -> Time_format.t -> Int64.t
+external _get_duration :
+  input container -> int -> Time_format.t -> Int64.t option
   = "ocaml_av_get_duration"
 
 let get_input_duration ?(format = `Second) i =
-  match _get_duration i (-1) format with 0L -> None | d -> Some d
+  match _get_duration i (-1) format with Some 0L -> None | v -> v
 
 external _get_metadata : input container -> int -> (string * string) list
   = "ocaml_av_get_metadata"
