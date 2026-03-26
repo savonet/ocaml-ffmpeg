@@ -58,6 +58,11 @@ val sample_rate : [ `Audio ] context -> int
 val sample_format : [ `Audio ] context -> Avutil.Sample_format.t
 val set_frame_size : [ `Audio ] context -> int -> unit
 
+(** Get the separator character used for array-type options of a filter.
+    Raises [Failure] if the option does not exist or does not support arrays
+    (e.g. on FFmpeg < 7). *)
+val get_array_separator : filter_name:string -> option_name:string -> char
+
 exception Exists
 
 (** Filter list. *)
