@@ -1774,7 +1774,11 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     Store_field(_opt, 1, _tmp);
   }
 
-  _type = type_of_av_opt_type(option->type & ~AV_OPT_TYPE_FLAG_ARRAY);
+  _type = type_of_av_opt_type(option->type
+#ifdef AV_OPT_TYPE_FLAG_ARRAY
+                              & ~AV_OPT_TYPE_FLAG_ARRAY
+#endif
+  );
   if (_type == -1) {
     raise_unimplemented_option(option, cursor, class);
   }
@@ -1785,7 +1789,11 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   Store_field(_spec, 1, Val_none);
   Store_field(_spec, 2, Val_none);
 
-  switch (option->type & ~AV_OPT_TYPE_FLAG_ARRAY) {
+  switch (option->type
+#ifdef AV_OPT_TYPE_FLAG_ARRAY
+          & ~AV_OPT_TYPE_FLAG_ARRAY
+#endif
+  ) {
   case AV_OPT_TYPE_CONST:
     raise_unimplemented_option(option, cursor, class);
     break;
@@ -1906,6 +1914,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     raise_unimplemented_option(option, cursor, class);
   }
 
+#ifdef AV_OPT_TYPE_FLAG_ARRAY
   if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
     _tmp = caml_alloc_tuple(2);
     Store_field(_tmp, 0, _type);
@@ -1913,6 +1922,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     _type = PVV_Array;
     _spec = _tmp;
   }
+#endif
 
   _tmp = caml_alloc_tuple(2);
   Store_field(_tmp, 0, _type);

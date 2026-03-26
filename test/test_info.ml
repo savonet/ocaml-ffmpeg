@@ -52,7 +52,7 @@ let test_file_info url =
       let tb = Av.get_container_stream_time_base ~index:idx input in
       printf "\tAudio stream %d container time_base: %d/%d\n" idx tb.num tb.den;
       Avcodec.Audio.(
-        printf "\tAudio stream %d : %s %s, %s %s, %s %d, %s %d, %s %d, %s %Ld\n"
+        printf "\tAudio stream %d : %s %s, %s %s, %s %d, %s %d, %s %d, %s %s\n"
           idx "codec"
           (get_params_id cd |> string_of_id)
           "sample format"
@@ -60,7 +60,9 @@ let test_file_info url =
             Option.get (Sample_format.get_name p) )
           "channels" (get_nb_channels cd) "bit rate" (get_bit_rate cd)
           "sample rate" (get_sample_rate cd) "duration (ms)"
-          (Av.get_duration ~format:`Millisecond stm)));
+          (match Av.get_duration ~format:`Millisecond stm with
+            | None -> "N/A"
+            | Some v -> Int64.to_string v)));
   Av.get_video_streams input
   |> List.iter (fun (idx, stm, cd) ->
       Av.get_metadata stm |> List.iter (fun (k, v) -> printf "\t%s : %s\n" k v);
@@ -69,12 +71,14 @@ let test_file_info url =
       Avcodec.Video.(
         let sar = get_sample_aspect_ratio cd in
         printf
-          "\tVideo stream %d : %s %s, %s %d, %s %d, %s %d / %d, %s %d, %s %Ld\n"
+          "\tVideo stream %d : %s %s, %s %d, %s %d, %s %d / %d, %s %d, %s %s\n"
           idx "codec"
           (get_params_id cd |> string_of_id)
           "width" (get_width cd) "height" (get_height cd) "sample aspect ratio"
           sar.num sar.den "bit rate" (get_bit_rate cd) "duration (ns)"
-          (Av.get_duration ~format:`Nanosecond stm);
+          (match Av.get_duration ~format:`Millisecond stm with
+            | None -> "N/A"
+            | Some v -> Int64.to_string v);
         let decoder =
           create_decoder ~params:cd (find_decoder (get_params_id cd))
         in
@@ -106,10 +110,12 @@ let test_file_info url =
       printf "\tSubtitle stream %d container time_base: %d/%d\n" idx tb.num
         tb.den;
       Avcodec.Subtitle.(
-        printf "\tSubtitle stream %d : %s %s, %s %Ld\n" idx "codec"
+        printf "\tSubtitle stream %d : %s %s, %s %s\n" idx "codec"
           (get_params_id cd |> string_of_id)
           "duration (us)"
-          (Av.get_duration ~format:`Microsecond stm)));
+          (match Av.get_duration ~format:`Millisecond stm with
+            | None -> "N/A"
+            | Some v -> Int64.to_string v)));
   printf "\n"
 
 let () =
