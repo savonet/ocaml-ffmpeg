@@ -1,19 +1,41 @@
-let string_of_properties = function
+type known_properties =
+  [ `Intra_only
+  | `Lossy
+  | `Fields
+  | `Lossless
+  | `Reorder
+  | `Bitmap_sub
+  | `Enhancement
+  | `Text_sub ]
+
+let string_of_known_properties = function
   | `Intra_only -> "Intra only"
   | `Lossy -> "Lossy"
   | `Fields -> "Fields"
   | `Lossless -> "Lossless"
   | `Reorder -> "Reorder"
   | `Bitmap_sub -> "Bitmap sub"
+  | `Enhancement -> "enhancements"
   | `Text_sub -> "Text sub"
 
-let string_of_media_type = function
+let string_of_properties = function
+  | #known_properties as p -> string_of_known_properties p
+  | _ -> "unknown property"
+
+type known_media_type =
+  [ `Unknown | `Video | `Audio | `Data | `Subtitle | `Attachment ]
+
+let string_of_known_media_type = function
   | `Unknown -> "unknown"
   | `Video -> "video"
   | `Audio -> "audio"
   | `Data -> "data"
   | `Subtitle -> "subtitle"
   | `Attachment -> "attachment"
+
+let string_of_media_type = function
+  | #known_media_type as p -> string_of_known_media_type p
+  | _ -> "unknown media type"
 
 let print_descriptor = function
   | None -> "(none)\n"
@@ -29,10 +51,11 @@ let print_descriptor = function
         \  Properties: %s\n\
         \  Profiles:%s\n"
         name
-        (string_of_media_type media_type)
+        (string_of_media_type (media_type :> known_media_type))
         (Option.value ~default:"(none)" long_name)
         (String.concat ", " mime_types)
-        (String.concat ", " (List.map string_of_properties properties))
+        (String.concat ", "
+           (List.map string_of_properties (properties :> known_properties list)))
         (String.concat ""
            (List.map
               (fun { Avcodec.id; profile_name } ->
