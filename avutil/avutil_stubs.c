@@ -1775,7 +1775,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   }
 
   _type = type_of_av_opt_type(option->type
-#ifdef AV_OPT_TYPE_FLAG_ARRAY
+#ifdef HAVE_AV_OPT_TYPE_FLAG_ARRAY
                               & ~AV_OPT_TYPE_FLAG_ARRAY
 #endif
   );
@@ -1790,7 +1790,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
   Store_field(_spec, 2, Val_none);
 
   switch (option->type
-#ifdef AV_OPT_TYPE_FLAG_ARRAY
+#ifdef HAVE_AV_OPT_TYPE_FLAG_ARRAY
           & ~AV_OPT_TYPE_FLAG_ARRAY
 #endif
   ) {
@@ -1914,7 +1914,7 @@ CAMLprim value ocaml_avutil_av_opt_iter(value _cursor, value _class) {
     raise_unimplemented_option(option, cursor, class);
   }
 
-#ifdef AV_OPT_TYPE_FLAG_ARRAY
+#ifdef HAVE_AV_OPT_TYPE_FLAG_ARRAY
   if (option->type & AV_OPT_TYPE_FLAG_ARRAY) {
     _tmp = caml_alloc_tuple(2);
     Store_field(_tmp, 0, _type);

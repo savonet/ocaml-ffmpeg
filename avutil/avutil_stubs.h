@@ -14,6 +14,12 @@
 
 #include "polymorphic_variant_values_stubs.h"
 
+/* AV_OPT_TYPE_FLAG_ARRAY was added in libavutil 59.1.100 (FFmpeg 7) as an
+   enum member, not a preprocessor macro, so #ifdef cannot be used. */
+#if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(59, 1, 100)
+#define HAVE_AV_OPT_TYPE_FLAG_ARRAY
+#endif
+
 #define Val_none Val_int(0)
 
 #ifndef Some_val

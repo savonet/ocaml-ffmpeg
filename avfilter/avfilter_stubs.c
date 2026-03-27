@@ -602,7 +602,7 @@ CAMLprim value ocaml_avfilter_get_array_separator(value _filter_name,
   const struct AVOption *option =
       av_opt_find(&class_ptr, option_name, NULL, 0, 0);
 
-#ifdef AV_OPT_TYPE_FLAG_ARRAY
+#ifdef HAVE_AV_OPT_TYPE_FLAG_ARRAY
   if (!option || !(option->type & AV_OPT_TYPE_FLAG_ARRAY))
     caml_failwith("Invalid filter option!");
 
