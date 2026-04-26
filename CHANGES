@@ -1,3 +1,8 @@
+1.4.0 (unreleased)
+======
+* TODO: rename ffmpeg-av into ffmpeg-avformat
+* Add version API
+
 1.3.0 (2026-04-10)
 =====
 * Add support for `color_space`, `color_range`, `color_primaries`,
