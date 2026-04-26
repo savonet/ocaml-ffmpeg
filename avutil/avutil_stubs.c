@@ -2129,3 +2129,14 @@ CAMLprim value ocaml_avutil_expr_parse_and_eval(value _opt) {
     ocaml_avutil_raise_error(ret);
   CAMLreturn(caml_copy_double(d));
 }
+
+CAMLprim value ocaml_avutil_version(value unit) {
+  (void)unit;
+  return Val_int(avutil_version());
+}
+
+CAMLprim value ocaml_avutil_version_int(value _major, value _minor,
+                                        value _micro) {
+  return Val_int(
+      AV_VERSION_INT(Int_val(_major), Int_val(_minor), Int_val(_micro)));
+}

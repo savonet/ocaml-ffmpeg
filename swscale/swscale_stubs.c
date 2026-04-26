@@ -528,3 +528,4 @@ CAMLprim value ocaml_swscale_create_byte(value *argv, int argn) {
   return ocaml_swscale_create(argv[0], argv[1], argv[2], argv[3], argv[4],
                               argv[5], argv[6], argv[7], argv[8]);
 }
+

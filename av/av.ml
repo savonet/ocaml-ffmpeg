@@ -4,6 +4,13 @@ external init : unit -> unit = "ocaml_av_init" [@@noalloc]
 
 let () = init ()
 
+external avformat_version : unit -> int = "ocaml_avformat_version" [@@noalloc]
+
+let avformat_version =
+  let v = avformat_version () in
+  Avutil.
+    { major = v lsr 16; minor = (v lsr 8) land 0xff; micro = v land 0xff }
+
 external container_options : unit -> Options.t = "ocaml_av_container_options"
 
 let container_options = container_options ()

@@ -1,6 +1,12 @@
 open Avutil
 module Ba = Bigarray.Array1
 
+external version : unit -> int = "ocaml_avcodec_version" [@@noalloc]
+
+let version =
+  let v = version () in
+  { major = v lsr 16; minor = (v lsr 8) land 0xff; micro = v land 0xff }
+
 type ('media, 'mode) codec
 type 'media params
 type 'media decoder

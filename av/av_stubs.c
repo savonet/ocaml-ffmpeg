@@ -2674,3 +2674,8 @@ CAMLprim value ocaml_av_stream_bitrate(value _stream) {
   Store_field(ans, 0, Val_int(props->max_bitrate));
   CAMLreturn(ans);
 }
+
+CAMLprim value ocaml_avformat_version(value unit) {
+  (void)unit;
+  return Val_int(avformat_version());
+}

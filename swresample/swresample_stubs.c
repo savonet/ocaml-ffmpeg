@@ -778,3 +778,8 @@ CAMLprim value ocaml_swresample_create_byte(value *argv, int argn) {
   return ocaml_swresample_create(argv[0], argv[1], argv[2], argv[3], argv[4],
                                  argv[5], argv[6], argv[7], argv[8]);
 }
+
+CAMLprim value ocaml_swresample_version(value unit) {
+  (void)unit;
+  return Val_int(swresample_version());
+}

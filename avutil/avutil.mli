@@ -16,6 +16,14 @@ type video = [ `Video ]
 type subtitle = [ `Subtitle ]
 type media_type = Media_types.t
 
+(** {1 Version} *)
+
+type version = { major : int; minor : int; micro : int }
+
+val version : version
+val version_string : version -> string
+val compare_version : version -> version -> int
+
 (** {1 Format} *)
 
 type ('line, 'media) format

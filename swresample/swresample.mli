@@ -4,6 +4,8 @@
 open Avutil
 open Swresample_options
 
+val version : version
+
 (**/**)
 
 type vector_kind = Str | P_Str | Fa | P_Fa | Ba | P_Ba | Frm

@@ -3,6 +3,8 @@
 
 open Avutil
 
+val avformat_version : version
+
 (* A value suitable for listing available options on a given container. *)
 val container_options : Options.t
 

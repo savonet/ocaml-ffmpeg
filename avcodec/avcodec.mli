@@ -3,6 +3,8 @@
 
 open Avutil
 
+val version : version
+
 type ('media, 'mode) codec
 type 'media params
 type 'media decoder

@@ -1847,3 +1847,8 @@ CAMLprim value ocaml_avcodec_bsf_receive_packet(value _filter) {
 
   CAMLreturn(value_of_ffmpeg_packet(&ans, packet));
 }
+
+CAMLprim value ocaml_avcodec_version(value unit) {
+  (void)unit;
+  return Val_int(avcodec_version());
+}

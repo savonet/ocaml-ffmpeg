@@ -3,9 +3,9 @@
 
 open Avutil
 
-val version : unit -> int
-val configuration : unit -> string
-val license : unit -> string
+val version : version
+val configuration : string
+val license : string
 
 type pixel_format = Avutil.Pixel_format.t
 type flag = Fast_bilinear | Bilinear | Bicubic | Print_info

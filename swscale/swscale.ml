@@ -1,8 +1,16 @@
 open Avutil
 
-external version : unit -> int = "ocaml_swscale_version"
+external version : unit -> int = "ocaml_swscale_version" [@@noalloc]
+
+let version =
+  let v = version () in
+  { major = v lsr 16; minor = (v lsr 8) land 0xff; micro = v land 0xff }
+
 external configuration : unit -> string = "ocaml_swscale_configuration"
-external license : unit -> string = "ocaml_swscale_configuration"
+external license : unit -> string = "ocaml_swscale_license"
+
+let configuration = configuration ()
+let license = license ()
 
 type pixel_format = Avutil.Pixel_format.t
 type flag = Fast_bilinear | Bilinear | Bicubic | Print_info

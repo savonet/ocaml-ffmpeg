@@ -15,6 +15,25 @@ type media_type = Media_types.t
 (* Format *)
 type ('line, 'media) format
 
+type version = { major : int; minor : int; micro : int }
+
+external version : unit -> int = "ocaml_avutil_version" [@@noalloc]
+
+external version_int : int -> int -> int -> int = "ocaml_avutil_version_int"
+  [@@noalloc]
+
+let version =
+  let v = version () in
+  { major = v lsr 16; minor = (v lsr 8) land 0xff; micro = v land 0xff }
+
+let version_string { major; minor; micro } =
+  Printf.sprintf "%d.%d.%d" major minor micro
+
+let compare_version a b =
+  compare
+    (version_int a.major a.minor a.micro)
+    (version_int b.major b.minor b.micro)
+
 external qp2lambda : unit -> int = "ocaml_avutil_qp2lambda"
 
 let qp2lambda = qp2lambda ()
