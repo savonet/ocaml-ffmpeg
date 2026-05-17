@@ -37,11 +37,5 @@ let () =
             "-Werror=unused-parameter";
           ]
       in
-      let system = Option.value ~default:"" (C.ocaml_config_var c "system") in
-      let bsymbolic =
-        if String.length system >= 5 && String.sub system 0 5 = "linux" then
-          ["-Wl,-Bsymbolic"]
-        else []
-      in
       C.Flags.write_sexp "c_flags.sexp" cflags;
-      C.Flags.write_sexp "c_library_flags.sexp" (conf.libs @ bsymbolic))
+      C.Flags.write_sexp "c_library_flags.sexp" conf.libs)
