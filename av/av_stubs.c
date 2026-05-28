@@ -819,8 +819,23 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
     _config = caml_callback(Some_val(_configure), _params);
 
     _codec_opt = Field(_config, 0);
-    if (_codec_opt != Val_none)
-      av->stream_decoders[i] = AvCodec_val(Some_val(_codec_opt));
+    if (_codec_opt != Val_none) {
+      const AVCodec *codec = AvCodec_val(Some_val(_codec_opt));
+      av->stream_decoders[i] = codec;
+      switch (par->codec_type) {
+      case AVMEDIA_TYPE_AUDIO:
+        av->format_context->audio_codec = codec;
+        break;
+      case AVMEDIA_TYPE_VIDEO:
+        av->format_context->video_codec = codec;
+        break;
+      case AVMEDIA_TYPE_SUBTITLE:
+        av->format_context->subtitle_codec = codec;
+        break;
+      default:
+        break;
+      }
+    }
 
     value _stream_opts = Field(_config, 1);
     int stream_opts_len = Wosize_val(_stream_opts);
@@ -834,6 +849,10 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
   caml_release_runtime_system();
   err = avformat_find_stream_info(av->format_context, stream_opts);
   caml_acquire_runtime_system();
+
+  av->format_context->audio_codec = NULL;
+  av->format_context->video_codec = NULL;
+  av->format_context->subtitle_codec = NULL;
 
   for (i = 0; i < nb_streams; i++)
     av_dict_free(&stream_opts[i]);
