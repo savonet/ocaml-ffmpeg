@@ -793,6 +793,14 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
   av->stream_decoders = av_calloc(nb_streams, sizeof(const AVCodec *));
   AVDictionary **stream_opts = av_calloc(nb_streams, sizeof(AVDictionary *));
 
+  // Track format-level codec overrides for avformat_find_stream_info.
+  // Only set them if all streams of a given type agree on the same codec;
+  // conflicting preferences cancel each other out to avoid misdetection.
+  const AVCodec *audio_codec_override = NULL;
+  const AVCodec *video_codec_override = NULL;
+  const AVCodec *subtitle_codec_override = NULL;
+  int audio_conflict = 0, video_conflict = 0, subtitle_conflict = 0;
+
   for (i = 0; i < nb_streams; i++) {
     AVStream *stream = av->format_context->streams[i];
     AVCodecParameters *par = stream->codecpar;
@@ -824,13 +832,28 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
       av->stream_decoders[i] = codec;
       switch (par->codec_type) {
       case AVMEDIA_TYPE_AUDIO:
-        av->format_context->audio_codec = codec;
+        if (!audio_conflict) {
+          if (audio_codec_override == NULL)
+            audio_codec_override = codec;
+          else if (audio_codec_override != codec)
+            audio_conflict = 1;
+        }
         break;
       case AVMEDIA_TYPE_VIDEO:
-        av->format_context->video_codec = codec;
+        if (!video_conflict) {
+          if (video_codec_override == NULL)
+            video_codec_override = codec;
+          else if (video_codec_override != codec)
+            video_conflict = 1;
+        }
         break;
       case AVMEDIA_TYPE_SUBTITLE:
-        av->format_context->subtitle_codec = codec;
+        if (!subtitle_conflict) {
+          if (subtitle_codec_override == NULL)
+            subtitle_codec_override = codec;
+          else if (subtitle_codec_override != codec)
+            subtitle_conflict = 1;
+        }
         break;
       default:
         break;
@@ -845,6 +868,13 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
                   String_val(Field(_pair, 1)), 0);
     }
   }
+
+  if (!audio_conflict)
+    av->format_context->audio_codec = audio_codec_override;
+  if (!video_conflict)
+    av->format_context->video_codec = video_codec_override;
+  if (!subtitle_conflict)
+    av->format_context->subtitle_codec = subtitle_codec_override;
 
   caml_release_runtime_system();
   err = avformat_find_stream_info(av->format_context, stream_opts);
