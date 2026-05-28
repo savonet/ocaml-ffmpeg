@@ -869,12 +869,29 @@ CAMLprim value ocaml_av_open_input(value _url, value _format, value _interrupt,
     }
   }
 
-  if (!audio_conflict)
+  if (audio_codec_override) {
+    if (audio_conflict)
+      av_log(av->format_context, AV_LOG_WARNING,
+             "Multiple audio streams request different preferred decoders; "
+             "using %s for stream probing.\n", audio_codec_override->name);
     av->format_context->audio_codec = audio_codec_override;
-  if (!video_conflict)
+  }
+
+  if (video_codec_override) {
+    if (video_conflict)
+      av_log(av->format_context, AV_LOG_WARNING,
+             "Multiple video streams request different preferred decoders; "
+             "using %s for stream probing.\n", video_codec_override->name);
     av->format_context->video_codec = video_codec_override;
-  if (!subtitle_conflict)
+  }
+
+  if (subtitle_codec_override) {
+    if (subtitle_conflict)
+      av_log(av->format_context, AV_LOG_WARNING,
+             "Multiple subtitle streams request different preferred decoders; "
+             "using %s for stream probing.\n", subtitle_codec_override->name);
     av->format_context->subtitle_codec = subtitle_codec_override;
+  }
 
   caml_release_runtime_system();
   err = avformat_find_stream_info(av->format_context, stream_opts);
