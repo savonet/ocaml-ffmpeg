@@ -2,6 +2,12 @@
 ======
 * TODO: rename ffmpeg-av into ffmpeg-avformat
 * Add version API
+* Add `configure_audio_stream`, `configure_video_stream` and
+  `configure_subtitle_stream` callbacks to `Av.open_input`. These are
+  called per stream before `avformat_find_stream_info`, allowing a
+  preferred decoder and per-stream options to be set for both probing
+  and decoding.
+* Remove `Av.set_decoder` (superseded by the configure callbacks above).
 
 1.3.0 (2026-04-10)
 =====

@@ -6,6 +6,7 @@ external version : unit -> int = "ocaml_swresample_version" [@@noalloc]
 let version =
   let v = version () in
   { major = v lsr 16; minor = (v lsr 8) land 0xff; micro = v land 0xff }
+
 module SF = Avutil.Sample_format
 module CL = Avutil.Channel_layout
 
