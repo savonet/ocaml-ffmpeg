@@ -14,13 +14,12 @@ type media_type = Media_types.t
 
 (* Format *)
 type ('line, 'media) format
-
 type version = { major : int; minor : int; micro : int }
 
 external version : unit -> int = "ocaml_avutil_version" [@@noalloc]
 
 external version_int : int -> int -> int -> int = "ocaml_avutil_version_int"
-  [@@noalloc]
+[@@noalloc]
 
 let version =
   let v = version () in

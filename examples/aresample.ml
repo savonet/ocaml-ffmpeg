@@ -50,13 +50,13 @@ let () =
         match
           Avfilter.get_array_separator ~filter_name:"aformat" ~option_name:name
         with
-        | _ -> `Pair (name, `Array (List.map (fun s -> `String s) values))
-        | exception _ -> `Pair (name, `String (String.concat "|" values))
+          | _ -> `Pair (name, `Array (List.map (fun s -> `String s) values))
+          | exception _ -> `Pair (name, `String (String.concat "|" values))
       in
       let args =
         [
-          aformat_arg "sample_fmts" [ "s16"; "fltp" ];
-          aformat_arg "channel_layouts" [ "stereo"; "mono" ];
+          aformat_arg "sample_fmts" ["s16"; "fltp"];
+          aformat_arg "channel_layouts" ["stereo"; "mono"];
         ]
       in
       Avfilter.attach ~args ~name:"aformat" aformat_filter config
