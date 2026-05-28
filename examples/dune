@@ -137,3 +137,8 @@
  (name bitmap_subtitle_to_jpeg)
  (modules bitmap_subtitle_to_jpeg)
  (libraries ffmpeg-av ffmpeg-swscale))
+
+(executable
+ (name reenc_vp9)
+ (modules reenc_vp9)
+ (libraries ffmpeg-av))
