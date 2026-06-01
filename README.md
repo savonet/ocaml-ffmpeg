@@ -1,5 +1,9 @@
-ocaml-ffmpeg
-============
+# ocaml-ffmpeg
+
+> [!WARNING]
+> This repository is read-only. All changes must be made in
+> [savonet/liquidsoap](https://github.com/savonet/liquidsoap) under
+> `src/modules/synced/mm/` and will be mirrored here automatically.
 
 ![GitHub](https://img.shields.io/github/license/savonet/ocaml-ffmpeg)
 ![CI](https://github.com/savonet/ocaml-ffmpeg/workflows/CI/badge.svg)
@@ -22,18 +26,16 @@ The modules currently available are :
 `Avfilter` : the module containing audio and video filters.
 
 `Swresample` : the module performing audio resampling, rematrixing and sample format conversion operations.
-	
+
 `Swscale` : the module performing image scaling and color space/pixel format conversion operations.
 
 Please read the COPYING file before using this software.
 
-Documentation:
-=============
+# Documentation:
 
 The [API documentation is available here](http://www.liquidsoap.info/ocaml-ffmpeg/).
 
-Prerequisites:
-==============
+# Prerequisites:
 
 - ocaml
 - FFmpeg
@@ -42,8 +44,7 @@ Prerequisites:
 
 See [dune-project](dune-project) file for versions.
 
-Installation:
-=============
+# Installation:
 
 The preferred installation method is via [opam](http://opam.ocaml.org/):
 
@@ -66,16 +67,13 @@ opam install .
 
 From within this repository.
 
-Compilation:
-============
+# Compilation:
 
 ```
 dune build
 ```
 
-
-Examples:
-=============
+# Examples:
 
 The [audio_decoding](https://github.com/savonet/ocaml-ffmpeg/blob/master/examples/audio_decoding.ml) example shows how to read frames from an audio file and convert them into bytes.
 
@@ -99,9 +97,7 @@ The [transcode_aac](https://github.com/savonet/ocaml-ffmpeg/blob/master/examples
 
 The [transcoding](https://github.com/savonet/ocaml-ffmpeg/blob/master/examples/transcoding.ml) example shows how to transcode audio streams into the AAC codec, video streams into the H264 codec and write them to an output file.
 
-
-Author:
-=======
+# Author:
 
 This author of this software may be contacted by electronic mail
 at the following address: savonet-users@lists.sourceforge.net.

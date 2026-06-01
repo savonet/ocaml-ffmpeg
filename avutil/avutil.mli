@@ -540,7 +540,7 @@ val filter_opts : string array -> opts -> unit
 (** {5 HwContext} *)
 
 module HwContext : sig
-  (** Codec hardward device type. *)
+  (** Codec hardware device type. *)
   type device_type = Hw_device_type.t
 
   (** Device context. *)

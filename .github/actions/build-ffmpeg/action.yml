@@ -1,15 +1,15 @@
-name: 'Build FFmpeg'
-description: 'Build FFmpeg from source with required libraries'
+name: "Build FFmpeg"
+description: "Build FFmpeg from source with required libraries"
 inputs:
   version:
-    description: 'FFmpeg version tag to build'
+    description: "FFmpeg version tag to build"
     required: false
-    default: 'n8.0.1'
+    default: "n8.0.1"
   os:
-    description: 'OS running the action'
+    description: "OS running the action"
     required: true
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: Restore FFmpeg cache
       id: cache-ffmpeg

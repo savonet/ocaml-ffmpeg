@@ -15,9 +15,7 @@ let () =
     { Av.codec = Some decoder; opts = None }
   in
 
-  let src =
-    Av.open_input ~configure_video_stream Sys.argv.(1)
-  in
+  let src = Av.open_input ~configure_video_stream Sys.argv.(1) in
 
   let ivss = Av.get_video_streams src in
 
@@ -37,7 +35,11 @@ let () =
           (match Avutil.Pixel_format.to_string pixel_format with
             | Some s -> s
             | None -> "unknown");
-        let time_base = Av.get_time_base (let _, s, _ = List.nth ivss 0 in s) in
+        let time_base =
+          Av.get_time_base
+            (let _, s, _ = List.nth ivss 0 in
+             s)
+        in
         ( i,
           Av.new_video_stream ~pixel_format ~width ~height ~time_base
             ~codec:encoder dst ))
