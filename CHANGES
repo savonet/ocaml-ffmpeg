@@ -2,12 +2,6 @@
 ======
 * TODO: rename ffmpeg-av into ffmpeg-avformat
 * Add version API
-* Add `configure_audio_stream`, `configure_video_stream` and
-  `configure_subtitle_stream` callbacks to `Av.open_input`. These are
-  called per stream before `avformat_find_stream_info`, allowing a
-  preferred decoder and per-stream options to be set for both probing
-  and decoding.
-* Remove `Av.set_decoder` (superseded by the configure callbacks above).
 
 1.3.0 (2026-04-10)
 =====
@@ -33,7 +27,7 @@
 1.2.7 (2025-10-31)
 ======
 * Add ffmpeg 8.0 support
-* Fix CAMLparam definitions in C stubs (avoids potential heap 
+* Fix CAMLparam definitions in C stubs (avoids potential heap
 corruption)
 
 1.2.6 (2025-08-26)
@@ -91,7 +85,7 @@ corruption)
 * Added support for AV_CODEC_ID_WRAPPED_AVFRAME
   as valid audio/video codec.
 * Added AV_CODEC_ID_NONE to all codec id classes
-  to prevent unecessary failures when passing it
+  to prevent unnecessary failures when passing it
   as detected coded_id.
 
 1.1.8 (2023-07-01)

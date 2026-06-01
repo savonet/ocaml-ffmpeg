@@ -133,7 +133,7 @@ let () =
   print_filters "Buffer" [abuffer];
   print_filters "Buffer" [buffer];
 
-  Printf.printf "## Sinks (oututs):\n\n";
+  Printf.printf "## Sinks (outputs):\n\n";
   print_filters "Sink" [abuffersink];
   print_filters "Sink" [buffersink];
 

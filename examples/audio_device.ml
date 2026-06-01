@@ -50,7 +50,7 @@ let () =
     set_control_message_callback (function
       | Volume_level_changed v ->
           Printf.printf "Volume level changed to %f %%\n" (v *. 100.)
-      | _ -> print_endline "Unexpected dev to app controle message"))
+      | _ -> print_endline "Unexpected dev to app control message"))
     dst;
 
   (try Avdevice.App_to_dev.(control_messages [Get_volume; Set_volume 0.3]) dst

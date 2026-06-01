@@ -11,7 +11,7 @@ depends: [
   "conf-pkg-config" {build}
   "conf-ffmpeg" {build}
   "ocaml" {>= "4.12"}
-  "dune" {>= "3.8"}
+  "dune" {>= "3.23"}
   "dune-configurator" {build}
   "ffmpeg-avutil" {= version}
   "odoc" {with-doc}

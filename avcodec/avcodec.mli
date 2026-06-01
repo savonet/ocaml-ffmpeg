@@ -47,14 +47,14 @@ val capabilities : ([< `Audio | `Video ], encode) codec -> capability list
 (** Codec hardware config method. *)
 type hw_config_method = Hw_config_method.t
 
-(** Hardward config for the given codec. *)
+(** Hardware config for the given codec. *)
 type hw_config = {
   pixel_format : Pixel_format.t;
   methods : hw_config_method list;
   device_type : HwContext.device_type;
 }
 
-(** Get the codec's hardward configs. *)
+(** Get the codec's hardware configs. *)
 val hw_configs : ([< `Audio | `Video ], _) codec -> hw_config list
 
 (** Packet. *)
@@ -87,7 +87,7 @@ module Packet : sig
   (** Return a fresh packet refereing the same data. *)
   val dup : 'media t -> 'media t
 
-  (** Retun the packet flags. *)
+  (** Return the packet flags. *)
   val get_flags : 'media t -> flag list
 
   (** Return the size of the packet. *)
@@ -124,7 +124,7 @@ module Packet : sig
   (** Set the packet byte position in stream. *)
   val set_position : 'media t -> Int64.t option -> unit
 
-  (** Return a fresh bytes array containing a copy of packet datas. *)
+  (** Return a fresh bytes array containing a copy of packet data. *)
   val to_bytes : 'media t -> bytes
 
   (** Advanced users: create a packet with the given data. *)
@@ -441,7 +441,7 @@ end
 module Unknown : sig
   type 'mode t = ([ `Data ], 'mode) codec
 
-  (* Unkown codecs seem used for data mostly. *)
+  (* Unknown codecs seem used for data mostly. *)
   type id = Codec_id.unknown
 
   (** List of all unknown codec IDs. *)
@@ -480,13 +480,13 @@ module BitstreamFilter : sig
 end
 
 (** [Avcodec.decode decoder f packet] applies function [f] to the decoded frames
-    frome the [packet] according to the [decoder] configuration.
+    from the [packet] according to the [decoder] configuration.
 
     Raise Error if the decoding failed. *)
 val decode : 'media decoder -> ('media frame -> unit) -> 'media Packet.t -> unit
 
 (** [Avcodec.flush_decoder decoder f] applies function [f] to the decoded frames
-    frome the buffered packets in the [decoder].
+    from the buffered packets in the [decoder].
 
     Raise Error if the decoding failed. *)
 val flush_decoder : 'media decoder -> ('media frame -> unit) -> unit

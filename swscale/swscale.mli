@@ -22,7 +22,7 @@ val create :
 type planes = (data * int) array
 
 (** [Swscale.scale ctx in_planes y h out_planes off] scale the [h] rows of
-    [in_planes] strarting from the row [y] to the [off] row of the [out_planes]
+    [in_planes] starting from the row [y] to the [off] row of the [out_planes]
     output. *)
 val scale : t -> planes -> int -> int -> planes -> int -> unit
 

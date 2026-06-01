@@ -9,7 +9,7 @@ homepage: "https://github.com/savonet/ocaml-ffmpeg"
 bug-reports: "https://github.com/savonet/ocaml-ffmpeg/issues"
 depends: [
   "ocaml" {>= "4.12"}
-  "dune" {>= "3.8"}
+  "dune" {>= "3.23"}
   "ffmpeg-av" {= version}
   "ffmpeg-avutil" {= version}
   "ffmpeg-avcodec" {= version}

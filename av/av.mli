@@ -88,7 +88,7 @@ val open_input_stream :
 val get_input_duration :
   ?format:Time_format.t -> input container -> Int64.t option
 
-(** Return the input tag (key, vlue) list. *)
+(** Return the input tag (key, value) list. *)
 val get_input_metadata : input container -> (string * string) list
 
 (** Return the input format of the container. *)
@@ -224,7 +224,7 @@ type seek_flag =
 (** [Av.seek ?flags ?stream ?min_ts ?max_ts ~fmt ~ts container] seek in the
     container [container] to position [ts]. You can pass an optional [stream] to
     use for seeking, [max_ts] and [min_ts] to force seeking to happen within a
-    given timestamp window and [flags] to speficy certain property of the
+    given timestamp window and [flags] to specify certain property of the
     seeking operation. Raise Error if the seeking failed. *)
 val seek :
   ?flags:seek_flag list ->
@@ -346,7 +346,7 @@ val new_audio_stream :
     [time_base].
 
     [hardware_context] can be used to pass optional hardware device and frame
-    context to enable hardward encoding on this stream.
+    context to enable hardware encoding on this stream.
 
     Raise Error if the opening failed. *)
 val new_video_stream :

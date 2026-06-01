@@ -27,17 +27,17 @@ jobs:
     env:
       OPAMASSUMEDEPEXTS: true
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    - name: Build FFmpeg
-      uses: ./.github/actions/build-ffmpeg
-      with:
-        version: ${{ matrix.version }}
-        os: ${{ matrix.os }}
-    - name: Build and test module
-      uses: savonet/build-and-test-ocaml-module@main
-      with:
-        ocaml-compiler: ${{ matrix.compiler }}
-    - name: Run CI tests
-      run: |
-        opam exec dune build @citest
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Build FFmpeg
+        uses: ./.github/actions/build-ffmpeg
+        with:
+          version: ${{ matrix.version }}
+          os: ${{ matrix.os }}
+      - name: Build and test module
+        uses: savonet/build-and-test-ocaml-module@main
+        with:
+          ocaml-compiler: ${{ matrix.compiler }}
+      - name: Run CI tests
+        run: |
+          opam exec dune build @citest
