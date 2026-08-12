@@ -25,6 +25,7 @@
 #endif
 
 value ocaml_avcodec_init(value unit) {
+  (void)unit;
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
   avcodec_register_all();
 #endif
@@ -32,11 +33,8 @@ value ocaml_avcodec_init(value unit) {
 }
 
 CAMLprim value ocaml_avcodec_flag_qscale(value unit) {
+  (void)unit;
   return Val_int(AV_CODEC_FLAG_QSCALE);
-}
-
-CAMLprim value ocaml_avcodec_subtitle_codec_id_to_AVCodecID(value _codec_id) {
-  return Val_int(SubtitleCodecID_val(_codec_id));
 }
 
 /***** AVCodecContext *****/
@@ -82,7 +80,8 @@ static void finalize_codec_parameters(value v) {
 static struct custom_operations codec_parameters_ops = {
     "ocaml_avcodec_parameters", finalize_codec_parameters,
     custom_compare_default,     custom_hash_default,
-    custom_serialize_default,   custom_deserialize_default};
+    custom_serialize_default,   custom_deserialize_default,
+    custom_compare_ext_default, custom_fixed_length_default};
 
 void value_of_codec_parameters_copy(AVCodecParameters *src, value *pvalue) {
   if (!src)
@@ -112,9 +111,14 @@ static void finalize_packet(value v) {
   av_packet_free(&packet);
 }
 
-static struct custom_operations packet_ops = {
-    "ocaml_packet",      finalize_packet,          custom_compare_default,
-    custom_hash_default, custom_serialize_default, custom_deserialize_default};
+static struct custom_operations packet_ops = {"ocaml_packet",
+                                              finalize_packet,
+                                              custom_compare_default,
+                                              custom_hash_default,
+                                              custom_serialize_default,
+                                              custom_deserialize_default,
+                                              custom_compare_ext_default,
+                                              custom_fixed_length_default};
 
 value value_of_ffmpeg_packet(value *ret, AVPacket *packet) {
   if (!packet)
@@ -142,7 +146,7 @@ CAMLprim value ocaml_avcodec_create_packet(value _data) {
 
   int err = av_new_packet(packet, len);
   if (err != 0) {
-    av_freep(packet);
+    av_packet_free(&packet);
     ocaml_avutil_raise_error(err);
   }
 
@@ -178,6 +182,7 @@ CAMLprim value ocaml_avcodec_packet_add_side_data(value _packet,
     break;
   default:
     Fail("Invalid value");
+    CAMLreturn(Val_unit); /* unreachable: Fail raises */
   }
 
   switch (type) {
@@ -453,9 +458,10 @@ static void finalize_codec_context(value v) {
 }
 
 static struct custom_operations codec_context_ops = {
-    "ocaml_codec_context",    finalize_codec_context,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
+    "ocaml_codec_context",      finalize_codec_context,
+    custom_compare_default,     custom_hash_default,
+    custom_serialize_default,   custom_deserialize_default,
+    custom_compare_ext_default, custom_fixed_length_default};
 
 CAMLprim value ocaml_avcodec_create_decoder(value _params, value _codec) {
   CAMLparam2(_params, _codec);
@@ -528,20 +534,9 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
   const AVCodec *codec = AvCodec_val(_codec);
 
   AVDictionary *options = NULL;
-  char *key, *val;
-  int len = Wosize_val(_opts);
-  int i, err, count;
+  int err;
 
-  for (i = 0; i < len; i++) {
-    // Dictionaries copy key/values by default!
-    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
-    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
-    err = av_dict_set(&options, key, val, 0);
-    if (err < 0) {
-      av_dict_free(&options);
-      ocaml_avutil_raise_error(err);
-    }
-  }
+  ocaml_avutil_dict_of_options(_opts, &options);
 
   codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
   if (!ctx) {
@@ -580,17 +575,7 @@ CAMLprim value ocaml_avcodec_create_audio_encoder(value _sample_fmt,
     ocaml_avutil_raise_error(err);
   }
 
-  // Return unused keys
-  count = av_dict_count(options);
-
-  unused = caml_alloc_tuple(count);
-  AVDictionaryEntry *entry = NULL;
-  for (i = 0; i < count; i++) {
-    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
-    Store_field(unused, i, caml_copy_string(entry->key));
-  }
-
-  av_dict_free(&options);
+  unused = ocaml_avutil_unused_options(&options);
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -618,20 +603,9 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
     frame_ctx = BufferRef_val(Some_val(_frame_context));
 
   AVDictionary *options = NULL;
-  char *key, *val;
-  int len = Wosize_val(_opts);
-  int i, err, count;
+  int err;
 
-  for (i = 0; i < len; i++) {
-    // Dictionaries copy key/values by default!
-    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
-    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
-    err = av_dict_set(&options, key, val, 0);
-    if (err < 0) {
-      av_dict_free(&options);
-      ocaml_avutil_raise_error(err);
-    }
-  }
+  ocaml_avutil_dict_of_options(_opts, &options);
 
   codec_context_t *ctx = (codec_context_t *)av_mallocz(sizeof(codec_context_t));
   if (!ctx) {
@@ -678,17 +652,7 @@ CAMLprim value ocaml_avcodec_create_video_encoder(value _device_context,
     ocaml_avutil_raise_error(err);
   }
 
-  // Return unused keys
-  count = av_dict_count(options);
-
-  unused = caml_alloc_tuple(count);
-  AVDictionaryEntry *entry = NULL;
-  for (i = 0; i < count; i++) {
-    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
-    Store_field(unused, i, caml_copy_string(entry->key));
-  }
-
-  av_dict_free(&options);
+  unused = ocaml_avutil_unused_options(&options);
 
   ret = caml_alloc_tuple(2);
   Store_field(ret, 0, ans);
@@ -918,62 +882,10 @@ CAMLprim value ocaml_avcodec_parameters_get_bit_rate(value _cp) {
 
 /**** Audio codec ID ****/
 
-CAMLprim value ocaml_avcodec_get_audio_codec_id(value _codec) {
-  CAMLparam1(_codec);
-  const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(Val_AudioCodecID(codec->id));
-}
-
-CAMLprim value ocaml_avcodec_get_video_codec_id(value _codec) {
-  CAMLparam1(_codec);
-  const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(Val_VideoCodecID(codec->id));
-}
-
-CAMLprim value ocaml_avcodec_get_subtitle_codec_id(value _codec) {
-  CAMLparam1(_codec);
-  const AVCodec *codec = AvCodec_val(_codec);
-  CAMLreturn(Val_SubtitleCodecID(codec->id));
-}
-
-CAMLprim value ocaml_avcodec_get_audio_codec_id_name(value _codec_id) {
-  CAMLparam1(_codec_id);
-  CAMLreturn(caml_copy_string(
-      avcodec_get_name((enum AVCodecID)AudioCodecID_val(_codec_id))));
-}
-
 CAMLprim value ocaml_avcodec_get_codec_id_name(value _codec_id) {
   CAMLparam1(_codec_id);
   CAMLreturn(caml_copy_string(
       avcodec_get_name((enum AVCodecID)CodecID_val(_codec_id))));
-}
-
-CAMLprim value ocaml_avcodec_find_audio_encoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
-}
-
-CAMLprim value ocaml_avcodec_find_audio_encoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
-}
-
-CAMLprim value ocaml_avcodec_find_audio_decoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_AUDIO)));
-}
-
-CAMLprim value ocaml_avcodec_find_audio_decoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder(AudioCodecID_val(_id), AVMEDIA_TYPE_AUDIO)));
 }
 
 CAMLprim value ocaml_avcodec_name(value _codec) {
@@ -997,7 +909,7 @@ CAMLprim value ocaml_avcodec_capabilities(value _codec) {
   len = 0;
   for (i = 0; i < AV_CODEC_CAP_T_TAB_LEN; i++)
     if (codec->capabilities & AV_CODEC_CAP_T_TAB[i][1])
-      Store_field(ret, len++, Val_int(AV_CODEC_CAP_T_TAB[i][0]));
+      Store_field(ret, len++, AV_CODEC_CAP_T_TAB[i][0]);
 
   CAMLreturn(ret);
 }
@@ -1089,17 +1001,78 @@ CAMLprim value ocaml_avcodec_params_descriptor(value _params) {
   CAMLreturn(ocaml_avcodec_descriptor(CodecParameters_val(_params)->codec_id));
 }
 
-value ocaml_avcodec_audio_descriptor(value _codec_id) {
-  return ocaml_avcodec_descriptor(AudioCodecID_val(_codec_id));
-}
+/* The per-media-type stubs differ only in three tokens: the infix in the C
+   symbol name, the generated converter prefix, and the AVMEDIA_TYPE_
+   suffix, and the externals in avcodec.ml fix every one of those names, so
+   the definitions are pasted rather than dispatched.
 
-value ocaml_avcodec_video_descriptor(value _codec_id) {
-  return ocaml_avcodec_descriptor(VideoCodecID_val(_codec_id));
-}
+   Listed here because grep will not find them. CODEC_MEDIA_STUBS defines,
+   for each of audio/video/subtitle:
+     ocaml_avcodec_get_<ml>_codec_id
+     ocaml_avcodec_find_<ml>_{encoder,decoder}[_by_name]
+     ocaml_avcodec_<ml>_descriptor
+   CODEC_ID_NAME_STUBS additionally covers the unknown media type:
+     ocaml_avcodec_get_<ml>_codec_id_name
+     ocaml_avcodec_parameters_get_<ml>_codec_id */
 
-value ocaml_avcodec_subtitle_descriptor(value _codec_id) {
-  return ocaml_avcodec_descriptor(SubtitleCodecID_val(_codec_id));
-}
+#define CODEC_MEDIA_STUBS(ml, Ml, MEDIA)                                       \
+  CAMLprim value ocaml_avcodec_get_##ml##_codec_id(value _codec) {             \
+    CAMLparam1(_codec);                                                        \
+    CAMLreturn(Val_##Ml##CodecID(AvCodec_val(_codec)->id));                    \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_find_##ml##_encoder_by_name(value _name) {      \
+    CAMLparam1(_name);                                                         \
+    CAMLlocal1(ret);                                                           \
+    CAMLreturn(value_of_avcodec(                                               \
+        &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_##MEDIA))); \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_find_##ml##_encoder(value _id) {                \
+    CAMLparam1(_id);                                                           \
+    CAMLlocal1(ret);                                                           \
+    CAMLreturn(value_of_avcodec(                                               \
+        &ret, find_encoder(Ml##CodecID_val(_id), AVMEDIA_TYPE_##MEDIA)));      \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_find_##ml##_decoder_by_name(value _name) {      \
+    CAMLparam1(_name);                                                         \
+    CAMLlocal1(ret);                                                           \
+    CAMLreturn(value_of_avcodec(                                               \
+        &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_##MEDIA))); \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_find_##ml##_decoder(value _id) {                \
+    CAMLparam1(_id);                                                           \
+    CAMLlocal1(ret);                                                           \
+    CAMLreturn(value_of_avcodec(                                               \
+        &ret, find_decoder(Ml##CodecID_val(_id), AVMEDIA_TYPE_##MEDIA)));      \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_##ml##_descriptor(value _codec_id) {            \
+    return ocaml_avcodec_descriptor(Ml##CodecID_val(_codec_id));               \
+  }
+
+#define CODEC_ID_NAME_STUBS(ml, Ml)                                            \
+  CAMLprim value ocaml_avcodec_get_##ml##_codec_id_name(value _codec_id) {     \
+    CAMLparam1(_codec_id);                                                     \
+    CAMLreturn(caml_copy_string(                                               \
+        avcodec_get_name((enum AVCodecID)Ml##CodecID_val(_codec_id))));        \
+  }                                                                            \
+                                                                               \
+  CAMLprim value ocaml_avcodec_parameters_get_##ml##_codec_id(value _cp) {     \
+    CAMLparam1(_cp);                                                           \
+    CAMLreturn(Val_##Ml##CodecID(CodecParameters_val(_cp)->codec_id));         \
+  }
+
+CODEC_MEDIA_STUBS(audio, Audio, AUDIO)
+CODEC_MEDIA_STUBS(video, Video, VIDEO)
+CODEC_MEDIA_STUBS(subtitle, Subtitle, SUBTITLE)
+
+CODEC_ID_NAME_STUBS(audio, Audio)
+CODEC_ID_NAME_STUBS(video, Video)
+CODEC_ID_NAME_STUBS(subtitle, Subtitle)
+CODEC_ID_NAME_STUBS(unknown, Unknown)
 
 CAMLprim value ocaml_avcodec_hw_methods(value _codec) {
   CAMLparam1(_codec);
@@ -1231,11 +1204,6 @@ CAMLprim value ocaml_avcodec_get_supported_sample_rates(value _codec) {
 }
 
 /**** Audio codec parameters ****/
-CAMLprim value ocaml_avcodec_parameters_get_audio_codec_id(value _cp) {
-  CAMLparam1(_cp);
-  CAMLreturn(Val_AudioCodecID(CodecParameters_val(_cp)->codec_id));
-}
-
 CAMLprim value ocaml_avcodec_parameters_get_channel_layout(value _cp) {
   CAMLparam1(_cp);
   CAMLlocal1(_ch_layout);
@@ -1263,39 +1231,6 @@ CAMLprim value ocaml_avcodec_parameters_get_sample_rate(value _cp) {
 }
 
 /**** Video codec ID ****/
-
-CAMLprim value ocaml_avcodec_get_video_codec_id_name(value _codec_id) {
-  CAMLparam1(_codec_id);
-  CAMLreturn(caml_copy_string(avcodec_get_name(VideoCodecID_val(_codec_id))));
-}
-
-CAMLprim value ocaml_avcodec_find_video_decoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
-}
-
-CAMLprim value ocaml_avcodec_find_video_decoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
-}
-
-CAMLprim value ocaml_avcodec_find_video_encoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_VIDEO)));
-}
-
-CAMLprim value ocaml_avcodec_find_video_encoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder(VideoCodecID_val(_id), AVMEDIA_TYPE_VIDEO)));
-}
 
 CAMLprim value ocaml_avcodec_get_supported_frame_rates(value _codec) {
   CAMLparam1(_codec);
@@ -1374,8 +1309,10 @@ CAMLprim value ocaml_avcodec_get_supported_color_spaces(value _codec) {
     ocaml_avutil_raise_error(err);
 #endif
 
+  /* Terminated by AVCOL_SPC_UNSPECIFIED, not -1: enum AVColorSpace is
+     unsigned, so comparing against -1 never terminates. */
   if (color_spaces) {
-    for (i = 0; color_spaces[i] != -1; i++)
+    for (i = 0; color_spaces[i] != AVCOL_SPC_UNSPECIFIED; i++)
       List_add(list, cons, Val_ColorSpace(color_spaces[i]));
   }
 
@@ -1400,8 +1337,9 @@ CAMLprim value ocaml_avcodec_get_supported_color_ranges(value _codec) {
     ocaml_avutil_raise_error(err);
 #endif
 
+  /* Terminated by AVCOL_RANGE_UNSPECIFIED, not -1. */
   if (color_ranges) {
-    for (i = 0; color_ranges[i] != -1; i++)
+    for (i = 0; color_ranges[i] != AVCOL_RANGE_UNSPECIFIED; i++)
       List_add(list, cons, Val_ColorRange(color_ranges[i]));
   }
 
@@ -1409,11 +1347,6 @@ CAMLprim value ocaml_avcodec_get_supported_color_ranges(value _codec) {
 }
 
 /**** Video codec parameters ****/
-CAMLprim value ocaml_avcodec_parameters_get_video_codec_id(value _cp) {
-  CAMLparam1(_cp);
-  CAMLreturn(Val_VideoCodecID(CodecParameters_val(_cp)->codec_id));
-}
-
 CAMLprim value ocaml_avcodec_parameters_get_width(value _cp) {
   CAMLparam1(_cp);
   CAMLreturn(Val_int(CodecParameters_val(_cp)->width));
@@ -1463,103 +1396,11 @@ CAMLprim value ocaml_avcodec_parameters_get_pixel_aspect(value _cp) {
   CAMLreturn(ret);
 }
 
-CAMLprim value ocaml_avcodec_parameters_video_copy(value _codec_id,
-                                                   value _width, value _height,
-                                                   value _sample_aspect_ratio,
-                                                   value _pixel_format,
-                                                   value _bit_rate, value _cp) {
-  CAMLparam5(_codec_id, _width, _height, _sample_aspect_ratio, _pixel_format);
-  CAMLxparam2(_bit_rate, _cp);
-  CAMLlocal1(ans);
-
-  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
-
-  AVCodecParameters *dst = CodecParameters_val(ans);
-
-  dst->codec_id = VideoCodecID_val(_codec_id);
-  dst->width = Int_val(_width);
-  dst->height = Int_val(_height);
-  dst->sample_aspect_ratio.num = Int_val(Field(_sample_aspect_ratio, 0));
-  dst->sample_aspect_ratio.den = Int_val(Field(_sample_aspect_ratio, 1));
-  dst->format = PixelFormat_val(_pixel_format);
-  dst->bit_rate = Int_val(_bit_rate);
-
-  CAMLreturn(ans);
-}
-
-CAMLprim value ocaml_avcodec_parameters_video_copy_byte(value *argv, int argn) {
-  return ocaml_avcodec_parameters_video_copy(argv[0], argv[1], argv[2], argv[3],
-                                             argv[4], argv[5], argv[7]);
-}
-
 /**** Unknown codec ID *****/
-
-CAMLprim value ocaml_avcodec_get_unknown_codec_id_name(value _codec_id) {
-  CAMLparam1(_codec_id);
-  CAMLreturn(caml_copy_string(avcodec_get_name(UnknownCodecID_val(_codec_id))));
-}
-
-CAMLprim value ocaml_avcodec_parameters_get_unknown_codec_id(value _cp) {
-  CAMLparam1(_cp);
-  CAMLreturn(Val_UnknownCodecID(CodecParameters_val(_cp)->codec_id));
-}
 
 /**** Subtitle codec ID ****/
 
-CAMLprim value ocaml_avcodec_get_subtitle_codec_id_name(value _codec_id) {
-  CAMLparam1(_codec_id);
-  CAMLreturn(
-      caml_copy_string(avcodec_get_name(SubtitleCodecID_val(_codec_id))));
-}
-
-CAMLprim value ocaml_avcodec_find_subtitle_decoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
-}
-
-CAMLprim value ocaml_avcodec_find_subtitle_decoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_decoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
-}
-
-CAMLprim value ocaml_avcodec_find_subtitle_encoder_by_name(value _name) {
-  CAMLparam1(_name);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder_by_name(String_val(_name), AVMEDIA_TYPE_SUBTITLE)));
-}
-
-CAMLprim value ocaml_avcodec_find_subtitle_encoder(value _id) {
-  CAMLparam1(_id);
-  CAMLlocal1(ret);
-  CAMLreturn(value_of_avcodec(
-      &ret, find_encoder(SubtitleCodecID_val(_id), AVMEDIA_TYPE_SUBTITLE)));
-}
-
 /**** Subtitle codec parameters ****/
-CAMLprim value ocaml_avcodec_parameters_get_subtitle_codec_id(value _cp) {
-  CAMLparam1(_cp);
-  CAMLreturn(Val_SubtitleCodecID(CodecParameters_val(_cp)->codec_id));
-}
-
-CAMLprim value ocaml_avcodec_parameters_subtitle_copy(value _codec_id,
-                                                      value _cp) {
-  CAMLparam2(_codec_id, _cp);
-  CAMLlocal1(ans);
-
-  value_of_codec_parameters_copy(CodecParameters_val(_cp), &ans);
-
-  AVCodecParameters *dst = CodecParameters_val(ans);
-
-  dst->codec_id = SubtitleCodecID_val(_codec_id);
-
-  CAMLreturn(ans);
-}
-
 CAMLprim value ocaml_avcodec_int_of_flag(value _flag) {
   CAMLparam1(_flag);
 
@@ -1707,9 +1548,10 @@ static void finalize_bsf_filter(value v) {
 }
 
 static struct custom_operations bsf_filter_ops = {
-    "bsf_filter_parameters",  finalize_bsf_filter,
-    custom_compare_default,   custom_hash_default,
-    custom_serialize_default, custom_deserialize_default};
+    "bsf_filter_parameters",    finalize_bsf_filter,
+    custom_compare_default,     custom_hash_default,
+    custom_serialize_default,   custom_deserialize_default,
+    custom_compare_ext_default, custom_fixed_length_default};
 
 CAMLprim value ocaml_avcodec_bsf_init(value _opts, value _name, value _params) {
   CAMLparam3(_opts, _name, _params);
@@ -1726,34 +1568,25 @@ CAMLprim value ocaml_avcodec_bsf_init(value _opts, value _name, value _params) {
     caml_raise_not_found();
   }
 
-  char *key, *val;
-  int len = Wosize_val(_opts);
-  int i, err, count;
-
-  for (i = 0; i < len; i++) {
-    // Dictionaries copy key/values by default!
-    key = (char *)Bytes_val(Field(Field(_opts, i), 0));
-    val = (char *)Bytes_val(Field(Field(_opts, i), 1));
-    err = av_dict_set(&options, key, val, 0);
-    if (err < 0) {
-      av_dict_free(&options);
-      ocaml_avutil_raise_error(err);
-    }
-  }
+  ocaml_avutil_dict_of_options(_opts, &options);
 
   ret = av_bsf_alloc(filter, &bsf);
   if (ret < 0) {
+    av_dict_free(&options);
     ocaml_avutil_raise_error(ret);
   }
 
   ret = avcodec_parameters_copy(bsf->par_in, params);
   if (ret < 0) {
+    av_dict_free(&options);
     av_bsf_free(&bsf);
     ocaml_avutil_raise_error(ret);
   }
 
+  /* av_opt_set_dict consumes and replaces options. */
   ret = av_opt_set_dict(bsf, &options);
   if (ret < 0) {
+    av_dict_free(&options);
     av_bsf_free(&bsf);
     ocaml_avutil_raise_error(ret);
   }
@@ -1763,21 +1596,12 @@ CAMLprim value ocaml_avcodec_bsf_init(value _opts, value _name, value _params) {
   caml_acquire_runtime_system();
 
   if (ret < 0) {
+    av_dict_free(&options);
     av_bsf_free(&bsf);
     ocaml_avutil_raise_error(ret);
   }
 
-  // Return unused keys
-  count = av_dict_count(options);
-
-  unused = caml_alloc_tuple(count);
-  AVDictionaryEntry *entry = NULL;
-  for (i = 0; i < count; i++) {
-    entry = av_dict_get(options, "", entry, AV_DICT_IGNORE_SUFFIX);
-    Store_field(unused, i, caml_copy_string(entry->key));
-  }
-
-  av_dict_free(&options);
+  unused = ocaml_avutil_unused_options(&options);
 
   tmp = caml_alloc_custom(&bsf_filter_ops, sizeof(AVBSFContext *), 0, 1);
   BsfFilter_val(tmp) = bsf;
